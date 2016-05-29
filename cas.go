@@ -1,8 +1,6 @@
-package main
+package cas
 
-import (
-	"fmt"
-)
+//import "fmt"
 
 type Ex interface {
 	Eval() Ex
@@ -26,21 +24,4 @@ func (a Add) Eval() Ex {
 		a.addends[i] = a.addends[i].Eval()
 	}
 	return a
-}
-
-func main() {
-	var f Float = Float{5.5}
-	fmt.Println(f)
-	f = f.Eval().(Float)
-	fmt.Println(f)
-	var a = Add{[]Ex{
-		Add{[]Ex{
-			Float{80},
-			Float{3},
-		}},
-		Float{2},
-	}}
-	fmt.Println(a)
-	ae := a.Eval()
-	fmt.Println(ae)
 }
