@@ -13,6 +13,7 @@ type Float struct {
 }
 
 func (f Float) Eval() Ex {
+	f.val = 99
 	return f
 }
 
@@ -21,6 +22,9 @@ type Add struct {
 }
 
 func (a Add) Eval() Ex {
+	for i := range a.addends {
+		a.addends[i] = a.addends[i].Eval()
+	}
 	return a
 }
 
@@ -29,7 +33,13 @@ func main() {
 	fmt.Println(f)
 	f = f.Eval().(Float)
 	fmt.Println(f)
-	var a = Add{[]Ex{Float{1}, Float{2}}}
+	var a = Add{[]Ex{
+		Add{[]Ex{
+			Float{80},
+			Float{3},
+		}},
+		Float{2},
+	}}
 	fmt.Println(a)
 	ae := a.Eval()
 	fmt.Println(ae)
