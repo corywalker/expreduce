@@ -1,10 +1,12 @@
 package cas
 
-//import "fmt"
-//import "reflect"
+import "fmt"
+import "reflect"
+import "bytes"
 
 type Ex interface {
 	Eval()
+	ToString() string
 }
 
 type Float struct {
@@ -16,22 +18,24 @@ func (f *Float) Eval() {
 	//return f
 }
 
-/*
+func (f *Float) ToString() string {
+	return fmt.Sprintf("%f", f.Val)
+}
+
 type Add struct {
 	addends []Ex
 }
 
-func (a Add) Eval() Ex {
+func (a Add) Eval() {
 	for i := range a.addends {
-		a.addends[i] = a.addends[i].Eval()
+		a.addends[i].Eval()
 	}
 
 	var lastf *Float = nil
 	for _, e := range a.addends {
 		fmt.Println(reflect.TypeOf(e))
 		fmt.Println(reflect.TypeOf(a.addends))
-		f := e.(*Float)
-		ok := true
+		f, ok := e.(*Float)
 		if ok {
 			fmt.Println(f.Val)
 			if lastf != nil {
@@ -43,7 +47,20 @@ func (a Add) Eval() Ex {
 			lastf = f
 		}
 	}
-
-	return a
 }
-*/
+
+func (a Add) ToString() string {
+	var buffer bytes.Buffer
+	//var strList []string
+	buffer.WriteString("(")
+	for i, e := range a.addends {
+		buffer.WriteString(e.ToString())
+		if i != len(a.addends)-1 {
+			buffer.WriteString(" + ")
+		}
+	}
+	buffer.WriteString(")")
+	return buffer.String()
+	//return strings.Join(strList, " + ")
+	//return fmt.Sprintf("{k}")
+}

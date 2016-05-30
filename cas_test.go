@@ -8,7 +8,6 @@ func Test(t *testing.T) {
 	fmt.Println(f)
 	f.Eval()
 	fmt.Println(f)
-	/*
 	var a = Add{[]Ex{
 		&Add{[]Ex{
 			&Float{80},
@@ -17,7 +16,8 @@ func Test(t *testing.T) {
 		&Float{2},
 	}}
 	fmt.Println(a)
-	ae := a.Eval()
-	fmt.Println(ae)
-	*/
+	fmt.Println(a.ToString())
+	a.Eval()
+	fmt.Println(a)
+	fmt.Println(a.ToString())
 }
