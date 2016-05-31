@@ -28,10 +28,22 @@ type Add struct {
 }
 
 func (a *Add) Eval() Ex {
+	// Start by evaluating each addend
 	for i := range a.addends {
 		a.addends[i] = a.addends[i].Eval()
 	}
 
+	// If any of the addends are also Adds, merge them with a and remove them
+	// We can easily remove an item by replacing it with a zero float.
+	for i, e := range a.addends {
+		subadd, isadd := e.(*Add)
+		if isadd {
+			a.addends = append(a.addends, subadd.addends...)
+			a.addends[i] = &Float{0}
+		}
+	}
+
+	// Accumulate floating point values towards the end of the expression
 	var lastf *Float = nil
 	for _, e := range a.addends {
 		f, ok := e.(*Float)
@@ -44,6 +56,7 @@ func (a *Add) Eval() Ex {
 		}
 	}
 
+	// Remove zero Floats
 	for i := len(a.addends)-1; i >= 0; i-- {
 		f, ok := a.addends[i].(*Float)
 		if ok && f.Val == 0 {
@@ -52,6 +65,8 @@ func (a *Add) Eval() Ex {
 			a.addends = a.addends[:len(a.addends)-1]
 		}
 	}
+
+	// If one float remains, replace this Add with the Float
 	if len(a.addends) == 1 {
 		_, isfloat := a.addends[0].(*Float)
 		if isfloat {
