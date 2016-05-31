@@ -1,24 +1,36 @@
 package cas
 
-import "testing"
-import "fmt"
+import (
+	"testing"
+	//"fmt"
+	"github.com/stretchr/testify/assert"
+)
+
 
 func Test(t *testing.T) {
-	var f *Float = &Float{5.5}
 
-	fmt.Println(f)
+	// Test basic float functionality
+	var f *Float = &Float{5.5}
+	assert.Equal(t, f.ToString(), "5.5")
 	f.Eval()
-	fmt.Println(f)
+	assert.Equal(t, f.ToString(), "5.5")
+
+	// Test nested addition functionality
 	var a = &Add{[]Ex{
 		&Add{[]Ex{
 			&Float{80},
 			&Float{3},
 		}},
 		&Float{2},
+		&Float{2.5},
 	}}
-	fmt.Println(a)
-	fmt.Println(a.ToString())
+	assert.Equal(t, a.ToString(), "((80 + 3) + 2 + 2.5)")
+	//fmt.Println(a)
+	//fmt.Println(a.ToString())
+
+	// Test evaluation
 	a.Eval()
-	fmt.Println(a)
-	fmt.Println(a.ToString())
+	assert.Equal(t, a.ToString(), "(87.5)")
+	//fmt.Println(a)
+	//fmt.Println(a.ToString())
 }
