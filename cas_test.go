@@ -55,4 +55,30 @@ func Test(t *testing.T) {
 	fmt.Println(withVar.ToString())
 	withVar.Eval()
 	fmt.Println(withVar.ToString())
+
+	// Test nested addition and multiplication functionality
+	withVar = &Add{[]Ex{
+		&Add{[]Ex{
+			&Variable{"x"},
+			&Float{80},
+			&Float{3},
+			&Variable{"x"},
+		}},
+		&Float{2},
+		&Mul{[]Ex{
+			&Variable{"x"},
+			&Float{2},
+			&Float{2},
+		}},
+		&Mul{[]Ex{
+			&Float{0},
+			&Float{3},
+			&Variable{"x"},
+		}},
+		&Variable{"x"},
+		&Float{2.5},
+	}}
+	fmt.Println(withVar.ToString())
+	withVar.Eval()
+	fmt.Println(withVar.ToString())
 }

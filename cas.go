@@ -90,6 +90,74 @@ func (a *Add) ToString() string {
 	return buffer.String()
 }
 
+// A sequence of Expressions to be multiplied together
+type Mul struct {
+	multiplicands []Ex
+}
+
+func (m *Mul) Eval() Ex {
+	// Start by evaluating each multiplicand
+	for i := range m.multiplicands {
+		m.multiplicands[i] = m.multiplicands[i].Eval()
+	}
+
+	// If any of the multiplicands are also Muls, merge them with m and remove them
+	// We can easily remove an item by replacing it with a one float.
+	for i, e := range m.multiplicands {
+		submul, ismul := e.(*Mul)
+		if ismul {
+			m.multiplicands = append(m.multiplicands, submul.multiplicands...)
+			m.multiplicands[i] = &Float{1}
+		}
+	}
+
+	// Geometrically accumulate floating point values towards the end of the expression
+	var lastf *Float = nil
+	for _, e := range m.multiplicands {
+		f, ok := e.(*Float)
+		if ok {
+			if lastf != nil {
+				f.Val *= lastf.Val;
+				lastf.Val = 1
+			}
+			lastf = f
+		}
+	}
+
+	// Remove one Floats
+	for i := len(m.multiplicands)-1; i >= 0; i-- {
+		f, ok := m.multiplicands[i].(*Float)
+		if ok && f.Val == 1 {
+			m.multiplicands[i] = m.multiplicands[len(m.multiplicands)-1]
+			m.multiplicands[len(m.multiplicands)-1] = nil
+			m.multiplicands = m.multiplicands[:len(m.multiplicands)-1]
+		}
+	}
+
+	// If one float remains, replace this Mul with the Float
+	if len(m.multiplicands) == 1 {
+		_, isfloat := m.multiplicands[0].(*Float)
+		if isfloat {
+			return m.multiplicands[0]
+		}
+	}
+
+	return m
+}
+
+func (m *Mul) ToString() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	for i, e := range m.multiplicands {
+		buffer.WriteString(e.ToString())
+		if i != len(m.multiplicands)-1 {
+			buffer.WriteString(" * ")
+		}
+	}
+	buffer.WriteString(")")
+	return buffer.String()
+}
+
 // Variables are defined by a string-based name
 type Variable struct {
 	Name string
