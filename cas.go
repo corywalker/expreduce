@@ -74,3 +74,17 @@ func (a *Add) ToString() string {
 	buffer.WriteString(")")
 	return buffer.String()
 }
+
+// Variables are defined by a string-based name
+type Variable struct {
+	Name string
+}
+
+func (v *Variable) Eval() Ex {
+	return v
+}
+
+func (v *Variable) ToString() string {
+	return fmt.Sprintf("%v", v.Name)
+}
+

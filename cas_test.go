@@ -2,7 +2,7 @@ package cas
 
 import (
 	"testing"
-	//"fmt"
+	"fmt"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,4 +33,26 @@ func Test(t *testing.T) {
 	assert.Equal(t, a.ToString(), "(87.5)")
 	//fmt.Println(a)
 	//fmt.Println(a.ToString())
+
+	// Test basic Variable functionality
+	var v *Variable = &Variable{"x"}
+	assert.Equal(t, v.ToString(), "x")
+	v.Eval()
+	assert.Equal(t, v.ToString(), "x")
+
+	// Test nested addition functionality
+	var withVar = &Add{[]Ex{
+		&Add{[]Ex{
+			&Variable{"x"},
+			&Float{80},
+			&Float{3},
+			&Variable{"x"},
+		}},
+		&Float{2},
+		&Variable{"x"},
+		&Float{2.5},
+	}}
+	fmt.Println(withVar.ToString())
+	withVar.Eval()
+	fmt.Println(withVar.ToString())
 }
