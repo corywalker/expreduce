@@ -5,6 +5,7 @@ import "fmt"
 
 func Test(t *testing.T) {
 	var f *Float = &Float{5.5}
+
 	fmt.Println(f)
 	f.Eval()
 	fmt.Println(f)
