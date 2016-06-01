@@ -111,6 +111,15 @@ func (m *Mul) Eval() Ex {
 		}
 	}
 
+	for _, e := range m.multiplicands {
+		f, ok := e.(*Float)
+		if ok {
+			if f.Val == 0 {
+				return &Float{0}
+			}
+		}
+	}
+
 	// Geometrically accumulate floating point values towards the end of the expression
 	var lastf *Float = nil
 	for _, e := range m.multiplicands {
