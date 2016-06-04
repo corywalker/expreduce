@@ -7,7 +7,23 @@ import "bytes"
 type Ex interface {
 	Eval() Ex
 	ToString() string
+	IsEqual(b Ex) string
 }
+
+/*
+func isEqual(a Ex, b Ex) string {
+	switch v := a.(type) {
+	case Float:
+		// here v has type T
+	case Add:
+		// here v has type S
+	case Mul:
+		// here v has type S
+	default:
+		return "EQUAL_UNK"
+	}
+	return false
+} */
 
 // Floating point numbers represented by float64
 type Float struct {
@@ -20,6 +36,17 @@ func (f *Float) Eval() Ex {
 
 func (f *Float) ToString() string {
 	return fmt.Sprintf("%g", f.Val)
+}
+
+func (this *Float) IsEqual(other Ex) string {
+	otherConv, ok := other.(*Float)
+	if !ok {
+		return "EQUAL_FALSE"
+	}
+	if this.Val != otherConv.Val {
+		return "EQUAL_FALSE"
+	}
+	return "EQUAL_TRUE"
 }
 
 // A sequence of Expressions to be added together
@@ -90,6 +117,48 @@ func (a *Add) ToString() string {
 	return buffer.String()
 }
 
+func (this *Add) IsEqual(otherEx Ex) string {
+	thisEx := this.Eval()
+	otherEx = otherEx.Eval()
+	this, ok := thisEx.(*Add)
+	if !ok {
+		return thisEx.IsEqual(otherEx)
+	}
+	other, ok := otherEx.(*Add)
+	if !ok {
+		return "EQUAL_FALSE"
+	}
+	if len(this.addends) != len(other.addends) {
+		return "EQUAL_FALSE"
+	}
+	matched := make(map[int]struct{})
+	for _, e1 := range this.addends {
+		foundmatch := false
+		for j, e2 := range other.addends {
+			_, taken := matched[j]
+			if taken {
+				continue
+			}
+			res := e1.IsEqual(e2)
+			switch res {
+			case "EQUAL_FALSE":
+			case "EQUAL_TRUE":
+				matched[j] = struct{}{}
+				foundmatch = true
+			case "EQUAL_UNK":
+				return "EQUAL_UNK"
+			}
+			if foundmatch {
+				break
+			}
+		}
+		if !foundmatch {
+			return "EQUAL_FALSE"
+		}
+	}
+	return "EQUAL_TRUE"
+}
+
 // A sequence of Expressions to be multiplied together
 type Mul struct {
 	multiplicands []Ex
@@ -111,6 +180,7 @@ func (m *Mul) Eval() Ex {
 		}
 	}
 
+	// If there is a zero in the expression, return zero
 	for _, e := range m.multiplicands {
 		f, ok := e.(*Float)
 		if ok {
@@ -167,6 +237,10 @@ func (m *Mul) ToString() string {
 	return buffer.String()
 }
 
+func (this *Mul) IsEqual(other Ex) string {
+	return "EQUAL_TRUE"
+}
+
 // Variables are defined by a string-based name
 type Variable struct {
 	Name string
@@ -180,3 +254,13 @@ func (v *Variable) ToString() string {
 	return fmt.Sprintf("%v", v.Name)
 }
 
+func (this *Variable) IsEqual(other Ex) string {
+	otherConv, ok := other.(*Variable)
+	if !ok {
+		return "EQUAL_FALSE"
+	}
+	if this.Name != otherConv.Name {
+		return "EQUAL_FALSE"
+	}
+	return "EQUAL_TRUE"
+}

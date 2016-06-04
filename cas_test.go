@@ -28,6 +28,79 @@ func Test(t *testing.T) {
 	//fmt.Println(a)
 	//fmt.Println(a.ToString())
 
+	// Test equality checking
+	assert.Equal(t, (&Float{99}).IsEqual(&Float{99}), "EQUAL_TRUE")
+	assert.Equal(t, (&Float{99}).IsEqual(&Float{98}), "EQUAL_FALSE")
+	assert.Equal(t, (&Variable{"x"}).IsEqual(&Variable{"x"}), "EQUAL_TRUE")
+	assert.Equal(t, (&Variable{"x"}).IsEqual(&Variable{"X"}), "EQUAL_FALSE")
+	assert.Equal(t, (&Variable{"x"}).IsEqual(&Variable{"y"}), "EQUAL_FALSE")
+	var t1 = &Add{[]Ex{
+		&Float{2.5},
+		&Float{5},
+	}}
+	var t2 = &Add{[]Ex{
+		&Float{5},
+		&Float{2.5},
+	}}
+	assert.Equal(t, t1.IsEqual(t2), "EQUAL_TRUE")
+	var b = &Add{[]Ex{
+		&Float{2.5},
+		&Add{[]Ex{
+			&Float{3},
+			&Float{80},
+		}},
+		&Float{2},
+	}}
+	var c = &Mul{[]Ex{
+		&Float{2.5},
+		&Add{[]Ex{
+			&Float{3},
+			&Float{80},
+		}},
+		&Float{2},
+	}}
+	var d = &Add{[]Ex{
+		&Float{2.5},
+		&Add{[]Ex{
+			&Float{3},
+			&Float{80},
+		}},
+		&Float{2},
+		&Variable{"x"},
+	}}
+	var e = &Add{[]Ex{
+		&Float{2.5},
+		&Add{[]Ex{
+			&Float{3},
+			&Float{80},
+		}},
+		&Float{2.5},
+	}}
+	assert.Equal(t, a.IsEqual(b), "EQUAL_TRUE")
+	assert.Equal(t, a.IsEqual(c), "EQUAL_FALSE")
+	assert.Equal(t, b.IsEqual(c), "EQUAL_FALSE")
+	assert.Equal(t, a.IsEqual(d), "EQUAL_FALSE")
+	assert.Equal(t, a.IsEqual(e), "EQUAL_FALSE")
+	assert.Equal(t, a.IsEqual(a), "EQUAL_TRUE")
+	var t3 = &Add{[]Ex{
+		&Float{1},
+		&Variable{"x"},
+	}}
+	var t4 = &Add{[]Ex{
+		&Variable{"x"},
+		&Float{1},
+	}}
+	assert.Equal(t, "EQUAL_TRUE", t3.IsEqual(t4))
+	t3 = &Add{[]Ex{
+		&Float{1},
+		&Variable{"x"},
+	}}
+	t4 = &Add{[]Ex{
+		&Variable{"y"},
+		&Float{1},
+	}}
+	assert.Equal(t, "EQUAL_FALSE", t3.IsEqual(t4))
+
 	// Test evaluation
 	a.Eval()
 	assert.Equal(t, a.ToString(), "(87.5)")
