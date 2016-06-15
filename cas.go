@@ -126,12 +126,9 @@ func (a *Add) Eval() Ex {
 		}
 	}
 
-	// If one float remains, replace this Add with the Float
+	// If one expression remains, replace this Add with the expression
 	if len(a.addends) == 1 {
-		_, isfloat := a.addends[0].(*Float)
-		if isfloat {
-			return a.addends[0]
-		}
+		return a.addends[0]
 	}
 
 	return a
@@ -218,12 +215,9 @@ func (m *Mul) Eval() Ex {
 		}
 	}
 
-	// If one float remains, replace this Mul with the Float
+	// If one expression remains, replace this Mul with the expression
 	if len(m.multiplicands) == 1 {
-		_, isfloat := m.multiplicands[0].(*Float)
-		if isfloat {
-			return m.multiplicands[0]
-		}
+		return m.multiplicands[0]
 	}
 
 	return m

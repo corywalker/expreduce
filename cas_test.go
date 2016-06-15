@@ -114,9 +114,7 @@ func Test(t *testing.T) {
 		&Variable{"x"},
 	}}
 	var t8 = &Variable{"x"}
-	//assert.Equal(t, "EQUAL_TRUE", t7.IsEqual(t8))
-	fmt.Println(t7.Eval().ToString())
-	fmt.Println(t8.Eval().ToString())
+	assert.Equal(t, "EQUAL_TRUE", t7.IsEqual(t8))
 
 	// Test evaluation
 	a.Eval()
