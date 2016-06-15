@@ -11,15 +11,15 @@ func TestExponent(t *testing.T) {
 
 	var t9 = &Exponent{
 		&Variable{"x"},
-		&Float{2},
+		&Flt{2},
 	}
 	var t10 = &Exponent{
 		&Variable{"x"},
-		&Add{[]Ex{&Float{-1}, &Float{3}}},
+		&Add{[]Ex{&Flt{-1}, &Flt{3}}},
 	}
 	var t11 = &Exponent{
 		&Variable{"x"},
-		&Float{3},
+		&Flt{3},
 	}
 	assert.Equal(t, t9.ToString(), "x^2")
 	assert.Equal(t, t10.ToString(), "x^(-1 + 3)")

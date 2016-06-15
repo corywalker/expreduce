@@ -19,14 +19,14 @@ func (a *Add) Eval() Ex {
 		subadd, isadd := e.(*Add)
 		if isadd {
 			a.addends = append(a.addends, subadd.addends...)
-			a.addends[i] = &Float{0}
+			a.addends[i] = &Flt{0}
 		}
 	}
 
 	// Accumulate floating point values towards the end of the expression
-	var lastf *Float = nil
+	var lastf *Flt = nil
 	for _, e := range a.addends {
-		f, ok := e.(*Float)
+		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
 				f.Val += lastf.Val;
@@ -38,7 +38,7 @@ func (a *Add) Eval() Ex {
 
 	// Remove zero Floats
 	for i := len(a.addends)-1; i >= 0; i-- {
-		f, ok := a.addends[i].(*Float)
+		f, ok := a.addends[i].(*Flt)
 		if ok && f.Val == 0 {
 			a.addends[i] = a.addends[len(a.addends)-1]
 			a.addends[len(a.addends)-1] = nil

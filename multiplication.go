@@ -19,24 +19,24 @@ func (m *Mul) Eval() Ex {
 		submul, ismul := e.(*Mul)
 		if ismul {
 			m.multiplicands = append(m.multiplicands, submul.multiplicands...)
-			m.multiplicands[i] = &Float{1}
+			m.multiplicands[i] = &Flt{1}
 		}
 	}
 
 	// If there is a zero in the expression, return zero
 	for _, e := range m.multiplicands {
-		f, ok := e.(*Float)
+		f, ok := e.(*Flt)
 		if ok {
 			if f.Val == 0 {
-				return &Float{0}
+				return &Flt{0}
 			}
 		}
 	}
 
 	// Geometrically accumulate floating point values towards the end of the expression
-	var lastf *Float = nil
+	var lastf *Flt = nil
 	for _, e := range m.multiplicands {
-		f, ok := e.(*Float)
+		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
 				f.Val *= lastf.Val;
@@ -48,7 +48,7 @@ func (m *Mul) Eval() Ex {
 
 	// Remove one Floats
 	for i := len(m.multiplicands)-1; i >= 0; i-- {
-		f, ok := m.multiplicands[i].(*Float)
+		f, ok := m.multiplicands[i].(*Flt)
 		if ok && f.Val == 1 {
 			m.multiplicands[i] = m.multiplicands[len(m.multiplicands)-1]
 			m.multiplicands[len(m.multiplicands)-1] = nil
