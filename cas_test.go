@@ -100,6 +100,23 @@ func Test(t *testing.T) {
 		&Float{1},
 	}}
 	assert.Equal(t, "EQUAL_FALSE", t3.IsEqual(t4))
+	var t5 = &Mul{[]Ex{
+		&Float{1},
+		&Variable{"x"},
+	}}
+	var t6 = &Mul{[]Ex{
+		&Variable{"x"},
+		&Float{1},
+	}}
+	assert.Equal(t, "EQUAL_TRUE", t5.IsEqual(t6))
+	var t7 = &Mul{[]Ex{
+		&Float{1},
+		&Variable{"x"},
+	}}
+	var t8 = &Variable{"x"}
+	//assert.Equal(t, "EQUAL_TRUE", t7.IsEqual(t8))
+	fmt.Println(t7.Eval().ToString())
+	fmt.Println(t8.Eval().ToString())
 
 	// Test evaluation
 	a.Eval()

@@ -25,6 +25,39 @@ func isEqual(a Ex, b Ex) string {
 	return false
 } */
 
+
+func CommutativeIsEqual(components []Ex, other_components []Ex) string {
+	if len(components) != len(other_components) {
+		return "EQUAL_FALSE"
+	}
+	matched := make(map[int]struct{})
+	for _, e1 := range components {
+		foundmatch := false
+		for j, e2 := range other_components {
+			_, taken := matched[j]
+			if taken {
+				continue
+			}
+			res := e1.IsEqual(e2)
+			switch res {
+			case "EQUAL_FALSE":
+			case "EQUAL_TRUE":
+				matched[j] = struct{}{}
+				foundmatch = true
+			case "EQUAL_UNK":
+				return "EQUAL_UNK"
+			}
+			if foundmatch {
+				break
+			}
+		}
+		if !foundmatch {
+			return "EQUAL_FALSE"
+		}
+	}
+	return "EQUAL_TRUE"
+}
+
 // Floating point numbers represented by float64
 type Float struct {
 	Val float64
@@ -128,35 +161,7 @@ func (this *Add) IsEqual(otherEx Ex) string {
 	if !ok {
 		return "EQUAL_FALSE"
 	}
-	if len(this.addends) != len(other.addends) {
-		return "EQUAL_FALSE"
-	}
-	matched := make(map[int]struct{})
-	for _, e1 := range this.addends {
-		foundmatch := false
-		for j, e2 := range other.addends {
-			_, taken := matched[j]
-			if taken {
-				continue
-			}
-			res := e1.IsEqual(e2)
-			switch res {
-			case "EQUAL_FALSE":
-			case "EQUAL_TRUE":
-				matched[j] = struct{}{}
-				foundmatch = true
-			case "EQUAL_UNK":
-				return "EQUAL_UNK"
-			}
-			if foundmatch {
-				break
-			}
-		}
-		if !foundmatch {
-			return "EQUAL_FALSE"
-		}
-	}
-	return "EQUAL_TRUE"
+	return CommutativeIsEqual(this.addends, other.addends)
 }
 
 // A sequence of Expressions to be multiplied together
@@ -237,8 +242,18 @@ func (m *Mul) ToString() string {
 	return buffer.String()
 }
 
-func (this *Mul) IsEqual(other Ex) string {
-	return "EQUAL_TRUE"
+func (this *Mul) IsEqual(otherEx Ex) string {
+	thisEx := this.Eval()
+	otherEx = otherEx.Eval()
+	this, ok := thisEx.(*Mul)
+	if !ok {
+		return thisEx.IsEqual(otherEx)
+	}
+	other, ok := otherEx.(*Mul)
+	if !ok {
+		return "EQUAL_FALSE"
+	}
+	return CommutativeIsEqual(this.multiplicands, other.multiplicands)
 }
 
 // Variables are defined by a string-based name
