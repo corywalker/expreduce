@@ -9,6 +9,8 @@ import (
 
 func Test(t *testing.T) {
 
+	fmt.Println("Testing main CAS system")
+
 	// Test basic float functionality
 	var f *Flt = &Flt{big.NewFloat(5.5)}
 	assert.Equal(t, f.ToString(), "5.5")
