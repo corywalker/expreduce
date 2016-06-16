@@ -1,6 +1,7 @@
 package cas
 
 import "bytes"
+import "math/big"
 
 // A sequence of Expressions to be added together
 type Add struct {
@@ -19,7 +20,7 @@ func (a *Add) Eval() Ex {
 		subadd, isadd := e.(*Add)
 		if isadd {
 			a.addends = append(a.addends, subadd.addends...)
-			a.addends[i] = &Flt{0}
+			a.addends[i] = &Flt{big.NewFloat(0)}
 		}
 	}
 
@@ -29,8 +30,8 @@ func (a *Add) Eval() Ex {
 		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
-				f.Val += lastf.Val;
-				lastf.Val = 0
+				f.Val.Add(f.Val, lastf.Val)
+				lastf.Val = big.NewFloat(0)
 			}
 			lastf = f
 		}
@@ -39,7 +40,7 @@ func (a *Add) Eval() Ex {
 	// Remove zero Floats
 	for i := len(a.addends)-1; i >= 0; i-- {
 		f, ok := a.addends[i].(*Flt)
-		if ok && f.Val == 0 {
+		if ok && f.Val.Cmp(big.NewFloat(0)) == 0 {
 			a.addends[i] = a.addends[len(a.addends)-1]
 			a.addends[len(a.addends)-1] = nil
 			a.addends = a.addends[:len(a.addends)-1]

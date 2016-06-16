@@ -1,6 +1,7 @@
 package cas
 
 import "bytes"
+import "math/big"
 
 // A sequence of Expressions to be multiplied together
 type Mul struct {
@@ -19,7 +20,7 @@ func (m *Mul) Eval() Ex {
 		submul, ismul := e.(*Mul)
 		if ismul {
 			m.multiplicands = append(m.multiplicands, submul.multiplicands...)
-			m.multiplicands[i] = &Flt{1}
+			m.multiplicands[i] = &Flt{big.NewFloat(1)}
 		}
 	}
 
@@ -27,8 +28,8 @@ func (m *Mul) Eval() Ex {
 	for _, e := range m.multiplicands {
 		f, ok := e.(*Flt)
 		if ok {
-			if f.Val == 0 {
-				return &Flt{0}
+			if f.Val.Cmp(big.NewFloat(0)) == 0 {
+				return &Flt{big.NewFloat(0)}
 			}
 		}
 	}
@@ -39,8 +40,8 @@ func (m *Mul) Eval() Ex {
 		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
-				f.Val *= lastf.Val;
-				lastf.Val = 1
+				f.Val.Mul(f.Val, lastf.Val)
+				lastf.Val = big.NewFloat(1)
 			}
 			lastf = f
 		}
@@ -49,7 +50,7 @@ func (m *Mul) Eval() Ex {
 	// Remove one Floats
 	for i := len(m.multiplicands)-1; i >= 0; i-- {
 		f, ok := m.multiplicands[i].(*Flt)
-		if ok && f.Val == 1 {
+		if ok && f.Val.Cmp(big.NewFloat(1)) == 0 {
 			m.multiplicands[i] = m.multiplicands[len(m.multiplicands)-1]
 			m.multiplicands[len(m.multiplicands)-1] = nil
 			m.multiplicands = m.multiplicands[:len(m.multiplicands)-1]

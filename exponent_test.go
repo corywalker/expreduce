@@ -4,6 +4,7 @@ import (
 	"testing"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"math/big"
 )
 
 func TestExponent(t *testing.T) {
@@ -11,15 +12,15 @@ func TestExponent(t *testing.T) {
 
 	var t9 = &Exponent{
 		&Variable{"x"},
-		&Flt{2},
+		&Flt{big.NewFloat(2)},
 	}
 	var t10 = &Exponent{
 		&Variable{"x"},
-		&Add{[]Ex{&Flt{-1}, &Flt{3}}},
+		&Add{[]Ex{&Flt{big.NewFloat(-1)}, &Flt{big.NewFloat(3)}}},
 	}
 	var t11 = &Exponent{
 		&Variable{"x"},
-		&Flt{3},
+		&Flt{big.NewFloat(3)},
 	}
 	assert.Equal(t, t9.ToString(), "x^2")
 	assert.Equal(t, t10.ToString(), "x^(-1 + 3)")

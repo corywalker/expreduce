@@ -1,11 +1,11 @@
 package cas
 
 import "fmt"
-//import "math/big"
+import "math/big"
 
 // Floating point numbers represented by float64
 type Flt struct {
-	Val float64
+	Val *big.Float
 }
 
 func (f *Flt) Eval() Ex {
@@ -21,7 +21,7 @@ func (this *Flt) IsEqual(other Ex) string {
 	if !ok {
 		return "EQUAL_FALSE"
 	}
-	if this.Val != otherConv.Val {
+	if this.Val.Cmp(otherConv.Val) != 0 {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
