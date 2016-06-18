@@ -15,6 +15,7 @@ import (
 	"unicode"
 )
 
+var regs = make([]int, 26)
 var base int
 
 %}
@@ -32,8 +33,11 @@ var base int
 // same for terminals
 %token <val> DIGIT LETTER
 
-%left '+'
-%left '*'
+%left '|'
+%left '&'
+%left '+'  '-'
+%left '*'  '/'  '%'
+%left UMINUS      /*  supplies  precedence  for  unary  minus  */
 
 %%
 
@@ -45,14 +49,32 @@ stat	:    expr
 		{
 			fmt.Printf( "%d\n", $1 );
 		}
+	|    LETTER '=' expr
+		{
+			regs[$1]  =  $3
+		}
 	;
 
 expr	:    '(' expr ')'
 		{ $$  =  $2 }
 	|    expr '+' expr
 		{ $$  =  $1 + $3 }
+	|    expr '-' expr
+		{ $$  =  $1 - $3 }
 	|    expr '*' expr
 		{ $$  =  $1 * $3 }
+	|    expr '/' expr
+		{ $$  =  $1 / $3 }
+	|    expr '%' expr
+		{ $$  =  $1 % $3 }
+	|    expr '&' expr
+		{ $$  =  $1 & $3 }
+	|    expr '|' expr
+		{ $$  =  $1 | $3 }
+	|    '-'  expr        %prec  UMINUS
+		{ $$  = -$2  }
+	|    LETTER
+		{ $$  = regs[$1] }
 	|    number
 	;
 
