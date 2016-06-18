@@ -14,8 +14,6 @@ import (
 	"gopkg.in/readline.v1"
 )
 
-var base int
-
 %}
 
 // fields inside this union end up as the fields in a structure known
@@ -29,7 +27,7 @@ var base int
 %type <val> expr number
 
 // same for terminals
-%token <val> DIGIT LETTER
+%token <val> DIGIT
 
 %left '+'
 %left '*'
@@ -58,14 +56,9 @@ expr	:    '(' expr ')'
 number	:    DIGIT
 		{
 			$$ = $1;
-			if $1==0 {
-				base = 8
-			} else {
-				base = 10
-			}
 		}
 	|    number DIGIT
-		{ $$ = base * $1 + $2 }
+		{ $$ = 10 * $1 + $2 }
 	;
 
 %%      /*  start  of  programs  */
@@ -89,9 +82,6 @@ func (l *CalcLex) Lex(lval *CalcSymType) int {
 	if unicode.IsDigit(c) {
 		lval.val = int(c) - '0'
 		return DIGIT
-	} else if unicode.IsLower(c) {
-		lval.val = int(c) - 'a'
-		return LETTER
 	}
 	return int(c)
 }
