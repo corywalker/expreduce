@@ -1,3 +1,5 @@
+//go:generate go tool yacc -p Calc -o calc.go calc.y
+
 package cas
 
 // Ex stands for Expression. Most structs should implement this
