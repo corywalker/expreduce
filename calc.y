@@ -9,10 +9,9 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"unicode"
+	"gopkg.in/readline.v1"
 )
 
 var base int
@@ -102,25 +101,20 @@ func (l *CalcLex) Error(s string) {
 }
 
 func main() {
-	fi := bufio.NewReader(os.NewFile(0, "stdin"))
+	rl, err := readline.NewEx(&readline.Config{
+		Prompt: "> ",
+		HistoryFile: "/tmp/readline.tmp",
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer rl.Close()
 
 	for {
-		var eqn string
-		var ok bool
-
-		fmt.Printf("equation: ")
-		if eqn, ok = readline(fi); ok {
-			CalcParse(&CalcLex{s: eqn})
-		} else {
+		line, err := rl.Readline()
+		if err != nil { // io.EOF, readline.ErrInterrupt
 			break
 		}
+		CalcParse(&CalcLex{s: line + "\n"})
 	}
-}
-
-func readline(fi *bufio.Reader) (string, bool) {
-	s, err := fi.ReadString('\n')
-	if err != nil {
-		return "", false
-	}
-	return s, true
 }
