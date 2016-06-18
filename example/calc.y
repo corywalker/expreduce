@@ -12,6 +12,8 @@ import (
 	"fmt"
 	"unicode"
 	"gopkg.in/readline.v1"
+	"github.com/corywalker/cas"
+	"math/big"
 )
 
 %}
@@ -19,7 +21,7 @@ import (
 // fields inside this union end up as the fields in a structure known
 // as ${PREFIX}SymType, of which a reference is passed to the lexer.
 %union{
-	val int
+	val cas.Ex
 }
 
 // any non-terminal which returns a value needs a type, which is
@@ -40,16 +42,17 @@ list	: /* empty */
 
 stat	:    expr
 		{
-			fmt.Printf( "%d\n", $1 );
+			fmt.Printf( "In:  %s\n", $1.ToString() );
+			fmt.Printf( "Out: %s\n", $1.Eval().ToString() );
 		}
 	;
 
 expr	:    '(' expr ')'
 		{ $$  =  $2 }
 	|    expr '+' expr
-		{ $$  =  $1 + $3 }
+		{ $$  =  &cas.Add{[]cas.Ex{$1, $3}} }
 	|    expr '*' expr
-		{ $$  =  $1 * $3 }
+		{ $$  =  &cas.Mul{[]cas.Ex{$1, $3}} }
 	|    number
 	;
 
@@ -58,7 +61,7 @@ number	:    DIGIT
 			$$ = $1;
 		}
 	|    number DIGIT
-		{ $$ = 10 * $1 + $2 }
+		{ $$ = &cas.Flt{$1.(*cas.Flt).Val.Mul($1.(*cas.Flt).Val, big.NewFloat(10)).Add($1.(*cas.Flt).Val, $2.(*cas.Flt).Val)} }
 	;
 
 %%      /*  start  of  programs  */
@@ -80,7 +83,7 @@ func (l *CalcLex) Lex(lval *CalcSymType) int {
 	}
 
 	if unicode.IsDigit(c) {
-		lval.val = int(c) - '0'
+		lval.val = &cas.Flt{big.NewFloat(float64(int(c) - '0'))};
 		return DIGIT
 	}
 	return int(c)
