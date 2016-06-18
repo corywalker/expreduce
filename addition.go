@@ -5,28 +5,28 @@ import "math/big"
 
 // A sequence of Expressions to be added together
 type Add struct {
-	addends []Ex
+	Addends []Ex
 }
 
 func (a *Add) Eval() Ex {
 	// Start by evaluating each addend
-	for i := range a.addends {
-		a.addends[i] = a.addends[i].Eval()
+	for i := range a.Addends {
+		a.Addends[i] = a.Addends[i].Eval()
 	}
 
 	// If any of the addends are also Adds, merge them with a and remove them
 	// We can easily remove an item by replacing it with a zero float.
-	for i, e := range a.addends {
+	for i, e := range a.Addends {
 		subadd, isadd := e.(*Add)
 		if isadd {
-			a.addends = append(a.addends, subadd.addends...)
-			a.addends[i] = &Flt{big.NewFloat(0)}
+			a.Addends = append(a.Addends, subadd.Addends...)
+			a.Addends[i] = &Flt{big.NewFloat(0)}
 		}
 	}
 
 	// Accumulate floating point values towards the end of the expression
 	var lastf *Flt = nil
-	for _, e := range a.addends {
+	for _, e := range a.Addends {
 		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
@@ -38,18 +38,18 @@ func (a *Add) Eval() Ex {
 	}
 
 	// Remove zero Floats
-	for i := len(a.addends)-1; i >= 0; i-- {
-		f, ok := a.addends[i].(*Flt)
+	for i := len(a.Addends)-1; i >= 0; i-- {
+		f, ok := a.Addends[i].(*Flt)
 		if ok && f.Val.Cmp(big.NewFloat(0)) == 0 {
-			a.addends[i] = a.addends[len(a.addends)-1]
-			a.addends[len(a.addends)-1] = nil
-			a.addends = a.addends[:len(a.addends)-1]
+			a.Addends[i] = a.Addends[len(a.Addends)-1]
+			a.Addends[len(a.Addends)-1] = nil
+			a.Addends = a.Addends[:len(a.Addends)-1]
 		}
 	}
 
 	// If one expression remains, replace this Add with the expression
-	if len(a.addends) == 1 {
-		return a.addends[0]
+	if len(a.Addends) == 1 {
+		return a.Addends[0]
 	}
 
 	return a
@@ -58,9 +58,9 @@ func (a *Add) Eval() Ex {
 func (a *Add) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	for i, e := range a.addends {
+	for i, e := range a.Addends {
 		buffer.WriteString(e.ToString())
-		if i != len(a.addends)-1 {
+		if i != len(a.Addends)-1 {
 			buffer.WriteString(" + ")
 		}
 	}
@@ -79,5 +79,5 @@ func (this *Add) IsEqual(otherEx Ex) string {
 	if !ok {
 		return "EQUAL_FALSE"
 	}
-	return CommutativeIsEqual(this.addends, other.addends)
+	return CommutativeIsEqual(this.Addends, other.Addends)
 }

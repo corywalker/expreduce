@@ -5,27 +5,27 @@ import "math/big"
 
 // A sequence of Expressions to be multiplied together
 type Mul struct {
-	multiplicands []Ex
+	Multiplicands []Ex
 }
 
 func (m *Mul) Eval() Ex {
 	// Start by evaluating each multiplicand
-	for i := range m.multiplicands {
-		m.multiplicands[i] = m.multiplicands[i].Eval()
+	for i := range m.Multiplicands {
+		m.Multiplicands[i] = m.Multiplicands[i].Eval()
 	}
 
 	// If any of the multiplicands are also Muls, merge them with m and remove them
 	// We can easily remove an item by replacing it with a one float.
-	for i, e := range m.multiplicands {
+	for i, e := range m.Multiplicands {
 		submul, ismul := e.(*Mul)
 		if ismul {
-			m.multiplicands = append(m.multiplicands, submul.multiplicands...)
-			m.multiplicands[i] = &Flt{big.NewFloat(1)}
+			m.Multiplicands = append(m.Multiplicands, submul.Multiplicands...)
+			m.Multiplicands[i] = &Flt{big.NewFloat(1)}
 		}
 	}
 
 	// If there is a zero in the expression, return zero
-	for _, e := range m.multiplicands {
+	for _, e := range m.Multiplicands {
 		f, ok := e.(*Flt)
 		if ok {
 			if f.Val.Cmp(big.NewFloat(0)) == 0 {
@@ -36,7 +36,7 @@ func (m *Mul) Eval() Ex {
 
 	// Geometrically accumulate floating point values towards the end of the expression
 	var lastf *Flt = nil
-	for _, e := range m.multiplicands {
+	for _, e := range m.Multiplicands {
 		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
@@ -48,18 +48,18 @@ func (m *Mul) Eval() Ex {
 	}
 
 	// Remove one Floats
-	for i := len(m.multiplicands)-1; i >= 0; i-- {
-		f, ok := m.multiplicands[i].(*Flt)
+	for i := len(m.Multiplicands)-1; i >= 0; i-- {
+		f, ok := m.Multiplicands[i].(*Flt)
 		if ok && f.Val.Cmp(big.NewFloat(1)) == 0 {
-			m.multiplicands[i] = m.multiplicands[len(m.multiplicands)-1]
-			m.multiplicands[len(m.multiplicands)-1] = nil
-			m.multiplicands = m.multiplicands[:len(m.multiplicands)-1]
+			m.Multiplicands[i] = m.Multiplicands[len(m.Multiplicands)-1]
+			m.Multiplicands[len(m.Multiplicands)-1] = nil
+			m.Multiplicands = m.Multiplicands[:len(m.Multiplicands)-1]
 		}
 	}
 
 	// If one expression remains, replace this Mul with the expression
-	if len(m.multiplicands) == 1 {
-		return m.multiplicands[0]
+	if len(m.Multiplicands) == 1 {
+		return m.Multiplicands[0]
 	}
 
 	return m
@@ -68,9 +68,9 @@ func (m *Mul) Eval() Ex {
 func (m *Mul) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	for i, e := range m.multiplicands {
+	for i, e := range m.Multiplicands {
 		buffer.WriteString(e.ToString())
-		if i != len(m.multiplicands)-1 {
+		if i != len(m.Multiplicands)-1 {
 			buffer.WriteString(" * ")
 		}
 	}
@@ -89,5 +89,5 @@ func (this *Mul) IsEqual(otherEx Ex) string {
 	if !ok {
 		return "EQUAL_FALSE"
 	}
-	return CommutativeIsEqual(this.multiplicands, other.multiplicands)
+	return CommutativeIsEqual(this.Multiplicands, other.Multiplicands)
 }
