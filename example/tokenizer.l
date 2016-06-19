@@ -55,8 +55,9 @@ func (y *Calclexer) Lex(lval *CalcSymType) int {
 %yyn c = y.getc()
 
 D  [0-9]+
-E  [eE][-+]?{D}
-F  {D}"."{D}?{E}?|{D}{E}?|"."{D}{E}?
+/*E  [eE][-+]?{D}*/
+/*F  {D}"."{D}?{E}?|{D}{E}?|"."{D}{E}?*/
+F  {D}"."{D}?|"."{D}|{D}
 
 %%
     y.buf = y.buf[:0]
