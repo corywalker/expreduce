@@ -64,6 +64,16 @@ F  {D}"."{D}?|"."{D}|{D}
 
 [ \t\r]+
 
+{D}
+    var tmpf float64
+    tmpf, err = strconv.ParseFloat(string(y.buf), 64)
+    if err != nil {
+        log.Fatal(err)
+    }
+    lval.val = &cas.Flt{big.NewFloat(tmpf)}
+
+    return INTEGER
+
 {F}
     var tmpf float64
     tmpf, err = strconv.ParseFloat(string(y.buf), 64)
@@ -72,7 +82,7 @@ F  {D}"."{D}?|"."{D}|{D}
     }
     lval.val = &cas.Flt{big.NewFloat(tmpf)}
 
-    return DIGIT
+    return FLOAT
 
 %%
     y.empty = true

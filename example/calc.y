@@ -23,7 +23,7 @@ import (
 %type <val> expr
 
 // same for terminals
-%token <val> DIGIT LETTER
+%token <val> FLOAT INTEGER LETTER
 
 %left '='
 %left '+'
@@ -55,7 +55,9 @@ expr	:    '(' expr ')'
 		{ $$  =  &cas.EqualQ{$1, $3} }
 	|    LETTER
 		{ $$  =  $1 }
-	|    DIGIT
+	|    FLOAT
+		{ $$  =  $1 }
+	|    INTEGER
 		{ $$  =  $1 }
 	;
 
