@@ -1,6 +1,9 @@
-all: calc.go
+all: calc.go tokenizer.go
 	#gofmt -l -s -w *.go
 	go build $^
+
+tokenizer.go: tokenizer.l
+	golex -o $@ $<
 
 calc.go: calc.y
 	go tool yacc -p Calc -o $@ $<
