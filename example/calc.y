@@ -16,6 +16,8 @@ import (
 	"math/big"
 )
 
+// TODO: Add boolean literals
+
 %}
 
 // fields inside this union end up as the fields in a structure known
@@ -29,10 +31,12 @@ import (
 %type <val> expr number
 
 // same for terminals
-%token <val> DIGIT
+%token <val> DIGIT LETTER
 
+%left '='
 %left '+'
 %left '*'
+%left '^'
 
 %%
 
@@ -53,6 +57,12 @@ expr	:    '(' expr ')'
 		{ $$  =  &cas.Add{[]cas.Ex{$1, $3}} }
 	|    expr '*' expr
 		{ $$  =  &cas.Mul{[]cas.Ex{$1, $3}} }
+	|    expr '^' expr
+		{ $$  =  &cas.Exponent{$1, $3} }
+	|    expr '=' expr
+		{ $$  =  &cas.EqualQ{$1, $3} }
+	|    LETTER
+		{ $$  =  $1 }
 	|    number
 	;
 
@@ -85,6 +95,9 @@ func (l *CalcLex) Lex(lval *CalcSymType) int {
 	if unicode.IsDigit(c) {
 		lval.val = &cas.Flt{big.NewFloat(float64(int(c) - '0'))};
 		return DIGIT
+	} else if unicode.IsLower(c) {
+		lval.val = &cas.Variable{string(c)}
+		return LETTER
 	}
 	return int(c)
 }
