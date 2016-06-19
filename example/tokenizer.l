@@ -84,6 +84,13 @@ F  {D}"."{D}?|"."{D}|{D}
 
     return FLOAT
 
+\( return LPARSYM
+\) return RPARSYM
+\+ return PLUSSYM
+\* return MULTSYM
+\^  return EXPSYM
+== return EQUALSYM
+
 %%
     y.empty = true
     return int(c)

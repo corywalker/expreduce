@@ -23,12 +23,12 @@ import (
 %type <val> expr
 
 // same for terminals
-%token <val> FLOAT INTEGER LETTER
+%token <val> FLOAT INTEGER LPARSYM RPARSYM PLUSSYM MULTSYM EXPSYM EQUALSYM
 
-%left '='
-%left '+'
-%left '*'
-%left '^'
+%left EQUALSYM
+%left PLUSSYM
+%left MULTSYM
+%left EXPSYM
 
 %%
 
@@ -43,18 +43,16 @@ stat	:    expr
 		}
 	;
 
-expr	:    '(' expr ')'
+expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $2 }
-	|    expr '+' expr
+	|    expr PLUSSYM expr
 		{ $$  =  &cas.Add{[]cas.Ex{$1, $3}} }
-	|    expr '*' expr
+	|    expr MULTSYM expr
 		{ $$  =  &cas.Mul{[]cas.Ex{$1, $3}} }
-	|    expr '^' expr
+	|    expr EXPSYM expr
 		{ $$  =  &cas.Exponent{$1, $3} }
-	|    expr '=' expr
+	|    expr EQUALSYM expr
 		{ $$  =  &cas.EqualQ{$1, $3} }
-	|    LETTER
-		{ $$  =  $1 }
 	|    FLOAT
 		{ $$  =  $1 }
 	|    INTEGER
