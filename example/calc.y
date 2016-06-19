@@ -1,9 +1,3 @@
-// Copyright 2011 Bobby Powers. All rights reserved.
-// Use of this source code is governed by the MIT
-// license that can be found in the LICENSE file.
-
-// based off of Appendix A from http://dinosaur.compilertools.net/yacc/
-
 %{
 
 package main
@@ -76,7 +70,7 @@ number	:    DIGIT
 
 %%      /*  start  of  programs  */
 
-type CalcLex struct {
+/*type CalcLex struct {
 	s string
 	pos int
 }
@@ -104,7 +98,7 @@ func (l *CalcLex) Lex(lval *CalcSymType) int {
 
 func (l *CalcLex) Error(s string) {
 	fmt.Printf("syntax error: %s\n", s)
-}
+}*/
 
 func main() {
 	rl, err := readline.NewEx(&readline.Config{
@@ -121,6 +115,7 @@ func main() {
 		if err != nil { // io.EOF, readline.ErrInterrupt
 			break
 		}
-		CalcParse(&CalcLex{s: line + "\n"})
+		/*CalcParse(&CalcLex{s: line + "\n"})*/
+		CalcParse(newLexer(line + "\n"))
 	}
 }

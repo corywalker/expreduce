@@ -1,11 +1,4 @@
 %{
-// Copyright (c) 2011 CZ.NIC z.s.p.o. All rights reserved.
-// Use of this source code is governed by a BSD-style
-// license that can be found in the LICENSE file.
-
-// blame: jnml, labs.nic.cz
-
-
 package main
 
 import (
@@ -16,22 +9,22 @@ import (
     "math/big"
 )
 
-type yylexer struct{
+type Calclexer struct{
     src     *bufio.Reader
     buf     []byte
     empty   bool
     current byte
 }
 
-func newLexer(src *bufio.Reader) (y *yylexer) {
-    y = &yylexer{src: src}
+func newLexer(src *bufio.Reader) (y *Calclexer) {
+    y = &Calclexer{src: src}
     if b, err := src.ReadByte(); err == nil {
         y.current = b
     }
     return
 }
 
-func (y *yylexer) getc() byte {
+func (y *Calclexer) getc() byte {
     if y.current != 0 {
         y.buf = append(y.buf, y.current)
     }
@@ -42,11 +35,11 @@ func (y *yylexer) getc() byte {
     return y.current
 }
 
-func (y yylexer) Error(e string) {
+func (y Calclexer) Error(e string) {
     log.Fatal(e)
 }
 
-func (y *yylexer) Lex(lval *CalcSymType) int {
+func (y *Calclexer) Lex(lval *CalcSymType) int {
     var err error
     c := y.current
     if y.empty {
