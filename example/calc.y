@@ -23,7 +23,7 @@ import (
 %type <val> expr
 
 // same for terminals
-%token <val> FLOAT INTEGER LPARSYM RPARSYM PLUSSYM MULTSYM EXPSYM EQUALSYM
+%token <val> FLOAT INTEGER LPARSYM RPARSYM PLUSSYM MULTSYM EXPSYM EQUALSYM NAME
 
 %left EQUALSYM
 %left PLUSSYM
@@ -53,6 +53,8 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  &cas.Exponent{$1, $3} }
 	|    expr EQUALSYM expr
 		{ $$  =  &cas.EqualQ{$1, $3} }
+	|    NAME
+		{ $$  =  $1 }
 	|    FLOAT
 		{ $$  =  $1 }
 	|    INTEGER

@@ -58,6 +58,8 @@ D  [0-9]+
 /*E  [eE][-+]?{D}*/
 /*F  {D}"."{D}?{E}?|{D}{E}?|"."{D}{E}?*/
 F  {D}"."{D}?|"."{D}|{D}
+L [A-Za-z]
+ident {L}({L}|{D})*
 
 %%
     y.buf = y.buf[:0]
@@ -90,6 +92,10 @@ F  {D}"."{D}?|"."{D}|{D}
 \* return MULTSYM
 \^  return EXPSYM
 == return EQUALSYM
+
+{ident}
+    lval.val = &cas.Variable{string(y.buf)}
+    return NAME
 
 %%
     y.empty = true
