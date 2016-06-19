@@ -27,29 +27,6 @@ func (this *Flt) IsEqual(other Ex) string {
 	return "EQUAL_TRUE"
 }
 
-type Bool struct {
-	Val bool
-}
-
-func (this *Bool) Eval() Ex {
-	return this
-}
-
-func (this *Bool) ToString() string {
-	return fmt.Sprintf("%v", this.Val)
-}
-
-func (this *Bool) IsEqual(other Ex) string {
-	otherConv, ok := other.(*Bool)
-	if !ok {
-		return "EQUAL_FALSE"
-	}
-	if this.Val != otherConv.Val {
-		return "EQUAL_FALSE"
-	}
-	return "EQUAL_TRUE"
-}
-
 type Error struct {
 	Val string
 }

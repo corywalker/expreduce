@@ -11,15 +11,15 @@ func TestExponent(t *testing.T) {
 	fmt.Println("Testing exponents")
 
 	var t9 = &Exponent{
-		&Variable{"x"},
+		&Symbol{"x"},
 		&Flt{big.NewFloat(2)},
 	}
 	var t10 = &Exponent{
-		&Variable{"x"},
+		&Symbol{"x"},
 		&Add{[]Ex{&Flt{big.NewFloat(-1)}, &Flt{big.NewFloat(3)}}},
 	}
 	var t11 = &Exponent{
-		&Variable{"x"},
+		&Symbol{"x"},
 		&Flt{big.NewFloat(3)},
 	}
 	assert.Equal(t, t9.ToString(), "x^2")

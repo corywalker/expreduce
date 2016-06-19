@@ -12,9 +12,9 @@ func (this *EqualQ) Eval() Ex {
 	if isequal == "EQUAL_UNK" {
 		return &Error{"Encountered EQUAL_UNK when comparing for the EqualQ."}
 	} else if isequal == "EQUAL_TRUE" {
-		return &Bool{true}
+		return &Symbol{"True"}
 	} else if isequal == "EQUAL_FALSE" {
-		return &Bool{false}
+		return &Symbol{"False"}
 	}
 
 	return &Error{"Unexpected equality return value."}
@@ -22,9 +22,11 @@ func (this *EqualQ) Eval() Ex {
 
 func (this *EqualQ) ToString() string {
 	var buffer bytes.Buffer
+	buffer.WriteString("(")
 	buffer.WriteString(this.Lhs.ToString())
-	buffer.WriteString(" == ")
+	buffer.WriteString(") == (")
 	buffer.WriteString(this.Rhs.ToString())
+	buffer.WriteString(")")
 	return buffer.String()
 }
 

@@ -94,7 +94,7 @@ ident {L}({L}|{D})*
 == return EQUALSYM
 
 {ident}
-    lval.val = &cas.Variable{string(y.buf)}
+    lval.val = &cas.Symbol{string(y.buf)}
     return NAME
 
 %%

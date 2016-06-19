@@ -33,9 +33,9 @@ func Test(t *testing.T) {
 	// Test equality checking
 	assert.Equal(t, (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}), "EQUAL_TRUE")
 	assert.Equal(t, (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(98)}), "EQUAL_FALSE")
-	assert.Equal(t, (&Variable{"x"}).IsEqual(&Variable{"x"}), "EQUAL_TRUE")
-	assert.Equal(t, (&Variable{"x"}).IsEqual(&Variable{"X"}), "EQUAL_FALSE")
-	assert.Equal(t, (&Variable{"x"}).IsEqual(&Variable{"y"}), "EQUAL_FALSE")
+	assert.Equal(t, (&Symbol{"x"}).IsEqual(&Symbol{"x"}), "EQUAL_TRUE")
+	assert.Equal(t, (&Symbol{"x"}).IsEqual(&Symbol{"X"}), "EQUAL_FALSE")
+	assert.Equal(t, (&Symbol{"x"}).IsEqual(&Symbol{"y"}), "EQUAL_FALSE")
 	var t1 = &Add{[]Ex{
 		&Flt{big.NewFloat(2.5)},
 		&Flt{big.NewFloat(5)},
@@ -68,7 +68,7 @@ func Test(t *testing.T) {
 			&Flt{big.NewFloat(80)},
 		}},
 		&Flt{big.NewFloat(2)},
-		&Variable{"x"},
+		&Symbol{"x"},
 	}}
 	var e = &Add{[]Ex{
 		&Flt{big.NewFloat(2.5)},
@@ -86,36 +86,36 @@ func Test(t *testing.T) {
 	assert.Equal(t, a.IsEqual(a), "EQUAL_TRUE")
 	var t3 = &Add{[]Ex{
 		&Flt{big.NewFloat(1)},
-		&Variable{"x"},
+		&Symbol{"x"},
 	}}
 	var t4 = &Add{[]Ex{
-		&Variable{"x"},
+		&Symbol{"x"},
 		&Flt{big.NewFloat(1)},
 	}}
 	assert.Equal(t, "EQUAL_TRUE", t3.IsEqual(t4))
 	t3 = &Add{[]Ex{
 		&Flt{big.NewFloat(1)},
-		&Variable{"x"},
+		&Symbol{"x"},
 	}}
 	t4 = &Add{[]Ex{
-		&Variable{"y"},
+		&Symbol{"y"},
 		&Flt{big.NewFloat(1)},
 	}}
 	assert.Equal(t, "EQUAL_FALSE", t3.IsEqual(t4))
 	var t5 = &Mul{[]Ex{
 		&Flt{big.NewFloat(1)},
-		&Variable{"x"},
+		&Symbol{"x"},
 	}}
 	var t6 = &Mul{[]Ex{
-		&Variable{"x"},
+		&Symbol{"x"},
 		&Flt{big.NewFloat(1)},
 	}}
 	assert.Equal(t, "EQUAL_TRUE", t5.IsEqual(t6))
 	var t7 = &Mul{[]Ex{
 		&Flt{big.NewFloat(1)},
-		&Variable{"x"},
+		&Symbol{"x"},
 	}}
-	var t8 = &Variable{"x"}
+	var t8 = &Symbol{"x"}
 	assert.Equal(t, "EQUAL_TRUE", t7.IsEqual(t8))
 
 	// Test evaluation
@@ -124,8 +124,8 @@ func Test(t *testing.T) {
 	//fmt.Println(a)
 	//fmt.Println(a.ToString())
 
-	// Test basic Variable functionality
-	var v *Variable = &Variable{"x"}
+	// Test basic Symbol functionality
+	var v *Symbol = &Symbol{"x"}
 	assert.Equal(t, v.ToString(), "x")
 	v.Eval()
 	assert.Equal(t, v.ToString(), "x")
@@ -133,13 +133,13 @@ func Test(t *testing.T) {
 	// Test nested addition functionality
 	var withVar = &Add{[]Ex{
 		&Add{[]Ex{
-			&Variable{"x"},
+			&Symbol{"x"},
 			&Flt{big.NewFloat(80)},
 			&Flt{big.NewFloat(3)},
-			&Variable{"x"},
+			&Symbol{"x"},
 		}},
 		&Flt{big.NewFloat(2)},
-		&Variable{"x"},
+		&Symbol{"x"},
 		&Flt{big.NewFloat(2.5)},
 	}}
 	fmt.Println(withVar.ToString())
@@ -149,23 +149,23 @@ func Test(t *testing.T) {
 	// Test nested addition and multiplication functionality
 	withVar = &Add{[]Ex{
 		&Add{[]Ex{
-			&Variable{"x"},
+			&Symbol{"x"},
 			&Flt{big.NewFloat(80)},
 			&Flt{big.NewFloat(3)},
-			&Variable{"x"},
+			&Symbol{"x"},
 		}},
 		&Flt{big.NewFloat(2)},
 		&Mul{[]Ex{
-			&Variable{"x"},
+			&Symbol{"x"},
 			&Flt{big.NewFloat(2)},
 			&Flt{big.NewFloat(2)},
 		}},
 		&Mul{[]Ex{
 			&Flt{big.NewFloat(0)},
 			&Flt{big.NewFloat(3)},
-			&Variable{"x"},
+			&Symbol{"x"},
 		}},
-		&Variable{"x"},
+		&Symbol{"x"},
 		&Flt{big.NewFloat(2.5)},
 	}}
 	fmt.Println(withVar.ToString())
