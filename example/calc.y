@@ -4,7 +4,6 @@ package main
 
 import (
 	"fmt"
-	"unicode"
 	"gopkg.in/readline.v1"
 	"github.com/corywalker/cas"
 	"math/big"

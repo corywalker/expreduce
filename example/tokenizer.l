@@ -2,7 +2,6 @@
 package main
 
 import (
-    "bufio"
     "log"
     "strconv"
     "github.com/corywalker/cas"
@@ -10,28 +9,33 @@ import (
 )
 
 type Calclexer struct{
-    src     *bufio.Reader
-    buf     []byte
+    s       string
+    pos     int
+    buf     []rune
     empty   bool
-    current byte
+    current rune
 }
 
-func newLexer(src *bufio.Reader) (y *Calclexer) {
-    y = &Calclexer{src: src}
-    if b, err := src.ReadByte(); err == nil {
-        y.current = b
+func newLexer(s string) (y *Calclexer) {
+    y = &Calclexer{s: s}
+    if y.pos != len(y.s) {
+        y.current = rune(y.s[y.pos])
     }
+    /*fmt.Printf("y.current: %d, y.pos: %d, '%s'\n", y.current, y.pos, y.buf)*/
+    y.pos += 1
     return
 }
 
-func (y *Calclexer) getc() byte {
+func (y *Calclexer) getc() rune {
     if y.current != 0 {
         y.buf = append(y.buf, y.current)
     }
     y.current = 0
-    if b, err := y.src.ReadByte(); err == nil {
-        y.current = b
+    if y.pos != len(y.s) {
+        y.current = rune(y.s[y.pos])
     }
+    /*fmt.Printf("y.current: %d, y.pos: %d, '%s'\n", y.current, y.pos, y.buf)*/
+    y.pos += 1
     return y.current
 }
 
