@@ -30,9 +30,6 @@ list	: /* empty */
 
 stat	:    expr
 		{
-			/*fmt.Printf( "In:  %s\n", $1.ToString() );*/
-			/*fmt.Printf( "Out: %s\n", $1.Eval().ToString() );*/
-			/*return $1*/
 			Calcrcvr.lval.val = $1
 		}
 	;
