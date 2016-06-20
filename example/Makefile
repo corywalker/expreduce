@@ -11,7 +11,7 @@ calc.go: calc.y
 clean:
 	go clean
 	#rm -f tokenizer.go calc.go lex.yy.go y.go y.output *~
-	rm -f calc.go y.output *~
+	rm -f calc.go y.output tokenizer.go *~
 
 nuke: clean
 	rm -f calc

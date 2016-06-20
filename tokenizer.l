@@ -1,10 +1,9 @@
 %{
-package main
+package cas
 
 import (
     "log"
     "strconv"
-    "github.com/corywalker/cas"
     "math/big"
 )
 
@@ -72,7 +71,7 @@ ident {L}({L}|{D})*
     if err != nil {
         log.Fatal(err)
     }
-    lval.val = &cas.Flt{big.NewFloat(tmpf)}
+    lval.val = &Flt{big.NewFloat(tmpf)}
 
     return INTEGER
 
@@ -82,7 +81,7 @@ ident {L}({L}|{D})*
     if err != nil {
         log.Fatal(err)
     }
-    lval.val = &cas.Flt{big.NewFloat(tmpf)}
+    lval.val = &Flt{big.NewFloat(tmpf)}
 
     return FLOAT
 
@@ -94,7 +93,7 @@ ident {L}({L}|{D})*
 == return EQUALSYM
 
 {ident}
-    lval.val = &cas.Symbol{string(y.buf)}
+    lval.val = &Symbol{string(y.buf)}
     return NAME
 
 %%
