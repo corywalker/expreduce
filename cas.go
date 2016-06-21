@@ -3,16 +3,20 @@
 
 package cas
 
+type EvalState struct {
+	defined map[string]Ex
+}
+
 // Ex stands for Expression. Most structs should implement this
 type Ex interface {
-	Eval() Ex
+	Eval(es EvalState) Ex
 	ToString() string
-	IsEqual(b Ex) string
+	IsEqual(b Ex, es EvalState) string
 }
 
 // Some utility functions that span multiple files
 
-func CommutativeIsEqual(components []Ex, other_components []Ex) string {
+func CommutativeIsEqual(components []Ex, other_components []Ex, es EvalState) string {
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
 	}
@@ -24,7 +28,7 @@ func CommutativeIsEqual(components []Ex, other_components []Ex) string {
 			if taken {
 				continue
 			}
-			res := e1.IsEqual(e2)
+			res := e1.IsEqual(e2, es)
 			switch res {
 			case "EQUAL_FALSE":
 			case "EQUAL_TRUE":

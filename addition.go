@@ -8,10 +8,10 @@ type Add struct {
 	Addends []Ex
 }
 
-func (a *Add) Eval() Ex {
+func (a *Add) Eval(es EvalState) Ex {
 	// Start by evaluating each addend
 	for i := range a.Addends {
-		a.Addends[i] = a.Addends[i].Eval()
+		a.Addends[i] = a.Addends[i].Eval(es)
 	}
 
 	// If any of the addends are also Adds, merge them with a and remove them
@@ -68,16 +68,16 @@ func (a *Add) ToString() string {
 	return buffer.String()
 }
 
-func (this *Add) IsEqual(otherEx Ex) string {
-	thisEx := this.Eval()
-	otherEx = otherEx.Eval()
+func (this *Add) IsEqual(otherEx Ex, es EvalState) string {
+	thisEx := this.Eval(es)
+	otherEx = otherEx.Eval(es)
 	this, ok := thisEx.(*Add)
 	if !ok {
-		return thisEx.IsEqual(otherEx)
+		return thisEx.IsEqual(otherEx, es)
 	}
 	other, ok := otherEx.(*Add)
 	if !ok {
 		return "EQUAL_FALSE"
 	}
-	return CommutativeIsEqual(this.Addends, other.Addends)
+	return CommutativeIsEqual(this.Addends, other.Addends, es)
 }

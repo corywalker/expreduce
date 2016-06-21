@@ -7,8 +7,8 @@ type EqualQ struct {
 	Rhs Ex
 }
 
-func (this *EqualQ) Eval() Ex {
-	var isequal string = this.Lhs.IsEqual(this.Rhs)
+func (this *EqualQ) Eval(es EvalState) Ex {
+	var isequal string = this.Lhs.IsEqual(this.Rhs, es)
 	if isequal == "EQUAL_UNK" {
 		return &Error{"Encountered EQUAL_UNK when comparing for the EqualQ."}
 	} else if isequal == "EQUAL_TRUE" {
@@ -30,6 +30,6 @@ func (this *EqualQ) ToString() string {
 	return buffer.String()
 }
 
-func (this *EqualQ) IsEqual(otherEx Ex) string {
+func (this *EqualQ) IsEqual(otherEx Ex, es EvalState) string {
 	return "EQUAL_UNK"
 }

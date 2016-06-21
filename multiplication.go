@@ -8,10 +8,10 @@ type Mul struct {
 	Multiplicands []Ex
 }
 
-func (m *Mul) Eval() Ex {
+func (m *Mul) Eval(es EvalState) Ex {
 	// Start by evaluating each multiplicand
 	for i := range m.Multiplicands {
-		m.Multiplicands[i] = m.Multiplicands[i].Eval()
+		m.Multiplicands[i] = m.Multiplicands[i].Eval(es)
 	}
 
 	// If any of the multiplicands are also Muls, merge them with m and remove them
@@ -78,16 +78,16 @@ func (m *Mul) ToString() string {
 	return buffer.String()
 }
 
-func (this *Mul) IsEqual(otherEx Ex) string {
-	thisEx := this.Eval()
-	otherEx = otherEx.Eval()
+func (this *Mul) IsEqual(otherEx Ex, es EvalState) string {
+	thisEx := this.Eval(es)
+	otherEx = otherEx.Eval(es)
 	this, ok := thisEx.(*Mul)
 	if !ok {
-		return thisEx.IsEqual(otherEx)
+		return thisEx.IsEqual(otherEx, es)
 	}
 	other, ok := otherEx.(*Mul)
 	if !ok {
 		return "EQUAL_FALSE"
 	}
-	return CommutativeIsEqual(this.Multiplicands, other.Multiplicands)
+	return CommutativeIsEqual(this.Multiplicands, other.Multiplicands, es)
 }

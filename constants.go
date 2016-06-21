@@ -8,7 +8,7 @@ type Flt struct {
 	Val *big.Float
 }
 
-func (f *Flt) Eval() Ex {
+func (f *Flt) Eval(es EvalState) Ex {
 	return f
 }
 
@@ -16,7 +16,7 @@ func (f *Flt) ToString() string {
 	return fmt.Sprintf("%g", f.Val)
 }
 
-func (this *Flt) IsEqual(other Ex) string {
+func (this *Flt) IsEqual(other Ex, es EvalState) string {
 	otherConv, ok := other.(*Flt)
 	if !ok {
 		return "EQUAL_FALSE"
@@ -31,7 +31,7 @@ type Error struct {
 	Val string
 }
 
-func (this *Error) Eval() Ex {
+func (this *Error) Eval(es EvalState) Ex {
 	return this
 }
 
@@ -39,7 +39,7 @@ func (this *Error) ToString() string {
 	return fmt.Sprintf("%v", this.Val)
 }
 
-func (this *Error) IsEqual(other Ex) string {
+func (this *Error) IsEqual(other Ex, es EvalState) string {
 	otherConv, ok := other.(*Error)
 	if !ok {
 		return "EQUAL_FALSE"

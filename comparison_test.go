@@ -11,6 +11,8 @@ func TestComparison(t *testing.T) {
 
 	fmt.Println("Testing comparison")
 
+	var es EvalState
+
 	var lhs Ex = &Mul{[]Ex{
 		&Flt{big.NewFloat(1e9)},
 		&Symbol{"x"},
@@ -21,7 +23,7 @@ func TestComparison(t *testing.T) {
 	}}
 	var a Ex = &EqualQ{lhs, rhs}
 	fmt.Println(a.ToString())
-	var res Ex = a.Eval()
+	var res Ex = a.Eval(es)
 	fmt.Println(res.ToString())
 	assert.Equal(t, "True", res.ToString())
 
@@ -35,7 +37,7 @@ func TestComparison(t *testing.T) {
 	}}
 	a = &EqualQ{lhs, rhs}
 	fmt.Println(a.ToString())
-	res = a.Eval()
+	res = a.Eval(es)
 	fmt.Println(res.ToString())
 	assert.Equal(t, "False", res.ToString())
 }

@@ -62,6 +62,6 @@ func Interp(line string) Ex {
 	return parser.(*CalcParserImpl).lval.val
 }
 
-func EvalInterp(line string) Ex {
-	return Interp(line).Eval()
+func EvalInterp(line string, es EvalState) Ex {
+	return Interp(line).Eval(es)
 }

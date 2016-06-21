@@ -17,6 +17,8 @@ func main() {
 	}
 	defer rl.Close()
 
+	var es cas.EvalState
+
 	for {
 		line, err := rl.Readline()
 		if err != nil { // io.EOF, readline.ErrInterrupt
@@ -25,6 +27,6 @@ func main() {
 
 		exp := cas.Interp(line)
 		fmt.Printf( "In:  %s\n", exp.ToString() );
-		fmt.Printf( "Out: %s\n", exp.Eval().ToString() );
+		fmt.Printf( "Out: %s\n", exp.Eval(es).ToString() );
 	}
 }

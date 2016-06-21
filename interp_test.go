@@ -9,7 +9,9 @@ import (
 func TestInterp(t *testing.T) {
 	fmt.Println("Testing interp")
 
+	var es EvalState
+
 	assert.Equal(t, "(1 + 2)", Interp("1  + 2").ToString())
-	assert.Equal(t, "3", Interp("  1  + 2 ").Eval().ToString())
-	assert.Equal(t, "3", EvalInterp("  1  + 2 ").ToString())
+	assert.Equal(t, "3", Interp("  1  + 2 ").Eval(es).ToString())
+	assert.Equal(t, "3", EvalInterp("  1  + 2 ", es).ToString())
 }

@@ -10,6 +10,8 @@ import (
 func TestExponent(t *testing.T) {
 	fmt.Println("Testing exponents")
 
+	var es EvalState
+
 	var t9 = &Exponent{
 		&Symbol{"x"},
 		&Flt{big.NewFloat(2)},
@@ -25,6 +27,6 @@ func TestExponent(t *testing.T) {
 	assert.Equal(t, t9.ToString(), "x^2")
 	assert.Equal(t, t10.ToString(), "x^(-1 + 3)")
 	assert.Equal(t, t11.ToString(), "x^3")
-	assert.Equal(t, "EQUAL_TRUE", t9.IsEqual(t10))
-	assert.Equal(t, "EQUAL_UNK", t9.IsEqual(t11))
+	assert.Equal(t, "EQUAL_TRUE", t9.IsEqual(t10, es))
+	assert.Equal(t, "EQUAL_UNK", t9.IsEqual(t11, es))
 }
