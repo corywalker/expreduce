@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSymbol(t *testing.T) {
-	fmt.Println("Testing symbol")
+func TestInterp(t *testing.T) {
+	fmt.Println("Testing interp")
 
 	es := NewEvalState()
 

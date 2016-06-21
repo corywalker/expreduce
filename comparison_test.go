@@ -11,7 +11,7 @@ func TestComparison(t *testing.T) {
 
 	fmt.Println("Testing comparison")
 
-	var es EvalState
+	es := NewEvalState()
 
 	var lhs Ex = &Mul{[]Ex{
 		&Flt{big.NewFloat(1e9)},

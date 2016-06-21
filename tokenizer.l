@@ -90,6 +90,8 @@ ident {L}({L}|{D})*
 \+ return PLUSSYM
 \* return MULTSYM
 \^  return EXPSYM
+= return SETSYM
+:= return SETDELAYEDSYM
 == return EQUALSYM
 
 {ident}

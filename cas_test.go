@@ -11,7 +11,7 @@ func Test(t *testing.T) {
 
 	fmt.Println("Testing main CAS system")
 
-	var es EvalState
+	es := NewEvalState()
 
 	// Test basic float functionality
 	var f *Flt = &Flt{big.NewFloat(5.5)}

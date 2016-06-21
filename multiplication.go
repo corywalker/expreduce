@@ -8,7 +8,7 @@ type Mul struct {
 	Multiplicands []Ex
 }
 
-func (m *Mul) Eval(es EvalState) Ex {
+func (m *Mul) Eval(es *EvalState) Ex {
 	// Start by evaluating each multiplicand
 	for i := range m.Multiplicands {
 		m.Multiplicands[i] = m.Multiplicands[i].Eval(es)
@@ -78,7 +78,7 @@ func (m *Mul) ToString() string {
 	return buffer.String()
 }
 
-func (this *Mul) IsEqual(otherEx Ex, es EvalState) string {
+func (this *Mul) IsEqual(otherEx Ex, es *EvalState) string {
 	thisEx := this.Eval(es)
 	otherEx = otherEx.Eval(es)
 	this, ok := thisEx.(*Mul)

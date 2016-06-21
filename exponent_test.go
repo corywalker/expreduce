@@ -10,7 +10,7 @@ import (
 func TestExponent(t *testing.T) {
 	fmt.Println("Testing exponents")
 
-	var es EvalState
+	es := NewEvalState()
 
 	var t9 = &Exponent{
 		&Symbol{"x"},

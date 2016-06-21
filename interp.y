@@ -15,7 +15,7 @@ package cas
 %type <val> expr
 
 // same for terminals
-%token <val> FLOAT INTEGER LPARSYM RPARSYM PLUSSYM MULTSYM EXPSYM EQUALSYM NAME
+%token <val> FLOAT INTEGER LPARSYM RPARSYM PLUSSYM MULTSYM EXPSYM EQUALSYM SETSYM SETDELAYEDSYM NAME
 
 %left EQUALSYM
 %left PLUSSYM
@@ -42,6 +42,10 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  &Mul{[]Ex{$1, $3}} }
 	|    expr EXPSYM expr
 		{ $$  =  &Exponent{$1, $3} }
+	|    expr SETSYM expr
+		{ $$  =  &Set{$1, $3} }
+	|    expr SETDELAYEDSYM expr
+		{ $$  =  &SetDelayed{$1, $3} }
 	|    expr EQUALSYM expr
 		{ $$  =  &EqualQ{$1, $3} }
 	|    NAME
@@ -62,6 +66,6 @@ func Interp(line string) Ex {
 	return parser.(*CalcParserImpl).lval.val
 }
 
-func EvalInterp(line string, es EvalState) Ex {
+func EvalInterp(line string, es *EvalState) Ex {
 	return Interp(line).Eval(es)
 }

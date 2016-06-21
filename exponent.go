@@ -8,7 +8,7 @@ type Exponent struct {
 	Exponent Ex
 }
 
-func (this *Exponent) Eval(es EvalState) Ex {
+func (this *Exponent) Eval(es *EvalState) Ex {
 	// Start by evaluating each part
 	this.Base = this.Base.Eval(es)
 	this.Exponent = this.Exponent.Eval(es)
@@ -27,7 +27,7 @@ func (this *Exponent) ToString() string {
 	return buffer.String()
 }
 
-func (this *Exponent) IsEqual(otherEx Ex, es EvalState) string {
+func (this *Exponent) IsEqual(otherEx Ex, es *EvalState) string {
 	thisEx := this.Eval(es)
 	otherEx = otherEx.Eval(es)
 	this, ok := thisEx.(*Exponent)

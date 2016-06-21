@@ -8,7 +8,7 @@ type Add struct {
 	Addends []Ex
 }
 
-func (a *Add) Eval(es EvalState) Ex {
+func (a *Add) Eval(es *EvalState) Ex {
 	// Start by evaluating each addend
 	for i := range a.Addends {
 		a.Addends[i] = a.Addends[i].Eval(es)
@@ -68,7 +68,7 @@ func (a *Add) ToString() string {
 	return buffer.String()
 }
 
-func (this *Add) IsEqual(otherEx Ex, es EvalState) string {
+func (this *Add) IsEqual(otherEx Ex, es *EvalState) string {
 	thisEx := this.Eval(es)
 	otherEx = otherEx.Eval(es)
 	this, ok := thisEx.(*Add)

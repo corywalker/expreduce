@@ -7,16 +7,22 @@ type EvalState struct {
 	defined map[string]Ex
 }
 
+func NewEvalState() *EvalState {
+	var es EvalState
+	es.defined = make(map[string]Ex)
+	return &es
+}
+
 // Ex stands for Expression. Most structs should implement this
 type Ex interface {
-	Eval(es EvalState) Ex
+	Eval(es *EvalState) Ex
 	ToString() string
-	IsEqual(b Ex, es EvalState) string
+	IsEqual(b Ex, es *EvalState) string
 }
 
 // Some utility functions that span multiple files
 
-func CommutativeIsEqual(components []Ex, other_components []Ex, es EvalState) string {
+func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
 	}

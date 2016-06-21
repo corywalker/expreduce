@@ -11,7 +11,7 @@ func TestConstants(t *testing.T) {
 
 	fmt.Println("Testing constants")
 
-	var es EvalState
+	es := NewEvalState()
 
 	var a Ex = &Mul{[]Ex{
 		&Flt{big.NewFloat(1e9)},
