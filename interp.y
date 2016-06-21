@@ -69,3 +69,7 @@ func Interp(line string) Ex {
 func EvalInterp(line string, es *EvalState) Ex {
 	return Interp(line).Eval(es)
 }
+
+func EasyRun(line string, es *EvalState) string {
+	return EvalInterp(line, es).ToString()
+}

@@ -8,12 +8,16 @@ type Symbol struct {
 	Name string
 }
 
-func (v *Symbol) Eval(es *EvalState) Ex {
-	return v
+func (this *Symbol) Eval(es *EvalState) Ex {
+	definition, isdefined := es.defined[this.Name]
+	if isdefined {
+		return definition
+	}
+	return this
 }
 
-func (v *Symbol) ToString() string {
-	return fmt.Sprintf("%v", v.Name)
+func (this *Symbol) ToString() string {
+	return fmt.Sprintf("%v", this.Name)
 }
 
 func (this *Symbol) IsEqual(other Ex, es *EvalState) string {

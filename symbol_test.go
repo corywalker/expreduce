@@ -11,7 +11,15 @@ func TestInterp(t *testing.T) {
 
 	es := NewEvalState()
 
-	assert.Equal(t, "(1 + 2)", Interp("1  + 2").ToString())
-	assert.Equal(t, "3", Interp("  1  + 2 ").Eval(es).ToString())
-	assert.Equal(t, "3", EvalInterp("  1  + 2 ", es).ToString())
+	assert.Equal(t, "3", EasyRun("x=1+2", es))
+	assert.Equal(t, "3", EasyRun("x", es))
+	assert.Equal(t, "4", EasyRun("x+1", es))
+	// To make sure the result does not change
+	assert.Equal(t, "4", EasyRun("x+1", es))
+
+	assert.Equal(t, "3", EasyRun("x=1+2", es))
+	assert.Equal(t, "6", EasyRun("x*2", es))
+	// To make sure the result does not change
+	assert.Equal(t, "6", EasyRun("x=x*2", es))
+	assert.Equal(t, "36", EasyRun("x=x*x", es))
 }
