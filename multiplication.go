@@ -91,3 +91,11 @@ func (this *Mul) IsEqual(otherEx Ex, es *EvalState) string {
 	}
 	return CommutativeIsEqual(this.Multiplicands, other.Multiplicands, es)
 }
+
+func (this *Mul) DeepCopy() Ex {
+	var thiscopy = &Mul{}
+	for i := range this.Multiplicands {
+		thiscopy.Multiplicands = append(thiscopy.Multiplicands, this.Multiplicands[i].DeepCopy())
+	}
+	return thiscopy
+}

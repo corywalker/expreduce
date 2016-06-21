@@ -81,3 +81,11 @@ func (this *Add) IsEqual(otherEx Ex, es *EvalState) string {
 	}
 	return CommutativeIsEqual(this.Addends, other.Addends, es)
 }
+
+func (this *Add) DeepCopy() Ex {
+	var thiscopy = &Add{}
+	for i := range this.Addends {
+		thiscopy.Addends = append(thiscopy.Addends, this.Addends[i].DeepCopy())
+	}
+	return thiscopy
+}

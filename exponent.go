@@ -47,3 +47,10 @@ func (this *Exponent) IsEqual(otherEx Ex, es *EvalState) string {
 	}
 	return "EQUAL_UNK"
 }
+
+func (this *Exponent) DeepCopy() Ex {
+	return &Exponent{
+		this.Base.DeepCopy(),
+		this.Exponent.DeepCopy(),
+	}
+}

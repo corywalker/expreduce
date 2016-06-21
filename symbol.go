@@ -65,6 +65,13 @@ func (this *Set) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
 }
 
+func (this *Set) DeepCopy() Ex {
+	return &Set{
+		this.Lhs.DeepCopy(),
+		this.Rhs.DeepCopy(),
+	}
+}
+
 type SetDelayed struct {
 	Lhs Ex
 	Rhs Ex
@@ -91,4 +98,11 @@ func (this *SetDelayed) ToString() string {
 
 func (this *SetDelayed) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
+}
+
+func (this *SetDelayed) DeepCopy() Ex {
+	return &SetDelayed{
+		this.Lhs.DeepCopy(),
+		this.Rhs.DeepCopy(),
+	}
 }

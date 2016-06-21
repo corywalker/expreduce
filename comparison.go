@@ -33,3 +33,10 @@ func (this *EqualQ) ToString() string {
 func (this *EqualQ) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
 }
+
+func (this *EqualQ) DeepCopy() Ex {
+	return &EqualQ{
+		this.Lhs.DeepCopy(),
+		this.Rhs.DeepCopy(),
+	}
+}

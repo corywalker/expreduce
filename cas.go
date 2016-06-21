@@ -18,7 +18,7 @@ type Ex interface {
 	Eval(es *EvalState) Ex
 	ToString() string
 	IsEqual(b Ex, es *EvalState) string
-	//DeepCopy() *Ex
+	DeepCopy() Ex
 }
 
 // Some utility functions that span multiple files
