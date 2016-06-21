@@ -11,7 +11,7 @@ type Symbol struct {
 func (this *Symbol) Eval(es *EvalState) Ex {
 	definition, isdefined := es.defined[this.Name]
 	if isdefined {
-		return definition
+		return definition.DeepCopy()
 	}
 	return this
 }
