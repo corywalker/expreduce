@@ -31,6 +31,11 @@ func (this *Symbol) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
+func (this *Symbol) DeepCopy() Ex {
+	thiscopy := *this
+	return &thiscopy
+}
+
 type Set struct {
 	Lhs Ex
 	Rhs Ex

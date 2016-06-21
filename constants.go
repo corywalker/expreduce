@@ -27,6 +27,12 @@ func (this *Flt) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
+func (this *Flt) DeepCopy() Ex {
+	tmp := big.NewFloat(0)
+	tmp.Copy(this.Val)
+	return &Flt{tmp}
+}
+
 type Error struct {
 	Val string
 }
@@ -48,4 +54,9 @@ func (this *Error) IsEqual(other Ex, es *EvalState) string {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
+}
+
+func (this *Error) DeepCopy() Ex {
+	thiscopy := *this
+	return &thiscopy
 }
