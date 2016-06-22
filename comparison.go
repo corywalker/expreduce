@@ -2,15 +2,15 @@ package cas
 
 import "bytes"
 
-type EqualQ struct {
+type Equal struct {
 	Lhs Ex
 	Rhs Ex
 }
 
-func (this *EqualQ) Eval(es *EvalState) Ex {
+func (this *Equal) Eval(es *EvalState) Ex {
 	var isequal string = this.Lhs.IsEqual(this.Rhs, es)
 	if isequal == "EQUAL_UNK" {
-		return &Error{"Encountered EQUAL_UNK when comparing for the EqualQ."}
+		return &Error{"Encountered EQUAL_UNK when comparing for the Equal."}
 	} else if isequal == "EQUAL_TRUE" {
 		return &Symbol{"True"}
 	} else if isequal == "EQUAL_FALSE" {
@@ -20,7 +20,7 @@ func (this *EqualQ) Eval(es *EvalState) Ex {
 	return &Error{"Unexpected equality return value."}
 }
 
-func (this *EqualQ) ToString() string {
+func (this *Equal) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
 	buffer.WriteString(this.Lhs.ToString())
@@ -30,12 +30,12 @@ func (this *EqualQ) ToString() string {
 	return buffer.String()
 }
 
-func (this *EqualQ) IsEqual(otherEx Ex, es *EvalState) string {
+func (this *Equal) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
 }
 
-func (this *EqualQ) DeepCopy() Ex {
-	return &EqualQ{
+func (this *Equal) DeepCopy() Ex {
+	return &Equal{
 		this.Lhs.DeepCopy(),
 		this.Rhs.DeepCopy(),
 	}

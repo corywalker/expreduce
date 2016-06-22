@@ -8,6 +8,12 @@ type Function struct {
 }
 
 func (this *Function) Eval(es *EvalState) Ex {
+	if this.Name == "Power" && len(this.Arguments) == 2 {
+		return &Power{
+			this.Arguments[0],
+			this.Arguments[1],
+		}
+	}
 	return this
 }
 

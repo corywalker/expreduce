@@ -4,20 +4,20 @@ import "bytes"
 import "math/big"
 
 // A sequence of Expressions to be multiplied together
-type Mul struct {
+type Times struct {
 	Multiplicands []Ex
 }
 
-func (m *Mul) Eval(es *EvalState) Ex {
+func (m *Times) Eval(es *EvalState) Ex {
 	// Start by evaluating each multiplicand
 	for i := range m.Multiplicands {
 		m.Multiplicands[i] = m.Multiplicands[i].Eval(es)
 	}
 
-	// If any of the multiplicands are also Muls, merge them with m and remove them
+	// If any of the multiplicands are also Times, merge them with m and remove them
 	// We can easily remove an item by replacing it with a one float.
 	for i, e := range m.Multiplicands {
-		submul, ismul := e.(*Mul)
+		submul, ismul := e.(*Times)
 		if ismul {
 			m.Multiplicands = append(m.Multiplicands, submul.Multiplicands...)
 			m.Multiplicands[i] = &Flt{big.NewFloat(1)}
@@ -57,7 +57,7 @@ func (m *Mul) Eval(es *EvalState) Ex {
 		}
 	}
 
-	// If one expression remains, replace this Mul with the expression
+	// If one expression remains, replace this Times with the expression
 	if len(m.Multiplicands) == 1 {
 		return m.Multiplicands[0]
 	}
@@ -65,7 +65,7 @@ func (m *Mul) Eval(es *EvalState) Ex {
 	return m
 }
 
-func (m *Mul) ToString() string {
+func (m *Times) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
 	for i, e := range m.Multiplicands {
@@ -78,22 +78,22 @@ func (m *Mul) ToString() string {
 	return buffer.String()
 }
 
-func (this *Mul) IsEqual(otherEx Ex, es *EvalState) string {
+func (this *Times) IsEqual(otherEx Ex, es *EvalState) string {
 	thisEx := this.Eval(es)
 	otherEx = otherEx.Eval(es)
-	this, ok := thisEx.(*Mul)
+	this, ok := thisEx.(*Times)
 	if !ok {
 		return thisEx.IsEqual(otherEx, es)
 	}
-	other, ok := otherEx.(*Mul)
+	other, ok := otherEx.(*Times)
 	if !ok {
 		return "EQUAL_FALSE"
 	}
 	return CommutativeIsEqual(this.Multiplicands, other.Multiplicands, es)
 }
 
-func (this *Mul) DeepCopy() Ex {
-	var thiscopy = &Mul{}
+func (this *Times) DeepCopy() Ex {
+	var thiscopy = &Times{}
 	for i := range this.Multiplicands {
 		thiscopy.Multiplicands = append(thiscopy.Multiplicands, this.Multiplicands[i].DeepCopy())
 	}

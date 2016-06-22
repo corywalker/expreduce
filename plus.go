@@ -4,20 +4,20 @@ import "bytes"
 import "math/big"
 
 // A sequence of Expressions to be added together
-type Add struct {
+type Plus struct {
 	Addends []Ex
 }
 
-func (a *Add) Eval(es *EvalState) Ex {
+func (a *Plus) Eval(es *EvalState) Ex {
 	// Start by evaluating each addend
 	for i := range a.Addends {
 		a.Addends[i] = a.Addends[i].Eval(es)
 	}
 
-	// If any of the addends are also Adds, merge them with a and remove them
+	// If any of the addends are also Plus's, merge them with a and remove them
 	// We can easily remove an item by replacing it with a zero float.
 	for i, e := range a.Addends {
-		subadd, isadd := e.(*Add)
+		subadd, isadd := e.(*Plus)
 		if isadd {
 			a.Addends = append(a.Addends, subadd.Addends...)
 			a.Addends[i] = &Flt{big.NewFloat(0)}
@@ -47,7 +47,7 @@ func (a *Add) Eval(es *EvalState) Ex {
 		}
 	}
 
-	// If one expression remains, replace this Add with the expression
+	// If one expression remains, replace this Plus with the expression
 	if len(a.Addends) == 1 {
 		return a.Addends[0]
 	}
@@ -55,7 +55,7 @@ func (a *Add) Eval(es *EvalState) Ex {
 	return a
 }
 
-func (a *Add) ToString() string {
+func (a *Plus) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
 	for i, e := range a.Addends {
@@ -68,22 +68,22 @@ func (a *Add) ToString() string {
 	return buffer.String()
 }
 
-func (this *Add) IsEqual(otherEx Ex, es *EvalState) string {
+func (this *Plus) IsEqual(otherEx Ex, es *EvalState) string {
 	thisEx := this.Eval(es)
 	otherEx = otherEx.Eval(es)
-	this, ok := thisEx.(*Add)
+	this, ok := thisEx.(*Plus)
 	if !ok {
 		return thisEx.IsEqual(otherEx, es)
 	}
-	other, ok := otherEx.(*Add)
+	other, ok := otherEx.(*Plus)
 	if !ok {
 		return "EQUAL_FALSE"
 	}
 	return CommutativeIsEqual(this.Addends, other.Addends, es)
 }
 
-func (this *Add) DeepCopy() Ex {
-	var thiscopy = &Add{}
+func (this *Plus) DeepCopy() Ex {
+	var thiscopy = &Plus{}
 	for i := range this.Addends {
 		thiscopy.Addends = append(thiscopy.Addends, this.Addends[i].DeepCopy())
 	}

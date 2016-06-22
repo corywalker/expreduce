@@ -7,20 +7,20 @@ import (
 	"math/big"
 )
 
-func TestExponent(t *testing.T) {
+func TestPower(t *testing.T) {
 	fmt.Println("Testing exponents")
 
 	es := NewEvalState()
 
-	var t9 = &Exponent{
+	var t9 = &Power{
 		&Symbol{"x"},
 		&Flt{big.NewFloat(2)},
 	}
-	var t10 = &Exponent{
+	var t10 = &Power{
 		&Symbol{"x"},
-		&Add{[]Ex{&Flt{big.NewFloat(-1)}, &Flt{big.NewFloat(3)}}},
+		&Plus{[]Ex{&Flt{big.NewFloat(-1)}, &Flt{big.NewFloat(3)}}},
 	}
-	var t11 = &Exponent{
+	var t11 = &Power{
 		&Symbol{"x"},
 		&Flt{big.NewFloat(3)},
 	}

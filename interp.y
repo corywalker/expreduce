@@ -64,17 +64,17 @@ expr	:    LPARSYM expr RPARSYM
 			$$ = fc
 		}
 	|    expr PLUSSYM expr
-		{ $$  =  &Add{[]Ex{$1, $3}} }
+		{ $$  =  &Plus{[]Ex{$1, $3}} }
 	|    expr MULTSYM expr
-		{ $$  =  &Mul{[]Ex{$1, $3}} }
+		{ $$  =  &Times{[]Ex{$1, $3}} }
 	|    expr EXPSYM expr
-		{ $$  =  &Exponent{$1, $3} }
+		{ $$  =  &Power{$1, $3} }
 	|    expr SETSYM expr
 		{ $$  =  &Set{$1, $3} }
 	|    expr SETDELAYEDSYM expr
 		{ $$  =  &SetDelayed{$1, $3} }
 	|    expr EQUALSYM expr
-		{ $$  =  &EqualQ{$1, $3} }
+		{ $$  =  &Equal{$1, $3} }
 	|    NAME
 		{ $$  =  $1 }
 	|    FLOAT

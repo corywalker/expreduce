@@ -13,29 +13,29 @@ func TestComparison(t *testing.T) {
 
 	es := NewEvalState()
 
-	var lhs Ex = &Mul{[]Ex{
+	var lhs Ex = &Times{[]Ex{
 		&Flt{big.NewFloat(1e9)},
 		&Symbol{"x"},
 	}}
-	var rhs Ex = &Mul{[]Ex{
+	var rhs Ex = &Times{[]Ex{
 		&Symbol{"x"},
 		&Flt{big.NewFloat(1e9)},
 	}}
-	var a Ex = &EqualQ{lhs, rhs}
+	var a Ex = &Equal{lhs, rhs}
 	fmt.Println(a.ToString())
 	var res Ex = a.Eval(es)
 	fmt.Println(res.ToString())
 	assert.Equal(t, "True", res.ToString())
 
-	lhs = &Mul{[]Ex{
+	lhs = &Times{[]Ex{
 		&Flt{big.NewFloat(1e9)},
 		&Symbol{"x"},
 	}}
-	rhs = &Mul{[]Ex{
+	rhs = &Times{[]Ex{
 		&Symbol{"x"},
 		&Flt{big.NewFloat(1e10)},
 	}}
-	a = &EqualQ{lhs, rhs}
+	a = &Equal{lhs, rhs}
 	fmt.Println(a.ToString())
 	res = a.Eval(es)
 	fmt.Println(res.ToString())

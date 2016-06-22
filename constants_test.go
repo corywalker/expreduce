@@ -13,7 +13,7 @@ func TestConstants(t *testing.T) {
 
 	es := NewEvalState()
 
-	var a Ex = &Mul{[]Ex{
+	var a Ex = &Times{[]Ex{
 		&Flt{big.NewFloat(1e9)},
 		&Flt{big.NewFloat(1e9)},
 		&Flt{big.NewFloat(1e9)},
