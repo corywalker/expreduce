@@ -9,10 +9,40 @@ type Function struct {
 
 func (this *Function) Eval(es *EvalState) Ex {
 	if this.Name == "Power" && len(this.Arguments) == 2 {
-		return &Power{
-			this.Arguments[0],
-			this.Arguments[1],
+		t := &Power{
+			Base: this.Arguments[0],
+			Power: this.Arguments[1],
 		}
+		return t.Eval(es)
+	}
+	if this.Name == "Equal" && len(this.Arguments) == 2 {
+		t := &Equal{
+			Lhs: this.Arguments[0],
+			Rhs: this.Arguments[1],
+		}
+		return t.Eval(es)
+	}
+	if this.Name == "Plus" {
+		t := &Plus{Addends: this.Arguments}
+		return t.Eval(es)
+	}
+	if this.Name == "Times" {
+		t := &Times{Multiplicands: this.Arguments}
+		return t.Eval(es)
+	}
+	if this.Name == "Set" && len(this.Arguments) == 2 {
+		t := &Set{
+			Lhs: this.Arguments[0],
+			Rhs: this.Arguments[1],
+		}
+		return t.Eval(es)
+	}
+	if this.Name == "SetDelayed" && len(this.Arguments) == 2 {
+		t := &SetDelayed{
+			Lhs: this.Arguments[0],
+			Rhs: this.Arguments[1],
+		}
+		return t.Eval(es)
 	}
 	return this
 }
