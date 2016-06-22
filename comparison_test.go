@@ -4,7 +4,6 @@ import (
 	"testing"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"math/big"
 )
 
 func TestComparison(t *testing.T) {
@@ -13,31 +12,14 @@ func TestComparison(t *testing.T) {
 
 	es := NewEvalState()
 
-	var lhs Ex = &Times{[]Ex{
-		&Flt{big.NewFloat(1e9)},
-		&Symbol{"x"},
-	}}
-	var rhs Ex = &Times{[]Ex{
-		&Symbol{"x"},
-		&Flt{big.NewFloat(1e9)},
-	}}
-	var a Ex = &Equal{lhs, rhs}
-	fmt.Println(a.ToString())
-	var res Ex = a.Eval(es)
-	fmt.Println(res.ToString())
-	assert.Equal(t, "True", res.ToString())
+	assert.Equal(t, "True", EvalInterp("9*x==x*9", es).ToString())
+	assert.Equal(t, "False", EvalInterp("9*x==x*10", es).ToString())
+	assert.Equal(t, "5", EvalInterp("tmp=5", es).ToString())
+	assert.Equal(t, "True", EvalInterp("tmp==5", es).ToString())
+	assert.Equal(t, "True", EvalInterp("5==tmp", es).ToString())
+	assert.Equal(t, "False", EvalInterp("tmp==6", es).ToString())
+	assert.Equal(t, "False", EvalInterp("6==tmp", es).ToString())
 
-	lhs = &Times{[]Ex{
-		&Flt{big.NewFloat(1e9)},
-		&Symbol{"x"},
-	}}
-	rhs = &Times{[]Ex{
-		&Symbol{"x"},
-		&Flt{big.NewFloat(1e10)},
-	}}
-	a = &Equal{lhs, rhs}
-	fmt.Println(a.ToString())
-	res = a.Eval(es)
-	fmt.Println(res.ToString())
-	assert.Equal(t, "False", res.ToString())
+	assert.Equal(t, "a==b", EvalInterp("a==b", es).ToString())
+	assert.Equal(t, "a==5", EvalInterp("a==5", es).ToString())
 }

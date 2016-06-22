@@ -13,9 +13,9 @@ func (this *If) Eval(es *EvalState) Ex {
 	if isequal == "EQUAL_UNK" {
 		return &Error{"Encountered EQUAL_UNK when comparing for the Is."}
 	} else if isequal == "EQUAL_TRUE" {
-		return this.T
+		return this.T.Eval(es)
 	} else if isequal == "EQUAL_FALSE" {
-		return this.F
+		return this.F.Eval(es)
 	}
 
 	return &Error{"Unexpected equality return value."}

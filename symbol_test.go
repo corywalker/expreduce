@@ -22,4 +22,9 @@ func TestInterp(t *testing.T) {
 	// To make sure the result does not change
 	assert.Equal(t, "6", EasyRun("x=x*2", es))
 	assert.Equal(t, "36", EasyRun("x=x*x", es))
+
+	assert.Equal(t, "(a * a)", EasyRun("y=a*a", es))
+	assert.Equal(t, "(a * a * a * a)", EasyRun("y=y*y", es))
+	assert.Equal(t, "2", EasyRun("a=2", es))
+	assert.Equal(t, "16", EasyRun("y", es))
 }
