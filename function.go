@@ -44,6 +44,14 @@ func (this *Function) Eval(es *EvalState) Ex {
 		}
 		return t.Eval(es)
 	}
+	if this.Name == "If" && len(this.Arguments) == 3 {
+		t := &If{
+			Condition: this.Arguments[0],
+			T: this.Arguments[1],
+			F: this.Arguments[2],
+		}
+		return t.Eval(es)
+	}
 	return this
 }
 
