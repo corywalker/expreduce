@@ -87,6 +87,9 @@ ident {L}({L}|{D})*
 
 \( return LPARSYM
 \) return RPARSYM
+, return COMMASYM
+\[ return LBRACKETSYM
+\] return RBRACKETSYM
 \+ return PLUSSYM
 \* return MULTSYM
 \^  return EXPSYM

@@ -15,7 +15,7 @@ package cas
 %type <val> expr
 
 // same for terminals
-%token <val> FLOAT INTEGER LPARSYM RPARSYM PLUSSYM MULTSYM EXPSYM EQUALSYM SETSYM SETDELAYEDSYM NAME
+%token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM LBRACKETSYM RBRACKETSYM PLUSSYM MULTSYM EXPSYM EQUALSYM SETSYM SETDELAYEDSYM NAME
 
 %left EQUALSYM
 %left PLUSSYM
@@ -36,6 +36,33 @@ stat	:    expr
 
 expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $2 }
+	|    NAME LBRACKETSYM RBRACKETSYM
+		{
+			fc := &Function{}
+			fc.Name = $1.(*Symbol).Name
+			$$ = fc
+		}
+	|    NAME LBRACKETSYM expr RBRACKETSYM
+		{
+			fc := &Function{}
+			fc.Name = $1.(*Symbol).Name
+			fc.Arguments = []Ex{$3}
+			$$ = fc
+		}
+	|    NAME LBRACKETSYM expr COMMASYM expr RBRACKETSYM
+		{
+			fc := &Function{}
+			fc.Name = $1.(*Symbol).Name
+			fc.Arguments = []Ex{$3, $5}
+			$$ = fc
+		}
+	|    NAME LBRACKETSYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
+		{
+			fc := &Function{}
+			fc.Name = $1.(*Symbol).Name
+			fc.Arguments = []Ex{$3, $5, $7}
+			$$ = fc
+		}
 	|    expr PLUSSYM expr
 		{ $$  =  &Add{[]Ex{$1, $3}} }
 	|    expr MULTSYM expr
