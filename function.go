@@ -52,6 +52,20 @@ func (this *Function) Eval(es *EvalState) Ex {
 		}
 		return t.Eval(es)
 	}
+	if this.Name == "While" && len(this.Arguments) == 1 {
+		t := &While{
+			Test: this.Arguments[0],
+			Body: &Symbol{"Null"},
+		}
+		return t.Eval(es)
+	}
+	if this.Name == "While" && len(this.Arguments) == 2 {
+		t := &While{
+			Test: this.Arguments[0],
+			Body: this.Arguments[1],
+		}
+		return t.Eval(es)
+	}
 	return this
 }
 
