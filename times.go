@@ -8,6 +8,15 @@ type Times struct {
 	Multiplicands []Ex
 }
 
+func (this *Times) ContainsFloat() bool {
+	res := false
+	for _, e := range this.Multiplicands {
+		_, isfloat := e.(*Flt)
+		res = res || isfloat
+	}
+	return res
+}
+
 func (m *Times) Eval(es *EvalState) Ex {
 	// Start by evaluating each multiplicand
 	for i := range m.Multiplicands {
@@ -15,12 +24,25 @@ func (m *Times) Eval(es *EvalState) Ex {
 	}
 
 	// If any of the multiplicands are also Times, merge them with m and remove them
-	// We can easily remove an item by replacing it with a one float.
+	// We can easily remove an item by replacing it with a one int.
 	for i, e := range m.Multiplicands {
 		submul, ismul := e.(*Times)
 		if ismul {
 			m.Multiplicands = append(m.Multiplicands, submul.Multiplicands...)
-			m.Multiplicands[i] = &Flt{big.NewFloat(1)}
+			m.Multiplicands[i] = &Integer{big.NewInt(1)}
+		}
+	}
+
+	// If this expression contains any floats, convert everything possible to
+	// a float
+	if m.ContainsFloat() {
+		for i, e := range m.Multiplicands {
+			subint, isint := e.(*Integer)
+			if isint {
+				newfloat := big.NewFloat(0)
+				newfloat.SetInt(subint.Val)
+				m.Multiplicands[i] = &Flt{newfloat}
+			}
 		}
 	}
 
@@ -51,6 +73,29 @@ func (m *Times) Eval(es *EvalState) Ex {
 	for i := len(m.Multiplicands)-1; i >= 0; i-- {
 		f, ok := m.Multiplicands[i].(*Flt)
 		if ok && f.Val.Cmp(big.NewFloat(1)) == 0 {
+			m.Multiplicands[i] = m.Multiplicands[len(m.Multiplicands)-1]
+			m.Multiplicands[len(m.Multiplicands)-1] = nil
+			m.Multiplicands = m.Multiplicands[:len(m.Multiplicands)-1]
+		}
+	}
+
+	// Geometrically accumulate integer values towards the end of the expression
+	var lasti *Integer = nil
+	for _, e := range m.Multiplicands {
+		theint, ok := e.(*Integer)
+		if ok {
+			if lasti != nil {
+				theint.Val.Mul(theint.Val, lasti.Val)
+				lasti.Val = big.NewInt(1)
+			}
+			lasti = theint
+		}
+	}
+
+	// Remove one Integers
+	for i := len(m.Multiplicands)-1; i >= 0; i-- {
+		theint, ok := m.Multiplicands[i].(*Integer)
+		if ok && theint.Val.Cmp(big.NewInt(1)) == 0 {
 			m.Multiplicands[i] = m.Multiplicands[len(m.Multiplicands)-1]
 			m.Multiplicands[len(m.Multiplicands)-1] = nil
 			m.Multiplicands = m.Multiplicands[:len(m.Multiplicands)-1]

@@ -1,3 +1,5 @@
+This software is experimental quality and is not currently intended for serious use. There are plenty of more mature open source computer algebra systems to use instead.
+
 # Source generation
 Generate source files from lex and yacc:
 ```

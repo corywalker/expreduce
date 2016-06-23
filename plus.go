@@ -8,6 +8,15 @@ type Plus struct {
 	Addends []Ex
 }
 
+func (this *Plus) ContainsFloat() bool {
+	res := false
+	for _, e := range this.Addends {
+		_, isfloat := e.(*Flt)
+		res = res || isfloat
+	}
+	return res
+}
+
 func (a *Plus) Eval(es *EvalState) Ex {
 	// Start by evaluating each addend
 	for i := range a.Addends {
@@ -15,12 +24,25 @@ func (a *Plus) Eval(es *EvalState) Ex {
 	}
 
 	// If any of the addends are also Plus's, merge them with a and remove them
-	// We can easily remove an item by replacing it with a zero float.
+	// We can easily remove an item by replacing it with a zero int.
 	for i, e := range a.Addends {
 		subadd, isadd := e.(*Plus)
 		if isadd {
 			a.Addends = append(a.Addends, subadd.Addends...)
-			a.Addends[i] = &Flt{big.NewFloat(0)}
+			a.Addends[i] = &Integer{big.NewInt(0)}
+		}
+	}
+
+	// If this expression contains any floats, convert everything possible to
+	// a float
+	if a.ContainsFloat() {
+		for i, e := range a.Addends {
+			subint, isint := e.(*Integer)
+			if isint {
+				newfloat := big.NewFloat(0)
+				newfloat.SetInt(subint.Val)
+				a.Addends[i] = &Flt{newfloat}
+			}
 		}
 	}
 
@@ -41,6 +63,29 @@ func (a *Plus) Eval(es *EvalState) Ex {
 	for i := len(a.Addends)-1; i >= 0; i-- {
 		f, ok := a.Addends[i].(*Flt)
 		if ok && f.Val.Cmp(big.NewFloat(0)) == 0 {
+			a.Addends[i] = a.Addends[len(a.Addends)-1]
+			a.Addends[len(a.Addends)-1] = nil
+			a.Addends = a.Addends[:len(a.Addends)-1]
+		}
+	}
+
+	// Accumulate integer values towards the end of the expression
+	var lasti *Integer = nil
+	for _, e := range a.Addends {
+		i, ok := e.(*Integer)
+		if ok {
+			if lasti != nil {
+				i.Val.Add(i.Val, lasti.Val)
+				lasti.Val = big.NewInt(0)
+			}
+			lasti = i
+		}
+	}
+
+	// Remove zero Integers
+	for i := len(a.Addends)-1; i >= 0; i-- {
+		theint, ok := a.Addends[i].(*Integer)
+		if ok && theint.Val.Cmp(big.NewInt(0)) == 0 {
 			a.Addends[i] = a.Addends[len(a.Addends)-1]
 			a.Addends[len(a.Addends)-1] = nil
 			a.Addends = a.Addends[:len(a.Addends)-1]

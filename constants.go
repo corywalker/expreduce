@@ -33,6 +33,36 @@ func (this *Flt) DeepCopy() Ex {
 	return &Flt{tmp}
 }
 
+// Integer numbers represented by big.Int
+type Integer struct {
+	Val *big.Int
+}
+
+func (f *Integer) Eval(es *EvalState) Ex {
+	return f
+}
+
+func (f *Integer) ToString() string {
+	return fmt.Sprintf("%d", f.Val)
+}
+
+func (this *Integer) IsEqual(other Ex, es *EvalState) string {
+	otherConv, ok := other.(*Integer)
+	if !ok {
+		return "EQUAL_FALSE"
+	}
+	if this.Val.Cmp(otherConv.Val) != 0 {
+		return "EQUAL_FALSE"
+	}
+	return "EQUAL_TRUE"
+}
+
+func (this *Integer) DeepCopy() Ex {
+	tmp := big.NewInt(0)
+	tmp.Set(this.Val)
+	return &Integer{tmp}
+}
+
 type Error struct {
 	Val string
 }

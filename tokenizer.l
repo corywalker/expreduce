@@ -66,12 +66,13 @@ ident {L}({L}|{D})*
 [ \t\r]+
 
 {D}
-    var tmpf float64
-    tmpf, err = strconv.ParseFloat(string(y.buf), 64)
+    var tmpi int64
+    var base int = 10
+    tmpi, err = strconv.ParseInt(string(y.buf), base, 64)
     if err != nil {
         log.Fatal(err)
     }
-    lval.val = &Flt{big.NewFloat(tmpf)}
+    lval.val = &Integer{big.NewInt(tmpi)}
 
     return INTEGER
 
