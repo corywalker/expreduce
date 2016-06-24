@@ -94,6 +94,7 @@ ident {L}({L}|{D})*
 \+ return PLUSSYM
 \- return MINUSSYM
 \* return MULTSYM
+\/ return DIVSYM
 \^  return EXPSYM
 = return SETSYM
 := return SETDELAYEDSYM
