@@ -19,7 +19,7 @@ func TestFunction(t *testing.T) {
 			&Flt{big.NewFloat(3)},
 		},
 	}
-	assert.Equal(t, "Power[5, 3]", t1.ToString())
+	assert.Equal(t, "Power[5., 3.]", t1.ToString())
 	assert.Equal(t, "Power[5, 3]", Interp("Power[ 5,3 ]").ToString())
 	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").ToString())
 	assert.Equal(t, "my2func[]", Interp("my2func[  ]").ToString())

@@ -24,21 +24,21 @@ func TestPower(t *testing.T) {
 		&Symbol{"x"},
 		&Flt{big.NewFloat(3)},
 	}
-	assert.Equal(t, t9.ToString(), "x^2")
-	assert.Equal(t, t10.ToString(), "x^(-1 + 3)")
-	assert.Equal(t, t11.ToString(), "x^3")
+	assert.Equal(t, "x^2.", t9.ToString())
+	assert.Equal(t, "x^(-1. + 3.)", t10.ToString())
+	assert.Equal(t, "x^3.", t11.ToString())
 	assert.Equal(t, "EQUAL_TRUE", t9.IsEqual(t10, es))
 	assert.Equal(t, "EQUAL_UNK", t9.IsEqual(t11, es))
 
 	// Test raising expressions to the first power
 	assert.Equal(t, "(x + 1)", EvalInterp("(x+1)^1", es).ToString())
 	assert.Equal(t, "0", EvalInterp("0^1", es).ToString())
-	assert.Equal(t, "0", EvalInterp("0.^1", es).ToString())
+	assert.Equal(t, "0.", EvalInterp("0.^1", es).ToString())
 	assert.Equal(t, "-5", EvalInterp("-5^1", es).ToString())
 	assert.Equal(t, "-5.5", EvalInterp("-5.5^1", es).ToString())
 	assert.Equal(t, "(x + 1)", EvalInterp("(x+1)^1.", es).ToString())
 	assert.Equal(t, "0", EvalInterp("0^1.", es).ToString())
-	assert.Equal(t, "0", EvalInterp("0.^1.", es).ToString())
+	assert.Equal(t, "0.", EvalInterp("0.^1.", es).ToString())
 	assert.Equal(t, "-5", EvalInterp("(-5)^1.", es).ToString())
 	assert.Equal(t, "-5.5", EvalInterp("-5.5^1.", es).ToString())
 
@@ -61,4 +61,6 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "125^-1", EvalInterp("5^-3", es).ToString())
 	assert.Equal(t, "-125", EvalInterp("(-5)^3", es).ToString())
 	assert.Equal(t, "-125^-1", EvalInterp("(-5)^-3", es).ToString())
+
+	//assert.Equal(t, "59049", EvalInterp("9.^5.", es).ToString())
 }

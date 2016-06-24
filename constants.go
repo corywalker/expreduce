@@ -2,6 +2,7 @@ package cas
 
 import "fmt"
 import "math/big"
+import "bytes"
 
 // Floating point numbers represented by big.Float
 type Flt struct {
@@ -13,7 +14,12 @@ func (f *Flt) Eval(es *EvalState) Ex {
 }
 
 func (f *Flt) ToString() string {
-	return fmt.Sprintf("%g", f.Val)
+	var buffer bytes.Buffer
+	buffer.WriteString(fmt.Sprintf("%g", f.Val))
+	if bytes.IndexRune(buffer.Bytes(), '.') == -1 {
+		buffer.WriteString(".")
+	}
+	return buffer.String()
 }
 
 func (this *Flt) IsEqual(other Ex, es *EvalState) string {
