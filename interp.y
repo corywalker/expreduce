@@ -2,6 +2,10 @@
 
 package cas
 
+import (
+	"math/big"
+)
+
 %}
 
 // fields inside this union end up as the fields in a structure known
@@ -15,10 +19,10 @@ package cas
 %type <val> expr
 
 // same for terminals
-%token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM LBRACKETSYM RBRACKETSYM PLUSSYM MULTSYM EXPSYM EQUALSYM SETSYM SETDELAYEDSYM NAME
+%token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM LBRACKETSYM RBRACKETSYM PLUSSYM MINUSSYM MULTSYM EXPSYM EQUALSYM SETSYM SETDELAYEDSYM NAME
 
 %left EQUALSYM
-%left PLUSSYM
+%left PLUSSYM MINUSSYM
 %left MULTSYM
 %left EXPSYM
 
@@ -65,6 +69,8 @@ expr	:    LPARSYM expr RPARSYM
 		}
 	|    expr PLUSSYM expr
 		{ $$  =  &Plus{[]Ex{$1, $3}} }
+	|    expr MINUSSYM expr
+		{ $$  =  &Plus{ []Ex{$1, &Times{[]Ex{$3, &Integer{big.NewInt(-1)}}} } } }
 	|    expr MULTSYM expr
 		{ $$  =  &Times{[]Ex{$1, $3}} }
 	|    expr EXPSYM expr

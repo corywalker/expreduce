@@ -92,6 +92,7 @@ ident {L}({L}|{D})*
 \[ return LBRACKETSYM
 \] return RBRACKETSYM
 \+ return PLUSSYM
+\- return MINUSSYM
 \* return MULTSYM
 \^  return EXPSYM
 = return SETSYM
