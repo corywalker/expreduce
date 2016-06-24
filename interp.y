@@ -25,6 +25,7 @@ import (
 %left PLUSSYM MINUSSYM
 %left MULTSYM
 %left EXPSYM
+%left UMINUS
 
 %%
 
@@ -81,6 +82,8 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  &SetDelayed{$1, $3} }
 	|    expr EQUALSYM expr
 		{ $$  =  &Equal{$1, $3} }
+	|    MINUSSYM expr
+		{ $$  =  &Times{[]Ex{$2, &Integer{big.NewInt(-1)}}} }
 	|    NAME
 		{ $$  =  $1 }
 	|    FLOAT
