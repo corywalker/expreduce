@@ -62,14 +62,22 @@ func (this *Power) Eval(es *EvalState) Ex {
 	}
 
 	// Fully integer Power expression
-	/*if baseIsInt && powerIsInt {
-		if powerInt.Val.Cmp(big.NewInt(0)) == 0 {
-			if baseInt.Val.Cmp(big.NewInt(0)) == 0 {
-				return &Symbol{"Indeterminate"}
-			}
-			return &Integer{big.NewInt(0)}
+	if baseIsInt && powerIsInt {
+		cmpres := powerInt.Val.Cmp(big.NewInt(0))
+		if cmpres == 1 {
+			res := big.NewInt(0)
+			res.Exp(baseInt.Val, powerInt.Val, nil)
+			return &Integer{res}
+		} else if cmpres == -1 {
+			newbase := big.NewInt(0)
+			absPower := big.NewInt(0)
+			absPower.Abs(powerInt.Val)
+			newbase.Exp(baseInt.Val, absPower, nil)
+			return &Power{&Integer{newbase}, &Integer{big.NewInt(-1)}}
+		} else {
+			return &Error{"Unexpected zero power in Power evaluation."}
 		}
-	}*/
+	}
 
 	return this
 }

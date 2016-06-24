@@ -57,5 +57,8 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "-1", EvalInterp("-5^0", es).ToString())
 	assert.Equal(t, "1", EvalInterp("99^0", es).ToString())
 
-	//assert.Equal(t, "125", EvalInterp("5^3", es).ToString())
+	assert.Equal(t, "125", EvalInterp("5^3", es).ToString())
+	assert.Equal(t, "125^-1", EvalInterp("5^-3", es).ToString())
+	assert.Equal(t, "-125", EvalInterp("(-5)^3", es).ToString())
+	assert.Equal(t, "-125^-1", EvalInterp("(-5)^-3", es).ToString())
 }
