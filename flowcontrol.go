@@ -37,6 +37,10 @@ func (this *If) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
 }
 
+func (this *If) IsSameQ(otherEx Ex, es *EvalState) bool {
+	return false
+}
+
 func (this *If) DeepCopy() Ex {
 	return &If{
 		Condition: this.Condition.DeepCopy(),
@@ -82,6 +86,10 @@ func (this *While) ToString() string {
 
 func (this *While) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
+}
+
+func (this *While) IsSameQ(otherEx Ex, es *EvalState) bool {
+	return false
 }
 
 func (this *While) DeepCopy() Ex {

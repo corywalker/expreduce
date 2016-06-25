@@ -87,6 +87,10 @@ func (this *Function) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
 }
 
+func (this *Function) IsSameQ(otherEx Ex, es *EvalState) bool {
+	return false
+}
+
 func (this *Function) DeepCopy() Ex {
 	var thiscopy = &Function{}
 	thiscopy.Name = this.Name

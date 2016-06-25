@@ -35,6 +35,21 @@ func TestComparison(t *testing.T) {
 	assert.Equal(t, "y==m*x+b", EvalInterp("y==m*x+b", es).ToString())
 	assert.Equal(t, "False", EvalInterp("y===m*x+b", es).ToString())
 
+	assert.Equal(t, "True", EvalInterp("1==1.", es).ToString())
+	assert.Equal(t, "False", EvalInterp("1===1.", es).ToString())
+	assert.Equal(t, "True", EvalInterp("1.==1", es).ToString())
+	assert.Equal(t, "False", EvalInterp("1.===1", es).ToString())
+
+	assert.Equal(t, "True", EvalInterp("If[xx == 2, yy] == If[xx == 2, yy]", es).ToString())
+	assert.Equal(t, "True", EvalInterp("If[xx == 2, yy] === If[xx == 2, yy]", es).ToString())
+	assert.Equal(t, "False", EvalInterp("If[xx == 3, yy] === If[xx == 2, yy]", es).ToString())
+	assert.Equal(t, "If[xx == 3, yy] === If[xx == 2, yy]", EvalInterp("If[xx == 3, yy] == If[xx == 2, yy]", es).ToString())
+
+	assert.Equal(t, "False", EvalInterp("(x == y) === (y == x)", es).ToString())
+	assert.Equal(t, "True", EvalInterp("(x == y) === (x == y)", es).ToString())
+	assert.Equal(t, "True", EvalInterp("(1 == 2) == (2 == 3)", es).ToString())
+	assert.Equal(t, "False", EvalInterp("(1 == 2) == (2 == 2)", es).ToString())
+
 	// Future
 	//assert.Equal(t, "False", EvalInterp("4/3==3/2", es).ToString())
 	//assert.Equal(t, "True", EvalInterp("4/3==8/6", es).ToString())

@@ -31,6 +31,17 @@ func (this *Symbol) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
+func (this *Symbol) IsSameQ(other Ex, es *EvalState) bool {
+	otherConv, ok := other.(*Symbol)
+	if !ok {
+		return false
+	}
+	if this.Name != otherConv.Name {
+		return false
+	}
+	return true
+}
+
 func (this *Symbol) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy
@@ -63,6 +74,10 @@ func (this *Set) ToString() string {
 
 func (this *Set) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
+}
+
+func (this *Set) IsSameQ(otherEx Ex, es *EvalState) bool {
+	return false
 }
 
 func (this *Set) DeepCopy() Ex {
@@ -98,6 +113,10 @@ func (this *SetDelayed) ToString() string {
 
 func (this *SetDelayed) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
+}
+
+func (this *SetDelayed) IsSameQ(otherEx Ex, es *EvalState) bool {
+	return false
 }
 
 func (this *SetDelayed) DeepCopy() Ex {

@@ -123,6 +123,26 @@ func (this *Power) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
 }
 
+func (this *Power) IsSameQ(otherEx Ex, es *EvalState) bool {
+	thisEx := this.Eval(es)
+	otherEx = otherEx.Eval(es)
+	this, ok := thisEx.(*Power)
+	if !ok {
+		return thisEx.IsSameQ(otherEx, es)
+	}
+	other, ok := otherEx.(*Power)
+	if !ok {
+		return false
+	}
+	var baseSame = this.Base.IsSameQ(other.Base, es)
+	var exponentSame = this.Power.IsSameQ(other.Power, es)
+
+	if baseSame && exponentSame {
+		return true
+	}
+	return false
+}
+
 func (this *Power) DeepCopy() Ex {
 	return &Power{
 		this.Base.DeepCopy(),

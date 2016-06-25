@@ -33,6 +33,14 @@ func (this *Flt) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
+func (this *Flt) IsSameQ(other Ex, es *EvalState) bool {
+	_, ok := other.(*Flt)
+	if !ok {
+		return false
+	}
+	return this.IsEqual(other, es) == "EQUAL_TRUE"
+}
+
 func (this *Flt) DeepCopy() Ex {
 	tmp := big.NewFloat(0)
 	tmp.Copy(this.Val)
@@ -63,6 +71,14 @@ func (this *Integer) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
+func (this *Integer) IsSameQ(other Ex, es *EvalState) bool {
+	_, ok := other.(*Integer)
+	if !ok {
+		return false
+	}
+	return this.IsEqual(other, es) == "EQUAL_TRUE"
+}
+
 func (this *Integer) DeepCopy() Ex {
 	tmp := big.NewInt(0)
 	tmp.Set(this.Val)
@@ -90,6 +106,14 @@ func (this *Error) IsEqual(other Ex, es *EvalState) string {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
+}
+
+func (this *Error) IsSameQ(other Ex, es *EvalState) bool {
+	_, ok := other.(*Error)
+	if !ok {
+		return false
+	}
+	return this.IsEqual(other, es) == "EQUAL_TRUE"
 }
 
 func (this *Error) DeepCopy() Ex {

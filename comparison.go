@@ -34,6 +34,10 @@ func (this *Equal) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
 }
 
+func (this *Equal) IsSameQ(otherEx Ex, es *EvalState) bool {
+	return false
+}
+
 func (this *Equal) DeepCopy() Ex {
 	return &Equal{
 		this.Lhs.DeepCopy(),
@@ -47,16 +51,12 @@ type SameQ struct {
 }
 
 func (this *SameQ) Eval(es *EvalState) Ex {
-	var isequal string = this.Lhs.Eval(es).IsEqual(this.Rhs.Eval(es), es)
-	if isequal == "EQUAL_UNK" {
-		return &Symbol{"False"}
-	} else if isequal == "EQUAL_TRUE" {
+	var issame bool = this.Lhs.Eval(es).IsSameQ(this.Rhs.Eval(es), es)
+	if issame {
 		return &Symbol{"True"}
-	} else if isequal == "EQUAL_FALSE" {
+	} else {
 		return &Symbol{"False"}
 	}
-
-	return &Error{"Unexpected equality return value."}
 }
 
 func (this *SameQ) ToString() string {
@@ -71,6 +71,10 @@ func (this *SameQ) ToString() string {
 
 func (this *SameQ) IsEqual(otherEx Ex, es *EvalState) string {
 	return "EQUAL_UNK"
+}
+
+func (this *SameQ) IsSameQ(otherEx Ex, es *EvalState) bool {
+	return false
 }
 
 func (this *SameQ) DeepCopy() Ex {

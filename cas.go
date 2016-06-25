@@ -18,6 +18,7 @@ type Ex interface {
 	Eval(es *EvalState) Ex
 	ToString() string
 	IsEqual(b Ex, es *EvalState) string
+	IsSameQ(b Ex, es *EvalState) bool
 	DeepCopy() Ex
 }
 
