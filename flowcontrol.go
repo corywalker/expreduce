@@ -11,7 +11,7 @@ type If struct {
 func (this *If) Eval(es *EvalState) Ex {
 	var isequal string = this.Condition.Eval(es).IsEqual(&Symbol{"True"}, es)
 	if isequal == "EQUAL_UNK" {
-		return &Error{"Encountered EQUAL_UNK when comparing for the Is."}
+		return this
 	} else if isequal == "EQUAL_TRUE" {
 		return this.T.Eval(es)
 	} else if isequal == "EQUAL_FALSE" {
@@ -50,7 +50,19 @@ func (this *If) IsEqual(otherEx Ex, es *EvalState) string {
 }
 
 func (this *If) IsSameQ(otherEx Ex, es *EvalState) bool {
-	return false
+	other, ok := otherEx.(*If)
+	if !ok {
+		return false
+	}
+	return FunctionIsSameQ([]Ex{
+			this.Condition,
+			this.T,
+			this.F,
+		}, []Ex{
+			other.Condition,
+			other.T,
+			other.F,
+		}, es)
 }
 
 func (this *If) DeepCopy() Ex {

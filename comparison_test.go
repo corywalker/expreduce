@@ -49,7 +49,7 @@ func TestComparison(t *testing.T) {
 	assert.Equal(t, "True", EvalInterp("If[xx == 2, yy, zz] === If[xx == 2, yy, zz]", es).ToString())
 	assert.Equal(t, "False", EvalInterp("If[xx == 2, yy, zz] === If[xx == 2., yy, zz]", es).ToString())
 	assert.Equal(t, "False", EvalInterp("If[xx == 3, yy, zz] === If[xx == 2, yy, zz]", es).ToString())
-	assert.Equal(t, "If[xx == 3, yy, zz] === If[xx == 2, yy, zz]", EvalInterp("If[xx == 3, yy, zz] == If[xx == 2, yy, zz]", es).ToString())
+	assert.Equal(t, "(If[(xx) == (3), yy, zz]) == (If[(xx) == (2), yy, zz])", EvalInterp("If[xx == 3, yy, zz] == If[xx == 2, yy, zz]", es).ToString())
 
 	assert.Equal(t, "False", EvalInterp("(x == y) === (y == x)", es).ToString())
 	assert.Equal(t, "True", EvalInterp("(x == y) === (x == y)", es).ToString())
