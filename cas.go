@@ -55,3 +55,33 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 	}
 	return "EQUAL_TRUE"
 }
+
+func FunctionIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
+	if len(components) != len(other_components) {
+		return "EQUAL_FALSE"
+	}
+	for i, _ := range components {
+		res := components[i].IsEqual(other_components[i], es)
+		switch res {
+		case "EQUAL_FALSE":
+			return "EQUAL_UNK"
+		case "EQUAL_TRUE":
+		case "EQUAL_UNK":
+			return "EQUAL_UNK"
+		}
+	}
+	return "EQUAL_TRUE"
+}
+
+func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool {
+	if len(components) != len(other_components) {
+		return false
+	}
+	for i, _ := range components {
+		res := components[i].IsSameQ(other_components[i], es)
+		if !res {
+			return false
+		}
+	}
+	return true
+}

@@ -34,7 +34,19 @@ func (this *If) ToString() string {
 }
 
 func (this *If) IsEqual(otherEx Ex, es *EvalState) string {
-	return "EQUAL_UNK"
+	other, ok := otherEx.(*If)
+	if !ok {
+		return "EQUAL_UNK"
+	}
+	return FunctionIsEqual([]Ex{
+			this.Condition,
+			this.T,
+			this.F,
+		}, []Ex{
+			other.Condition,
+			other.T,
+			other.F,
+		}, es)
 }
 
 func (this *If) IsSameQ(otherEx Ex, es *EvalState) bool {

@@ -31,11 +31,31 @@ func (this *Equal) ToString() string {
 }
 
 func (this *Equal) IsEqual(otherEx Ex, es *EvalState) string {
-	return "EQUAL_UNK"
+	other, ok := otherEx.(*Equal)
+	if !ok {
+		return "EQUAL_UNK"
+	}
+	return FunctionIsEqual([]Ex{
+			this.Lhs,
+			this.Rhs,
+		}, []Ex{
+			other.Lhs,
+			other.Rhs,
+		}, es)
 }
 
 func (this *Equal) IsSameQ(otherEx Ex, es *EvalState) bool {
-	return false
+	other, ok := otherEx.(*Equal)
+	if !ok {
+		return false
+	}
+	return FunctionIsSameQ([]Ex{
+			this.Lhs,
+			this.Rhs,
+		}, []Ex{
+			other.Lhs,
+			other.Rhs,
+		}, es)
 }
 
 func (this *Equal) DeepCopy() Ex {

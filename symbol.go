@@ -25,6 +25,12 @@ func (this *Symbol) IsEqual(other Ex, es *EvalState) string {
 	if !ok {
 		return "EQUAL_UNK"
 	}
+	if this.Name == "False" && otherConv.Name == "True" {
+		return "EQUAL_FALSE"
+	}
+	if this.Name == "True" && otherConv.Name == "False" {
+		return "EQUAL_FALSE"
+	}
 	if this.Name != otherConv.Name {
 		return "EQUAL_UNK"
 	}
