@@ -3,6 +3,8 @@ package cas
 import (
 	"bytes"
 	"math/big"
+	"github.com/corywalker/mathbigext"
+	//"fmt"
 )
 
 // An exponent expression with a base and an exponent
@@ -77,6 +79,16 @@ func (this *Power) Eval(es *EvalState) Ex {
 		} else {
 			return &Error{"Unexpected zero power in Power evaluation."}
 		}
+	}
+
+	if baseIsFlt && powerIsInt {
+		return &Flt{mathbigext.Pow(baseFlt.Val, big.NewFloat(0).SetInt(powerInt.Val))}
+	}
+	if baseIsInt && powerIsFlt {
+		return &Flt{mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val)}
+	}
+	if baseIsFlt && powerIsFlt {
+		return &Flt{mathbigext.Pow(baseFlt.Val, powerFlt.Val)}
 	}
 
 	return this
