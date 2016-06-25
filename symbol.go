@@ -23,10 +23,10 @@ func (this *Symbol) ToString() string {
 func (this *Symbol) IsEqual(other Ex, es *EvalState) string {
 	otherConv, ok := other.(*Symbol)
 	if !ok {
-		return "EQUAL_FALSE"
+		return "EQUAL_UNK"
 	}
 	if this.Name != otherConv.Name {
-		return "EQUAL_FALSE"
+		return "EQUAL_UNK"
 	}
 	return "EQUAL_TRUE"
 }

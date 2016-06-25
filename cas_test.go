@@ -36,8 +36,8 @@ func Test(t *testing.T) {
 	assert.Equal(t, "EQUAL_TRUE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}, es))
 	assert.Equal(t, "EQUAL_FALSE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(98)}, es))
 	assert.Equal(t, "EQUAL_TRUE", (&Symbol{"x"}).IsEqual(&Symbol{"x"}, es))
-	assert.Equal(t, "EQUAL_FALSE", (&Symbol{"x"}).IsEqual(&Symbol{"X"}, es))
-	assert.Equal(t, "EQUAL_FALSE", (&Symbol{"x"}).IsEqual(&Symbol{"y"}, es))
+	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"X"}, es))
+	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"y"}, es))
 	var t1 = &Plus{[]Ex{
 		&Flt{big.NewFloat(2.5)},
 		&Flt{big.NewFloat(5)},
@@ -103,7 +103,7 @@ func Test(t *testing.T) {
 		&Symbol{"y"},
 		&Flt{big.NewFloat(1)},
 	}}
-	assert.Equal(t, "EQUAL_FALSE", t3.IsEqual(t4, es))
+	assert.Equal(t, "EQUAL_UNK", t3.IsEqual(t4, es))
 	var t5 = &Times{[]Ex{
 		&Flt{big.NewFloat(1)},
 		&Symbol{"x"},

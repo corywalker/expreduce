@@ -25,6 +25,14 @@ func (f *Flt) ToString() string {
 func (this *Flt) IsEqual(other Ex, es *EvalState) string {
 	otherConv, ok := other.(*Flt)
 	if !ok {
+		otherInteger, ok := other.(*Integer)
+		if ok {
+			otherAsFlt := big.NewFloat(0)
+			otherAsFlt.SetInt(otherInteger.Val)
+			if otherAsFlt.Cmp(this.Val) == 0 {
+				return "EQUAL_TRUE"
+			}
+		}
 		return "EQUAL_FALSE"
 	}
 	if this.Val.Cmp(otherConv.Val) != 0 {
@@ -63,6 +71,14 @@ func (f *Integer) ToString() string {
 func (this *Integer) IsEqual(other Ex, es *EvalState) string {
 	otherConv, ok := other.(*Integer)
 	if !ok {
+		otherFlt, ok := other.(*Flt)
+		if ok {
+			thisAsFlt := big.NewFloat(0)
+			thisAsFlt.SetInt(this.Val)
+			if thisAsFlt.Cmp(otherFlt.Val) == 0 {
+				return "EQUAL_TRUE"
+			}
+		}
 		return "EQUAL_FALSE"
 	}
 	if this.Val.Cmp(otherConv.Val) != 0 {
