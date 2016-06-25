@@ -98,6 +98,7 @@ ident {L}({L}|{D})*
 \^  return EXPSYM
 = return SETSYM
 := return SETDELAYEDSYM
+=== return SAMESYM
 == return EQUALSYM
 
 {ident}
