@@ -16,9 +16,11 @@ func NewEvalState() *EvalState {
 // Ex stands for Expression. Most structs should implement this
 type Ex interface {
 	Eval(es *EvalState) Ex
+	//Replace(Rule *r, es *EvalState) Ex
 	ToString() string
 	IsEqual(b Ex, es *EvalState) string
 	IsSameQ(b Ex, es *EvalState) bool
+	IsMatchQ(b Ex, es *EvalState) bool
 	DeepCopy() Ex
 }
 

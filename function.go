@@ -73,6 +73,13 @@ func (this *Function) Eval(es *EvalState) Ex {
 		}
 		return t.Eval(es)
 	}
+	if this.Name == "MatchQ" && len(this.Arguments) == 2 {
+		t := &MatchQ{
+			Expr: this.Arguments[0],
+			Form: this.Arguments[1],
+		}
+		return t.Eval(es)
+	}
 	return this
 }
 
@@ -96,6 +103,10 @@ func (this *Function) IsEqual(otherEx Ex, es *EvalState) string {
 
 func (this *Function) IsSameQ(otherEx Ex, es *EvalState) bool {
 	return false
+}
+
+func (this *Function) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
 }
 
 func (this *Function) DeepCopy() Ex {

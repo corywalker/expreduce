@@ -48,6 +48,10 @@ func (this *Symbol) IsSameQ(other Ex, es *EvalState) bool {
 	return true
 }
 
+func (this *Symbol) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
 func (this *Symbol) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy
@@ -84,6 +88,10 @@ func (this *Set) IsEqual(otherEx Ex, es *EvalState) string {
 
 func (this *Set) IsSameQ(otherEx Ex, es *EvalState) bool {
 	return false
+}
+
+func (this *Set) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
 }
 
 func (this *Set) DeepCopy() Ex {
@@ -123,6 +131,10 @@ func (this *SetDelayed) IsEqual(otherEx Ex, es *EvalState) string {
 
 func (this *SetDelayed) IsSameQ(otherEx Ex, es *EvalState) bool {
 	return false
+}
+
+func (this *SetDelayed) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
 }
 
 func (this *SetDelayed) DeepCopy() Ex {

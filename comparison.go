@@ -58,6 +58,10 @@ func (this *Equal) IsSameQ(otherEx Ex, es *EvalState) bool {
 		}, es)
 }
 
+func (this *Equal) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
 func (this *Equal) DeepCopy() Ex {
 	return &Equal{
 		this.Lhs.DeepCopy(),
@@ -97,9 +101,56 @@ func (this *SameQ) IsSameQ(otherEx Ex, es *EvalState) bool {
 	return false
 }
 
+func (this *SameQ) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
 func (this *SameQ) DeepCopy() Ex {
 	return &SameQ{
 		this.Lhs.DeepCopy(),
 		this.Rhs.DeepCopy(),
+	}
+}
+
+type MatchQ struct {
+	Expr Ex
+	Form Ex
+}
+
+func (this *MatchQ) Eval(es *EvalState) Ex {
+	var issame bool = this.Expr.Eval(es).IsMatchQ(this.Form.Eval(es), es)
+	if issame {
+		return &Symbol{"True"}
+	} else {
+		return &Symbol{"False"}
+	}
+}
+
+func (this *MatchQ) ToString() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("MatchQ[")
+	buffer.WriteString(this.Expr.ToString())
+	buffer.WriteString(", ")
+	buffer.WriteString(this.Form.ToString())
+	buffer.WriteString("]")
+	return buffer.String()
+}
+
+func (this *MatchQ) IsEqual(otherEx Ex, es *EvalState) string {
+	return "EQUAL_UNK"
+}
+
+func (this *MatchQ) IsSameQ(otherEx Ex, es *EvalState) bool {
+	return false
+}
+
+func (this *MatchQ) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
+func (this *MatchQ) DeepCopy() Ex {
+	return &MatchQ{
+		this.Expr.DeepCopy(),
+		this.Form.DeepCopy(),
 	}
 }

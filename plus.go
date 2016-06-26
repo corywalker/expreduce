@@ -131,6 +131,10 @@ func (this *Plus) IsSameQ(otherEx Ex, es *EvalState) bool {
 	return this.IsEqual(otherEx, es) == "EQUAL_TRUE"
 }
 
+func (this *Plus) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
 func (this *Plus) DeepCopy() Ex {
 	var thiscopy = &Plus{}
 	for i := range this.Addends {

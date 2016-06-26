@@ -141,6 +141,10 @@ func (this *Times) IsSameQ(otherEx Ex, es *EvalState) bool {
 	return this.IsEqual(otherEx, es) == "EQUAL_TRUE"
 }
 
+func (this *Times) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
 func (this *Times) DeepCopy() Ex {
 	var thiscopy = &Times{}
 	for i := range this.Multiplicands {

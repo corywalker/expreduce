@@ -143,6 +143,10 @@ func (this *Power) IsSameQ(otherEx Ex, es *EvalState) bool {
 	return false
 }
 
+func (this *Power) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
 func (this *Power) DeepCopy() Ex {
 	return &Power{
 		this.Base.DeepCopy(),

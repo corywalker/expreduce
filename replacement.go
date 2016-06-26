@@ -8,6 +8,8 @@ type Rule struct {
 }
 
 func (this *Rule) Eval(es *EvalState) Ex {
+	this.Lhs = this.Lhs.Eval(es)
+	this.Rhs = this.Rhs.Eval(es)
 	return this
 }
 
@@ -49,6 +51,10 @@ func (this *Rule) IsSameQ(otherEx Ex, es *EvalState) bool {
 		}, es)
 }
 
+func (this *Rule) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
 func (this *Rule) DeepCopy() Ex {
 	return &Rule{
 		this.Lhs.DeepCopy(),
@@ -62,6 +68,14 @@ type Replace struct {
 }
 
 func (this *Replace) Eval(es *EvalState) Ex {
+	this.Expr = this.Expr.Eval(es)
+	this.Rules = this.Rules.Eval(es)
+	_, ok := this.Rules.(*Rule)
+	//rulesRule, ok := this.Rules.(*Rule)
+	if ok {
+		//return this.Replace(rulesRule, es)
+		return this
+	}
 	return this
 }
 
@@ -101,6 +115,10 @@ func (this *Replace) IsSameQ(otherEx Ex, es *EvalState) bool {
 			other.Expr,
 			other.Rules,
 		}, es)
+}
+
+func (this *Replace) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
 }
 
 func (this *Replace) DeepCopy() Ex {

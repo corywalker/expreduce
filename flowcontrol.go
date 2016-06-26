@@ -65,6 +65,10 @@ func (this *If) IsSameQ(otherEx Ex, es *EvalState) bool {
 		}, es)
 }
 
+func (this *If) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
+}
+
 func (this *If) DeepCopy() Ex {
 	return &If{
 		Condition: this.Condition.DeepCopy(),
@@ -114,6 +118,10 @@ func (this *While) IsEqual(otherEx Ex, es *EvalState) string {
 
 func (this *While) IsSameQ(otherEx Ex, es *EvalState) bool {
 	return false
+}
+
+func (this *While) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	return this.IsSameQ(otherEx, es)
 }
 
 func (this *While) DeepCopy() Ex {
