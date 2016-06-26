@@ -20,6 +20,10 @@ func (this *Equal) Eval(es *EvalState) Ex {
 	return &Error{"Unexpected equality return value."}
 }
 
+func (this *Equal) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (this *Equal) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
@@ -83,6 +87,10 @@ func (this *SameQ) Eval(es *EvalState) Ex {
 	}
 }
 
+func (this *SameQ) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (this *SameQ) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
@@ -124,6 +132,10 @@ func (this *MatchQ) Eval(es *EvalState) Ex {
 	} else {
 		return &Symbol{"False"}
 	}
+}
+
+func (this *MatchQ) Replace(r *Rule, es *EvalState) Ex {
+	return this
 }
 
 func (this *MatchQ) ToString() string {

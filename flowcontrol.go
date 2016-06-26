@@ -21,6 +21,10 @@ func (this *If) Eval(es *EvalState) Ex {
 	return &Error{"Unexpected equality return value."}
 }
 
+func (this *If) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (this *If) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("If[")
@@ -100,6 +104,10 @@ func (this *While) Eval(es *EvalState) Ex {
 	}
 
 	return &Error{"Unexpected equality return value."}
+}
+
+func (this *While) Replace(r *Rule, es *EvalState) Ex {
+	return this
 }
 
 func (this *While) ToString() string {

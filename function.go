@@ -83,6 +83,10 @@ func (this *Function) Eval(es *EvalState) Ex {
 	return this
 }
 
+func (this *Function) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (this *Function) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(this.Name)

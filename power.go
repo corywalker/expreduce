@@ -94,6 +94,10 @@ func (this *Power) Eval(es *EvalState) Ex {
 	return this
 }
 
+func (this *Power) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (this *Power) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(this.Base.ToString())

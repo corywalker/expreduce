@@ -13,6 +13,10 @@ func (f *Flt) Eval(es *EvalState) Ex {
 	return f
 }
 
+func (this *Flt) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (f *Flt) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("%g", f.Val))
@@ -68,6 +72,10 @@ func (f *Integer) Eval(es *EvalState) Ex {
 	return f
 }
 
+func (this *Integer) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (f *Integer) ToString() string {
 	return fmt.Sprintf("%d", f.Val)
 }
@@ -114,6 +122,10 @@ type Error struct {
 }
 
 func (this *Error) Eval(es *EvalState) Ex {
+	return this
+}
+
+func (this *Error) Replace(r *Rule, es *EvalState) Ex {
 	return this
 }
 

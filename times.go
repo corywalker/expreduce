@@ -110,6 +110,10 @@ func (m *Times) Eval(es *EvalState) Ex {
 	return m
 }
 
+func (this *Times) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (m *Times) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")

@@ -16,6 +16,13 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	return this
 }
 
+func (this *Symbol) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
+	return this
+}
+
 func (this *Symbol) ToString() string {
 	return fmt.Sprintf("%v", this.Name)
 }
@@ -72,6 +79,10 @@ func (this *Set) Eval(es *EvalState) Ex {
 	return evaluated
 }
 
+func (this *Set) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (this *Set) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
@@ -113,6 +124,10 @@ func (this *SetDelayed) Eval(es *EvalState) Ex {
 	}
 	es.defined[LhsSym.Name] = this.Rhs
 	return this.Rhs
+}
+
+func (this *SetDelayed) Replace(r *Rule, es *EvalState) Ex {
+	return this
 }
 
 func (this *SetDelayed) ToString() string {

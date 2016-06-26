@@ -13,6 +13,10 @@ func (this *Rule) Eval(es *EvalState) Ex {
 	return this
 }
 
+func (this *Rule) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (this *Rule) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
@@ -70,12 +74,16 @@ type Replace struct {
 func (this *Replace) Eval(es *EvalState) Ex {
 	this.Expr = this.Expr.Eval(es)
 	this.Rules = this.Rules.Eval(es)
-	_, ok := this.Rules.(*Rule)
-	//rulesRule, ok := this.Rules.(*Rule)
+	//_, ok := this.Rules.(*Rule)
+	rulesRule, ok := this.Rules.(*Rule)
 	if ok {
-		//return this.Replace(rulesRule, es)
-		return this
+		return this.Expr.Replace(rulesRule, es)
+		//return this
 	}
+	return this
+}
+
+func (this *Replace) Replace(r *Rule, es *EvalState) Ex {
 	return this
 }
 

@@ -100,6 +100,10 @@ func (a *Plus) Eval(es *EvalState) Ex {
 	return a
 }
 
+func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
+	return this
+}
+
 func (a *Plus) ToString() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
