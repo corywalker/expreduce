@@ -24,6 +24,7 @@ func TestFunction(t *testing.T) {
 	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").ToString())
 	assert.Equal(t, "my2func[]", Interp("my2func[  ]").ToString())
 
+	// Test comparison
 	CasAssertSame(t, es, "True", "foo[x == 2, y, x] === foo[x == 2, y, x]")
 	CasAssertSame(t, es, "False", "foo[x == 2, y, x] === foo[x == 2., y, x]")
 	CasAssertSame(t, es, "True", "foo[x == 2, y, x] == foo[x == 2, y, x]")
@@ -32,4 +33,12 @@ func TestFunction(t *testing.T) {
 	CasAssertSame(t, es, "False", "foo[x == 2, y, x] === foo[x == 2., y, y]")
 	CasAssertSame(t, es, "foo[x == 2, y, x] == bar[x == 2, y, x]", "foo[x == 2, y, x] == bar[x == 2, y, x]")
 	CasAssertSame(t, es, "False", "foo[x == 2, y, x] === bar[x == 2, y, x]")
+
+	// Test replacement
+	CasAssertSame(t, es, "foo[False, y, 5]", "foo[x == 2, y, x] /. x -> 5")
+	CasAssertSame(t, es, "foo[5, y, x]", "foo[x * 2, y, x] /. x * 2 -> 5")
+	CasAssertSame(t, es, "k", "foo[k] /. foo[k] -> k")
+	CasAssertSame(t, es, "foo[k]", "foo[foo[k]] /. foo[k] -> k")
+	CasAssertSame(t, es, "k", "(foo[foo[k]] /. foo[k] -> k) /. foo[k] -> k")
+	CasAssertSame(t, es, "foo[bla]", "foo[foo[k]] /. foo[k] -> bla")
 }

@@ -25,7 +25,10 @@ func (this *If) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Condition = this.Condition.Replace(r, es)
+	this.T = this.T.Replace(r, es)
+	this.F = this.F.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *If) ToString() string {
@@ -113,7 +116,9 @@ func (this *While) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Test = this.Test.Replace(r, es)
+	this.Body = this.Body.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *While) ToString() string {

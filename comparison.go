@@ -24,7 +24,9 @@ func (this *Equal) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Lhs = this.Lhs.Replace(r, es)
+	this.Rhs = this.Rhs.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *Equal) ToString() string {
@@ -94,7 +96,9 @@ func (this *SameQ) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Lhs = this.Lhs.Replace(r, es)
+	this.Rhs = this.Rhs.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *SameQ) ToString() string {
@@ -144,7 +148,9 @@ func (this *MatchQ) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Expr = this.Expr.Replace(r, es)
+	this.Form = this.Form.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *MatchQ) ToString() string {

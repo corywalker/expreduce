@@ -27,4 +27,10 @@ func TestFlowControl(t *testing.T) {
 	assert.Equal(t, "9", EvalInterp("x=9", es).ToString())
 	assert.Equal(t, "18", EvalInterp("If[x+3==12, x*2, x+3]", es).ToString())
 	assert.Equal(t, "12", EvalInterp("If[x+3==11, x*2, x+3]", es).ToString())
+
+	// Test replacement
+	CasAssertSame(t, es, "itsfalse", "If[1 == 2, itstrue, itsfalse]")
+	CasAssertSame(t, es, "itsfalse", "If[1 == 2, itstrue, itsfalse] /. (2 -> 1)")
+	CasAssertSame(t, es, "itstrue", "If[1 == k, itstrue, itsfalse] /. (k -> 1)")
+	CasAssertSame(t, es, "If[1 == k, itstrue, itsfalse]", "If[1 == k, itstrue, itsfalse]")
 }

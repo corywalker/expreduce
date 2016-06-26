@@ -94,6 +94,9 @@ func (this *Function) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
+	for i := range this.Arguments {
+		this.Arguments[i] = this.Arguments[i].Replace(r, es)
+	}
 	return this
 }
 
