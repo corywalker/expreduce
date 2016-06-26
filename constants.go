@@ -40,7 +40,7 @@ func (this *Flt) IsEqual(other Ex, es *EvalState) string {
 				return "EQUAL_TRUE"
 			}
 		}
-		return "EQUAL_FALSE"
+		return "EQUAL_UNK"
 	}
 	if this.Val.Cmp(otherConv.Val) != 0 {
 		return "EQUAL_FALSE"
@@ -97,7 +97,7 @@ func (this *Integer) IsEqual(other Ex, es *EvalState) string {
 				return "EQUAL_TRUE"
 			}
 		}
-		return "EQUAL_FALSE"
+		return "EQUAL_UNK"
 	}
 	if this.Val.Cmp(otherConv.Val) != 0 {
 		return "EQUAL_FALSE"

@@ -63,15 +63,6 @@ func Test(t *testing.T) {
 		}},
 		&Flt{big.NewFloat(2)},
 	}}
-	var d = &Plus{[]Ex{
-		&Flt{big.NewFloat(2.5)},
-		&Plus{[]Ex{
-			&Flt{big.NewFloat(3)},
-			&Flt{big.NewFloat(80)},
-		}},
-		&Flt{big.NewFloat(2)},
-		&Symbol{"x"},
-	}}
 	var e = &Plus{[]Ex{
 		&Flt{big.NewFloat(2.5)},
 		&Plus{[]Ex{
@@ -83,7 +74,8 @@ func Test(t *testing.T) {
 	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(b, es))
 	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(c, es))
 	assert.Equal(t, "EQUAL_FALSE", b.IsEqual(c, es))
-	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(d, es))
+	//assert.Equal(t, "EQUAL_FALSE", a.Eval(es).IsEqual(d.Eval(es), es))
+	CasAssertSame(t, es, "False", "2.5 + (3. + 80.) + 2.5 == (80. + 3.) + 2. + 2.5")
 	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(e, es))
 	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, es))
 	var t3 = &Plus{[]Ex{

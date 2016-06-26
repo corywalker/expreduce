@@ -13,7 +13,7 @@ func TestComparison(t *testing.T) {
 	es := NewEvalState()
 
 	assert.Equal(t, "True", EvalInterp("9*x==x*9", es).ToString())
-	assert.Equal(t, "False", EvalInterp("9*x==x*10", es).ToString())
+	assert.Equal(t, "((9 * x)) == ((x * 10))", EvalInterp("9*x==x*10", es).ToString())
 	assert.Equal(t, "5", EvalInterp("tmp=5", es).ToString())
 	assert.Equal(t, "True", EvalInterp("tmp==5", es).ToString())
 	assert.Equal(t, "True", EvalInterp("5==tmp", es).ToString())

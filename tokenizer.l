@@ -5,6 +5,7 @@ import (
     "log"
     "strconv"
     "math/big"
+    "strings"
 )
 
 type Calclexer struct{
@@ -59,6 +60,7 @@ D  [0-9]+
 F  {D}"."{D}?|"."{D}|{D}
 L [A-Za-z]
 ident {L}({L}|{D})*
+pattern _|{ident}_|_{ident}|{ident}_{ident}
 
 %%
     y.buf = y.buf[:0]
@@ -102,6 +104,24 @@ ident {L}({L}|{D})*
 === return SAMESYM
 == return EQUALSYM
 \/\. return REPLACESYM
+
+{pattern}
+    parts := strings.Split(string(y.buf), "_")
+    if len(parts) == 1 {
+        lval.val = &Pattern{&Symbol{parts[0]}, &Blank{}}
+        return PATTERN
+    }
+    if len(parts) == 2 {
+        if parts[0] == "" {
+            lval.val = &Blank{&Symbol{parts[1]}}
+            return PATTERN
+        } else {
+        lval.val = &Pattern{&Symbol{parts[0]}, &Blank{&Symbol{parts[1]}}}
+        return PATTERN
+        }
+    }
+    lval.val = &Error{"Pattern parse error."}
+    return PATTERN
 
 {ident}
     lval.val = &Symbol{string(y.buf)}

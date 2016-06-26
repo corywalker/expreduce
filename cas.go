@@ -45,14 +45,13 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 				matched[j] = struct{}{}
 				foundmatch = true
 			case "EQUAL_UNK":
-				return "EQUAL_UNK"
 			}
 			if foundmatch {
 				break
 			}
 		}
 		if !foundmatch {
-			return "EQUAL_FALSE"
+			return "EQUAL_UNK"
 		}
 	}
 	return "EQUAL_TRUE"

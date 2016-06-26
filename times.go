@@ -139,7 +139,7 @@ func (this *Times) IsEqual(otherEx Ex, es *EvalState) string {
 	}
 	other, ok := otherEx.(*Times)
 	if !ok {
-		return "EQUAL_FALSE"
+		return "EQUAL_UNK"
 	}
 	return CommutativeIsEqual(this.Multiplicands, other.Multiplicands, es)
 }

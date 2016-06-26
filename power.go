@@ -118,7 +118,7 @@ func (this *Power) IsEqual(otherEx Ex, es *EvalState) string {
 	}
 	other, ok := otherEx.(*Power)
 	if !ok {
-		return "EQUAL_FALSE"
+		return "EQUAL_UNK"
 	}
 	// TODO: Could be improved by knowing about base conversions and logarithms
 	var baseEqual = this.Base.IsEqual(other.Base, es) == "EQUAL_TRUE"
