@@ -95,6 +95,9 @@ func (this *Power) Eval(es *EvalState) Ex {
 }
 
 func (this *Power) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
 	return this
 }
 

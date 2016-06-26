@@ -80,6 +80,9 @@ func (this *Set) Eval(es *EvalState) Ex {
 }
 
 func (this *Set) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
 	return this
 }
 
@@ -127,6 +130,9 @@ func (this *SetDelayed) Eval(es *EvalState) Ex {
 }
 
 func (this *SetDelayed) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
 	return this
 }
 

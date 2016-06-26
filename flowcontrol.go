@@ -22,6 +22,9 @@ func (this *If) Eval(es *EvalState) Ex {
 }
 
 func (this *If) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
 	return this
 }
 
@@ -107,6 +110,9 @@ func (this *While) Eval(es *EvalState) Ex {
 }
 
 func (this *While) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
 	return this
 }
 

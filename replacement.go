@@ -14,6 +14,9 @@ func (this *Rule) Eval(es *EvalState) Ex {
 }
 
 func (this *Rule) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
 	return this
 }
 
@@ -84,6 +87,9 @@ func (this *Replace) Eval(es *EvalState) Ex {
 }
 
 func (this *Replace) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
 	return this
 }
 

@@ -101,6 +101,9 @@ func (a *Plus) Eval(es *EvalState) Ex {
 }
 
 func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
 	return this
 }
 
