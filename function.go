@@ -80,6 +80,13 @@ func (this *Function) Eval(es *EvalState) Ex {
 		}
 		return t.Eval(es)
 	}
+	if this.Name == "Replace" && len(this.Arguments) == 2 {
+		t := &Replace{
+			Expr: this.Arguments[0],
+			Rules: this.Arguments[1],
+		}
+		return t.Eval(es)
+	}
 	return this
 }
 
