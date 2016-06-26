@@ -112,11 +112,22 @@ func (this *Function) ToString() string {
 }
 
 func (this *Function) IsEqual(otherEx Ex, es *EvalState) string {
-	return "EQUAL_UNK"
+	other, ok := otherEx.(*Function)
+	if !ok {
+		return "EQUAL_UNK"
+	}
+	return FunctionIsEqual(this.Arguments, other.Arguments, es)
 }
 
 func (this *Function) IsSameQ(otherEx Ex, es *EvalState) bool {
-	return false
+	other, ok := otherEx.(*Function)
+	if !ok {
+		return false
+	}
+	if this.Name != other.Name {
+		return false
+	}
+	return FunctionIsSameQ(this.Arguments, other.Arguments, es)
 }
 
 func (this *Function) IsMatchQ(otherEx Ex, es *EvalState) bool {

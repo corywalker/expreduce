@@ -7,3 +7,8 @@ Out: ()
 > a==1
 In:  (a) == (1)
 Out: False
+
+
+> MatchQ[x+y,y+x]
+In:  MatchQ[(x + y), (y + x)]
+Out: False

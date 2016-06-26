@@ -10,7 +10,7 @@ import (
 func TestFunction(t *testing.T) {
 	fmt.Println("Testing functions")
 
-	//es := NewEvalState()
+	es := NewEvalState()
 
 	var t1 = &Function{
 		"Power",
@@ -23,4 +23,13 @@ func TestFunction(t *testing.T) {
 	assert.Equal(t, "Power[5, 3]", Interp("Power[ 5,3 ]").ToString())
 	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").ToString())
 	assert.Equal(t, "my2func[]", Interp("my2func[  ]").ToString())
+
+	CasAssertSame(t, es, "True", "foo[x == 2, y, x] === foo[x == 2, y, x]")
+	CasAssertSame(t, es, "False", "foo[x == 2, y, x] === foo[x == 2., y, x]")
+	CasAssertSame(t, es, "True", "foo[x == 2, y, x] == foo[x == 2, y, x]")
+	CasAssertSame(t, es, "True", "foo[x == 2, y, x] == foo[x == 2., y, x]")
+	CasAssertSame(t, es, "foo[x == 2, y, x] == foo[x == 2., y, y]", "foo[x == 2, y, x] == foo[x == 2., y, y]")
+	CasAssertSame(t, es, "False", "foo[x == 2, y, x] === foo[x == 2., y, y]")
+	CasAssertSame(t, es, "foo[x == 2, y, x] == bar[x == 2, y, x]", "foo[x == 2, y, x] == bar[x == 2, y, x]")
+	CasAssertSame(t, es, "False", "foo[x == 2, y, x] === bar[x == 2, y, x]")
 }
