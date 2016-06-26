@@ -97,7 +97,7 @@ func (this *Function) Replace(r *Rule, es *EvalState) Ex {
 	for i := range this.Arguments {
 		this.Arguments[i] = this.Arguments[i].Replace(r, es)
 	}
-	return this
+	return this.Eval(es)
 }
 
 func (this *Function) ToString() string {

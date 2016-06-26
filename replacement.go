@@ -90,7 +90,9 @@ func (this *Replace) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Expr = this.Expr.Replace(r, es)
+	this.Rules = this.Rules.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *Replace) ToString() string {

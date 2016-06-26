@@ -98,7 +98,9 @@ func (this *Power) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Base = this.Base.Replace(r, es)
+	this.Power = this.Power.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *Power) ToString() string {

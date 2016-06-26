@@ -83,7 +83,9 @@ func (this *Set) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Lhs = this.Lhs.Replace(r, es)
+	this.Rhs = this.Rhs.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *Set) ToString() string {
@@ -133,7 +135,9 @@ func (this *SetDelayed) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
-	return this
+	this.Lhs = this.Lhs.Replace(r, es)
+	this.Rhs = this.Rhs.Replace(r, es)
+	return this.Eval(es)
 }
 
 func (this *SetDelayed) ToString() string {
