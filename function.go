@@ -22,6 +22,13 @@ func (this *Function) Eval(es *EvalState) Ex {
 		}
 		return t.Eval(es)
 	}
+	if this.Name == "SameQ" && len(this.Arguments) == 2 {
+		t := &Equal{
+			Lhs: this.Arguments[0],
+			Rhs: this.Arguments[1],
+		}
+		return t.Eval(es)
+	}
 	if this.Name == "Plus" {
 		t := &Plus{Addends: this.Arguments}
 		return t.Eval(es)

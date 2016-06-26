@@ -19,9 +19,11 @@ import (
 %type <val> expr
 
 // same for terminals
-%token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM LBRACKETSYM RBRACKETSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM SAMESYM EQUALSYM SETSYM SETDELAYEDSYM NAME
+%token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM LBRACKETSYM RBRACKETSYM REPLACESYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM SAMESYM EQUALSYM SETSYM SETDELAYEDSYM NAME
 
+%left REPLACESYM
 %left SAMESYM EQUALSYM
+%left RULESYM
 %left PLUSSYM MINUSSYM
 %left MULTSYM DIVSYM
 %left EXPSYM
@@ -78,6 +80,10 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  &Times{ []Ex{$1, &Power{$3, &Integer{big.NewInt(-1)}} } } }
 	|    expr EXPSYM expr
 		{ $$  =  &Power{$1, $3} }
+	|    expr RULESYM expr
+		{ $$  =  &Rule{$1, $3} }
+	|    expr REPLACESYM expr
+		{ $$  =  &Replace{$1, $3} }
 	|    expr SETSYM expr
 		{ $$  =  &Set{$1, $3} }
 	|    expr SETDELAYEDSYM expr

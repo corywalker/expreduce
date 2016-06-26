@@ -91,6 +91,7 @@ ident {L}({L}|{D})*
 , return COMMASYM
 \[ return LBRACKETSYM
 \] return RBRACKETSYM
+-> return RULESYM
 \+ return PLUSSYM
 \- return MINUSSYM
 \* return MULTSYM
@@ -100,6 +101,7 @@ ident {L}({L}|{D})*
 := return SETDELAYEDSYM
 === return SAMESYM
 == return EQUALSYM
+\/\. return REPLACESYM
 
 {ident}
     lval.val = &Symbol{string(y.buf)}
