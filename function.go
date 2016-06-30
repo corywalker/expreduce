@@ -3,14 +3,14 @@ package cas
 import "bytes"
 
 type Function struct {
-	Name string
+	Name      string
 	Arguments []Ex
 }
 
 func (this *Function) Eval(es *EvalState) Ex {
 	if this.Name == "Power" && len(this.Arguments) == 2 {
 		t := &Power{
-			Base: this.Arguments[0],
+			Base:  this.Arguments[0],
 			Power: this.Arguments[1],
 		}
 		return t.Eval(es)
@@ -54,8 +54,8 @@ func (this *Function) Eval(es *EvalState) Ex {
 	if this.Name == "If" && len(this.Arguments) == 3 {
 		t := &If{
 			Condition: this.Arguments[0],
-			T: this.Arguments[1],
-			F: this.Arguments[2],
+			T:         this.Arguments[1],
+			F:         this.Arguments[2],
 		}
 		return t.Eval(es)
 	}
@@ -82,7 +82,7 @@ func (this *Function) Eval(es *EvalState) Ex {
 	}
 	if this.Name == "Replace" && len(this.Arguments) == 2 {
 		t := &Replace{
-			Expr: this.Arguments[0],
+			Expr:  this.Arguments[0],
 			Rules: this.Arguments[1],
 		}
 		return t.Eval(es)

@@ -1,10 +1,9 @@
-
 package cas
 
 import (
-	"testing"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestFlowControl(t *testing.T) {

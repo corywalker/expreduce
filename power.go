@@ -2,14 +2,14 @@ package cas
 
 import (
 	"bytes"
-	"math/big"
 	"github.com/corywalker/mathbigext"
+	"math/big"
 	//"fmt"
 )
 
 // An exponent expression with a base and an exponent
 type Power struct {
-	Base Ex
+	Base  Ex
 	Power Ex
 }
 
@@ -21,10 +21,10 @@ func (this *Power) Eval(es *EvalState) Ex {
 	// TODO: Handle cases like float raised to the float and things raised to
 	// zero and 1
 
-	baseInt, baseIsInt:= this.Base.(*Integer)
-	powerInt, powerIsInt:= this.Power.(*Integer)
-	baseFlt, baseIsFlt:= this.Base.(*Flt)
-	powerFlt, powerIsFlt:= this.Power.(*Flt)
+	baseInt, baseIsInt := this.Base.(*Integer)
+	powerInt, powerIsInt := this.Power.(*Integer)
+	baseFlt, baseIsFlt := this.Base.(*Flt)
+	powerFlt, powerIsFlt := this.Power.(*Flt)
 	// Anything raised to the 1st power is itself
 	if powerIsFlt {
 		if powerFlt.Val.Cmp(big.NewFloat(1)) == 0 {

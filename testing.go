@@ -1,9 +1,9 @@
 package cas
 
 import (
-	"testing"
-	"github.com/stretchr/testify/assert"
 	"bytes"
+	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {

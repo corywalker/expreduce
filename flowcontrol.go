@@ -4,8 +4,8 @@ import "bytes"
 
 type If struct {
 	Condition Ex
-	T Ex
-	F Ex
+	T         Ex
+	F         Ex
 }
 
 func (this *If) Eval(es *EvalState) Ex {
@@ -49,14 +49,14 @@ func (this *If) IsEqual(otherEx Ex, es *EvalState) string {
 		return "EQUAL_UNK"
 	}
 	return FunctionIsEqual([]Ex{
-			this.Condition,
-			this.T,
-			this.F,
-		}, []Ex{
-			other.Condition,
-			other.T,
-			other.F,
-		}, es)
+		this.Condition,
+		this.T,
+		this.F,
+	}, []Ex{
+		other.Condition,
+		other.T,
+		other.F,
+	}, es)
 }
 
 func (this *If) IsSameQ(otherEx Ex, es *EvalState) bool {
@@ -65,14 +65,14 @@ func (this *If) IsSameQ(otherEx Ex, es *EvalState) bool {
 		return false
 	}
 	return FunctionIsSameQ([]Ex{
-			this.Condition,
-			this.T,
-			this.F,
-		}, []Ex{
-			other.Condition,
-			other.T,
-			other.F,
-		}, es)
+		this.Condition,
+		this.T,
+		this.F,
+	}, []Ex{
+		other.Condition,
+		other.T,
+		other.F,
+	}, es)
 }
 
 func (this *If) IsMatchQ(otherEx Ex, es *EvalState) bool {
@@ -82,8 +82,8 @@ func (this *If) IsMatchQ(otherEx Ex, es *EvalState) bool {
 func (this *If) DeepCopy() Ex {
 	return &If{
 		Condition: this.Condition.DeepCopy(),
-		T: this.T.DeepCopy(),
-		F: this.F.DeepCopy(),
+		T:         this.T.DeepCopy(),
+		F:         this.F.DeepCopy(),
 	}
 }
 

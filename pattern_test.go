@@ -1,8 +1,8 @@
 package cas
 
 import (
-	"testing"
 	"fmt"
+	"testing"
 )
 
 func TestPattern(t *testing.T) {

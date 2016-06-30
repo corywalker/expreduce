@@ -2,14 +2,13 @@ package main
 
 import (
 	"fmt"
-	"gopkg.in/readline.v1"
 	"github.com/corywalker/cas"
+	"gopkg.in/readline.v1"
 )
-
 
 func main() {
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt: "> ",
+		Prompt:      "> ",
 		HistoryFile: "/tmp/readline.tmp",
 	})
 	if err != nil {
@@ -26,7 +25,7 @@ func main() {
 		}
 
 		exp := cas.Interp(line)
-		fmt.Printf( "In:  %s\n", exp.ToString() );
-		fmt.Printf( "Out: %s\n", exp.Eval(es).ToString() );
+		fmt.Printf("In:  %s\n", exp.ToString())
+		fmt.Printf("Out: %s\n", exp.Eval(es).ToString())
 	}
 }

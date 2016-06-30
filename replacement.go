@@ -36,12 +36,12 @@ func (this *Rule) IsEqual(otherEx Ex, es *EvalState) string {
 		return "EQUAL_UNK"
 	}
 	return FunctionIsEqual([]Ex{
-			this.Lhs,
-			this.Rhs,
-		}, []Ex{
-			other.Lhs,
-			other.Rhs,
-		}, es)
+		this.Lhs,
+		this.Rhs,
+	}, []Ex{
+		other.Lhs,
+		other.Rhs,
+	}, es)
 }
 
 func (this *Rule) IsSameQ(otherEx Ex, es *EvalState) bool {
@@ -50,12 +50,12 @@ func (this *Rule) IsSameQ(otherEx Ex, es *EvalState) bool {
 		return false
 	}
 	return FunctionIsSameQ([]Ex{
-			this.Lhs,
-			this.Rhs,
-		}, []Ex{
-			other.Lhs,
-			other.Rhs,
-		}, es)
+		this.Lhs,
+		this.Rhs,
+	}, []Ex{
+		other.Lhs,
+		other.Rhs,
+	}, es)
 }
 
 func (this *Rule) IsMatchQ(otherEx Ex, es *EvalState) bool {
@@ -70,7 +70,7 @@ func (this *Rule) DeepCopy() Ex {
 }
 
 type Replace struct {
-	Expr Ex
+	Expr  Ex
 	Rules Ex
 }
 
@@ -111,12 +111,12 @@ func (this *Replace) IsEqual(otherEx Ex, es *EvalState) string {
 		return "EQUAL_UNK"
 	}
 	return FunctionIsEqual([]Ex{
-			this.Expr,
-			this.Rules,
-		}, []Ex{
-			other.Expr,
-			other.Rules,
-		}, es)
+		this.Expr,
+		this.Rules,
+	}, []Ex{
+		other.Expr,
+		other.Rules,
+	}, es)
 }
 
 func (this *Replace) IsSameQ(otherEx Ex, es *EvalState) bool {
@@ -125,12 +125,12 @@ func (this *Replace) IsSameQ(otherEx Ex, es *EvalState) bool {
 		return false
 	}
 	return FunctionIsSameQ([]Ex{
-			this.Expr,
-			this.Rules,
-		}, []Ex{
-			other.Expr,
-			other.Rules,
-		}, es)
+		this.Expr,
+		this.Rules,
+	}, []Ex{
+		other.Expr,
+		other.Rules,
+	}, es)
 }
 
 func (this *Replace) IsMatchQ(otherEx Ex, es *EvalState) bool {

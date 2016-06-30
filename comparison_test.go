@@ -1,9 +1,9 @@
 package cas
 
 import (
-	"testing"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestComparison(t *testing.T) {

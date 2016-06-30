@@ -1,10 +1,10 @@
 package cas
 
 import (
-	"testing"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"math/big"
+	"testing"
 )
 
 func TestDeepCopy(t *testing.T) {

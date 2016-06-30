@@ -3,7 +3,7 @@ package cas
 import "bytes"
 
 type Pattern struct {
-	S Ex
+	S   Ex
 	Obj Ex
 }
 
@@ -34,12 +34,12 @@ func (this *Pattern) IsEqual(otherEx Ex, es *EvalState) string {
 		return "EQUAL_UNK"
 	}
 	return FunctionIsEqual([]Ex{
-			this.S,
-			this.Obj,
-		}, []Ex{
-			other.S,
-			other.Obj,
-		}, es)
+		this.S,
+		this.Obj,
+	}, []Ex{
+		other.S,
+		other.Obj,
+	}, es)
 }
 
 func (this *Pattern) IsSameQ(otherEx Ex, es *EvalState) bool {
@@ -48,12 +48,12 @@ func (this *Pattern) IsSameQ(otherEx Ex, es *EvalState) bool {
 		return false
 	}
 	return FunctionIsSameQ([]Ex{
-			this.S,
-			this.Obj,
-		}, []Ex{
-			other.S,
-			other.Obj,
-		}, es)
+		this.S,
+		this.Obj,
+	}, []Ex{
+		other.S,
+		other.Obj,
+	}, es)
 }
 
 func (this *Pattern) IsMatchQ(otherEx Ex, es *EvalState) bool {
@@ -96,10 +96,10 @@ func (this *Blank) IsEqual(otherEx Ex, es *EvalState) string {
 		return "EQUAL_UNK"
 	}
 	return FunctionIsEqual([]Ex{
-			this.H,
-		}, []Ex{
-			other.H,
-		}, es)
+		this.H,
+	}, []Ex{
+		other.H,
+	}, es)
 }
 
 func (this *Blank) IsSameQ(otherEx Ex, es *EvalState) bool {
@@ -108,10 +108,10 @@ func (this *Blank) IsSameQ(otherEx Ex, es *EvalState) bool {
 		return false
 	}
 	return FunctionIsSameQ([]Ex{
-			this.H,
-		}, []Ex{
-			other.H,
-		}, es)
+		this.H,
+	}, []Ex{
+		other.H,
+	}, es)
 }
 
 func (this *Blank) IsMatchQ(otherEx Ex, es *EvalState) bool {

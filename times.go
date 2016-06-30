@@ -70,7 +70,7 @@ func (m *Times) Eval(es *EvalState) Ex {
 	}
 
 	// Remove one Floats
-	for i := len(m.Multiplicands)-1; i >= 0; i-- {
+	for i := len(m.Multiplicands) - 1; i >= 0; i-- {
 		f, ok := m.Multiplicands[i].(*Flt)
 		if ok && f.Val.Cmp(big.NewFloat(1)) == 0 {
 			m.Multiplicands[i] = m.Multiplicands[len(m.Multiplicands)-1]
@@ -93,7 +93,7 @@ func (m *Times) Eval(es *EvalState) Ex {
 	}
 
 	// Remove one Integers
-	for i := len(m.Multiplicands)-1; i >= 0; i-- {
+	for i := len(m.Multiplicands) - 1; i >= 0; i-- {
 		theint, ok := m.Multiplicands[i].(*Integer)
 		if ok && theint.Val.Cmp(big.NewInt(1)) == 0 {
 			m.Multiplicands[i] = m.Multiplicands[len(m.Multiplicands)-1]

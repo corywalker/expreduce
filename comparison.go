@@ -45,12 +45,12 @@ func (this *Equal) IsEqual(otherEx Ex, es *EvalState) string {
 		return "EQUAL_UNK"
 	}
 	return FunctionIsEqual([]Ex{
-			this.Lhs,
-			this.Rhs,
-		}, []Ex{
-			other.Lhs,
-			other.Rhs,
-		}, es)
+		this.Lhs,
+		this.Rhs,
+	}, []Ex{
+		other.Lhs,
+		other.Rhs,
+	}, es)
 }
 
 func (this *Equal) IsSameQ(otherEx Ex, es *EvalState) bool {
@@ -59,12 +59,12 @@ func (this *Equal) IsSameQ(otherEx Ex, es *EvalState) bool {
 		return false
 	}
 	return FunctionIsSameQ([]Ex{
-			this.Lhs,
-			this.Rhs,
-		}, []Ex{
-			other.Lhs,
-			other.Rhs,
-		}, es)
+		this.Lhs,
+		this.Rhs,
+	}, []Ex{
+		other.Lhs,
+		other.Rhs,
+	}, es)
 }
 
 func (this *Equal) IsMatchQ(otherEx Ex, es *EvalState) bool {

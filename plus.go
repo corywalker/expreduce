@@ -60,7 +60,7 @@ func (a *Plus) Eval(es *EvalState) Ex {
 	}
 
 	// Remove zero Floats
-	for i := len(a.Addends)-1; i >= 0; i-- {
+	for i := len(a.Addends) - 1; i >= 0; i-- {
 		f, ok := a.Addends[i].(*Flt)
 		if ok && f.Val.Cmp(big.NewFloat(0)) == 0 {
 			a.Addends[i] = a.Addends[len(a.Addends)-1]
@@ -83,7 +83,7 @@ func (a *Plus) Eval(es *EvalState) Ex {
 	}
 
 	// Remove zero Integers
-	for i := len(a.Addends)-1; i >= 0; i-- {
+	for i := len(a.Addends) - 1; i >= 0; i-- {
 		theint, ok := a.Addends[i].(*Integer)
 		if ok && theint.Val.Cmp(big.NewInt(0)) == 0 {
 			a.Addends[i] = a.Addends[len(a.Addends)-1]
