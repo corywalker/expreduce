@@ -61,7 +61,7 @@ func FunctionIsEqual(components []Ex, other_components []Ex, es *EvalState) stri
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
 	}
-	for i, _ := range components {
+	for i := range components {
 		res := components[i].IsEqual(other_components[i], es)
 		switch res {
 		case "EQUAL_FALSE":
@@ -78,7 +78,7 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool
 	if len(components) != len(other_components) {
 		return false
 	}
-	for i, _ := range components {
+	for i := range components {
 		res := components[i].IsSameQ(other_components[i], es)
 		if !res {
 			return false
