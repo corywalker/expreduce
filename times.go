@@ -119,6 +119,9 @@ func (this *Times) Replace(r *Rule, es *EvalState) Ex {
 	if ok {
 		CommutativeReplace(&this.Multiplicands, rConv.Multiplicands, r.Rhs, es)
 	}
+	for i := range this.Multiplicands {
+		this.Multiplicands[i] = this.Multiplicands[i].Replace(r, es)
+	}
 	return this
 }
 

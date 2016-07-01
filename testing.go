@@ -21,9 +21,9 @@ func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s
 		buffer.WriteString(") == (")
 	}
 	buffer.WriteString(outTree.ToString())
+	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
 	buffer.WriteString(in)
-	buffer.WriteString(")")
 
 	if test {
 		return (theTest.ToString() == "True"), buffer.String()

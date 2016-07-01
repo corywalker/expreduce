@@ -109,6 +109,9 @@ func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
 	if ok {
 		CommutativeReplace(&this.Addends, rConv.Addends, r.Rhs, es)
 	}
+	for i := range this.Addends {
+		this.Addends[i] = this.Addends[i].Replace(r, es)
+	}
 	return this
 }
 
