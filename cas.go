@@ -86,3 +86,17 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool
 	}
 	return true
 }
+
+func IterableReplace(components *[]Ex, r *Rule, es *EvalState) {
+	for i := range *components {
+		if (*components)[i].IsMatchQ(r.Lhs, es) {
+			(*components)[i] = r.Rhs.DeepCopy()
+		}
+	}
+}
+
+func CommutativeReplace(components *[]Ex, r *Rule, es *EvalState) {
+	//if this.IsMatchQ(r.Lhs, es) {
+	//return r.Rhs
+	//}
+}

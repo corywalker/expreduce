@@ -104,6 +104,8 @@ func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
+	IterableReplace(&this.Addends, r, es)
+	CommutativeReplace(&this.Addends, r, es)
 	return this
 }
 

@@ -114,6 +114,8 @@ func (this *Times) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
+	IterableReplace(&this.Multiplicands, r, es)
+	CommutativeReplace(&this.Multiplicands, r, es)
 	return this
 }
 
