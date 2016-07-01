@@ -115,7 +115,10 @@ func (this *Times) Replace(r *Rule, es *EvalState) Ex {
 		return r.Rhs
 	}
 	IterableReplace(&this.Multiplicands, r, es)
-	CommutativeReplace(&this.Multiplicands, r, es)
+	rConv, ok := r.Lhs.(*Times)
+	if ok {
+		CommutativeReplace(&this.Multiplicands, rConv.Multiplicands, r.Rhs, es)
+	}
 	return this
 }
 

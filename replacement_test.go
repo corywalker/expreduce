@@ -21,4 +21,6 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "a * b * c + a * b^2 * c", "(a*b*c) + (a*b^2*c)")
 	CasAssertSame(t, es, "b * d + b^2 * d", "(a*b*c) + (a*b^2*c) /. c*a -> d")
 	CasAssertSame(t, es, "a + b + c", "a + b + c /. c + a -> c + a")
+	CasAssertSame(t, es, "d", "a*b*c /. c*a*b -> d")
+	CasAssertSame(t, es, "a * b * c", "a*b*c /. c*a*b*d -> d")
 }

@@ -3,6 +3,8 @@
 
 package cas
 
+//import "fmt"
+
 type EvalState struct {
 	defined map[string]Ex
 }
@@ -95,8 +97,32 @@ func IterableReplace(components *[]Ex, r *Rule, es *EvalState) {
 	}
 }
 
-func CommutativeReplace(components *[]Ex, r *Rule, es *EvalState) {
+func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
+	if len(lhs_components) == 2 {
+		// Choose to match first comp on LHS first
+		for i := range *components {
+			if (*components)[i].IsMatchQ(lhs_components[0], es) {
+				// Should I be deep copying?
+				//popped Ex
+				popped := (*components)[i]
+				*components = append((*components)[:i], (*components)[i+1:]...)
+				//var p *Plus = &Plus{*components}
+				//fmt.Println(p.ToString())
+				for j := range *components {
+					if (*components)[j].IsMatchQ(lhs_components[1], es) {
+						// Reached end of line
+						*components = append((*components)[:j], (*components)[j+1:]...)
+						*components = append(*components, []Ex{rhs}...)
+						return
+					}
+				}
+				*components = append((*components)[:i], append([]Ex{popped}, (*components)[i:]...)...)
+				//var pn *Plus = &Plus{*components}
+				//fmt.Println(pn.ToString())
+			}
+		}
+	}
 	//if this.IsMatchQ(r.Lhs, es) {
-	//return r.Rhs
+		//return r.Rhs
 	//}
 }

@@ -105,7 +105,10 @@ func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
 		return r.Rhs
 	}
 	IterableReplace(&this.Addends, r, es)
-	CommutativeReplace(&this.Addends, r, es)
+	rConv, ok := r.Lhs.(*Plus)
+	if ok {
+		CommutativeReplace(&this.Addends, rConv.Addends, r.Rhs, es)
+	}
 	return this
 }
 
