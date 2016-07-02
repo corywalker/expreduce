@@ -3,7 +3,7 @@
 
 package cas
 
-//import "fmt"
+import "fmt"
 
 type EvalState struct {
 	defined map[string]Ex
@@ -97,7 +97,76 @@ func IterableReplace(components *[]Ex, r *Rule, es *EvalState) {
 	}
 }
 
+func permutations(iterable []int, r int) [][]int {
+	res := make([][]int, 0)
+	pool := iterable
+	n := len(pool)
+
+	if r > n {
+		return res
+	}
+
+	indices := make([]int, n)
+	for i := range indices {
+		indices[i] = i
+	}
+
+	cycles := make([]int, r)
+	for i := range cycles {
+		cycles[i] = n - i
+	}
+
+	result := make([]int, r)
+	for i, el := range indices[:r] {
+		result[i] = pool[el]
+	}
+
+	c := make([]int, len(result))
+	copy(c, result)
+	res = append(res, c)
+
+	for n > 0 {
+		i := r - 1
+		for ; i >= 0; i -= 1 {
+			cycles[i] -= 1
+			if cycles[i] == 0 {
+				index := indices[i]
+				for j := i; j < n-1; j += 1 {
+					indices[j] = indices[j+1]
+				}
+				indices[n-1] = index
+				cycles[i] = n - i
+			} else {
+				j := cycles[i]
+				indices[i], indices[n-j] = indices[n-j], indices[i]
+
+				for k := i; k < r; k += 1 {
+					result[k] = pool[indices[k]]
+				}
+
+				c := make([]int, len(result))
+				copy(c, result)
+				res = append(res, c)
+
+				break
+			}
+		}
+
+		if i < 0 {
+			return res
+		}
+
+	}
+	return res
+
+}
+
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
+	toPermute := make([]int, len(lhs_components))
+	for i := range toPermute { toPermute[i] = i }
+	perms := permutations(toPermute, len(lhs_components))
+	fmt.Println(perms)
+
 	if len(lhs_components) == 2 {
 		// Choose to match first comp on LHS first
 		for i := range *components {
