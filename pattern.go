@@ -56,8 +56,33 @@ func (this *Pattern) IsSameQ(otherEx Ex, es *EvalState) bool {
 	}, es)
 }
 
+func IsBlankType(e Ex, t string) bool {
+	asPattern, patternOk := e.(*Pattern)
+	if patternOk {
+		asBlank, blankOk := asPattern.Obj.(*Blank)
+		if blankOk {
+			asSymbol, symbolOk := asBlank.H.(*Symbol)
+			if symbolOk {
+				return asSymbol.Name == t
+			}
+		}
+	}
+	asBlank, blankOk := e.(*Blank)
+	if blankOk {
+		asSymbol, symbolOk := asBlank.H.(*Symbol)
+		if symbolOk {
+			return asSymbol.Name == t
+		}
+	}
+	return false
+}
+
 func (this *Pattern) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	return this.IsSameQ(otherEx, es)
+	if IsBlankType(otherEx, "Pattern") {
+		return true
+	}
+	//return this.IsSameQ(otherEx, es)
+	return false
 }
 
 func (this *Pattern) DeepCopy() Ex {
@@ -115,7 +140,11 @@ func (this *Blank) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *Blank) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	return this.IsSameQ(otherEx, es)
+	if IsBlankType(otherEx, "Blank") {
+		return true
+	}
+	//return this.IsSameQ(otherEx, es)
+	return false
 }
 
 func (this *Blank) DeepCopy() Ex {

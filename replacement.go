@@ -59,6 +59,9 @@ func (this *Rule) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *Rule) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "Rule") {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 

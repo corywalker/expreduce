@@ -57,6 +57,9 @@ func (this *Flt) IsSameQ(other Ex, es *EvalState) bool {
 }
 
 func (this *Flt) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "Real") {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 
@@ -114,6 +117,9 @@ func (this *Integer) IsSameQ(other Ex, es *EvalState) bool {
 }
 
 func (this *Integer) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "Integer") {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 
@@ -162,6 +168,9 @@ func (this *Error) IsSameQ(other Ex, es *EvalState) bool {
 }
 
 func (this *Error) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "Error") {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 

@@ -76,6 +76,9 @@ func (this *If) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *If) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "If") {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 
@@ -140,6 +143,9 @@ func (this *While) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *While) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "While") {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 

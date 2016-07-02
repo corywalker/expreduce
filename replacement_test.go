@@ -28,4 +28,9 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "z*d*e", "a*b*c*d*e /. a*b*c -> z")
 	CasAssertSame(t, es, "z*a*b", "a*b*c*d*e /. e*d*c -> z")
 	CasAssertSame(t, es, "z*a*b", "a*b*c*d*e /. c*e*d -> z")
+
+	// Using named placeholders
+	//CasAssertSame(t, es, "a^b", "a + b /. x_Symbol + y_Symbol -> x^y")
+	//CasAssertSame(t, es, "2", "x = 2")
+	//CasAssertSame(t, es, "2^b", "a + b /. x_Symbol + y_Symbol -> x^y")
 }

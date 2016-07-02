@@ -157,6 +157,9 @@ func (this *Times) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *Times) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "Times") {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 

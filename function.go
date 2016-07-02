@@ -134,6 +134,9 @@ func (this *Function) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *Function) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, this.Name) {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 

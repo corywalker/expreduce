@@ -153,6 +153,9 @@ func (this *Power) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *Power) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "Power") {
+		return true
+	}
 	return this.IsSameQ(otherEx, es)
 }
 
