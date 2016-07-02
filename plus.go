@@ -112,7 +112,7 @@ func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
 	for i := range this.Addends {
 		this.Addends[i] = this.Addends[i].Replace(r, es)
 	}
-	return this
+	return this.Eval(es)
 }
 
 func (a *Plus) ToString() string {

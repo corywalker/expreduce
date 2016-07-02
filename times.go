@@ -122,7 +122,7 @@ func (this *Times) Replace(r *Rule, es *EvalState) Ex {
 	for i := range this.Multiplicands {
 		this.Multiplicands[i] = this.Multiplicands[i].Replace(r, es)
 	}
-	return this
+	return this.Eval(es)
 }
 
 func (m *Times) ToString() string {
