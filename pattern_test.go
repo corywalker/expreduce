@@ -54,5 +54,6 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "2", "a*b /. _Times -> 2")
 	CasAssertSame(t, es, "2", "a^b /. _Power -> 2")
 	CasAssertSame(t, es, "2", "a -> b /. _Rule -> 2")
+	CasAssertSame(t, es, "2", "a*b*c*d /. _Times -> 2")
 
 }

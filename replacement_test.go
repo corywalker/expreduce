@@ -30,7 +30,16 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "z*a*b", "a*b*c*d*e /. c*e*d -> z")
 
 	// Using named placeholders
-	//CasAssertSame(t, es, "a^b", "a + b /. x_Symbol + y_Symbol -> x^y")
-	//CasAssertSame(t, es, "2", "x = 2")
-	//CasAssertSame(t, es, "2^b", "a + b /. x_Symbol + y_Symbol -> x^y")
+	CasAssertSame(t, es, "a^b", "a + b /. x_Symbol + y_Symbol -> x^y")
+	CasAssertSame(t, es, "2", "x = 2")
+	CasAssertSame(t, es, "2^b", "a + b /. x_Symbol + y_Symbol -> x^y")
+	CasAssertSame(t, es, "2", "x")
+	CasAssertSame(t, es, "a^b", "a == b /. j_Symbol == k_Symbol -> j^k")
+	CasAssertSame(t, es, "2", "a == b /. j_Equal -> 2")
+	CasAssertSame(t, es, "(a == b)^k", "a == b /. j_Equal -> j^k")
+	CasAssertSame(t, es, "3^k", "2^k /. base_Integer -> base + 1")
+	CasAssertSame(t, es, "3^k", "2^k /. base_Integer^exp_ -> (base + 1)^exp")
+	CasAssertSame(t, es, "(2 + k)^k", "2^k /. base_Integer^exp_ -> (base + exp)^exp")
+	CasAssertSame(t, es, "(2 + k)^k", "2^k /. base_Integer^exp_Symbol -> (base + exp)^exp")
+	CasAssertSame(t, es, "1 + (2 + k)^k", "2^k + 1 /. base_Integer^exp_Symbol -> (base + exp)^exp")
 }
