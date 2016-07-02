@@ -57,7 +57,7 @@ func (this *Flt) IsSameQ(other Ex, es *EvalState) bool {
 }
 
 func (this *Flt) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Real") {
+	if IsBlankTypeCapturing(otherEx, this, "Real", es) {
 		return true
 	}
 	return this.IsSameQ(otherEx, es)
@@ -117,7 +117,7 @@ func (this *Integer) IsSameQ(other Ex, es *EvalState) bool {
 }
 
 func (this *Integer) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Integer") {
+	if IsBlankTypeCapturing(otherEx, this, "Integer", es) {
 		return true
 	}
 	return this.IsSameQ(otherEx, es)

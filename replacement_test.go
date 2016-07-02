@@ -42,4 +42,11 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "(2 + k)^k", "2^k /. base_Integer^exp_ -> (base + exp)^exp")
 	CasAssertSame(t, es, "(2 + k)^k", "2^k /. base_Integer^exp_Symbol -> (base + exp)^exp")
 	CasAssertSame(t, es, "1 + (2 + k)^k", "2^k + 1 /. base_Integer^exp_Symbol -> (base + exp)^exp")
+	CasAssertSame(t, es, "a^c + b", "a^c + b /. test_Symbol^test_Symbol + test_Symbol -> test + 1")
+	CasAssertSame(t, es, "1 + a", "a^a + a /. test_Symbol^test_Symbol + test_Symbol -> test + 1")
+	CasAssertSame(t, es, "a^a", "a^a /. (test_Symbol^test) -> 2")
+	CasAssertSame(t, es, "2", "a^a /. (test_Symbol^test_Symbol) -> 2")
+	CasAssertSame(t, es, "a^a", "a^a /. (test^test_Symbol) -> 2")
+	CasAssertSame(t, es, "2", "test^a /. (test^test_Symbol) -> 2")
+	CasAssertSame(t, es, "2", "a^test /. (test_Symbol^test) -> 2")
 }

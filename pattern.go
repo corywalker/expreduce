@@ -77,6 +77,37 @@ func IsBlankType(e Ex, t string) bool {
 	return false
 }
 
+func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
+	asPattern, patternOk := e.(*Pattern)
+	if patternOk {
+		asBlank, blankOk := asPattern.Obj.(*Blank)
+		if blankOk {
+			asSymbol, symbolOk := asBlank.H.(*Symbol)
+			if symbolOk {
+				if asSymbol.Name == t {
+					sAsSymbol, sAsSymbolOk := asPattern.S.(*Symbol)
+					if sAsSymbolOk {
+						_, isdefined := es.defined[sAsSymbol.Name]
+						if !isdefined {
+							es.defined[sAsSymbol.Name] = target
+						}
+					}
+					return true
+				}
+				return false
+			}
+		}
+	}
+	asBlank, blankOk := e.(*Blank)
+	if blankOk {
+		asSymbol, symbolOk := asBlank.H.(*Symbol)
+		if symbolOk {
+			return asSymbol.Name == t
+		}
+	}
+	return false
+}
+
 func (this *Pattern) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	if IsBlankType(otherEx, "Pattern") {
 		return true

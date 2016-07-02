@@ -56,7 +56,7 @@ func (this *Symbol) IsSameQ(other Ex, es *EvalState) bool {
 }
 
 func (this *Symbol) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Symbol") {
+	if IsBlankTypeCapturing(otherEx, this, "Symbol", es) {
 		return true
 	}
 	return this.IsSameQ(otherEx, es)

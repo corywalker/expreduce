@@ -83,7 +83,14 @@ func (this *Replace) Eval(es *EvalState) Ex {
 	//_, ok := this.Rules.(*Rule)
 	rulesRule, ok := this.Rules.(*Rule)
 	if ok {
-		return this.Expr.Replace(rulesRule, es)
+		oldVars := make(map[string]Ex)
+		for k, v := range es.defined {
+			oldVars[k] = v
+		}
+		newEx := this.Expr.Replace(rulesRule, es)
+		newEx = newEx.Eval(es)
+		es.defined = oldVars
+		return newEx
 		//return this
 	}
 	return this
