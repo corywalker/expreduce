@@ -3,7 +3,8 @@
 
 package cas
 
-import "fmt"
+//import "fmt"
+import "sort"
 
 type EvalState struct {
 	defined map[string]Ex
@@ -162,54 +163,28 @@ func permutations(iterable []int, r int) [][]int {
 }
 
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
+	// Each permutation is a potential order of the Rule's LHS in which matches
+	// may occur in components.
 	toPermute := make([]int, len(lhs_components))
 	for i := range toPermute { toPermute[i] = i }
 	perms := permutations(toPermute, len(lhs_components))
-	fmt.Println(perms)
 
-	if len(lhs_components) == 2 {
-		// Choose to match first comp on LHS first
+	for _, perm := range perms {
+		used := make([]int, len(perm))
+		pi := 0
 		for i := range *components {
-			if (*components)[i].IsMatchQ(lhs_components[0], es) {
-				// Should I be deep copying?
-				//popped Ex
-				popped := (*components)[i]
-				*components = append((*components)[:i], (*components)[i+1:]...)
-				//var p *Plus = &Plus{*components}
-				//fmt.Println(p.ToString())
-				for j := range *components {
-					if (*components)[j].IsMatchQ(lhs_components[1], es) {
-						// Reached end of line
-						*components = append((*components)[:j], (*components)[j+1:]...)
-						*components = append(*components, []Ex{rhs}...)
-						return
+			if (*components)[i].IsMatchQ(lhs_components[perm[pi]], es) {
+				used[pi] = i
+				pi = pi + 1
+
+				if pi == len(perm) {
+					sort.Ints(used)
+					for tdi, todelete := range used {
+						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 					}
+					*components = append(*components, []Ex{rhs}...)
+					return
 				}
-				*components = append((*components)[:i], append([]Ex{popped}, (*components)[i:]...)...)
-				//var pn *Plus = &Plus{*components}
-				//fmt.Println(pn.ToString())
-			}
-		}
-		// Choose to match first comp on LHS first
-		for i := range *components {
-			if (*components)[i].IsMatchQ(lhs_components[1], es) {
-				// Should I be deep copying?
-				//popped Ex
-				popped := (*components)[i]
-				*components = append((*components)[:i], (*components)[i+1:]...)
-				//var p *Plus = &Plus{*components}
-				//fmt.Println(p.ToString())
-				for j := range *components {
-					if (*components)[j].IsMatchQ(lhs_components[0], es) {
-						// Reached end of line
-						*components = append((*components)[:j], (*components)[j+1:]...)
-						*components = append(*components, []Ex{rhs}...)
-						return
-					}
-				}
-				*components = append((*components)[:i], append([]Ex{popped}, (*components)[i:]...)...)
-				//var pn *Plus = &Plus{*components}
-				//fmt.Println(pn.ToString())
 			}
 		}
 	}
