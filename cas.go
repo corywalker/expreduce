@@ -16,6 +16,10 @@ func NewEvalState() *EvalState {
 	return &es
 }
 
+func (this *EvalState) ClearAll() {
+	this.defined = make(map[string]Ex)
+}
+
 // Ex stands for Expression. Most structs should implement this
 type Ex interface {
 	Eval(es *EvalState) Ex

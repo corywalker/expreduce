@@ -49,4 +49,11 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "a^a", "a^a /. (test^test_Symbol) -> 2")
 	CasAssertSame(t, es, "2", "test^a /. (test^test_Symbol) -> 2")
 	CasAssertSame(t, es, "2", "a^test /. (test_Symbol^test) -> 2")
+
+	es.ClearAll()
+	CasAssertSame(t, es, "testa*testb", "testa*testb /. a_Symbol*a_Symbol -> 5")
+	CasAssertSame(t, es, "False", "MatchQ[testa*testb, a_Symbol*a_Symbol]")
+	CasAssertSame(t, es, "testa+testb", "testa+testb /. a_Symbol+a_Symbol -> 5")
+	CasAssertSame(t, es, "5", "testa*testb /. a_Symbol*b_Symbol -> 5")
+	CasAssertSame(t, es, "a+b", "a + b /. (b_Symbol + b_Symbol) -> 2")
 }

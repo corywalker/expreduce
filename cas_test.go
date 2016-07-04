@@ -165,4 +165,11 @@ func Test(t *testing.T) {
 	fmt.Println(withVar.ToString())
 	withVar.Eval(es)
 	fmt.Println(withVar.ToString())
+
+	CasAssertSame(t, es, "2", "test = 2")
+	_, containsTest := es.defined["test"]
+	assert.True(t, containsTest)
+	es.ClearAll()
+	_, containsTest = es.defined["test"]
+	assert.False(t, containsTest)
 }
