@@ -67,4 +67,12 @@ func TestComparison(t *testing.T) {
 	// Future
 	//assert.Equal(t, "False", EvalInterp("4/3==3/2", es).ToString())
 	//assert.Equal(t, "True", EvalInterp("4/3==8/6", es).ToString())
+
+	CasAssertSame(t, es, "True", "MatchQ[2*x, c1_Integer*a_Symbol]")
+	_, containsC1 := es.defined["c1"]
+	assert.False(t, containsC1)
+	CasAssertSame(t, es, "True", "MatchQ[2^x, base_Integer^pow_Symbol]")
+	_, containsBase := es.defined["base"]
+	assert.False(t, containsBase)
+	CasAssertSame(t, es, "True", "MatchQ[2+x, c1_Integer+a_Symbol]")
 }

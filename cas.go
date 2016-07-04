@@ -166,7 +166,9 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(lhs_components))
-	for i := range toPermute { toPermute[i] = i }
+	for i := range toPermute {
+		toPermute[i] = i
+	}
 	perms := permutations(toPermute, len(lhs_components))
 
 	for _, perm := range perms {

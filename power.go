@@ -143,8 +143,8 @@ func (this *Power) IsSameQ(otherEx Ex, es *EvalState) bool {
 	if !ok {
 		return false
 	}
-	var baseSame = this.Base.IsSameQ(other.Base, es)
-	var exponentSame = this.Power.IsSameQ(other.Power, es)
+	var baseSame = this.Base.IsMatchQ(other.Base, es)
+	var exponentSame = this.Power.IsMatchQ(other.Power, es)
 
 	if baseSame && exponentSame {
 		return true

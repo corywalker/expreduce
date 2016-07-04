@@ -22,9 +22,18 @@ func (this *Pattern) Replace(r *Rule, es *EvalState) Ex {
 
 func (this *Pattern) ToString() string {
 	var buffer bytes.Buffer
-	buffer.WriteString(this.S.ToString())
-	// Assuming Obj will always be a Blank[] Expression
-	buffer.WriteString(this.Obj.ToString())
+	if true {
+		buffer.WriteString("Pattern[")
+		buffer.WriteString(this.S.ToString())
+		buffer.WriteString(", ")
+		// Assuming Obj will always be a Blank[] Expression
+		buffer.WriteString(this.Obj.ToString())
+		buffer.WriteString("]")
+	} else {
+		buffer.WriteString(this.S.ToString())
+		// Assuming Obj will always be a Blank[] Expression
+		buffer.WriteString(this.Obj.ToString())
+	}
 	return buffer.String()
 }
 
@@ -84,7 +93,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 		if blankOk {
 			asSymbol, symbolOk := asBlank.H.(*Symbol)
 			if symbolOk {
-				if asSymbol.Name == t {
+				if asSymbol.Name == t || asSymbol.Name == "" {
 					sAsSymbol, sAsSymbolOk := asPattern.S.(*Symbol)
 					if sAsSymbolOk {
 						_, isdefined := es.defined[sAsSymbol.Name]
@@ -141,8 +150,14 @@ func (this *Blank) Replace(r *Rule, es *EvalState) Ex {
 
 func (this *Blank) ToString() string {
 	var buffer bytes.Buffer
-	buffer.WriteString("_")
-	buffer.WriteString(this.H.ToString())
+	if true {
+		buffer.WriteString("Blank[")
+		buffer.WriteString(this.H.ToString())
+		buffer.WriteString("]")
+	} else {
+		buffer.WriteString("_")
+		buffer.WriteString(this.H.ToString())
+	}
 	return buffer.String()
 }
 
