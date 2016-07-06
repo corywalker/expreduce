@@ -139,7 +139,10 @@ type MatchQ struct {
 }
 
 func (this *MatchQ) Eval(es *EvalState) Ex {
+	oldVars := es.GetDefinedSnapshot()
 	var issame bool = this.Expr.Eval(es).IsMatchQ(this.Form.Eval(es), es)
+	es.ClearPD()
+	es.defined = oldVars
 	if issame {
 		return &Symbol{"True"}
 	} else {

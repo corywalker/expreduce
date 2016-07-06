@@ -28,6 +28,14 @@ func (this *EvalState) ClearPD() {
 	this.patternDefined = make(map[string]Ex)
 }
 
+func (this *EvalState) GetDefinedSnapshot() map[string]Ex {
+	oldVars := make(map[string]Ex)
+	for k, v := range this.defined {
+		oldVars[k] = v
+	}
+	return oldVars
+}
+
 func (this *EvalState) ToString() string {
 	var buffer bytes.Buffer
 	for k, v := range this.defined {
