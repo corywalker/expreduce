@@ -64,4 +64,18 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "2", "99^k /. test_ -> 2")
 	CasAssertSame(t, es, "3", "test2 = 3")
 	CasAssertSame(t, es, "3", "99 /. test2_Integer -> test2")
+
+	CasAssertSame(t, es, "a^b", "a^b /. test3_Symbol^test3_Symbol -> k")
+	CasAssertSame(t, es, "5", "test3 = 5")
+	CasAssertSame(t, es, "a^b", "a^b /. test3_Symbol^test3_Symbol -> k")
+
+	es.ClearAll()
+	CasAssertSame(t, es, "a + 99 * b + 99 * c", "a + 2*b + 5*c /. (c1_Integer*a_Symbol) -> 99*a")
+	CasAssertSame(t, es, "a + 99 * b + 5 * c", "a + 2*b + 5*c /. (2*a_Symbol) -> 99*a")
+	CasAssertSame(t, es, "a + 99 * b + 99 * c", "a + 2*b + 2*c /. (2*a_Symbol) -> 99*a")
+	CasAssertSame(t, es, "a + 99 * b + 99 * c + 99 * d", "a + 2*b + 3*c + 3*d /. (cl_Integer*a_Symbol) -> 99*a")
+
+	// Work way up to combining like terms
+	es.ClearAll()
+	CasAssertSame(t, es, "a + 99 * b + 99 * c", "a + 2*b + 5*c /. (c1_Integer*a_Symbol) -> 99*a")
 }

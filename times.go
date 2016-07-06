@@ -160,7 +160,17 @@ func (this *Times) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	if IsBlankType(otherEx, "Times") {
 		return true
 	}
-	return this.IsSameQ(otherEx, es)
+	thisEx := this.Eval(es)
+	otherEx = otherEx.Eval(es)
+	this, ok := thisEx.(*Times)
+	if !ok {
+		return thisEx.IsMatchQ(otherEx, es)
+	}
+	other, ok := otherEx.(*Times)
+	if !ok {
+		return false
+	}
+	return CommutativeIsMatchQ(this.Multiplicands, other.Multiplicands, es)
 }
 
 func (this *Times) DeepCopy() Ex {

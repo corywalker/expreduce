@@ -88,6 +88,7 @@ func (this *Replace) Eval(es *EvalState) Ex {
 			oldVars[k] = v
 		}
 		newEx := this.Expr.Replace(rulesRule, es)
+		es.ClearPD()
 		newEx = newEx.Eval(es)
 		es.defined = oldVars
 		return newEx

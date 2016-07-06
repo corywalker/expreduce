@@ -3,22 +3,29 @@
 
 package cas
 
-//import "fmt"
+import "fmt"
 import "sort"
 import "bytes"
 
 type EvalState struct {
-	defined map[string]Ex
+	defined        map[string]Ex
+	patternDefined map[string]Ex
 }
 
 func NewEvalState() *EvalState {
 	var es EvalState
 	es.defined = make(map[string]Ex)
+	es.patternDefined = make(map[string]Ex)
 	return &es
 }
 
 func (this *EvalState) ClearAll() {
 	this.defined = make(map[string]Ex)
+	this.patternDefined = make(map[string]Ex)
+}
+
+func (this *EvalState) ClearPD() {
+	this.patternDefined = make(map[string]Ex)
 }
 
 func (this *EvalState) ToString() string {
@@ -26,6 +33,12 @@ func (this *EvalState) ToString() string {
 	for k, v := range this.defined {
 		buffer.WriteString(k)
 		buffer.WriteString(": ")
+		buffer.WriteString(v.ToString())
+		buffer.WriteString("\n")
+	}
+	for k, v := range this.defined {
+		buffer.WriteString(k)
+		buffer.WriteString("_: ")
 		buffer.WriteString(v.ToString())
 		buffer.WriteString("\n")
 	}
@@ -46,6 +59,7 @@ type Ex interface {
 // Some utility functions that span multiple files
 
 func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
+	fmt.Println("Test")
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
 	}
@@ -74,6 +88,42 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 		}
 	}
 	return "EQUAL_TRUE"
+}
+
+func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
+	fmt.Println("CommutativeIsMatchQ")
+	if len(components) != len(lhs_components) {
+		return false
+	}
+
+	// Each permutation is a potential order of the Rule's LHS in which matches
+	// may occur in components.
+	toPermute := make([]int, len(lhs_components))
+	for i := range toPermute {
+		toPermute[i] = i
+	}
+	perms := permutations(toPermute, len(lhs_components))
+
+	for _, perm := range perms {
+		used := make([]int, len(perm))
+		pi := 0
+		for i := range components {
+			//fmt.Printf("%s %s\n", components[i].ToString(), lhs_components[perm[pi]].ToString())
+			if components[i].IsMatchQ(lhs_components[perm[pi]], es) {
+				used[pi] = i
+				pi = pi + 1
+
+				if pi == len(perm) {
+					sort.Ints(used)
+					for tdi, todelete := range used {
+						components = append(components[:todelete-tdi], components[todelete-tdi+1:]...)
+					}
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func FunctionIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
@@ -201,8 +251,8 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 					for tdi, todelete := range used {
 						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 					}
-					//fmt.Printf("Appending %s\n", rhs.ToString())
-					//fmt.Printf("Context:\n%v\n", es.ToString())
+					fmt.Printf("Appending %s\n", rhs.ToString())
+					fmt.Printf("Context:\n%v\n", es.ToString())
 					*components = append(*components, []Ex{rhs}...)
 					return
 				}

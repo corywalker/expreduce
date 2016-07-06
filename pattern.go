@@ -96,11 +96,20 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 				if asSymbol.Name == t || asSymbol.Name == "" {
 					sAsSymbol, sAsSymbolOk := asPattern.S.(*Symbol)
 					if sAsSymbolOk {
-						_, isdefined := es.defined[sAsSymbol.Name]
-						if !isdefined {
+						_, isd := es.defined[sAsSymbol.Name]
+						_, ispd := es.patternDefined[sAsSymbol.Name]
+						if !ispd {
+							es.patternDefined[sAsSymbol.Name] = target
+						}
+						if !es.patternDefined[sAsSymbol.Name].IsSameQ(target, es) {
+							return false
+						}
+
+						if !isd {
 							es.defined[sAsSymbol.Name] = target
 						} else {
-							return es.defined[sAsSymbol.Name].IsSameQ(target, es)
+							//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
+							return true
 						}
 					}
 					return true

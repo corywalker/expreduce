@@ -150,7 +150,17 @@ func (this *Plus) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	if IsBlankType(otherEx, "Plus") {
 		return true
 	}
-	return this.IsSameQ(otherEx, es)
+	thisEx := this.Eval(es)
+	otherEx = otherEx.Eval(es)
+	this, ok := thisEx.(*Plus)
+	if !ok {
+		return thisEx.IsMatchQ(otherEx, es)
+	}
+	other, ok := otherEx.(*Plus)
+	if !ok {
+		return false
+	}
+	return CommutativeIsMatchQ(this.Addends, other.Addends, es)
 }
 
 func (this *Plus) DeepCopy() Ex {
