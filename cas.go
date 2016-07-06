@@ -5,6 +5,7 @@ package cas
 
 //import "fmt"
 import "sort"
+import "bytes"
 
 type EvalState struct {
 	defined map[string]Ex
@@ -18,6 +19,17 @@ func NewEvalState() *EvalState {
 
 func (this *EvalState) ClearAll() {
 	this.defined = make(map[string]Ex)
+}
+
+func (this *EvalState) ToString() string {
+	var buffer bytes.Buffer
+	for k, v := range this.defined {
+		buffer.WriteString(k)
+		buffer.WriteString(": ")
+		buffer.WriteString(v.ToString())
+		buffer.WriteString("\n")
+	}
+	return buffer.String()
 }
 
 // Ex stands for Expression. Most structs should implement this
@@ -179,6 +191,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 		used := make([]int, len(perm))
 		pi := 0
 		for i := range *components {
+			//fmt.Printf("%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
 			if (*components)[i].IsMatchQ(lhs_components[perm[pi]], es) {
 				used[pi] = i
 				pi = pi + 1
@@ -188,6 +201,8 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 					for tdi, todelete := range used {
 						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 					}
+					//fmt.Printf("Appending %s\n", rhs.ToString())
+					//fmt.Printf("Context:\n%v\n", es.ToString())
 					*components = append(*components, []Ex{rhs}...)
 					return
 				}

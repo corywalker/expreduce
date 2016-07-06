@@ -75,4 +75,5 @@ func TestComparison(t *testing.T) {
 	_, containsBase := es.defined["base"]
 	assert.False(t, containsBase)
 	CasAssertSame(t, es, "True", "MatchQ[2+x, c1_Integer+a_Symbol]")
+	CasAssertSame(t, es, "True", "MatchQ[a + b, x_Symbol + y_Symbol]")
 }
