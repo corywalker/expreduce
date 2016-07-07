@@ -86,6 +86,8 @@ type Ex interface {
 	ToString() string
 	IsEqual(b Ex, es *EvalState) string
 	IsSameQ(b Ex, es *EvalState) bool
+	// After calling an IsMatchQ and failing, one must clear the patternDefined
+	// and restore variables to their original state.
 	IsMatchQ(b Ex, es *EvalState) bool
 	DeepCopy() Ex
 }
@@ -94,6 +96,7 @@ type Ex interface {
 
 func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
 	es.log.Infof("Entering CommutativeIsEqual")
+	es.log.Debugf("Start of CommutativeIsEqual. Context:\n%v\n", es.ToString())
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
 	}
@@ -126,6 +129,7 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
 	es.log.Infof("Entering CommutativeIsMatchQ")
+	es.log.Debugf("Start of CommutativeIsMatchQ. Context:\n%v\n", es.ToString())
 	if len(components) != len(lhs_components) {
 		return false
 	}
@@ -263,6 +267,7 @@ func permutations(iterable []int, r int) [][]int {
 }
 
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
+	es.log.Infof("Entering CommutativeReplace")
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(lhs_components))
@@ -274,6 +279,8 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 	for _, perm := range perms {
 		used := make([]int, len(perm))
 		pi := 0
+		es.log.Debugf("Before snapshot. Context:\n%v\n", es.ToString())
+		oldVars := es.GetDefinedSnapshot()
 		for i := range *components {
 			//es.log.Debugf("%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
 			if (*components)[i].IsMatchQ(lhs_components[perm[pi]], es) {
@@ -293,5 +300,8 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 			}
 			es.log.Debugf("Done checking. Context:\n%v\n", es.ToString())
 		}
+		es.ClearPD()
+		es.defined = oldVars
+		es.log.Debugf("After clear. Context:\n%v\n", es.ToString())
 	}
 }

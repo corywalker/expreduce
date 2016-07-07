@@ -101,9 +101,13 @@ func (a *Plus) Eval(es *EvalState) Ex {
 }
 
 func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
+	oldVars := es.GetDefinedSnapshot()
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
+	es.ClearPD()
+	es.defined = oldVars
+
 	IterableReplace(&this.Addends, r, es)
 	rConv, ok := r.Lhs.(*Plus)
 	if ok {

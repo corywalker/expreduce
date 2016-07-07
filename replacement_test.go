@@ -78,4 +78,15 @@ func TestReplacement(t *testing.T) {
 	// Work way up to combining like terms
 	es.ClearAll()
 	CasAssertSame(t, es, "a + 99 * b + 99 * c", "a + 2*b + 5*c /. (c1_Integer*a_Symbol) -> 99*a")
+
+	es.ClearAll()
+	CasAssertSame(t, es, "2", "a + b /. (d_Symbol + c_Symbol) -> 2")
+	CasAssertSame(t, es, "2 + c", "a + b + c /. (d_Symbol + c_Symbol) -> 2")
+	CasAssertSame(t, es, "2 + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> 2")
+	CasAssertSame(t, es, "99 + a + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99")
+	// Causes stack overflow
+	//CasAssertSame(t, es, "99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d")
+	CasAssertSame(t, es, "a * b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c*d")
+	CasAssertSame(t, es, "98", "d = 98")
+	CasAssertSame(t, es, "98 + 98 * a + c", "a + b + c + d /. (d_Symbol + c_Symbol) -> c*d")
 }
