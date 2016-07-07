@@ -3,20 +3,46 @@
 
 package cas
 
-import "fmt"
-import "sort"
-import "bytes"
+import (
+	"bytes"
+	"github.com/op/go-logging"
+	"os"
+	"sort"
+)
+
+var format = logging.MustStringFormatter(
+	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+)
 
 type EvalState struct {
 	defined        map[string]Ex
 	patternDefined map[string]Ex
+	log            *logging.Logger
+	leveled        logging.LeveledBackend
 }
 
 func NewEvalState() *EvalState {
 	var es EvalState
 	es.defined = make(map[string]Ex)
 	es.patternDefined = make(map[string]Ex)
+
+	// Set up logging
+	es.log = logging.MustGetLogger("example")
+	backend := logging.NewLogBackend(os.Stderr, "", 0)
+	formatter := logging.NewBackendFormatter(backend, format)
+	es.leveled = logging.AddModuleLevel(formatter)
+	logging.SetBackend(es.leveled)
+	es.DebugOff()
+
 	return &es
+}
+
+func (this *EvalState) DebugOn() {
+	this.leveled.SetLevel(logging.DEBUG, "")
+}
+
+func (this *EvalState) DebugOff() {
+	this.leveled.SetLevel(logging.ERROR, "")
 }
 
 func (this *EvalState) ClearAll() {
@@ -67,7 +93,7 @@ type Ex interface {
 // Some utility functions that span multiple files
 
 func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
-	fmt.Println("Test")
+	es.log.Infof("Entering CommutativeIsEqual")
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
 	}
@@ -99,7 +125,7 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 }
 
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
-	fmt.Println("CommutativeIsMatchQ")
+	es.log.Infof("Entering CommutativeIsMatchQ")
 	if len(components) != len(lhs_components) {
 		return false
 	}
@@ -116,7 +142,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 		used := make([]int, len(perm))
 		pi := 0
 		for i := range components {
-			//fmt.Printf("%s %s\n", components[i].ToString(), lhs_components[perm[pi]].ToString())
+			//es.log.Debugf("%s %s\n", components[i].ToString(), lhs_components[perm[pi]].ToString())
 			if components[i].IsMatchQ(lhs_components[perm[pi]], es) {
 				used[pi] = i
 				pi = pi + 1
@@ -249,7 +275,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 		used := make([]int, len(perm))
 		pi := 0
 		for i := range *components {
-			//fmt.Printf("%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
+			//es.log.Debugf("%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
 			if (*components)[i].IsMatchQ(lhs_components[perm[pi]], es) {
 				used[pi] = i
 				pi = pi + 1
@@ -259,12 +285,13 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 					for tdi, todelete := range used {
 						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 					}
-					fmt.Printf("Appending %s\n", rhs.ToString())
-					fmt.Printf("Context:\n%v\n", es.ToString())
+					es.log.Debugf("Appending %s\n", rhs.ToString())
+					es.log.Debugf("Context:\n%v\n", es.ToString())
 					*components = append(*components, []Ex{rhs}...)
 					return
 				}
 			}
+			es.log.Debugf("Done checking. Context:\n%v\n", es.ToString())
 		}
 	}
 }

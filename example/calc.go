@@ -17,6 +17,7 @@ func main() {
 	defer rl.Close()
 
 	es := cas.NewEvalState()
+	es.DebugOn()
 
 	for {
 		line, err := rl.Readline()
