@@ -94,8 +94,23 @@ type Ex interface {
 
 // Some utility functions that span multiple files
 
+func ExArrayToString(exArray []Ex) string {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	for i, e := range exArray {
+		buffer.WriteString(e.ToString())
+		if i != len(exArray)-1 {
+			buffer.WriteString(", ")
+		}
+	}
+	buffer.WriteString("}")
+	return buffer.String()
+}
+
 func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
 	es.log.Infof("Entering CommutativeIsEqual")
+	es.log.Infof("components: %s", ExArrayToString(components))
+	es.log.Infof("other_components: %s", ExArrayToString(other_components))
 	es.log.Debugf("Start of CommutativeIsEqual. Context:\n%v\n", es.ToString())
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
@@ -129,8 +144,11 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
 	es.log.Infof("Entering CommutativeIsMatchQ")
+	es.log.Infof("components: %s", ExArrayToString(components))
+	es.log.Infof("lhs_components: %s", ExArrayToString(lhs_components))
 	es.log.Debugf("Start of CommutativeIsMatchQ. Context:\n%v\n", es.ToString())
 	if len(components) != len(lhs_components) {
+		es.log.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
 		return false
 	}
 
@@ -156,11 +174,13 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 					for tdi, todelete := range used {
 						components = append(components[:todelete-tdi], components[todelete-tdi+1:]...)
 					}
+					es.log.Debugf("CommutativeIsMatchQ succeeded. Context: %s", es.ToString())
 					return true
 				}
 			}
 		}
 	}
+	es.log.Debugf("CommutativeIsMatchQ failed. Context: %s", es.ToString())
 	return false
 }
 
@@ -268,6 +288,8 @@ func permutations(iterable []int, r int) [][]int {
 
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
 	es.log.Infof("Entering CommutativeReplace")
+	es.log.Infof("components: %s", ExArrayToString(*components))
+	es.log.Infof("lhs_components: %s", ExArrayToString(lhs_components))
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(lhs_components))
@@ -289,12 +311,16 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 
 				if pi == len(perm) {
 					sort.Ints(used)
+					es.log.Debugf("About to delete components matching lhs.")
+					es.log.Debugf("components before: %s", ExArrayToString(*components))
 					for tdi, todelete := range used {
 						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 					}
+					es.log.Debugf("components after: %s", ExArrayToString(*components))
 					es.log.Debugf("Appending %s\n", rhs.ToString())
 					es.log.Debugf("Context:\n%v\n", es.ToString())
-					*components = append(*components, []Ex{rhs}...)
+					*components = append(*components, []Ex{rhs.DeepCopy()}...)
+					es.log.Debugf("components after append: %s", ExArrayToString(*components))
 					return
 				}
 			}
