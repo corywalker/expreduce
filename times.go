@@ -111,31 +111,34 @@ func (m *Times) Eval(es *EvalState) Ex {
 }
 
 func (this *Times) Replace(r *Rule, es *EvalState) Ex {
+	es.logDepth++
 	oldVars := es.GetDefinedSnapshot()
-	es.log.Debugf("In Times.Replace. First trying this.IsMatchQ(r.Lhs, es).")
-	es.log.Debugf("Rule r is: %s", r.ToString())
+	es.log.Debugf(es.Pre() + "In Times.Replace. First trying this.IsMatchQ(r.Lhs, es).")
+	es.log.Debugf(es.Pre()+"Rule r is: %s", r.ToString())
 	matchq := this.IsMatchQ(r.Lhs, es)
 	toreturn := r.Rhs.DeepCopy().Eval(es)
 	es.ClearPD()
 	es.defined = oldVars
 	if matchq {
-		es.log.Debugf("After MatchQ, rule is: %s", r.ToString())
-		es.log.Debugf("MatchQ succeeded. Returning r.Rhs: %s", r.Rhs.ToString())
+		es.log.Debugf(es.Pre()+"After MatchQ, rule is: %s", r.ToString())
+		es.log.Debugf(es.Pre()+"MatchQ succeeded. Returning r.Rhs: %s", r.Rhs.ToString())
+		es.logDepth--
 		return toreturn
 	}
 
 	//IterableReplace(&this.Multiplicands, r, es)
 	rConv, ok := r.Lhs.(*Times)
 	if ok {
-		es.log.Debugf("r.Lhs is a Times. Now running CommutativeReplace")
+		es.log.Debugf(es.Pre() + "r.Lhs is a Times. Now running CommutativeReplace")
 		CommutativeReplace(&this.Multiplicands, rConv.Multiplicands, r.Rhs, es)
 	}
-	es.log.Debugf("Ex before iterative replace: %s", this.ToString())
+	es.log.Debugf(es.Pre()+"Ex before iterative replace: %s", this.ToString())
 	for i := range this.Multiplicands {
 		this.Multiplicands[i] = this.Multiplicands[i].Replace(r, es)
 	}
-	es.log.Debugf("Ex after iterative replace: %s", this.ToString())
-	es.log.Debugf("Before eval. Context: %v\n", es.ToString())
+	es.log.Debugf(es.Pre()+"Ex after iterative replace: %s", this.ToString())
+	es.log.Debugf(es.Pre()+"Before eval. Context: %v\n", es.ToString())
+	es.logDepth--
 	return this.Eval(es)
 }
 

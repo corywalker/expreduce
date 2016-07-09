@@ -20,6 +20,7 @@ type EvalState struct {
 	patternDefined map[string]Ex
 	log            *logging.Logger
 	leveled        logging.LeveledBackend
+	logDepth       int
 }
 
 func NewEvalState() *EvalState {
@@ -34,6 +35,7 @@ func NewEvalState() *EvalState {
 	es.leveled = logging.AddModuleLevel(formatter)
 	logging.SetBackend(es.leveled)
 	es.DebugOff()
+	es.logDepth = -1
 
 	return &es
 }
@@ -44,6 +46,14 @@ func (this *EvalState) DebugOn() {
 
 func (this *EvalState) DebugOff() {
 	this.leveled.SetLevel(logging.ERROR, "")
+}
+
+func (this *EvalState) Pre() string {
+	toReturn := ""
+	for i := 0; i < this.logDepth; i++ {
+		toReturn += " "
+	}
+	return toReturn
 }
 
 func (this *EvalState) ClearAll() {
@@ -79,7 +89,7 @@ func (this *EvalState) ToString() string {
 		buffer.WriteString(", ")
 	}
 	if strings.HasSuffix(buffer.String(), ", ") {
-		buffer.Truncate(buffer.Len()-2)
+		buffer.Truncate(buffer.Len() - 2)
 	}
 	buffer.WriteString("}")
 	return buffer.String()
@@ -114,8 +124,10 @@ func ExArrayToString(exArray []Ex) string {
 }
 
 func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
-	es.log.Infof("Entering CommutativeIsEqual(components: %s, other_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(other_components), es.ToString())
+	es.logDepth++
+	es.log.Infof(es.Pre()+"Entering CommutativeIsEqual(components: %s, other_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(other_components), es.ToString())
 	if len(components) != len(other_components) {
+		es.logDepth--
 		return "EQUAL_FALSE"
 	}
 	matched := make(map[int]struct{})
@@ -139,16 +151,20 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 			}
 		}
 		if !foundmatch {
+			es.logDepth--
 			return "EQUAL_UNK"
 		}
 	}
+	es.logDepth--
 	return "EQUAL_TRUE"
 }
 
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
-	es.log.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
+	es.logDepth++
+	es.log.Infof(es.Pre()+"Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
 	if len(components) != len(lhs_components) {
-		es.log.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
+		es.log.Debugf(es.Pre() + "len(components) != len(lhs_components). CommutativeMatchQ failed")
+		es.logDepth--
 		return false
 	}
 
@@ -164,7 +180,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 		used := make([]int, len(perm))
 		pi := 0
 		for i := range components {
-			//es.log.Debugf("%s %s\n", components[i].ToString(), lhs_components[perm[pi]].ToString())
+			//es.log.Debugf(es.Pre()+"%s %s\n", components[i].ToString(), lhs_components[perm[pi]].ToString())
 			if components[i].IsMatchQ(lhs_components[perm[pi]], es) {
 				used[pi] = i
 				pi = pi + 1
@@ -174,13 +190,15 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 					for tdi, todelete := range used {
 						components = append(components[:todelete-tdi], components[todelete-tdi+1:]...)
 					}
-					es.log.Debugf("CommutativeIsMatchQ succeeded. Context: %s", es.ToString())
+					es.log.Debugf(es.Pre()+"CommutativeIsMatchQ succeeded. Context: %s", es.ToString())
+					es.logDepth--
 					return true
 				}
 			}
 		}
 	}
-	es.log.Debugf("CommutativeIsMatchQ failed. Context: %s", es.ToString())
+	es.log.Debugf(es.Pre()+"CommutativeIsMatchQ failed. Context: %s", es.ToString())
+	es.logDepth--
 	return false
 }
 
@@ -215,12 +233,13 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool
 }
 
 func IterableReplace(components *[]Ex, r *Rule, es *EvalState) {
+	es.logDepth++
 	for i := range *components {
-		es.log.Debugf("Attempting (%s).IsMatchQ(%s, %s)", (*components)[i].ToString(), r.Lhs.ToString(), es.ToString())
+		es.log.Debugf(es.Pre()+"Attempting (%s).IsMatchQ(%s, %s)", (*components)[i].ToString(), r.Lhs.ToString(), es.ToString())
 		oldVars := es.GetDefinedSnapshot()
 		if (*components)[i].IsMatchQ(r.Lhs, es) {
 			(*components)[i] = r.Rhs.DeepCopy()
-			es.log.Debugf("IsMatchQ succeeded, new components: %s", ExArrayToString(*components))
+			es.log.Debugf(es.Pre()+"IsMatchQ succeeded, new components: %s", ExArrayToString(*components))
 		}
 		es.ClearPD()
 		es.defined = oldVars
@@ -292,7 +311,8 @@ func permutations(iterable []int, r int) [][]int {
 }
 
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
-	es.log.Infof("Entering CommutativeReplace(components: *%s, lhs_components: %s, es: %s)", ExArrayToString(*components), ExArrayToString(lhs_components), es.ToString())
+	es.logDepth++
+	es.log.Infof(es.Pre()+"Entering CommutativeReplace(components: *%s, lhs_components: %s, es: %s)", ExArrayToString(*components), ExArrayToString(lhs_components), es.ToString())
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(lhs_components))
@@ -304,36 +324,38 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 	for _, perm := range perms {
 		used := make([]int, len(perm))
 		pi := 0
-		es.log.Debugf("Before snapshot. Context: %v\n", es.ToString())
+		es.log.Debugf(es.Pre()+"Before snapshot. Context: %v\n", es.ToString())
 		oldVars := es.GetDefinedSnapshot()
 		for i := range *components {
-			//es.log.Debugf("%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
+			//es.log.Debugf(es.Pre()+"%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
 			if (*components)[i].IsMatchQ(lhs_components[perm[pi]], es) {
 				used[pi] = i
 				pi = pi + 1
 
 				if pi == len(perm) {
 					sort.Ints(used)
-					es.log.Debugf("About to delete components matching lhs.")
-					es.log.Debugf("components before: %s", ExArrayToString(*components))
+					es.log.Debugf(es.Pre() + "About to delete components matching lhs.")
+					es.log.Debugf(es.Pre()+"components before: %s", ExArrayToString(*components))
 					for tdi, todelete := range used {
 						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 					}
-					es.log.Debugf("components after: %s", ExArrayToString(*components))
-					es.log.Debugf("Appending %s\n", rhs.ToString())
-					es.log.Debugf("Context: %v\n", es.ToString())
+					es.log.Debugf(es.Pre()+"components after: %s", ExArrayToString(*components))
+					es.log.Debugf(es.Pre()+"Appending %s\n", rhs.ToString())
+					es.log.Debugf(es.Pre()+"Context: %v\n", es.ToString())
 					*components = append(*components, []Ex{rhs.DeepCopy().Eval(es)}...)
-					es.log.Debugf("components after append: %s", ExArrayToString(*components))
+					es.log.Debugf(es.Pre()+"components after append: %s", ExArrayToString(*components))
 					es.ClearPD()
 					es.defined = oldVars
-					es.log.Debugf("After clear. Context: %v\n", es.ToString())
+					es.log.Debugf(es.Pre()+"After clear. Context: %v\n", es.ToString())
+					es.logDepth--
 					return
 				}
 			}
-			es.log.Debugf("Done checking. Context: %v\n", es.ToString())
+			es.log.Debugf(es.Pre()+"Done checking. Context: %v\n", es.ToString())
 		}
 		es.ClearPD()
 		es.defined = oldVars
-		es.log.Debugf("After clear. Context: %v\n", es.ToString())
+		es.log.Debugf(es.Pre()+"After clear. Context: %v\n", es.ToString())
 	}
+	es.logDepth--
 }

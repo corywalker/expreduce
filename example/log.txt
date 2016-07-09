@@ -1,0 +1,41 @@
+> a + 2*b + 5*c /. (c1_Integer*matcha_Symbol) + (c2_Integer*matcha_Symbol) -> (c1+c2)*matcha
+In:  (((a + (2 * b)) + (5 * c))) /. ((((Pattern[c1, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]) + (Pattern[c2, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]))) -> (((c1 + c2) * matcha)))
+11:12:13.590 Replace ▶ DEBU 001 In Plus.Replace. First trying this.IsMatchQ(r.Lhs, es).
+11:12:13.590 Replace ▶ DEBU 002 Rule r is: (((Pattern[c1, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]) + (Pattern[c2, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]))) -> (((c1 + c2) * matcha))
+11:12:13.591 CommutativeIsMatchQ ▶ INFO 003  Entering CommutativeIsMatchQ(components: {(2 * b), (5 * c), a}, lhs_components: {(Pattern[c1, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]), (Pattern[c2, Blank[Integer]] * Pattern[matcha, Blank[Symbol]])}, es: {})
+11:12:13.591 CommutativeIsMatchQ ▶ DEBU 004  len(components) != len(lhs_components). CommutativeMatchQ failed
+11:12:13.591 Replace ▶ DEBU 005 r.Lhs is a Plus. Now running CommutativeReplace
+11:12:13.591 CommutativeReplace ▶ INFO 006  Entering CommutativeReplace(components: *{(2 * b), (5 * c), a}, lhs_components: {(Pattern[c1, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]), (Pattern[c2, Blank[Integer]] * Pattern[matcha, Blank[Symbol]])}, es: {})
+11:12:13.591 CommutativeReplace ▶ DEBU 007  Before snapshot. Context: {}
+11:12:13.591 CommutativeIsMatchQ ▶ INFO 008   Entering CommutativeIsMatchQ(components: {2, b}, lhs_components: {Pattern[c1, Blank[Integer]], Pattern[matcha, Blank[Symbol]]}, es: {})
+11:12:13.591 CommutativeIsMatchQ ▶ DEBU 009   CommutativeIsMatchQ succeeded. Context: {c1: 2, matcha: b, c1_: 2, matcha_: b}
+11:12:13.591 CommutativeReplace ▶ DEBU 00a  Done checking. Context: {c1: 2, matcha: b, c1_: 2, matcha_: b}
+11:12:13.591 CommutativeIsMatchQ ▶ INFO 00b   Entering CommutativeIsMatchQ(components: {5, c}, lhs_components: {Pattern[c2, Blank[Integer]], Pattern[matcha, Blank[Symbol]]}, es: {c1: 2, matcha: b, c1_: 2, matcha_: b})
+11:12:13.592 CommutativeIsMatchQ ▶ DEBU 00c   CommutativeIsMatchQ failed. Context: {c2: 5, c1: 2, matcha: b, c1_: 2, matcha_: b, c2_: 5}
+11:12:13.592 CommutativeReplace ▶ DEBU 00d  Done checking. Context: {matcha: b, c2: 5, c1: 2, c2_: 5, c1_: 2, matcha_: b}
+11:12:13.592 CommutativeReplace ▶ DEBU 00e  Done checking. Context: {c1: 2, matcha: b, c2: 5, matcha_: b, c2_: 5, c1_: 2}
+11:12:13.592 CommutativeReplace ▶ DEBU 00f  After clear. Context: {}
+11:12:13.592 CommutativeReplace ▶ DEBU 010  Before snapshot. Context: {}
+11:12:13.592 CommutativeIsMatchQ ▶ INFO 011   Entering CommutativeIsMatchQ(components: {b, b}, lhs_components: {Pattern[c2, Blank[Integer]], Pattern[matcha, Blank[Symbol]]}, es: {})
+11:12:13.592 CommutativeIsMatchQ ▶ DEBU 012   CommutativeIsMatchQ failed. Context: {matcha: b, matcha_: b}
+11:12:13.593 CommutativeReplace ▶ DEBU 013  Done checking. Context: {matcha: b, matcha_: b}
+11:12:13.593 CommutativeIsMatchQ ▶ INFO 014   Entering CommutativeIsMatchQ(components: {5, c}, lhs_components: {Pattern[c2, Blank[Integer]], Pattern[matcha, Blank[Symbol]]}, es: {matcha: b, matcha_: b})
+11:12:13.594 CommutativeIsMatchQ ▶ DEBU 015   CommutativeIsMatchQ failed. Context: {matcha: b, c2: 5, matcha_: b, c2_: 5}
+11:12:13.594 CommutativeReplace ▶ DEBU 016  Done checking. Context: {matcha: b, c2: 5, matcha_: b, c2_: 5}
+11:12:13.594 CommutativeReplace ▶ DEBU 017  Done checking. Context: {matcha: b, c2: 5, matcha_: b, c2_: 5}
+11:12:13.594 CommutativeReplace ▶ DEBU 018  After clear. Context: {}
+11:12:13.594 Replace ▶ DEBU 019 Ex before iterative replace: ((b * b) + (5 * c) + a)
+11:12:13.594 Replace ▶ DEBU 01a  In Times.Replace. First trying this.IsMatchQ(r.Lhs, es).
+11:12:13.595 Replace ▶ DEBU 01b  Rule r is: (((Pattern[c1, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]) + (Pattern[c2, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]))) -> (((c1 + c2) * matcha))
+11:12:13.595 Replace ▶ DEBU 01c  Ex before iterative replace: (b * b)
+11:12:13.595 Replace ▶ DEBU 01d  Ex after iterative replace: (b * b)
+11:12:13.595 Replace ▶ DEBU 01e  Before eval. Context: {}
+11:12:13.595 Replace ▶ DEBU 01f  In Times.Replace. First trying this.IsMatchQ(r.Lhs, es).
+11:12:13.595 Replace ▶ DEBU 020  Rule r is: (((Pattern[c1, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]) + (Pattern[c2, Blank[Integer]] * Pattern[matcha, Blank[Symbol]]))) -> (((c1 + c2) * matcha))
+11:12:13.595 Replace ▶ DEBU 021  Ex before iterative replace: (5 * c)
+11:12:13.595 Replace ▶ DEBU 022  Ex after iterative replace: (5 * c)
+11:12:13.595 Replace ▶ DEBU 023  Before eval. Context: {}
+11:12:13.595 Replace ▶ DEBU 024 Ex after iterative replace: ((b * b) + (5 * c) + a)
+11:12:13.596 Replace ▶ DEBU 025 Before eval. Context: {}
+Out: ((b * b) + (5 * c) + a)
+>

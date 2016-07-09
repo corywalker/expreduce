@@ -1,0 +1,14 @@
+a + 2*b + 5*b /. (c1_Integer*matcha_Symbol) + (c2_Integer*matcha_Symbol) -> (c1+c2)*matcha
+a + b * b /. matcha_Symbol * matcha_Symbol -> matcha^2
+a + b - b /. matcha_ - matcha_ -> 0
+
+Why does this work:
+a + b + b /. matcha_Symbol + matcha_Symbol -> 2*matcha
+but this not work:
+a + b + b + b /. matcha_Symbol + matcha_Symbol -> 2*matcha
+
+Why does this not work:
+a + (1+a) * (1+a) /. matcha_ * matcha_ -> matcha^2
+
+But this seems to:
+a + a^2 * a^2 /. matcha_ * matcha_ -> matcha^2
