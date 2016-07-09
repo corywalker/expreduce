@@ -33,10 +33,10 @@ func (m *Times) Eval(es *EvalState) Ex {
 		submul, isadd := e.(*Times)
 		if isadd {
 			start := j
-			end := j+1
+			end := j + 1
 			if j == 0 {
 				m.Multiplicands = append(submul.Multiplicands, m.Multiplicands[end:]...)
-			} else if j == len(m.Multiplicands) - 1 {
+			} else if j == len(m.Multiplicands)-1 {
 				m.Multiplicands = append(m.Multiplicands[:start], submul.Multiplicands...)
 			} else {
 				m.Multiplicands = append(append(m.Multiplicands[:start], submul.Multiplicands...), m.Multiplicands[end:]...)

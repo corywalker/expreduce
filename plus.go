@@ -33,10 +33,10 @@ func (a *Plus) Eval(es *EvalState) Ex {
 		subadd, isadd := e.(*Plus)
 		if isadd {
 			start := j
-			end := j+1
+			end := j + 1
 			if j == 0 {
 				a.Addends = append(subadd.Addends, a.Addends[end:]...)
-			} else if j == len(a.Addends) - 1 {
+			} else if j == len(a.Addends)-1 {
 				a.Addends = append(a.Addends[:start], subadd.Addends...)
 			} else {
 				a.Addends = append(append(a.Addends[:start], subadd.Addends...), a.Addends[end:]...)
