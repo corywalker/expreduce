@@ -78,6 +78,9 @@ func TestReplacement(t *testing.T) {
 	// Work way up to combining like terms
 	es.ClearAll()
 	CasAssertSame(t, es, "a + 99 * b + 99 * c", "a + 2*b + 5*c /. (c1_Integer*a_Symbol) -> 99*a")
+	CasAssertSame(t, es, "a + 99 * b", "a + 2*b + 5*c /. (c1_Integer*matcha_Symbol) + (c2_Integer*matchb_Symbol) -> 99*matcha")
+	CasAssertSame(t, es, "a + (2 * b) + (5 * c)", "a + 2*b + 5*c /. (c1_Integer*matcha_Symbol) + (c2_Integer*matcha_Symbol) -> (c1+c2)*matcha")
+	CasAssertSame(t, es, "(a + (7 * b))", "a + 2*b + 5*b /. (c1_Integer*matcha_Symbol) + (c2_Integer*matcha_Symbol) -> (c1+c2)*matcha")
 
 	es.ClearAll()
 	CasAssertSame(t, es, "2", "a + b /. (d_Symbol + c_Symbol) -> 2")

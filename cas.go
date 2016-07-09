@@ -79,7 +79,7 @@ func (this *EvalState) ToString() string {
 		buffer.WriteString(", ")
 	}
 	if strings.HasSuffix(buffer.String(), ", ") {
-		buffer.Truncate(buffer.Len() - 2)
+		buffer.Truncate(buffer.Len()-2)
 	}
 	buffer.WriteString("}")
 	return buffer.String()
@@ -216,9 +216,14 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool
 
 func IterableReplace(components *[]Ex, r *Rule, es *EvalState) {
 	for i := range *components {
+		es.log.Debugf("Attempting (%s).IsMatchQ(%s, %s)", (*components)[i].ToString(), r.Lhs.ToString(), es.ToString())
+		oldVars := es.GetDefinedSnapshot()
 		if (*components)[i].IsMatchQ(r.Lhs, es) {
 			(*components)[i] = r.Rhs.DeepCopy()
+			es.log.Debugf("IsMatchQ succeeded, new components: %s", ExArrayToString(*components))
 		}
+		es.ClearPD()
+		es.defined = oldVars
 	}
 }
 
@@ -317,8 +322,11 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 					es.log.Debugf("components after: %s", ExArrayToString(*components))
 					es.log.Debugf("Appending %s\n", rhs.ToString())
 					es.log.Debugf("Context: %v\n", es.ToString())
-					*components = append(*components, []Ex{rhs.DeepCopy()}...)
+					*components = append(*components, []Ex{rhs.DeepCopy().Eval(es)}...)
 					es.log.Debugf("components after append: %s", ExArrayToString(*components))
+					es.ClearPD()
+					es.defined = oldVars
+					es.log.Debugf("After clear. Context: %v\n", es.ToString())
 					return
 				}
 			}
