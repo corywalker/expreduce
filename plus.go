@@ -25,11 +25,24 @@ func (a *Plus) Eval(es *EvalState) Ex {
 
 	// If any of the addends are also Plus's, merge them with a and remove them
 	// We can easily remove an item by replacing it with a zero int.
-	for i, e := range a.Addends {
+	origLen := len(a.Addends)
+	offset := 0
+	for i := 0; i < origLen; i++ {
+		j := i + offset
+		e := a.Addends[j]
 		subadd, isadd := e.(*Plus)
 		if isadd {
-			a.Addends = append(a.Addends, subadd.Addends...)
-			a.Addends[i] = &Integer{big.NewInt(0)}
+			start := j
+			end := j+1
+			if j == 0 {
+				a.Addends = append(subadd.Addends, a.Addends[end:]...)
+			} else if j == len(a.Addends) - 1 {
+				a.Addends = append(a.Addends[:start], subadd.Addends...)
+			} else {
+				a.Addends = append(append(a.Addends[:start], subadd.Addends...), a.Addends[end:]...)
+			}
+			//a.Addends[i] = &Integer{big.NewInt(0)}
+			offset += len(subadd.Addends) - 1
 		}
 	}
 

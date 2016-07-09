@@ -25,11 +25,24 @@ func (m *Times) Eval(es *EvalState) Ex {
 
 	// If any of the multiplicands are also Times, merge them with m and remove them
 	// We can easily remove an item by replacing it with a one int.
-	for i, e := range m.Multiplicands {
-		submul, ismul := e.(*Times)
-		if ismul {
-			m.Multiplicands = append(m.Multiplicands, submul.Multiplicands...)
-			m.Multiplicands[i] = &Integer{big.NewInt(1)}
+	origLen := len(m.Multiplicands)
+	offset := 0
+	for i := 0; i < origLen; i++ {
+		j := i + offset
+		e := m.Multiplicands[j]
+		submul, isadd := e.(*Times)
+		if isadd {
+			start := j
+			end := j+1
+			if j == 0 {
+				m.Multiplicands = append(submul.Multiplicands, m.Multiplicands[end:]...)
+			} else if j == len(m.Multiplicands) - 1 {
+				m.Multiplicands = append(m.Multiplicands[:start], submul.Multiplicands...)
+			} else {
+				m.Multiplicands = append(append(m.Multiplicands[:start], submul.Multiplicands...), m.Multiplicands[end:]...)
+			}
+			//m.Multiplicands[i] = &Integer{big.NewInt(0)}
+			offset += len(submul.Multiplicands) - 1
 		}
 	}
 

@@ -166,6 +166,9 @@ func Test(t *testing.T) {
 	withVar.Eval(es)
 	fmt.Println(withVar.ToString())
 
+	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
+	assert.Equal(t, "(a * b * c * d * e * f)", EasyRun("a * b * c *d *e *f", es))
+
 	CasAssertSame(t, es, "2", "test = 2")
 	_, containsTest := es.defined["test"]
 	assert.True(t, containsTest)
