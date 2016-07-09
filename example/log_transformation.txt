@@ -1,4 +1,4 @@
-:%s/\v(.*▶.{9})( *)/\2\1/g
+:%s/\v(.*▶.{9})( *)/\2\1 /g
 
 :setlocal foldmethod=indent
 :set shiftwidth=1

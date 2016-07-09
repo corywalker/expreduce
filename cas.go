@@ -328,7 +328,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 		oldVars := es.GetDefinedSnapshot()
 		for i := range *components {
 			//es.log.Debugf(es.Pre()+"%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
-			if (*components)[i].IsMatchQ(lhs_components[perm[pi]], es) {
+			if (*components)[i].DeepCopy().IsMatchQ(lhs_components[perm[pi]], es) {
 				used[pi] = i
 				pi = pi + 1
 
