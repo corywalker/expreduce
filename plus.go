@@ -103,7 +103,7 @@ func (a *Plus) Eval(es *EvalState) Ex {
 func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
 	oldVars := es.GetDefinedSnapshot()
 	es.log.Debugf("In Plus.Replace. First trying this.IsMatchQ(r.Lhs, es).")
-	es.log.Debugf("Rule is: %s", r.ToString())
+	es.log.Debugf("Rule r is: %s", r.ToString())
 	if this.IsMatchQ(r.Lhs, es) {
 		es.log.Debugf("After MatchQ, rule is: %s", r.ToString())
 		es.log.Debugf("MatchQ succeeded. Returning r.Rhs: %s", r.Rhs.ToString())

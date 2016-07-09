@@ -8,6 +8,7 @@ import (
 	"github.com/op/go-logging"
 	"os"
 	"sort"
+	"strings"
 )
 
 var format = logging.MustStringFormatter(
@@ -64,18 +65,23 @@ func (this *EvalState) GetDefinedSnapshot() map[string]Ex {
 
 func (this *EvalState) ToString() string {
 	var buffer bytes.Buffer
+	buffer.WriteString("{")
 	for k, v := range this.defined {
 		buffer.WriteString(k)
 		buffer.WriteString(": ")
 		buffer.WriteString(v.ToString())
-		buffer.WriteString("\n")
+		buffer.WriteString(", ")
 	}
 	for k, v := range this.defined {
 		buffer.WriteString(k)
 		buffer.WriteString("_: ")
 		buffer.WriteString(v.ToString())
-		buffer.WriteString("\n")
+		buffer.WriteString(", ")
 	}
+	if strings.HasSuffix(buffer.String(), ", ") {
+		buffer.Truncate(buffer.Len() - 2)
+	}
+	buffer.WriteString("}")
 	return buffer.String()
 }
 
@@ -108,10 +114,7 @@ func ExArrayToString(exArray []Ex) string {
 }
 
 func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
-	es.log.Infof("Entering CommutativeIsEqual")
-	es.log.Infof("components: %s", ExArrayToString(components))
-	es.log.Infof("other_components: %s", ExArrayToString(other_components))
-	es.log.Debugf("Start of CommutativeIsEqual. Context:\n%v\n", es.ToString())
+	es.log.Infof("Entering CommutativeIsEqual(components: %s, other_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(other_components), es.ToString())
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
 	}
@@ -143,10 +146,7 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 }
 
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
-	es.log.Infof("Entering CommutativeIsMatchQ")
-	es.log.Infof("components: %s", ExArrayToString(components))
-	es.log.Infof("lhs_components: %s", ExArrayToString(lhs_components))
-	es.log.Debugf("Start of CommutativeIsMatchQ. Context:\n%v\n", es.ToString())
+	es.log.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
 	if len(components) != len(lhs_components) {
 		es.log.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
 		return false
@@ -287,9 +287,7 @@ func permutations(iterable []int, r int) [][]int {
 }
 
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
-	es.log.Infof("Entering CommutativeReplace")
-	es.log.Infof("components: %s", ExArrayToString(*components))
-	es.log.Infof("lhs_components: %s", ExArrayToString(lhs_components))
+	es.log.Infof("Entering CommutativeReplace(components: *%s, lhs_components: %s, es: %s)", ExArrayToString(*components), ExArrayToString(lhs_components), es.ToString())
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(lhs_components))
@@ -301,7 +299,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 	for _, perm := range perms {
 		used := make([]int, len(perm))
 		pi := 0
-		es.log.Debugf("Before snapshot. Context:\n%v\n", es.ToString())
+		es.log.Debugf("Before snapshot. Context: %v\n", es.ToString())
 		oldVars := es.GetDefinedSnapshot()
 		for i := range *components {
 			//es.log.Debugf("%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
@@ -318,16 +316,16 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 					}
 					es.log.Debugf("components after: %s", ExArrayToString(*components))
 					es.log.Debugf("Appending %s\n", rhs.ToString())
-					es.log.Debugf("Context:\n%v\n", es.ToString())
+					es.log.Debugf("Context: %v\n", es.ToString())
 					*components = append(*components, []Ex{rhs.DeepCopy()}...)
 					es.log.Debugf("components after append: %s", ExArrayToString(*components))
 					return
 				}
 			}
-			es.log.Debugf("Done checking. Context:\n%v\n", es.ToString())
+			es.log.Debugf("Done checking. Context: %v\n", es.ToString())
 		}
 		es.ClearPD()
 		es.defined = oldVars
-		es.log.Debugf("After clear. Context:\n%v\n", es.ToString())
+		es.log.Debugf("After clear. Context: %v\n", es.ToString())
 	}
 }
