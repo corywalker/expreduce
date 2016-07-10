@@ -22,7 +22,7 @@ func (this *Pattern) Replace(r *Rule, es *EvalState) Ex {
 
 func (this *Pattern) ToString() string {
 	var buffer bytes.Buffer
-	if true {
+	if false {
 		buffer.WriteString("Pattern[")
 		buffer.WriteString(this.S.ToString())
 		buffer.WriteString(", ")
@@ -161,7 +161,7 @@ func (this *Blank) Replace(r *Rule, es *EvalState) Ex {
 
 func (this *Blank) ToString() string {
 	var buffer bytes.Buffer
-	if true {
+	if false {
 		buffer.WriteString("Blank[")
 		buffer.WriteString(this.H.ToString())
 		buffer.WriteString("]")

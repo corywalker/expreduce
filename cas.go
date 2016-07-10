@@ -170,19 +170,20 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
-	toPermute := make([]int, len(lhs_components))
+	toPermute := make([]int, len(components))
 	for i := range toPermute {
 		toPermute[i] = i
 	}
 	perms := permutations(toPermute, len(lhs_components))
+	es.log.Debugf(es.Pre()+"Permutations to try: %v\n", perms)
 
 	for _, perm := range perms {
 		used := make([]int, len(perm))
 		pi := 0
-		for i := range components {
+		for i := range perm {
 			//es.log.Debugf(es.Pre()+"%s %s\n", components[i].ToString(), lhs_components[perm[pi]].ToString())
-			if components[i].IsMatchQ(lhs_components[perm[pi]], es) {
-				used[pi] = i
+			if components[perm[i]].DeepCopy().IsMatchQ(lhs_components[i], es) {
+				used[pi] = perm[i]
 				pi = pi + 1
 
 				if pi == len(perm) {
@@ -315,21 +316,22 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 	es.log.Infof(es.Pre()+"Entering CommutativeReplace(components: *%s, lhs_components: %s, es: %s)", ExArrayToString(*components), ExArrayToString(lhs_components), es.ToString())
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
-	toPermute := make([]int, len(lhs_components))
+	toPermute := make([]int, len(*components))
 	for i := range toPermute {
 		toPermute[i] = i
 	}
 	perms := permutations(toPermute, len(lhs_components))
+	es.log.Debugf(es.Pre()+"Permutations to try: %v\n", perms)
 
 	for _, perm := range perms {
 		used := make([]int, len(perm))
 		pi := 0
 		es.log.Debugf(es.Pre()+"Before snapshot. Context: %v\n", es.ToString())
 		oldVars := es.GetDefinedSnapshot()
-		for i := range *components {
-			//es.log.Debugf(es.Pre()+"%s %s\n", (*components)[i].ToString(), lhs_components[perm[pi]].ToString())
-			if (*components)[i].DeepCopy().IsMatchQ(lhs_components[perm[pi]], es) {
-				used[pi] = i
+		for i := range perm {
+			//es.log.Debugf(es.Pre()+"%s %s\n", (*components)[perm[i]].ToString(), lhs_components[i].ToString())
+			if (*components)[perm[i]].DeepCopy().IsMatchQ(lhs_components[i], es) {
+				used[pi] = perm[i]
 				pi = pi + 1
 
 				if pi == len(perm) {
