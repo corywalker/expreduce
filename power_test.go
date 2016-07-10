@@ -77,7 +77,7 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "1.", EasyRun("1^2.", es))
 	assert.Equal(t, "1.", EasyRun("1^99999992.", es))
 	assert.Equal(t, "1.", EasyRun("1.^30", es))
-	assert.Equal(t, "25.", EasyRun("(1.*5*1.)^2", es))
+	assert.Equal(t, "4.", EasyRun("(1.*2*1.)^2", es))
 	assert.Equal(t, "-1", EasyRun("(-1)^1", es))
 	assert.Equal(t, "1", EasyRun("(-1)^2", es))
 	assert.Equal(t, "1", EasyRun("(-1)^0", es))
@@ -87,4 +87,5 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "1", EasyRun("(-1)^99999992", es))
 	assert.Equal(t, "1.", EasyRun("(-1.)^30", es))
 	assert.Equal(t, "4.", EasyRun("(1.*2*-1.)^2", es))
+	assert.Equal(t, "-0.5", EasyRun("(1.*2*-1.)^(-1)", es))
 }

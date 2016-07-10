@@ -63,9 +63,11 @@ func (this *Power) Eval(es *EvalState) Ex {
 		return &Integer{big.NewInt(1)}
 	}
 
+	//es.log.Debugf("Power eval. baseIsInt=%v, powerIsInt=%v", baseIsInt, powerIsInt)
 	// Fully integer Power expression
 	if baseIsInt && powerIsInt {
 		cmpres := powerInt.Val.Cmp(big.NewInt(0))
+		//es.log.Debugf("Cmpres: %v", cmpres)
 		if cmpres == 1 {
 			res := big.NewInt(0)
 			res.Exp(baseInt.Val, powerInt.Val, nil)
@@ -75,6 +77,12 @@ func (this *Power) Eval(es *EvalState) Ex {
 			absPower := big.NewInt(0)
 			absPower.Abs(powerInt.Val)
 			newbase.Exp(baseInt.Val, absPower, nil)
+			if newbase.Cmp(big.NewInt(1)) == 0 {
+				return &Integer{big.NewInt(1)}
+			}
+			if newbase.Cmp(big.NewInt(-1)) == 0 {
+				return &Integer{big.NewInt(-1)}
+			}
 			return &Power{&Integer{newbase}, &Integer{big.NewInt(-1)}}
 		} else {
 			return &Error{"Unexpected zero power in Power evaluation."}
