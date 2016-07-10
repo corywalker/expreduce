@@ -70,27 +70,41 @@ func (m *Times) Eval(es *EvalState) Ex {
 	}
 
 	// Geometrically accumulate floating point values towards the end of the expression
+	es.log.Debugf("Before accumulating floats: %s", m.ToString())
+	origLen = len(m.Multiplicands)
+	offset = 0
 	var lastf *Flt = nil
-	for _, e := range m.Multiplicands {
+	var lastfj int = 0
+	for i := 0; i < origLen; i++ {
+		j := i - offset
+		e := m.Multiplicands[j]
 		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
+				es.log.Debugf("Encountered float. i=%d, j=%d, lastf=%s, lastfj=%d", i, j, lastf.ToString(), lastfj)
 				f.Val.Mul(f.Val, lastf.Val)
-				lastf.Val = big.NewFloat(1)
+				//lastf.Val = big.NewFloat(1)
+				m.Multiplicands = append(m.Multiplicands[:lastfj], m.Multiplicands[lastfj+1:]...)
+				offset++
+				es.log.Debugf("After deleting: %s", m.ToString())
 			}
 			lastf = f
+			lastfj = i - offset
 		}
 	}
+	es.log.Debugf("After accumulating floats: %s", m.ToString())
 
 	// Remove one Floats
-	for i := len(m.Multiplicands) - 1; i >= 0; i-- {
-		f, ok := m.Multiplicands[i].(*Flt)
-		if ok && f.Val.Cmp(big.NewFloat(1)) == 0 {
-			m.Multiplicands[i] = m.Multiplicands[len(m.Multiplicands)-1]
-			m.Multiplicands[len(m.Multiplicands)-1] = nil
-			m.Multiplicands = m.Multiplicands[:len(m.Multiplicands)-1]
+	/*
+		for i := len(m.Multiplicands) - 1; i >= 0; i-- {
+			f, ok := m.Multiplicands[i].(*Flt)
+			if ok && f.Val.Cmp(big.NewFloat(1)) == 0 {
+				m.Multiplicands[i] = m.Multiplicands[len(m.Multiplicands)-1]
+				m.Multiplicands[len(m.Multiplicands)-1] = nil
+				m.Multiplicands = m.Multiplicands[:len(m.Multiplicands)-1]
+			}
 		}
-	}
+	*/
 
 	// Geometrically accumulate integer values towards the end of the expression
 	var lasti *Integer = nil

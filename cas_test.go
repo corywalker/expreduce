@@ -105,12 +105,6 @@ func Test(t *testing.T) {
 		&Flt{big.NewFloat(1)},
 	}}
 	assert.Equal(t, "EQUAL_TRUE", t5.IsEqual(t6, es))
-	var t7 = &Times{[]Ex{
-		&Flt{big.NewFloat(1)},
-		&Symbol{"x"},
-	}}
-	var t8 = &Symbol{"x"}
-	assert.Equal(t, "EQUAL_TRUE", t7.IsEqual(t8, es))
 
 	// Test evaluation
 	a.Eval(es)
