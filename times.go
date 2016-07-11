@@ -70,7 +70,7 @@ func (m *Times) Eval(es *EvalState) Ex {
 	}
 
 	// Geometrically accumulate floating point values towards the end of the expression
-	es.log.Debugf("Before accumulating floats: %s", m.ToString())
+	//es.log.Debugf("Before accumulating floats: %s", m.ToString())
 	origLen = len(m.Multiplicands)
 	offset = 0
 	var lastf *Flt = nil
@@ -92,7 +92,7 @@ func (m *Times) Eval(es *EvalState) Ex {
 			lastfj = i - offset
 		}
 	}
-	es.log.Debugf("After accumulating floats: %s", m.ToString())
+	//es.log.Debugf("After accumulating floats: %s", m.ToString())
 
 	// Remove one Floats
 	/*

@@ -11,6 +11,8 @@ func TestSimplify(t *testing.T) {
 
 	es := NewEvalState()
 
+	// https://www.quia.com/jg/332021list.html
+
 	// Test combining monomials of degree 1
 	intLikeTermsRule := "(c1_Integer*matcha_Symbol) + (c2_Integer*matcha_Symbol) -> (c1+c2)*matcha"
 	CasAssertSame(t, es, "a+7*b", "a + 2*b + 5*b /. "+intLikeTermsRule)
@@ -36,7 +38,6 @@ func TestSimplify(t *testing.T) {
 	// Perhaps expanding negations would help here
 	CasAssertSame(t, es, "0", "(a+b)-(a+b)"+additiveInverseRule+additiveInverseRule)
 	CasAssertSame(t, es, "0", "-(a+b)+(a+b)"+additiveInverseRule+additiveInverseRule)
-	CasAssertSame(t, es, "0", "2*a^2-2*a^2"+additiveInverseRule)
 
 	es.ClearAll()
 }

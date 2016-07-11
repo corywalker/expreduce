@@ -94,4 +94,12 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "98", "d = 98")
 	//CasAssertSame(t, es, "98 + 98 * a + c", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch")
 	CasAssertSame(t, es, "c+98+(b*a)", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch")
+
+	es.ClearAll()
+	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. matcha_ - matchb_ -> 2")
+	CasAssertSame(t, es, "3 * a^2 + 5 * b^2", "2 * a^2 - 2 * b^2 /. 2*matcha_ - 2*matchb_ -> 3*matcha + 5*matchb")
+	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _Integer*matcha_ - _Integer*matchb_ -> 2")
+	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _*matcha_ - _*matchb_ -> 2")
+	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - _ -> 2")
+	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - 2*_ -> 2")
 }
