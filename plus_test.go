@@ -20,10 +20,10 @@ func TestPlus(t *testing.T) {
 	assert.Equal(t, "((a + b) * 1.)", EasyRun("(a + b)/1.", es))
 	assert.Equal(t, "(2 * (a + b))", EasyRun("2*(a + b)", es))
 	assert.Equal(t, "(a * (b + c))", EasyRun("a*(b + c)", es))
-	assert.Equal(t, "-a - b", EasyRun("-1*(a + b)", es))
-	assert.Equal(t, "-a - b", EasyRun("-(a + b)", es))
+	assert.Equal(t, "((a * -1) + (b * -1))", EasyRun("-1*(a + b)", es))
+	assert.Equal(t, "((a * -1) + (b * -1))", EasyRun("-(a + b)", es))
 	assert.Equal(t, "((a + b) * -1.)", EasyRun("-1.*(a + b)", es))
-	assert.Equal(t, "-a - b", EasyRun("(a + b)/-1", es))
+	assert.Equal(t, "((a * -1) + (b * -1))", EasyRun("(a + b)/-1", es))
 	assert.Equal(t, "((a + b) * -1.)", EasyRun("(a + b)/-1.", es))
 
 	es.ClearAll()

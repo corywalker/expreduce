@@ -30,13 +30,13 @@ func TestSimplify(t *testing.T) {
 	CasAssertSame(t, es, "a+b", "(a+b)+0")
 
 	// Test additive inverse
-	additiveInverseRule := "amatch_ - amatch_ -> 0"
-	CasAssertSame(t, es, "0", "a-a /. "+additiveInverseRule)
-	CasAssertSame(t, es, "0", "-a + a /. "+additiveInverseRule)
+	additiveInverseRule := " /. amatch_ - amatch_ -> 0"
+	CasAssertSame(t, es, "0", "a-a"+additiveInverseRule)
+	CasAssertSame(t, es, "0", "-a + a"+additiveInverseRule)
 	// Perhaps expanding negations would help here
-	CasAssertSame(t, es, "0", "(a+b)-(a+b) /. "+additiveInverseRule)
-	CasAssertSame(t, es, "0", "-(a+b)+(a+b) /. "+additiveInverseRule)
-	CasAssertSame(t, es, "0", "2*a^2-2*a^2 /. "+additiveInverseRule)
+	CasAssertSame(t, es, "0", "(a+b)-(a+b)"+additiveInverseRule+additiveInverseRule)
+	CasAssertSame(t, es, "0", "-(a+b)+(a+b)"+additiveInverseRule+additiveInverseRule)
+	CasAssertSame(t, es, "0", "2*a^2-2*a^2"+additiveInverseRule)
 
 	es.ClearAll()
 }

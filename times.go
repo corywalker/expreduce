@@ -134,6 +134,41 @@ func (m *Times) Eval(es *EvalState) Ex {
 		return m.Multiplicands[0]
 	}
 
+	// Automatically Expand negations (*-1), not (*-1.) of a Plus expression
+	if len(m.Multiplicands) == 2 {
+		leftint, leftintok := m.Multiplicands[0].(*Integer)
+		rightint, rightintok := m.Multiplicands[1].(*Integer)
+		leftplus, leftplusok := m.Multiplicands[0].(*Plus)
+		rightplus, rightplusok := m.Multiplicands[1].(*Plus)
+		var theInt *Integer = nil
+		var thePlus *Plus = nil
+		if leftintok {
+			theInt = leftint
+		}
+		if rightintok {
+			theInt = rightint
+		}
+		if leftplusok {
+			thePlus = leftplus
+		}
+		if rightplusok {
+			thePlus = rightplus
+		}
+		if theInt != nil && thePlus != nil {
+			if theInt.Val.Cmp(big.NewInt(-1)) == 0 {
+				toreturn := &Plus{}
+				for i := range thePlus.Addends {
+					toAppend := &Times{[]Ex{
+						thePlus.Addends[i],
+						&Integer{big.NewInt(-1)},
+					}}
+					toreturn.Addends = append(toreturn.Addends, toAppend)
+				}
+				return toreturn.Eval(es)
+			}
+		}
+	}
+
 	return m
 }
 
