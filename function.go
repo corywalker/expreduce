@@ -87,6 +87,18 @@ func (this *Function) Eval(es *EvalState) Ex {
 		}
 		return t.Eval(es)
 	}
+	if this.Name == "BasicSimplify" && len(this.Arguments) == 1 {
+		t := &BasicSimplify{
+			Expr: this.Arguments[0],
+		}
+		return t.Eval(es)
+	}
+	if this.Name == "SetLogging" && len(this.Arguments) == 1 {
+		t := &SetLogging{
+			Expr: this.Arguments[0],
+		}
+		return t.Eval(es)
+	}
 	return this
 }
 

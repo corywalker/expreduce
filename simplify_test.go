@@ -57,4 +57,12 @@ func TestSimplify(t *testing.T) {
 	// Test multiplicative property of zero
 	CasAssertSame(t, es, "3/2", "(((3 + (x^2 * 0)) * 2^-1)) /. (((amatch_ * 0)) -> (0))")
 	es.ClearAll()
+
+	// Test BasicSimplify
+	CasAssertSame(t, es, "d", "BasicSimplify[(a+b)-(a+b)+c-c+d]")
+	CasAssertSame(t, es, "((5 * c^a) + (3 * d))", "BasicSimplify[(a+b)-(a+b)+c-c+2*c^a+2*d+5*d+d-5*d+3*c^a]")
+	CasAssertSame(t, es, "87.5 + 3 * x", "BasicSimplify[((x + 80. + 3. + x) + 2. + x + 2.5)]")
+	CasAssertSame(t, es, "87.5 + (7. * x)", "BasicSimplify[((x + 80. + 3. + x) + 2. + (x * 2. * 2.) + (0. * 3. * x) + x + 2.5)]")
+	CasAssertSame(t, es, "a^(2+c)", "BasicSimplify[a^2*a^c]")
+	CasAssertSame(t, es, "a^(2-c)", "BasicSimplify[a^2/a^c]")
 }

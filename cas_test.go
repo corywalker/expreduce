@@ -130,9 +130,7 @@ func Test(t *testing.T) {
 		&Symbol{"x"},
 		&Flt{big.NewFloat(2.5)},
 	}}
-	fmt.Println(withVar.ToString())
 	withVar.Eval(es)
-	fmt.Println(withVar.ToString())
 
 	// Test nested addition and multiplication functionality
 	withVar = &Plus{[]Ex{
