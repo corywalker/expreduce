@@ -94,6 +94,21 @@ func (m *Times) Eval(es *EvalState) Ex {
 	}
 	//es.log.Debugf("After accumulating floats: %s", m.ToString())
 
+	if len(m.Multiplicands) == 1 {
+		f, fOk := m.Multiplicands[0].(*Flt)
+		if fOk {
+			if f.Val.Cmp(big.NewFloat(0)) == 1 {
+				return f
+			}
+		}
+		i, iOk := m.Multiplicands[0].(*Integer)
+		if iOk {
+			if i.Val.Cmp(big.NewInt(0)) == 1 {
+				return i
+			}
+		}
+	}
+
 	// Remove one Floats
 	/*
 		for i := len(m.Multiplicands) - 1; i >= 0; i-- {

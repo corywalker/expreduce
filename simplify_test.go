@@ -2,6 +2,7 @@ package cas
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -38,6 +39,17 @@ func TestSimplify(t *testing.T) {
 	// Perhaps expanding negations would help here
 	CasAssertSame(t, es, "0", "(a+b)-(a+b)"+additiveInverseRule+additiveInverseRule)
 	CasAssertSame(t, es, "0", "-(a+b)+(a+b)"+additiveInverseRule+additiveInverseRule)
+
+	// Test multiplicative identity
+	assert.Equal(t, "5", EasyRun("5*1", es))
+	assert.Equal(t, "a", EasyRun("1*a", es))
+	assert.Equal(t, "(1. * a)", EasyRun("1.*a", es))
+
+	// Test multiplicative inverse
+	multInvRule := " /. amatch_ / amatch_ -> 1"
+	assert.Equal(t, "1", EasyRun("8*1/8"+multInvRule, es))
+	assert.Equal(t, "1", EasyRun("a*1/a"+multInvRule, es))
+	assert.Equal(t, "1", EasyRun("1/a*a"+multInvRule, es))
 
 	es.ClearAll()
 }

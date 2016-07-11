@@ -72,6 +72,21 @@ func (a *Plus) Eval(es *EvalState) Ex {
 		}
 	}
 
+	if len(a.Addends) == 1 {
+		f, fOk := a.Addends[0].(*Flt)
+		if fOk {
+			if f.Val.Cmp(big.NewFloat(0)) == 0 {
+				return f
+			}
+		}
+		i, iOk := a.Addends[0].(*Integer)
+		if iOk {
+			if i.Val.Cmp(big.NewInt(0)) == 0 {
+				return i
+			}
+		}
+	}
+
 	// Remove zero Floats
 	for i := len(a.Addends) - 1; i >= 0; i-- {
 		f, ok := a.Addends[i].(*Flt)
