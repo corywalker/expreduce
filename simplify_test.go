@@ -39,6 +39,9 @@ func TestSimplify(t *testing.T) {
 	// Perhaps expanding negations would help here
 	CasAssertSame(t, es, "0", "(a+b)-(a+b)"+additiveInverseRule+additiveInverseRule)
 	CasAssertSame(t, es, "0", "-(a+b)+(a+b)"+additiveInverseRule+additiveInverseRule)
+	repAdditiveInverseRule := " //. amatch_ - amatch_ -> 0"
+	CasAssertSame(t, es, "0", "(a+b)-(a+b)"+repAdditiveInverseRule)
+	CasAssertSame(t, es, "0", "-(a+b)+(a+b)"+repAdditiveInverseRule)
 
 	// Test multiplicative identity
 	assert.Equal(t, "5", EasyRun("5*1", es))
@@ -51,5 +54,7 @@ func TestSimplify(t *testing.T) {
 	assert.Equal(t, "1", EasyRun("a*1/a"+multInvRule, es))
 	assert.Equal(t, "1", EasyRun("1/a*a"+multInvRule, es))
 
+	// Test multiplicative property of zero
+	CasAssertSame(t, es, "3/2", "(((3 + (x^2 * 0)) * 2^-1)) /. (((amatch_ * 0)) -> (0))")
 	es.ClearAll()
 }

@@ -104,6 +104,7 @@ pattern _|{ident}_|_{ident}|{ident}_{ident}
 === return SAMESYM
 == return EQUALSYM
 \/\. return REPLACESYM
+\/\/\. return REPLACEREPSYM
 
 {pattern}
     parts := strings.Split(string(y.buf), "_")
