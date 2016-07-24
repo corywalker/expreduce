@@ -70,7 +70,7 @@ func (m *Times) Eval(es *EvalState) Ex {
 	}
 
 	// Geometrically accumulate floating point values towards the end of the expression
-	//es.log.Debugf("Before accumulating floats: %s", m.ToString())
+	//es.log.Debugf(es.Pre() + "Before accumulating floats: %s", m.ToString())
 	origLen = len(m.Multiplicands)
 	offset = 0
 	var lastf *Flt = nil
@@ -81,18 +81,18 @@ func (m *Times) Eval(es *EvalState) Ex {
 		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
-				es.log.Debugf("Encountered float. i=%d, j=%d, lastf=%s, lastfj=%d", i, j, lastf.ToString(), lastfj)
+				es.log.Debugf(es.Pre()+"Encountered float. i=%d, j=%d, lastf=%s, lastfj=%d", i, j, lastf.ToString(), lastfj)
 				f.Val.Mul(f.Val, lastf.Val)
 				//lastf.Val = big.NewFloat(1)
 				m.Multiplicands = append(m.Multiplicands[:lastfj], m.Multiplicands[lastfj+1:]...)
 				offset++
-				es.log.Debugf("After deleting: %s", m.ToString())
+				es.log.Debugf(es.Pre()+"After deleting: %s", m.ToString())
 			}
 			lastf = f
 			lastfj = i - offset
 		}
 	}
-	//es.log.Debugf("After accumulating floats: %s", m.ToString())
+	//es.log.Debugf(es.Pre() +"After accumulating floats: %s", m.ToString())
 
 	if len(m.Multiplicands) == 1 {
 		f, fOk := m.Multiplicands[0].(*Flt)
@@ -188,7 +188,6 @@ func (m *Times) Eval(es *EvalState) Ex {
 }
 
 func (this *Times) Replace(r *Rule, es *EvalState) Ex {
-	es.logDepth++
 	oldVars := es.GetDefinedSnapshot()
 	es.log.Debugf(es.Pre() + "In Times.Replace. First trying this.IsMatchQ(r.Lhs, es).")
 	es.log.Debugf(es.Pre()+"Rule r is: %s", r.ToString())
@@ -199,7 +198,6 @@ func (this *Times) Replace(r *Rule, es *EvalState) Ex {
 	if matchq {
 		es.log.Debugf(es.Pre()+"After MatchQ, rule is: %s", r.ToString())
 		es.log.Debugf(es.Pre()+"MatchQ succeeded. Returning r.Rhs: %s", r.Rhs.ToString())
-		es.logDepth--
 		return toreturn
 	}
 
@@ -215,7 +213,6 @@ func (this *Times) Replace(r *Rule, es *EvalState) Ex {
 	}
 	es.log.Debugf(es.Pre()+"Ex after iterative replace: %s", this.ToString())
 	es.log.Debugf(es.Pre()+"Before eval. Context: %v\n", es.ToString())
-	es.logDepth--
 	return this.Eval(es)
 }
 

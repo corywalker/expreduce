@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"github.com/op/go-logging"
 	"os"
+	"runtime/debug"
 	"sort"
 	"strings"
 )
@@ -20,7 +21,6 @@ type EvalState struct {
 	patternDefined map[string]Ex
 	log            *logging.Logger
 	leveled        logging.LeveledBackend
-	logDepth       int
 }
 
 func NewEvalState() *EvalState {
@@ -35,7 +35,6 @@ func NewEvalState() *EvalState {
 	es.leveled = logging.AddModuleLevel(formatter)
 	logging.SetBackend(es.leveled)
 	es.DebugOff()
-	es.logDepth = -1
 
 	return &es
 }
@@ -50,7 +49,8 @@ func (this *EvalState) DebugOff() {
 
 func (this *EvalState) Pre() string {
 	toReturn := ""
-	for i := 0; i < this.logDepth; i++ {
+	depth := (bytes.Count(debug.Stack(), []byte{'\n'}) - 15) / 2
+	for i := 0; i < depth; i++ {
 		toReturn += " "
 	}
 	return toReturn
@@ -124,10 +124,8 @@ func ExArrayToString(exArray []Ex) string {
 }
 
 func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
-	es.logDepth++
 	es.log.Infof(es.Pre()+"Entering CommutativeIsEqual(components: %s, other_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(other_components), es.ToString())
 	if len(components) != len(other_components) {
-		es.logDepth--
 		return "EQUAL_FALSE"
 	}
 	matched := make(map[int]struct{})
@@ -151,20 +149,16 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 			}
 		}
 		if !foundmatch {
-			es.logDepth--
 			return "EQUAL_UNK"
 		}
 	}
-	es.logDepth--
 	return "EQUAL_TRUE"
 }
 
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
-	es.logDepth++
 	es.log.Infof(es.Pre()+"Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
 	if len(components) != len(lhs_components) {
 		es.log.Debugf(es.Pre() + "len(components) != len(lhs_components). CommutativeMatchQ failed")
-		es.logDepth--
 		return false
 	}
 
@@ -192,14 +186,12 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 						components = append(components[:todelete-tdi], components[todelete-tdi+1:]...)
 					}
 					es.log.Debugf(es.Pre()+"CommutativeIsMatchQ succeeded. Context: %s", es.ToString())
-					es.logDepth--
 					return true
 				}
 			}
 		}
 	}
 	es.log.Debugf(es.Pre()+"CommutativeIsMatchQ failed. Context: %s", es.ToString())
-	es.logDepth--
 	return false
 }
 
@@ -234,7 +226,6 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool
 }
 
 func IterableReplace(components *[]Ex, r *Rule, es *EvalState) {
-	es.logDepth++
 	for i := range *components {
 		es.log.Debugf(es.Pre()+"Attempting (%s).IsMatchQ(%s, %s)", (*components)[i].ToString(), r.Lhs.ToString(), es.ToString())
 		oldVars := es.GetDefinedSnapshot()
@@ -312,7 +303,6 @@ func permutations(iterable []int, r int) [][]int {
 }
 
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
-	es.logDepth++
 	es.log.Infof(es.Pre()+"Entering CommutativeReplace(components: *%s, lhs_components: %s, es: %s)", ExArrayToString(*components), ExArrayToString(lhs_components), es.ToString())
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
@@ -349,7 +339,6 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 					es.ClearPD()
 					es.defined = oldVars
 					es.log.Debugf(es.Pre()+"After clear. Context: %v\n", es.ToString())
-					es.logDepth--
 					return
 				}
 			}
@@ -359,5 +348,4 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 		es.defined = oldVars
 		es.log.Debugf(es.Pre()+"After clear. Context: %v\n", es.ToString())
 	}
-	es.logDepth--
 }

@@ -158,7 +158,7 @@ type ReplaceRepeated struct {
 }
 
 func (this *ReplaceRepeated) Eval(es *EvalState) Ex {
-	es.log.Infof("Starting ReplaceRepeated.")
+	es.log.Infof(es.Pre() + "Starting ReplaceRepeated.")
 	this.Expr = this.Expr.Eval(es)
 	this.Rules = this.Rules.Eval(es)
 	//_, ok := this.Rules.(*Rule)
@@ -166,14 +166,14 @@ func (this *ReplaceRepeated) Eval(es *EvalState) Ex {
 	if ok {
 		isSame := false
 		oldEx := this.Expr
-		es.log.Infof("In ReplaceRepeated. Initial expr: %v", oldEx.ToString())
+		es.log.Infof(es.Pre()+"In ReplaceRepeated. Initial expr: %v", oldEx.ToString())
 		for !isSame {
 			oldVars := es.GetDefinedSnapshot()
 			newEx := oldEx.DeepCopy().Replace(rulesRule, es)
 			es.ClearPD()
 			newEx = newEx.Eval(es)
 			es.defined = oldVars
-			es.log.Infof("In ReplaceRepeated. New expr: %v", newEx.ToString())
+			es.log.Infof(es.Pre()+"In ReplaceRepeated. New expr: %v", newEx.ToString())
 
 			oldVars = es.GetDefinedSnapshot()
 			if oldEx.IsSameQ(newEx, es) {

@@ -129,7 +129,6 @@ func (a *Plus) Eval(es *EvalState) Ex {
 }
 
 func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
-	es.logDepth++
 	oldVars := es.GetDefinedSnapshot()
 	es.log.Debugf(es.Pre() + "In Plus.Replace. First trying this.IsMatchQ(r.Lhs, es).")
 	es.log.Debugf(es.Pre()+"Rule r is: %s", r.ToString())
@@ -140,7 +139,6 @@ func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
 	if matchq {
 		es.log.Debugf(es.Pre()+"After MatchQ, rule is: %s", r.ToString())
 		es.log.Debugf(es.Pre()+"MatchQ succeeded. Returning r.Rhs: %s", r.Rhs.ToString())
-		es.logDepth--
 		return toreturn
 	}
 	//es.log.Debugf(es.Pre()+"MatchQ failed. Dropping to IterableReplace")
@@ -157,7 +155,6 @@ func (this *Plus) Replace(r *Rule, es *EvalState) Ex {
 	}
 	es.log.Debugf(es.Pre()+"Ex after iterative replace: %s", this.ToString())
 	es.log.Debugf(es.Pre()+"Before eval. Context: %v\n", es.ToString())
-	es.logDepth--
 	return this.Eval(es)
 }
 
