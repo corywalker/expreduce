@@ -225,7 +225,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 
 func FunctionIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
 	if len(components) != len(other_components) {
-		return "EQUAL_FALSE"
+		return "EQUAL_UNK"
 	}
 	for i := range components {
 		res := components[i].IsEqual(other_components[i], es)

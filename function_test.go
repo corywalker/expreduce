@@ -47,4 +47,12 @@ func TestFunction(t *testing.T) {
 	CasAssertSame(t, es, "False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]")
 	CasAssertSame(t, es, "False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]")
 	CasAssertSame(t, es, "False", "MatchQ[foo[x, 2*y], foo[matcha_Integer*matchx_, matchx_]]")
+	assert.Equal(t, "(foo[x, y, z]) == (foo[x, y])", EasyRun("foo[x, y, z] == foo[x, y]", es))
+	assert.Equal(t, "(foo[x, y, z]) == (foo[x, y, 1])", EasyRun("foo[x, y, z] == foo[x, y, 1]", es))
+	CasAssertSame(t, es, "True", "foo[x, y, 1] == foo[x, y, 1]")
+	CasAssertSame(t, es, "True", "foo[x, y, 1.] == foo[x, y, 1]")
+	CasAssertSame(t, es, "False", "foo[x, y, z] === foo[x, y]")
+	CasAssertSame(t, es, "False", "foo[x, y, z] === foo[x, y, 1]")
+	CasAssertSame(t, es, "True", "foo[x, y, 1] === foo[x, y, 1]")
+	CasAssertSame(t, es, "False", "foo[x, y, 1.] === foo[x, y, 1]")
 }
