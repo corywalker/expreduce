@@ -131,7 +131,7 @@ func (this *SetDelayed) Eval(es *EvalState) Ex {
 		return &Error{"Cannot set non-symbol to an expression"}
 	}
 	es.defined[LhsSym.Name] = this.Rhs
-	return this.Rhs
+	return &Symbol{"Null"}
 }
 
 func (this *SetDelayed) Replace(r *Rule, es *EvalState) Ex {

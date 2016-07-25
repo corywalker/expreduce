@@ -9,7 +9,7 @@ parser.add_argument('--assert_str', dest='assert_str', action='store_true',
 
 args = parser.parse_args()
 
-p = re.compile(ur'In\[(\d+)\]:= ([^\n]+)\n\nOut\[\1\]= ([^\n]+)')
+p = re.compile(ur'In\[(\d+)\]:= ([^\n]+)\n\n(?:Out\[\1\]= ([^\n]+)|)')
 test_str = sys.stdin.read()
 
 if args.assert_str:
@@ -17,4 +17,6 @@ if args.assert_str:
 else:
     format_str = 'CasAssertSame(t, es, "{}", "{}")'
 for num, instr, outstr in re.findall(p, test_str):
+    if outstr == '':
+        outstr = 'Null'
     print(format_str.format(outstr, instr))
