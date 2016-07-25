@@ -9,7 +9,8 @@ type Symbol struct {
 }
 
 func (this *Symbol) Eval(es *EvalState) Ex {
-	definition, isdefined := es.defined[this.Name]
+	//definition, isdefined := es.defined[this.Name]
+	definition, isdefined := es.GetDef(this.Name, this)
 	if isdefined {
 		return definition.DeepCopy().Eval(es)
 	}
@@ -78,7 +79,8 @@ func (this *Set) Eval(es *EvalState) Ex {
 		return &Error{"Cannot set non-symbol to an expression"}
 	}
 	var evaluated Ex = this.Rhs.Eval(es)
-	es.defined[LhsSym.Name] = evaluated
+	//es.defined[LhsSym.Name] = evaluated
+	es.Define(LhsSym.Name, LhsSym, evaluated)
 	return evaluated
 }
 
@@ -130,7 +132,8 @@ func (this *SetDelayed) Eval(es *EvalState) Ex {
 	if !ok {
 		return &Error{"Cannot set non-symbol to an expression"}
 	}
-	es.defined[LhsSym.Name] = this.Rhs
+	//es.defined[LhsSym.Name] = this.Rhs
+	es.Define(LhsSym.Name, LhsSym, this.Rhs)
 	return &Symbol{"Null"}
 }
 

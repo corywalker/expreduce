@@ -106,7 +106,8 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 						}
 
 						if !isd {
-							es.defined[sAsSymbol.Name] = target
+							//es.defined[sAsSymbol.Name] = target
+							es.Define(sAsSymbol.Name, sAsSymbol, target)
 						} else {
 							//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
 							return true

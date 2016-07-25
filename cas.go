@@ -17,7 +17,7 @@ var format = logging.MustStringFormatter(
 )
 
 type EvalState struct {
-	defined        map[string]Ex
+	defined        map[string][]Rule
 	patternDefined map[string]Ex
 	log            *logging.Logger
 	leveled        logging.LeveledBackend
@@ -25,7 +25,7 @@ type EvalState struct {
 
 func NewEvalState() *EvalState {
 	var es EvalState
-	es.defined = make(map[string]Ex)
+	es.defined = make(map[string][]Rule)
 	es.patternDefined = make(map[string]Ex)
 
 	// Set up logging
@@ -58,8 +58,37 @@ func (this *EvalState) Pre() string {
 	return toReturn
 }
 
+func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
+	_, isd := this.defined[name]
+	if !isd {
+		return nil, false
+	}
+	for i := range this.defined[name] {
+		if this.defined[name][i].Lhs.IsMatchQ(lhs, this) {
+			return this.defined[name][i].Rhs, true
+		}
+	}
+	return nil, false
+}
+
+func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
+	_, isd := this.defined[name]
+	if !isd {
+		this.defined[name] = []Rule{{lhs, rhs}}
+		return
+	}
+
+	for i := range this.defined[name] {
+		if this.defined[name][i].Lhs.IsSameQ(lhs, this) {
+			this.defined[name][i].Rhs = rhs
+			return
+		}
+	}
+	this.defined[name] = append(this.defined[name], Rule{lhs, rhs})
+}
+
 func (this *EvalState) ClearAll() {
-	this.defined = make(map[string]Ex)
+	this.defined = make(map[string][]Rule)
 	this.patternDefined = make(map[string]Ex)
 }
 
@@ -67,8 +96,8 @@ func (this *EvalState) ClearPD() {
 	this.patternDefined = make(map[string]Ex)
 }
 
-func (this *EvalState) GetDefinedSnapshot() map[string]Ex {
-	oldVars := make(map[string]Ex)
+func (this *EvalState) GetDefinedSnapshot() map[string][]Rule {
+	oldVars := make(map[string][]Rule)
 	for k, v := range this.defined {
 		oldVars[k] = v
 	}
@@ -81,10 +110,10 @@ func (this *EvalState) ToString() string {
 	for k, v := range this.defined {
 		buffer.WriteString(k)
 		buffer.WriteString(": ")
-		buffer.WriteString(v.ToString())
+		buffer.WriteString(RuleArrayToString(v))
 		buffer.WriteString(", ")
 	}
-	for k, v := range this.defined {
+	for k, v := range this.patternDefined {
 		buffer.WriteString(k)
 		buffer.WriteString("_: ")
 		buffer.WriteString(v.ToString())
@@ -113,6 +142,19 @@ type Ex interface {
 // Some utility functions that span multiple files
 
 func ExArrayToString(exArray []Ex) string {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	for i, e := range exArray {
+		buffer.WriteString(e.ToString())
+		if i != len(exArray)-1 {
+			buffer.WriteString(", ")
+		}
+	}
+	buffer.WriteString("}")
+	return buffer.String()
+}
+
+func RuleArrayToString(exArray []Rule) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range exArray {
