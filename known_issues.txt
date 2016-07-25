@@ -10,4 +10,3 @@ Out: ()
 
 These tests will fail:
 CasAssertSame(t, es, "2[2, 2, 2, 2]", "a*b*c*d /. _Symbol -> 2")
-CasAssertSame(t, es, "99[]", "kfdsfdsf[] /. _Symbol -> 99")

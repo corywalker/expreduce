@@ -158,7 +158,14 @@ func (this *Function) IsMatchQ(otherEx Ex, es *EvalState) bool {
 			return true
 		}
 	}
-	return this.IsSameQ(otherEx, es)
+	other, ok := otherEx.(*Function)
+	if !ok {
+		return false
+	}
+	if !this.Name.IsSameQ(other.Name, es) {
+		return false
+	}
+	return NonCommutativeIsMatchQ(this.Arguments, other.Arguments, es)
 }
 
 func (this *Function) DeepCopy() Ex {

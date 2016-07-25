@@ -204,6 +204,25 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 	return false
 }
 
+func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
+	es.log.Infof(es.Pre()+"Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
+	if len(components) != len(lhs_components) {
+		es.log.Debugf(es.Pre() + "len(components) != len(lhs_components). NonCommutativeMatchQ failed")
+		return false
+	}
+
+	for i := range components {
+		es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), es.ToString())
+		if components[i].DeepCopy().IsMatchQ(lhs_components[i], es) {
+			es.log.Debugf(es.Pre() + "Returned True!\n")
+		} else {
+			es.log.Debugf(es.Pre()+"NonCommutativeIsMatchQ failed. Context: %s", es.ToString())
+			return false
+		}
+	}
+	return true
+}
+
 func FunctionIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"

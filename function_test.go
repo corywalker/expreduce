@@ -41,4 +41,10 @@ func TestFunction(t *testing.T) {
 	CasAssertSame(t, es, "foo[k]", "foo[foo[k]] /. foo[k] -> k")
 	CasAssertSame(t, es, "k", "(foo[foo[k]] /. foo[k] -> k) /. foo[k] -> k")
 	CasAssertSame(t, es, "foo[bla]", "foo[foo[k]] /. foo[k] -> bla")
+
+	// Test matching through function arguments
+	CasAssertSame(t, es, "True", "MatchQ[foo[2*x, x], foo[matcha_Integer*matchx_, matchx_]]")
+	CasAssertSame(t, es, "False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]")
+	CasAssertSame(t, es, "False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]")
+	CasAssertSame(t, es, "False", "MatchQ[foo[x, 2*y], foo[matcha_Integer*matchx_, matchx_]]")
 }
