@@ -49,9 +49,11 @@ func (this *EvalState) DebugOff() {
 
 func (this *EvalState) Pre() string {
 	toReturn := ""
-	depth := (bytes.Count(debug.Stack(), []byte{'\n'}) - 15) / 2
-	for i := 0; i < depth; i++ {
-		toReturn += " "
+	if this.leveled.GetLevel("") != logging.ERROR {
+		depth := (bytes.Count(debug.Stack(), []byte{'\n'}) - 15) / 2
+		for i := 0; i < depth; i++ {
+			toReturn += " "
+		}
 	}
 	return toReturn
 }
@@ -172,13 +174,16 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 	es.log.Debugf(es.Pre()+"Permutations to try: %v\n", perms)
 
 	for _, perm := range perms {
+		oldVars := es.GetDefinedSnapshot()
+		es.log.Debugf(es.Pre()+"Using perm: %v\n", perm)
 		used := make([]int, len(perm))
 		pi := 0
 		for i := range perm {
-			//es.log.Debugf(es.Pre()+"%s %s\n", components[i].ToString(), lhs_components[perm[pi]].ToString())
+			es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). Current context: %v\n", components[perm[i]].ToString(), lhs_components[i].ToString(), es.ToString())
 			if components[perm[i]].DeepCopy().IsMatchQ(lhs_components[i], es) {
 				used[pi] = perm[i]
 				pi = pi + 1
+				es.log.Debugf(es.Pre()+"Returned True! pi: %v, used: %v.\n", pi, used)
 
 				if pi == len(perm) {
 					sort.Ints(used)
@@ -188,8 +193,12 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 					es.log.Debugf(es.Pre()+"CommutativeIsMatchQ succeeded. Context: %s", es.ToString())
 					return true
 				}
+			} else {
+				es.log.Debugf(es.Pre() + "Returned False. Moving on.\n")
 			}
 		}
+		es.ClearPD()
+		es.defined = oldVars
 	}
 	es.log.Debugf(es.Pre()+"CommutativeIsMatchQ failed. Context: %s", es.ToString())
 	return false

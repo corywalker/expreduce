@@ -56,4 +56,9 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "2", "a -> b /. _Rule -> 2")
 	CasAssertSame(t, es, "2", "a*b*c*d /. _Times -> 2")
 
+	es.ClearAll()
+	CasAssertSame(t, es, "True", "MatchQ[x*3., c1match_Real*matcha_]")
+	CasAssertSame(t, es, "True", "MatchQ[3.*x, c1match_Real*matcha_]")
+	CasAssertSame(t, es, "True", "MatchQ[x+3., c1match_Real+matcha_]")
+	CasAssertSame(t, es, "True", "MatchQ[3.+x, c1match_Real+matcha_]")
 }
