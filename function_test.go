@@ -13,7 +13,7 @@ func TestFunction(t *testing.T) {
 	es := NewEvalState()
 
 	var t1 = &Function{
-		"Power",
+		&Symbol{"Power"},
 		[]Ex{
 			&Flt{big.NewFloat(5)},
 			&Flt{big.NewFloat(3)},

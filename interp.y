@@ -42,30 +42,30 @@ stat	:    expr
 
 expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $2 }
-	|    NAME LBRACKETSYM RBRACKETSYM
+	|    expr LBRACKETSYM RBRACKETSYM
 		{
 			fc := &Function{}
-			fc.Name = $1.(*Symbol).Name
+			fc.Name = $1
 			$$ = fc
 		}
-	|    NAME LBRACKETSYM expr RBRACKETSYM
+	|    expr LBRACKETSYM expr RBRACKETSYM
 		{
 			fc := &Function{}
-			fc.Name = $1.(*Symbol).Name
+			fc.Name = $1
 			fc.Arguments = []Ex{$3}
 			$$ = fc
 		}
-	|    NAME LBRACKETSYM expr COMMASYM expr RBRACKETSYM
+	|    expr LBRACKETSYM expr COMMASYM expr RBRACKETSYM
 		{
 			fc := &Function{}
-			fc.Name = $1.(*Symbol).Name
+			fc.Name = $1
 			fc.Arguments = []Ex{$3, $5}
 			$$ = fc
 		}
-	|    NAME LBRACKETSYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
+	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
 		{
 			fc := &Function{}
-			fc.Name = $1.(*Symbol).Name
+			fc.Name = $1
 			fc.Arguments = []Ex{$3, $5, $7}
 			$$ = fc
 		}

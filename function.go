@@ -3,101 +3,105 @@ package cas
 import "bytes"
 
 type Function struct {
-	Name      string
+	Name      Ex
 	Arguments []Ex
 }
 
 func (this *Function) Eval(es *EvalState) Ex {
-	if this.Name == "Power" && len(this.Arguments) == 2 {
-		t := &Power{
-			Base:  this.Arguments[0],
-			Power: this.Arguments[1],
+	nameAsSym, isNameSym := this.Name.(*Symbol)
+	if isNameSym {
+		nameStr := nameAsSym.Name
+		if nameStr == "Power" && len(this.Arguments) == 2 {
+			t := &Power{
+				Base:  this.Arguments[0],
+				Power: this.Arguments[1],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "Equal" && len(this.Arguments) == 2 {
-		t := &Equal{
-			Lhs: this.Arguments[0],
-			Rhs: this.Arguments[1],
+		if nameStr == "Equal" && len(this.Arguments) == 2 {
+			t := &Equal{
+				Lhs: this.Arguments[0],
+				Rhs: this.Arguments[1],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "SameQ" && len(this.Arguments) == 2 {
-		t := &Equal{
-			Lhs: this.Arguments[0],
-			Rhs: this.Arguments[1],
+		if nameStr == "SameQ" && len(this.Arguments) == 2 {
+			t := &Equal{
+				Lhs: this.Arguments[0],
+				Rhs: this.Arguments[1],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "Plus" {
-		t := &Plus{Addends: this.Arguments}
-		return t.Eval(es)
-	}
-	if this.Name == "Times" {
-		t := &Times{Multiplicands: this.Arguments}
-		return t.Eval(es)
-	}
-	if this.Name == "Set" && len(this.Arguments) == 2 {
-		t := &Set{
-			Lhs: this.Arguments[0],
-			Rhs: this.Arguments[1],
+		if nameStr == "Plus" {
+			t := &Plus{Addends: this.Arguments}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "SetDelayed" && len(this.Arguments) == 2 {
-		t := &SetDelayed{
-			Lhs: this.Arguments[0],
-			Rhs: this.Arguments[1],
+		if nameStr == "Times" {
+			t := &Times{Multiplicands: this.Arguments}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "If" && len(this.Arguments) == 3 {
-		t := &If{
-			Condition: this.Arguments[0],
-			T:         this.Arguments[1],
-			F:         this.Arguments[2],
+		if nameStr == "Set" && len(this.Arguments) == 2 {
+			t := &Set{
+				Lhs: this.Arguments[0],
+				Rhs: this.Arguments[1],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "While" && len(this.Arguments) == 1 {
-		t := &While{
-			Test: this.Arguments[0],
-			Body: &Symbol{"Null"},
+		if nameStr == "SetDelayed" && len(this.Arguments) == 2 {
+			t := &SetDelayed{
+				Lhs: this.Arguments[0],
+				Rhs: this.Arguments[1],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "While" && len(this.Arguments) == 2 {
-		t := &While{
-			Test: this.Arguments[0],
-			Body: this.Arguments[1],
+		if nameStr == "If" && len(this.Arguments) == 3 {
+			t := &If{
+				Condition: this.Arguments[0],
+				T:         this.Arguments[1],
+				F:         this.Arguments[2],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "MatchQ" && len(this.Arguments) == 2 {
-		t := &MatchQ{
-			Expr: this.Arguments[0],
-			Form: this.Arguments[1],
+		if nameStr == "While" && len(this.Arguments) == 1 {
+			t := &While{
+				Test: this.Arguments[0],
+				Body: &Symbol{"Null"},
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "Replace" && len(this.Arguments) == 2 {
-		t := &Replace{
-			Expr:  this.Arguments[0],
-			Rules: this.Arguments[1],
+		if nameStr == "While" && len(this.Arguments) == 2 {
+			t := &While{
+				Test: this.Arguments[0],
+				Body: this.Arguments[1],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "BasicSimplify" && len(this.Arguments) == 1 {
-		t := &BasicSimplify{
-			Expr: this.Arguments[0],
+		if nameStr == "MatchQ" && len(this.Arguments) == 2 {
+			t := &MatchQ{
+				Expr: this.Arguments[0],
+				Form: this.Arguments[1],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
-	}
-	if this.Name == "SetLogging" && len(this.Arguments) == 1 {
-		t := &SetLogging{
-			Expr: this.Arguments[0],
+		if nameStr == "Replace" && len(this.Arguments) == 2 {
+			t := &Replace{
+				Expr:  this.Arguments[0],
+				Rules: this.Arguments[1],
+			}
+			return t.Eval(es)
 		}
-		return t.Eval(es)
+		if nameStr == "BasicSimplify" && len(this.Arguments) == 1 {
+			t := &BasicSimplify{
+				Expr: this.Arguments[0],
+			}
+			return t.Eval(es)
+		}
+		if nameStr == "SetLogging" && len(this.Arguments) == 1 {
+			t := &SetLogging{
+				Expr: this.Arguments[0],
+			}
+			return t.Eval(es)
+		}
 	}
 	return this
 }
@@ -106,6 +110,7 @@ func (this *Function) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
+	this.Name = this.Name.Replace(r, es)
 	for i := range this.Arguments {
 		this.Arguments[i] = this.Arguments[i].Replace(r, es)
 	}
@@ -114,7 +119,7 @@ func (this *Function) Replace(r *Rule, es *EvalState) Ex {
 
 func (this *Function) ToString() string {
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Name)
+	buffer.WriteString(this.Name.ToString())
 	buffer.WriteString("[")
 	for i, e := range this.Arguments {
 		buffer.WriteString(e.ToString())
@@ -139,15 +144,19 @@ func (this *Function) IsSameQ(otherEx Ex, es *EvalState) bool {
 	if !ok {
 		return false
 	}
-	if this.Name != other.Name {
+	if !this.Name.IsSameQ(other.Name, es) {
 		return false
 	}
 	return FunctionIsSameQ(this.Arguments, other.Arguments, es)
 }
 
 func (this *Function) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, this.Name) {
-		return true
+	nameAsSym, isNameSym := this.Name.(*Symbol)
+	if isNameSym {
+		nameStr := nameAsSym.Name
+		if IsBlankType(otherEx, nameStr) {
+			return true
+		}
 	}
 	return this.IsSameQ(otherEx, es)
 }

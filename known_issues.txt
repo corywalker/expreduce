@@ -4,14 +4,9 @@ Out: ()
 > 1*1
 In:  (1 * 1)
 Out: ()
-> a==1
-In:  (a) == (1)
-Out: False
-
-
-> MatchQ[x+y,y+x]
-In:  MatchQ[(x + y), (y + x)]
-Out: False
+> 0+0
+In:  (0 * 0)
+Out: ()
 
 These tests will fail:
 CasAssertSame(t, es, "2[2, 2, 2, 2]", "a*b*c*d /. _Symbol -> 2")
