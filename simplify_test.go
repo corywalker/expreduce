@@ -65,4 +65,14 @@ func TestSimplify(t *testing.T) {
 	CasAssertSame(t, es, "87.5 + (7. * x)", "BasicSimplify[((x + 80. + 3. + x) + 2. + (x * 2. * 2.) + (0. * 3. * x) + x + 2.5)]")
 	CasAssertSame(t, es, "a^(2+c)", "BasicSimplify[a^2*a^c]")
 	CasAssertSame(t, es, "a^(2-c)", "BasicSimplify[a^2/a^c]")
+	CasAssertSame(t, es, "m^4", "BasicSimplify[m^2*m^2]")
+	CasAssertSame(t, es, "m^2", "BasicSimplify[m*m]")
+	CasAssertSame(t, es, "1", "BasicSimplify[m/m]")
+	CasAssertSame(t, es, "1", "BasicSimplify[m^2/m^2]")
+
+	// Exponent BasicSimplify
+	CasAssertSame(t, es, "m^4", "BasicSimplify[(m^2)^2]")
+	CasAssertSame(t, es, "(m^2)^2.", "BasicSimplify[(m^2)^2.]")
+	CasAssertSame(t, es, "(m^2.)^2.", "BasicSimplify[(m^2.)^2.]")
+	CasAssertSame(t, es, "m^4.", "BasicSimplify[(m^2.)^2]")
 }

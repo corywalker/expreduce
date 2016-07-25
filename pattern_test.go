@@ -61,4 +61,6 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "True", "MatchQ[3.*x, c1match_Real*matcha_]")
 	CasAssertSame(t, es, "True", "MatchQ[x+3., c1match_Real+matcha_]")
 	CasAssertSame(t, es, "True", "MatchQ[3.+x, c1match_Real+matcha_]")
+	CasAssertSame(t, es, "True", "MatchQ[y + x, matcha_]")
+	CasAssertSame(t, es, "True", "MatchQ[y*x, matcha_]")
 }

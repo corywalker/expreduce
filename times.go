@@ -248,7 +248,7 @@ func (this *Times) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *Times) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Times") {
+	if IsBlankTypeCapturing(otherEx, this, "Times", es) {
 		return true
 	}
 	thisEx := this.Eval(es)

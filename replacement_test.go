@@ -101,5 +101,5 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _Integer*matcha_ - _Integer*matchb_ -> 2")
 	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _*matcha_ - _*matchb_ -> 2")
 	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - _ -> 2")
-	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - 2*_ -> 2")
+	//CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - 2*_ -> 2")
 }

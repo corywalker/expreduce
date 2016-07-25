@@ -190,7 +190,7 @@ func (this *Plus) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func (this *Plus) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Plus") {
+	if IsBlankTypeCapturing(otherEx, this, "Plus", es) {
 		return true
 	}
 	thisEx := this.Eval(es)

@@ -154,9 +154,9 @@ func Test(t *testing.T) {
 		&Symbol{"x"},
 		&Flt{big.NewFloat(2.5)},
 	}}
-	fmt.Println(withVar.ToString())
+	//fmt.Println(withVar.ToString())
 	withVar.Eval(es)
-	fmt.Println(withVar.ToString())
+	//fmt.Println(withVar.ToString())
 
 	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
 	assert.Equal(t, "(a * b * c * d * e * f)", EasyRun("a * b * c *d *e *f", es))
