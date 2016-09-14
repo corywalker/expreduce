@@ -129,12 +129,20 @@ type SetDelayed struct {
 
 func (this *SetDelayed) Eval(es *EvalState) Ex {
 	LhsSym, ok := this.Lhs.(*Symbol)
-	if !ok {
-		return &Error{"Cannot set non-symbol to an expression"}
+	if ok {
+		es.Define(LhsSym.Name, LhsSym, this.Rhs)
+		return &Symbol{"Null"}
 	}
-	//es.defined[LhsSym.Name] = this.Rhs
-	es.Define(LhsSym.Name, LhsSym, this.Rhs)
-	return &Symbol{"Null"}
+	LhsF, ok := this.Lhs.(*Function)
+	if ok {
+		FNameAsSym, FNameIsSym := LhsF.Name.(*Symbol)
+		if FNameIsSym {
+			es.Define(FNameAsSym.Name, LhsF, this.Rhs)
+			return &Symbol{"Null"}
+		}
+	}
+
+	return &Error{"Can only set expression to a symbol or a function"}
 }
 
 func (this *SetDelayed) Replace(r *Rule, es *EvalState) Ex {

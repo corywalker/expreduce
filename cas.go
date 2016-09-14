@@ -63,15 +63,29 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	if !isd {
 		return nil, false
 	}
+	this.log.Debugf(this.Pre()+"Inside GetDef(\"%s\",%s)", name, lhs.ToString())
+	oldVars := this.GetDefinedSnapshot()
 	for i := range this.defined[name] {
-		if this.defined[name][i].Lhs.IsMatchQ(lhs, this) {
-			return this.defined[name][i].Rhs, true
+		if lhs.IsMatchQ(this.defined[name][i].Lhs, this) {
+			//Probably not needed:
+			//this.ClearPD()
+			//this.defined = CopyRuleMap(oldVars)
+			this.log.Debugf(this.Pre()+"Found match! Current context before: %s", this.ToString())
+			res := lhs.Replace(&this.defined[name][i], this)
+			this.log.Debugf(this.Pre()+"Found match! Current context after: %s", this.ToString())
+			this.ClearPD()
+			this.defined = CopyRuleMap(oldVars)
+			this.log.Debugf(this.Pre()+"After reset: %s", this.ToString())
+			return res, true
 		}
+		this.ClearPD()
+		this.defined = CopyRuleMap(oldVars)
 	}
 	return nil, false
 }
 
 func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
+	this.log.Debugf(this.Pre()+"Inside es.Define(\"%s\",%s,%s)", name, lhs.ToString(), rhs.ToString())
 	_, isd := this.defined[name]
 	if !isd {
 		this.defined[name] = []Rule{{lhs, rhs}}
@@ -96,12 +110,18 @@ func (this *EvalState) ClearPD() {
 	this.patternDefined = make(map[string]Ex)
 }
 
-func (this *EvalState) GetDefinedSnapshot() map[string][]Rule {
-	oldVars := make(map[string][]Rule)
-	for k, v := range this.defined {
-		oldVars[k] = v
+func CopyRuleMap(in map[string][]Rule) map[string][]Rule {
+	out := make(map[string][]Rule)
+	for k, v := range in {
+		for _, rule := range v {
+			out[k] = append(out[k], *rule.DeepCopy().(*Rule))
+		}
 	}
-	return oldVars
+	return out
+}
+
+func (this *EvalState) GetDefinedSnapshot() map[string][]Rule {
+	return CopyRuleMap(this.defined)
 }
 
 func (this *EvalState) ToString() string {

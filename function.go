@@ -102,13 +102,24 @@ func (this *Function) Eval(es *EvalState) Ex {
 			}
 			return t.Eval(es)
 		}
+		if nameStr == "Definition" && len(this.Arguments) == 1 {
+			t := &Definition{
+				Expr: this.Arguments[0],
+			}
+			return t.Eval(es)
+		}
+
+		theRes, isDefined := es.GetDef(nameStr, this)
+		if isDefined {
+			return theRes
+		}
 	}
 	return this
 }
 
 func (this *Function) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
+		return r.Rhs.Eval(es)
 	}
 	this.Name = this.Name.Replace(r, es)
 	for i := range this.Arguments {
