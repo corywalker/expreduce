@@ -27,6 +27,6 @@ func main() {
 
 		exp := cas.Interp(line)
 		fmt.Printf("In:  %s\n", exp.ToString())
-		fmt.Printf("Out: %s\n", exp.Eval(es).ToString())
+		fmt.Printf("Out: %s\n", (&cas.BasicSimplify{exp.Eval(es)}).Eval(es).ToString())
 	}
 }
