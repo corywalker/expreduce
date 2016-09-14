@@ -98,6 +98,19 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 			return
 		}
 	}
+
+	// Insert into definitions for name. Maintain order of decreasing
+	// complexity. I define complexity as the length of the Lhs.ToString()
+	// because it is simple, and it works for most of the common cases. We wish
+	// to attempt f[x_Integer] before we attempt f[x_].
+	newLhsLen := len(lhs.ToString())
+	for i := range this.defined[name] {
+		thisLhsLen := len(this.defined[name][i].Lhs.ToString())
+		if thisLhsLen < newLhsLen {
+			this.defined[name] = append(this.defined[name][:i], append([]Rule{Rule{lhs, rhs}}, this.defined[name][i:]...)...)
+			return
+		}
+	}
 	this.defined[name] = append(this.defined[name], Rule{lhs, rhs})
 }
 
