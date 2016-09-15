@@ -107,7 +107,7 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	for i := range this.defined[name] {
 		thisLhsLen := len(this.defined[name][i].Lhs.ToString())
 		if thisLhsLen < newLhsLen {
-			this.defined[name] = append(this.defined[name][:i], append([]Rule{Rule{lhs, rhs}}, this.defined[name][i:]...)...)
+			this.defined[name] = append(this.defined[name][:i], append([]Rule{{lhs, rhs}}, this.defined[name][i:]...)...)
 			return
 		}
 	}

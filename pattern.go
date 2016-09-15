@@ -210,3 +210,137 @@ func (this *Blank) DeepCopy() Ex {
 		this.H.DeepCopy(),
 	}
 }
+
+type BlankSequence struct {
+	H Ex
+}
+
+func (this *BlankSequence) Eval(es *EvalState) Ex {
+	return this
+}
+
+func (this *BlankSequence) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
+	this.H = this.H.Replace(r, es)
+	return this.Eval(es)
+}
+
+func (this *BlankSequence) ToString() string {
+	var buffer bytes.Buffer
+	if false {
+		buffer.WriteString("BlankSequence[")
+		buffer.WriteString(this.H.ToString())
+		buffer.WriteString("]")
+	} else {
+		buffer.WriteString("__")
+		buffer.WriteString(this.H.ToString())
+	}
+	return buffer.String()
+}
+
+func (this *BlankSequence) IsEqual(otherEx Ex, es *EvalState) string {
+	other, ok := otherEx.(*BlankSequence)
+	if !ok {
+		return "EQUAL_UNK"
+	}
+	return FunctionIsEqual([]Ex{
+		this.H,
+	}, []Ex{
+		other.H,
+	}, es)
+}
+
+func (this *BlankSequence) IsSameQ(otherEx Ex, es *EvalState) bool {
+	other, ok := otherEx.(*BlankSequence)
+	if !ok {
+		return false
+	}
+	return FunctionIsSameQ([]Ex{
+		this.H,
+	}, []Ex{
+		other.H,
+	}, es)
+}
+
+func (this *BlankSequence) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "BlankSequence") {
+		return true
+	}
+	//return this.IsSameQ(otherEx, es)
+	return false
+}
+
+func (this *BlankSequence) DeepCopy() Ex {
+	return &BlankSequence{
+		this.H.DeepCopy(),
+	}
+}
+
+type BlankNullSequence struct {
+	H Ex
+}
+
+func (this *BlankNullSequence) Eval(es *EvalState) Ex {
+	return this
+}
+
+func (this *BlankNullSequence) Replace(r *Rule, es *EvalState) Ex {
+	if this.IsMatchQ(r.Lhs, es) {
+		return r.Rhs
+	}
+	this.H = this.H.Replace(r, es)
+	return this.Eval(es)
+}
+
+func (this *BlankNullSequence) ToString() string {
+	var buffer bytes.Buffer
+	if false {
+		buffer.WriteString("BlankNullSequence[")
+		buffer.WriteString(this.H.ToString())
+		buffer.WriteString("]")
+	} else {
+		buffer.WriteString("___")
+		buffer.WriteString(this.H.ToString())
+	}
+	return buffer.String()
+}
+
+func (this *BlankNullSequence) IsEqual(otherEx Ex, es *EvalState) string {
+	other, ok := otherEx.(*BlankNullSequence)
+	if !ok {
+		return "EQUAL_UNK"
+	}
+	return FunctionIsEqual([]Ex{
+		this.H,
+	}, []Ex{
+		other.H,
+	}, es)
+}
+
+func (this *BlankNullSequence) IsSameQ(otherEx Ex, es *EvalState) bool {
+	other, ok := otherEx.(*BlankNullSequence)
+	if !ok {
+		return false
+	}
+	return FunctionIsSameQ([]Ex{
+		this.H,
+	}, []Ex{
+		other.H,
+	}, es)
+}
+
+func (this *BlankNullSequence) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankType(otherEx, "BlankNullSequence") {
+		return true
+	}
+	//return this.IsSameQ(otherEx, es)
+	return false
+}
+
+func (this *BlankNullSequence) DeepCopy() Ex {
+	return &BlankNullSequence{
+		this.H.DeepCopy(),
+	}
+}

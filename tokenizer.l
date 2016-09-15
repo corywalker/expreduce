@@ -60,7 +60,8 @@ D  [0-9]+
 F  {D}"."{D}?|"."{D}|{D}
 L [A-Za-z]
 ident {L}({L}|{D})*
-pattern _|{ident}_|_{ident}|{ident}_{ident}
+blanks ___|__|_
+pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 
 %%
     y.buf = y.buf[:0]
@@ -107,18 +108,42 @@ pattern _|{ident}_|_{ident}|{ident}_{ident}
 \/\/\. return REPLACEREPSYM
 
 {pattern}
-    parts := strings.Split(string(y.buf), "_")
+    delim := "_"
+    if strings.Contains(string(y.buf), "___") {
+        delim = "___"
+    } else if strings.Contains(string(y.buf), "__") {
+        delim = "__"
+    }
+    parts := strings.Split(string(y.buf), delim)
     if len(parts) == 1 {
-        lval.val = &Pattern{&Symbol{parts[0]}, &Blank{}}
+        if delim == "___" {
+            lval.val = &Pattern{&Symbol{parts[0]}, &BlankNullSequence{}}
+        } else if delim == "__" {
+            lval.val = &Pattern{&Symbol{parts[0]}, &BlankSequence{}}
+        } else {
+            lval.val = &Pattern{&Symbol{parts[0]}, &Blank{}}
+        }
         return PATTERN
     }
     if len(parts) == 2 {
         if parts[0] == "" {
-            lval.val = &Blank{&Symbol{parts[1]}}
+            if delim == "___" {
+                lval.val = &BlankNullSequence{&Symbol{parts[1]}}
+            } else if delim == "__" {
+                lval.val = &BlankSequence{&Symbol{parts[1]}}
+            } else {
+                lval.val = &Blank{&Symbol{parts[1]}}
+            }
             return PATTERN
         } else {
-        lval.val = &Pattern{&Symbol{parts[0]}, &Blank{&Symbol{parts[1]}}}
-        return PATTERN
+            if delim == "___" {
+                lval.val = &Pattern{&Symbol{parts[0]}, &BlankNullSequence{&Symbol{parts[1]}}}
+            } else if delim == "__" {
+                lval.val = &Pattern{&Symbol{parts[0]}, &BlankSequence{&Symbol{parts[1]}}}
+            } else {
+                lval.val = &Pattern{&Symbol{parts[0]}, &Blank{&Symbol{parts[1]}}}
+            }
+            return PATTERN
         }
     }
     lval.val = &Error{"Pattern parse error."}
