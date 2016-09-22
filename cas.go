@@ -39,6 +39,13 @@ func NewEvalState() *EvalState {
 	return &es
 }
 
+func NewEvalStateNoLog() *EvalState {
+	var es EvalState
+	es.defined = make(map[string][]Rule)
+	es.patternDefined = make(map[string]Ex)
+	return &es
+}
+
 func (this *EvalState) DebugOn() {
 	this.leveled.SetLevel(logging.DEBUG, "")
 }
@@ -234,6 +241,8 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
 	es.log.Infof(es.Pre()+"Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
+	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
+	// though because MatchQ[a + b + c, c + __] == True.
 	if len(components) != len(lhs_components) {
 		es.log.Debugf(es.Pre() + "len(components) != len(lhs_components). CommutativeMatchQ failed")
 		return false
@@ -280,14 +289,53 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 }
 
 func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
+	// This function is now recursive because of the existence of BlankSequence.
 	es.log.Infof(es.Pre()+"Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
-	if len(components) != len(lhs_components) {
-		es.log.Debugf(es.Pre() + "len(components) != len(lhs_components). NonCommutativeMatchQ failed")
+	// A base case for the recursion
+	if len(components) == 0 && len(lhs_components) == 0 {
+		return true
+	}
+	if len(components) != 0 && len(lhs_components) == 0 {
 		return false
 	}
 
-	for i := range components {
-		es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), es.ToString())
+	progressI := 0
+	for i := 0; i < len(components); i++ {
+		progressI = i
+		if i >= len(lhs_components)  {
+			return false
+		}
+		es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
+		// TODO: support regular BlankSequence
+		bns, isBns := lhs_components[i].(*BlankNullSequence)
+		if isBns {
+			es.log.Debug(es.Pre()+"Encountered BNS!")
+			remainingLhs := make([]Ex, len(lhs_components)-i-1)
+			for k := i+1; k < len(lhs_components); k++ {
+				remainingLhs[k-i-1] = lhs_components[k].DeepCopy()
+			}
+			for j := i-1; j < len(components); j++ {
+				// This process involves a lot of extraneous copying. I should
+				// test to see how much of these arrays need to be copied from
+				// scratch on every iteration.
+				seqToTry := make([]Ex, j-i+1)
+				for k := i; k <= j; k++ {
+					seqToTry[k-i] = components[k].DeepCopy()
+				}
+				seqMatches := ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), es)
+				es.log.Debug(seqMatches)
+				remainingComps := make([]Ex, len(components)-j-1)
+				for k := j+1; k < len(components); k++ {
+					remainingComps[k-j-1] = components[k].DeepCopy()
+				}
+				es.log.Debugf(es.Pre()+"%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
+				if seqMatches && NonCommutativeIsMatchQ(remainingComps, remainingLhs, es) {
+					return true
+				}
+			}
+			return false
+		}
+
 		if components[i].DeepCopy().IsMatchQ(lhs_components[i], es) {
 			es.log.Debugf(es.Pre() + "Returned True!\n")
 		} else {
@@ -295,7 +343,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 			return false
 		}
 	}
-	return true
+	return progressI == len(lhs_components)-1
 }
 
 func FunctionIsEqual(components []Ex, other_components []Ex, es *EvalState) string {

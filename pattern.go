@@ -66,6 +66,9 @@ func (this *Pattern) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func IsBlankType(e Ex, t string) bool {
+	// Calling this function on an amatch_Integer with t == "Integer" would
+	// yield true, while calling this function on an actual integer with
+	// t == "Integer would return false.
 	asPattern, patternOk := e.(*Pattern)
 	if patternOk {
 		asBlank, blankOk := asPattern.Obj.(*Blank)
@@ -87,6 +90,8 @@ func IsBlankType(e Ex, t string) bool {
 }
 
 func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
+	// Similar to IsBlankType, but will capture target into es.patternDefined
+	// if there is a valid match.
 	asPattern, patternOk := e.(*Pattern)
 	if patternOk {
 		asBlank, blankOk := asPattern.Obj.(*Blank)
@@ -343,4 +348,21 @@ func (this *BlankNullSequence) DeepCopy() Ex {
 	return &BlankNullSequence{
 		this.H.DeepCopy(),
 	}
+}
+
+// -------------------------
+
+func BlankNullSequenceToBlank(bns *BlankNullSequence) *Blank {
+	return &Blank{bns.H}
+}
+
+func ExArrayTestRepeatingMatch(array []Ex, b *Blank, es *EvalState) bool {
+	toReturn := true
+	for _, e := range array {
+		tmpEs := NewEvalStateNoLog()
+		isMatch := e.IsMatchQ(b, tmpEs)
+		es.log.Debug(e.ToString(), b.ToString(), isMatch)
+		toReturn = toReturn && isMatch
+	}
+	return toReturn
 }
