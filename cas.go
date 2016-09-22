@@ -288,6 +288,13 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 	return false
 }
 
+func Max(x, y int) int {
+    if x > y {
+        return x
+    }
+    return y
+}
+
 func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
 	// This function is now recursive because of the existence of BlankSequence.
 	es.log.Infof(es.Pre()+"Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
@@ -300,12 +307,16 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 	}
 
 	progressI := 0
-	for i := 0; i < len(components); i++ {
+	for i := 0; i < Max(len(components), len(lhs_components)); i++ {
 		progressI = i
 		if i >= len(lhs_components)  {
 			return false
 		}
-		es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
+		if i >= len(components) {
+			es.log.Debugf(es.Pre()+"Checking if (INDEX_ERROR).IsMatchQ(%s). i=%d, Current context: %v\n", lhs_components[i].ToString(), i, es.ToString())
+		} else {
+			es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
+		}
 		// TODO: support regular BlankSequence
 		bns, isBns := lhs_components[i].(*BlankNullSequence)
 		bs, isBs := lhs_components[i].(*BlankSequence)
@@ -347,7 +358,9 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 			}
 			return false
 		}
-
+		if i >= len(components) {
+			return false
+		}
 		if components[i].DeepCopy().IsMatchQ(lhs_components[i], es) {
 			es.log.Debugf(es.Pre() + "Returned True!\n")
 		} else {
