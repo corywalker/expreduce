@@ -356,6 +356,10 @@ func BlankNullSequenceToBlank(bns *BlankNullSequence) *Blank {
 	return &Blank{bns.H}
 }
 
+func BlankSequenceToBlank(bs *BlankSequence) *Blank {
+	return &Blank{bs.H}
+}
+
 func ExArrayTestRepeatingMatch(array []Ex, b *Blank, es *EvalState) bool {
 	toReturn := true
 	for _, e := range array {

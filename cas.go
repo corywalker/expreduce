@@ -308,13 +308,20 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 		es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
 		// TODO: support regular BlankSequence
 		bns, isBns := lhs_components[i].(*BlankNullSequence)
-		if isBns {
-			es.log.Debug(es.Pre()+"Encountered BNS!")
+		bs, isBs := lhs_components[i].(*BlankSequence)
+		if isBns || isBs {
+			es.log.Debug(es.Pre()+"Encountered BS or BNS!")
 			remainingLhs := make([]Ex, len(lhs_components)-i-1)
 			for k := i+1; k < len(lhs_components); k++ {
 				remainingLhs[k-i-1] = lhs_components[k].DeepCopy()
 			}
-			for j := i-1; j < len(components); j++ {
+			startI := 0
+			if isBns {
+				startI = i-1
+			} else {
+				startI = i
+			}
+			for j := startI; j < len(components); j++ {
 				// This process involves a lot of extraneous copying. I should
 				// test to see how much of these arrays need to be copied from
 				// scratch on every iteration.
@@ -322,7 +329,12 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 				for k := i; k <= j; k++ {
 					seqToTry[k-i] = components[k].DeepCopy()
 				}
-				seqMatches := ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), es)
+				seqMatches := false
+				if isBns {
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), es)
+				} else {
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), es)
+				}
 				es.log.Debug(seqMatches)
 				remainingComps := make([]Ex, len(components)-j-1)
 				for k := j+1; k < len(components); k++ {
