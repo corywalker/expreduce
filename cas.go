@@ -241,46 +241,52 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
 	es.log.Infof(es.Pre()+"Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
+	containsBlankSequence := false
+	for i := range components {
+		pat, isPat := components[i].(*Pattern)
+		_, isBns := components[i].(*BlankNullSequence)
+		_, isBs := components[i].(*BlankSequence)
+		if isPat {
+			_, isBns = pat.Obj.(*BlankNullSequence)
+			_, isBs = pat.Obj.(*BlankSequence)
+		}
+		if isBs || isBns {
+			containsBlankSequence = true
+			break
+		}
+	}
+	es.log.Infof(es.Pre()+"containsBlankSequence %s", containsBlankSequence)
 	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
 	// though because MatchQ[a + b + c, c + __] == True.
-	if len(components) != len(lhs_components) {
+	if !containsBlankSequence && len(components) != len(lhs_components) {
 		es.log.Debugf(es.Pre() + "len(components) != len(lhs_components). CommutativeMatchQ failed")
 		return false
 	}
 
-	// Each permutation is a potential order of the Rule's LHS in which matches
-	// may occur in components.
+	// Generate all possible orders of components. There is certainly a more
+	// elegant recursive solution, but this is easier for now.
 	toPermute := make([]int, len(components))
 	for i := range toPermute {
 		toPermute[i] = i
 	}
-	perms := permutations(toPermute, len(lhs_components))
+	perms := permutations(toPermute, len(components))
 	es.log.Debugf(es.Pre()+"Permutations to try: %v\n", perms)
 
 	for _, perm := range perms {
 		oldVars := es.GetDefinedSnapshot()
 		es.log.Debugf(es.Pre()+"Using perm: %v\n", perm)
-		used := make([]int, len(perm))
-		pi := 0
-		for i := range perm {
-			es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). Current context: %v\n", components[perm[i]].ToString(), lhs_components[i].ToString(), es.ToString())
-			if components[perm[i]].DeepCopy().IsMatchQ(lhs_components[i], es) {
-				used[pi] = perm[i]
-				pi = pi + 1
-				es.log.Debugf(es.Pre()+"Returned True! pi: %v, used: %v.\n", pi, used)
 
-				if pi == len(perm) {
-					sort.Ints(used)
-					for tdi, todelete := range used {
-						components = append(components[:todelete-tdi], components[todelete-tdi+1:]...)
-					}
-					es.log.Debugf(es.Pre()+"CommutativeIsMatchQ succeeded. Context: %s", es.ToString())
-					return true
-				}
-			} else {
-				es.log.Debugf(es.Pre() + "Returned False. Moving on.\n")
-			}
+		// Build a version of components with the correct order. Can I do this
+		// more efficiently with a slice notation? Let's copy for now.
+		orderedComponents := make([]Ex, len(components))
+		for oci, ci := range perm {
+			orderedComponents[oci] = components[ci].DeepCopy()
 		}
+		es.log.Infof(es.Pre()+"%s", ExArrayToString(orderedComponents))
+		if NonCommutativeIsMatchQ(orderedComponents, lhs_components, es) {
+			return true
+		}
+
 		es.ClearPD()
 		es.defined = oldVars
 	}
@@ -318,8 +324,13 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 			es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
 		}
 		// TODO: support regular BlankSequence
+		pat, isPat := lhs_components[i].(*Pattern)
 		bns, isBns := lhs_components[i].(*BlankNullSequence)
 		bs, isBs := lhs_components[i].(*BlankSequence)
+		if isPat {
+			bns, isBns = pat.Obj.(*BlankNullSequence)
+			bs, isBs = pat.Obj.(*BlankSequence)
+		}
 		if isBns || isBs {
 			es.log.Debug(es.Pre()+"Encountered BS or BNS!")
 			remainingLhs := make([]Ex, len(lhs_components)-i-1)
