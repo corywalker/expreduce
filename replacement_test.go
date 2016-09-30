@@ -109,10 +109,10 @@ func TestReplacement(t *testing.T) {
 	//CasAssertSame(t, es, "2", "foo[2*x, x] /. foo[matcha_Integer*matchx_, matchx_] -> matcha")
 
 	// Test replacing with BlankSequence
-	//CasAssertSame(t, es, "foo[]", "a + b /. a + b + amatch___ -> foo[amatch]")
-	//CasAssertSame(t, es, "foo[b, c, d]", "a + b + c + d /. a + amatch___ -> foo[amatch]")
-	//CasAssertSame(t, es, "foo[a + b + c + d]", "a + b + c + d /. amatch___ -> foo[amatch]")
-	//CasAssertSame(t, es, "a + b", "a + b /. a + b + amatch__ -> foo[amatch]")
-	//CasAssertSame(t, es, "foo[b, c, d]", "a + b + c + d /. a + amatch__ -> foo[amatch]")
-	//CasAssertSame(t, es, "foo[a + b + c + d]", "a + b + c + d /. amatch__ -> foo[amatch]")
+	CasAssertSame(t, es, "foo[]", "a + b /. a + b + amatch___ -> foo[amatch]")
+	CasAssertSame(t, es, "foo[b, c, d]", "a + b + c + d /. a + amatch___ -> foo[amatch]")
+	CasAssertSame(t, es, "foo[a + b + c + d]", "a + b + c + d /. amatch___ -> foo[amatch]")
+	CasAssertSame(t, es, "a + b", "a + b /. a + b + amatch__ -> foo[amatch]")
+	CasAssertSame(t, es, "foo[b, c, d]", "a + b + c + d /. a + amatch__ -> foo[amatch]")
+	CasAssertSame(t, es, "foo[a + b + c + d]", "a + b + c + d /. amatch__ -> foo[amatch]")
 }

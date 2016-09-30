@@ -120,7 +120,7 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "True", "MatchQ[bar[1, foo[a, b, c]], bar[amatch_Integer, foo[cmatch__]]]")
 	CasAssertSame(t, es, "False", "MatchQ[bar[1, foo[]], bar[amatch_Integer, foo[cmatch__]]]")
 	CasAssertSame(t, es, "2", "bar[1, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] -> 2")
-	//CasAssertSame(t, es, "4", "bar[1, foo[a, b]] + bar[5, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] -> 2")
-	//CasAssertSame(t, es, "6 buzz[a, b]", "bar[1, foo[a, b]] + bar[5, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] -> amatch*buzz[cmatch]")
-	//CasAssertSame(t, es, "bar[3, foo[a, b]]", "bar[1, foo[a, b]] + bar[2, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]] -> bar[amatch + bmatch, foo[cmatch]]")
+	CasAssertSame(t, es, "4", "bar[1, foo[a, b]] + bar[5, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] -> 2")
+	CasAssertSame(t, es, "6 * buzz[a, b]", "bar[1, foo[a, b]] + bar[5, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] -> amatch*buzz[cmatch]")
+	CasAssertSame(t, es, "bar[3, foo[a, b]]", "bar[1, foo[a, b]] + bar[2, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]] -> bar[amatch + bmatch, foo[cmatch]]")
 }
