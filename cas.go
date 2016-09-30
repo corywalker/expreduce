@@ -242,10 +242,10 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
 	es.log.Infof(es.Pre()+"Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
 	containsBlankSequence := false
-	for i := range components {
-		pat, isPat := components[i].(*Pattern)
-		_, isBns := components[i].(*BlankNullSequence)
-		_, isBs := components[i].(*BlankSequence)
+	for i := range lhs_components {
+		pat, isPat := lhs_components[i].(*Pattern)
+		_, isBns := lhs_components[i].(*BlankNullSequence)
+		_, isBs := lhs_components[i].(*BlankSequence)
 		if isPat {
 			_, isBns = pat.Obj.(*BlankNullSequence)
 			_, isBs = pat.Obj.(*BlankSequence)
@@ -295,10 +295,10 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 }
 
 func Max(x, y int) int {
-    if x > y {
-        return x
-    }
-    return y
+	if x > y {
+		return x
+	}
+	return y
 }
 
 func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
@@ -315,7 +315,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 	progressI := 0
 	for i := 0; i < Max(len(components), len(lhs_components)); i++ {
 		progressI = i
-		if i >= len(lhs_components)  {
+		if i >= len(lhs_components) {
 			return false
 		}
 		if i >= len(components) {
@@ -332,14 +332,14 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 			bs, isBs = pat.Obj.(*BlankSequence)
 		}
 		if isBns || isBs {
-			es.log.Debug(es.Pre()+"Encountered BS or BNS!")
+			es.log.Debug(es.Pre() + "Encountered BS or BNS!")
 			remainingLhs := make([]Ex, len(lhs_components)-i-1)
-			for k := i+1; k < len(lhs_components); k++ {
+			for k := i + 1; k < len(lhs_components); k++ {
 				remainingLhs[k-i-1] = lhs_components[k].DeepCopy()
 			}
 			startI := 0
 			if isBns {
-				startI = i-1
+				startI = i - 1
 			} else {
 				startI = i
 			}
@@ -359,7 +359,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 				}
 				es.log.Debug(seqMatches)
 				remainingComps := make([]Ex, len(components)-j-1)
-				for k := j+1; k < len(components); k++ {
+				for k := j + 1; k < len(components); k++ {
 					remainingComps[k-j-1] = components[k].DeepCopy()
 				}
 				es.log.Debugf(es.Pre()+"%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
