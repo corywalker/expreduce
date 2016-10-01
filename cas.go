@@ -284,6 +284,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 		}
 		es.log.Infof(es.Pre()+"%s", ExArrayToString(orderedComponents))
 		if NonCommutativeIsMatchQ(orderedComponents, lhs_components, es) {
+			es.log.Debugf(es.Pre()+"CommutativeIsMatchQ succeeded. Context: %s", es.ToString())
 			return true
 		}
 
@@ -323,7 +324,6 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 		} else {
 			es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
 		}
-		// TODO: support regular BlankSequence
 		pat, isPat := lhs_components[i].(*Pattern)
 		bns, isBns := lhs_components[i].(*BlankNullSequence)
 		bs, isBs := lhs_components[i].(*BlankSequence)
@@ -364,6 +364,28 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 				}
 				es.log.Debugf(es.Pre()+"%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				if seqMatches && NonCommutativeIsMatchQ(remainingComps, remainingLhs, es) {
+					if isPat {
+						sAsSymbol, sAsSymbolOk := pat.S.(*Symbol)
+						if sAsSymbolOk {
+							target := &Sequence{Arguments: seqToTry}
+							_, isd := es.defined[sAsSymbol.Name]
+							_, ispd := es.patternDefined[sAsSymbol.Name]
+							if !ispd {
+								es.patternDefined[sAsSymbol.Name] = target
+							}
+							if !es.patternDefined[sAsSymbol.Name].IsSameQ(target, es) {
+								return false
+							}
+
+							if !isd {
+								//es.defined[sAsSymbol.Name] = target
+								es.Define(sAsSymbol.Name, sAsSymbol, target)
+							} else {
+								//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
+								return true
+							}
+						}
+					}
 					return true
 				}
 			}

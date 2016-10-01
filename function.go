@@ -8,6 +8,10 @@ type Function struct {
 }
 
 func (this *Function) Eval(es *EvalState) Ex {
+	// Start by evaluating each argument
+	for i := range this.Arguments {
+		this.Arguments[i] = this.Arguments[i].Eval(es)
+	}
 
 	// If any of the arguments are Sequence, merge them with arguments
 	origLen := len(this.Arguments)
