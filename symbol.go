@@ -133,11 +133,11 @@ func (this *SetDelayed) Eval(es *EvalState) Ex {
 		es.Define(LhsSym.Name, LhsSym, this.Rhs)
 		return &Symbol{"Null"}
 	}
-	LhsF, ok := this.Lhs.(*Function)
+	LhsF, ok := this.Lhs.(*Expression)
 	if ok {
-		FNameAsSym, FNameIsSym := LhsF.Name.(*Symbol)
-		if FNameIsSym {
-			es.Define(FNameAsSym.Name, LhsF, this.Rhs)
+		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
+		if headIsSym {
+			es.Define(headAsSym.Name, LhsF, this.Rhs)
 			return &Symbol{"Null"}
 		}
 	}

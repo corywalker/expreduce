@@ -44,30 +44,27 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $2 }
 	|    expr LBRACKETSYM RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			$$ = fc
+			ex := &Expression{}
+			ex.Parts = []Ex{$1}
+			$$ = ex
 		}
 	|    expr LBRACKETSYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3}
-			$$ = fc
+			ex := &Expression{}
+			ex.Parts = []Ex{$1, $3}
+			$$ = ex
 		}
 	|    expr LBRACKETSYM expr COMMASYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3, $5}
-			$$ = fc
+			ex := &Expression{}
+			ex.Parts = []Ex{$1, $3, $5}
+			$$ = ex
 		}
 	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3, $5, $7}
-			$$ = fc
+			ex := &Expression{}
+			ex.Parts = []Ex{$1, $3, $5, $7}
+			$$ = ex
 		}
 	|    expr PLUSSYM expr
 		{ $$  =  &Plus{[]Ex{$1, $3}} }
