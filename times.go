@@ -25,7 +25,6 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	}
 
 	// If any of the multiplicands are also Times, merge them with m and remove them
-	// We can easily remove an item by replacing it with a one int.
 	origLen := len(multiplicands)
 	offset := 0
 	for i := 0; i < origLen; i++ {
@@ -43,8 +42,28 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 			} else {
 				multiplicands = append(append(multiplicands[:start], subMultiplicands...), multiplicands[end:]...)
 			}
-			//multiplicands[i] = &Integer{big.NewInt(0)}
 			offset += len(subMultiplicands) - 1
+		}
+	}
+
+	// If any of the multiplicands are Sequence, merge them with m and remove them
+	origLen = len(multiplicands)
+	offset = 0
+	for i := 0; i < origLen; i++ {
+		j := i + offset
+		e := multiplicands[j]
+		seq, isseq := e.(*Sequence)
+		if isseq {
+			start := j
+			end := j + 1
+			if j == 0 {
+				multiplicands = append(seq.Arguments, multiplicands[end:]...)
+			} else if j == len(multiplicands)-1 {
+				multiplicands = append(multiplicands[:start], seq.Arguments...)
+			} else {
+				multiplicands = append(append(multiplicands[:start], seq.Arguments...), multiplicands[end:]...)
+			}
+			offset += len(seq.Arguments) - 1
 		}
 	}
 

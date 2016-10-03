@@ -20,6 +20,34 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 }
 
 func (this *Expression) Eval(es *EvalState) Ex {
+	// Start by evaluating each argument
+	for i := range this.Parts {
+		this.Parts[i] = this.Parts[i].Eval(es)
+	}
+
+	// If any of the parts are Sequence, merge them with parts
+	// TODO: I should not be attempting to merge the head if it happens to be
+	// a Sequence type
+	origLen := len(this.Parts)
+	offset := 0
+	for i := 0; i < origLen; i++ {
+		j := i + offset
+		e := this.Parts[j]
+		seq, isseq := e.(*Sequence)
+		if isseq {
+			start := j
+			end := j + 1
+			if j == 0 {
+				this.Parts = append(seq.Arguments, this.Parts[end:]...)
+			} else if j == len(this.Parts)-1 {
+				this.Parts = append(this.Parts[:start], seq.Arguments...)
+			} else {
+				this.Parts = append(append(this.Parts[:start], seq.Arguments...), this.Parts[end:]...)
+			}
+			offset += len(seq.Arguments) - 1
+		}
+	}
+
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	if isHeadSym {
 		headStr := headAsSym.Name
@@ -119,6 +147,10 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			t := &Definition{
 				Expr: args[0],
 			}
+			return t.Eval(es)
+		}
+		if headStr == "Sequence" {
+			t := &Sequence{Arguments: args}
 			return t.Eval(es)
 		}
 

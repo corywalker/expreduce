@@ -24,7 +24,6 @@ func (a *Plus) Eval(es *EvalState) Ex {
 	}
 
 	// If any of the addends are also Plus's, merge them with a and remove them
-	// We can easily remove an item by replacing it with a zero int.
 	origLen := len(a.Addends)
 	offset := 0
 	for i := 0; i < origLen; i++ {
@@ -41,8 +40,28 @@ func (a *Plus) Eval(es *EvalState) Ex {
 			} else {
 				a.Addends = append(append(a.Addends[:start], subadd.Addends...), a.Addends[end:]...)
 			}
-			//a.Addends[i] = &Integer{big.NewInt(0)}
 			offset += len(subadd.Addends) - 1
+		}
+	}
+
+	// If any of the addends are Sequence's, merge them with a and remove them
+	origLen = len(a.Addends)
+	offset = 0
+	for i := 0; i < origLen; i++ {
+		j := i + offset
+		e := a.Addends[j]
+		seq, isseq := e.(*Sequence)
+		if isseq {
+			start := j
+			end := j + 1
+			if j == 0 {
+				a.Addends = append(seq.Arguments, a.Addends[end:]...)
+			} else if j == len(a.Addends)-1 {
+				a.Addends = append(a.Addends[:start], seq.Arguments...)
+			} else {
+				a.Addends = append(append(a.Addends[:start], seq.Arguments...), a.Addends[end:]...)
+			}
+			offset += len(seq.Arguments) - 1
 		}
 	}
 

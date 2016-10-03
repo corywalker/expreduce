@@ -66,6 +66,20 @@ expr	:    LPARSYM expr RPARSYM
 			ex.Parts = []Ex{$1, $3, $5, $7}
 			$$ = ex
 		}
+	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
+		{
+			fc := &Function{}
+			fc.Name = $1
+			fc.Arguments = []Ex{$3, $5, $7, $9}
+			$$ = fc
+		}
+	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
+		{
+			fc := &Function{}
+			fc.Name = $1
+			fc.Arguments = []Ex{$3, $5, $7, $9, $11}
+			$$ = fc
+		}
 	|    expr PLUSSYM expr
 		{ $$  =  &Plus{[]Ex{$1, $3}} }
 	|    expr MINUSSYM expr
