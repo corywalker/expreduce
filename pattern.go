@@ -66,6 +66,9 @@ func (this *Pattern) IsSameQ(otherEx Ex, es *EvalState) bool {
 }
 
 func IsBlankType(e Ex, t string) bool {
+	// Calling this function on an amatch_Integer with t == "Integer" would
+	// yield true, while calling this function on an actual integer with
+	// t == "Integer" would return false.
 	asPattern, patternOk := e.(*Pattern)
 	if patternOk {
 		asBlank, blankOk := asPattern.Obj.(*Blank)
@@ -83,19 +86,35 @@ func IsBlankType(e Ex, t string) bool {
 			return asSymbol.Name == t
 		}
 	}
+	// TODO: Should I add BlankSequence support here? Doesn't seem to impact
+	// tests.
 	return false
 }
 
 func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
+	// Similar to IsBlankType, but will capture target into es.patternDefined
+	// if there is a valid match.
 	asPattern, patternOk := e.(*Pattern)
 	if patternOk {
 		asBlank, blankOk := asPattern.Obj.(*Blank)
-		if blankOk {
-			asSymbol, symbolOk := asBlank.H.(*Symbol)
+		asBS, bsOk := asPattern.Obj.(*BlankSequence)
+		asBNS, bnsOk := asPattern.Obj.(*BlankNullSequence)
+		if blankOk || bsOk || bnsOk {
+			var asSymbol *Symbol
+			symbolOk := false
+			if blankOk {
+				asSymbol, symbolOk = asBlank.H.(*Symbol)
+			} else if bsOk {
+				asSymbol, symbolOk = asBS.H.(*Symbol)
+			} else if bnsOk {
+				asSymbol, symbolOk = asBNS.H.(*Symbol)
+			}
 			if symbolOk {
 				if asSymbol.Name == t || asSymbol.Name == "" {
 					sAsSymbol, sAsSymbolOk := asPattern.S.(*Symbol)
 					if sAsSymbolOk {
+						// TODO: we should handle matches with BlankSequences
+						// differently here.
 						_, isd := es.defined[sAsSymbol.Name]
 						_, ispd := es.patternDefined[sAsSymbol.Name]
 						if !ispd {
@@ -120,8 +139,18 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 		}
 	}
 	asBlank, blankOk := e.(*Blank)
-	if blankOk {
-		asSymbol, symbolOk := asBlank.H.(*Symbol)
+	asBS, bsOk := e.(*BlankSequence)
+	asBNS, bnsOk := e.(*BlankNullSequence)
+	if blankOk || bsOk || bnsOk {
+		var asSymbol *Symbol
+		symbolOk := false
+		if blankOk {
+			asSymbol, symbolOk = asBlank.H.(*Symbol)
+		} else if bsOk {
+			asSymbol, symbolOk = asBS.H.(*Symbol)
+		} else if bnsOk {
+			asSymbol, symbolOk = asBNS.H.(*Symbol)
+		}
 		if symbolOk {
 			return asSymbol.Name == t || asSymbol.Name == ""
 		}
@@ -343,4 +372,25 @@ func (this *BlankNullSequence) DeepCopy() Ex {
 	return &BlankNullSequence{
 		this.H.DeepCopy(),
 	}
+}
+
+// -------------------------
+
+func BlankNullSequenceToBlank(bns *BlankNullSequence) *Blank {
+	return &Blank{bns.H}
+}
+
+func BlankSequenceToBlank(bs *BlankSequence) *Blank {
+	return &Blank{bs.H}
+}
+
+func ExArrayTestRepeatingMatch(array []Ex, b *Blank, es *EvalState) bool {
+	toReturn := true
+	for _, e := range array {
+		tmpEs := NewEvalStateNoLog()
+		isMatch := e.IsMatchQ(b, tmpEs)
+		es.log.Debug(e.ToString(), b.ToString(), isMatch)
+		toReturn = toReturn && isMatch
+	}
+	return toReturn
 }

@@ -8,6 +8,32 @@ type Function struct {
 }
 
 func (this *Function) Eval(es *EvalState) Ex {
+	// Start by evaluating each argument
+	for i := range this.Arguments {
+		this.Arguments[i] = this.Arguments[i].Eval(es)
+	}
+
+	// If any of the arguments are Sequence, merge them with arguments
+	origLen := len(this.Arguments)
+	offset := 0
+	for i := 0; i < origLen; i++ {
+		j := i + offset
+		e := this.Arguments[j]
+		seq, isseq := e.(*Sequence)
+		if isseq {
+			start := j
+			end := j + 1
+			if j == 0 {
+				this.Arguments = append(seq.Arguments, this.Arguments[end:]...)
+			} else if j == len(this.Arguments)-1 {
+				this.Arguments = append(this.Arguments[:start], seq.Arguments...)
+			} else {
+				this.Arguments = append(append(this.Arguments[:start], seq.Arguments...), this.Arguments[end:]...)
+			}
+			offset += len(seq.Arguments) - 1
+		}
+	}
+
 	nameAsSym, isNameSym := this.Name.(*Symbol)
 	if isNameSym {
 		nameStr := nameAsSym.Name
@@ -106,6 +132,10 @@ func (this *Function) Eval(es *EvalState) Ex {
 			t := &Definition{
 				Expr: this.Arguments[0],
 			}
+			return t.Eval(es)
+		}
+		if nameStr == "Sequence" {
+			t := &Sequence{Arguments: this.Arguments}
 			return t.Eval(es)
 		}
 
