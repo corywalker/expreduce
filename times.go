@@ -32,7 +32,7 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 		e := multiplicands[j]
 		submul, ismul := HeadAssertion(e, "Times")
 		if ismul {
-			subMultiplicands := submul.Parts[1:len(this.Parts)]
+			subMultiplicands := submul.Parts[1:len(submul.Parts)]
 			start := j
 			end := j + 1
 			if j == 0 {

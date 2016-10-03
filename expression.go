@@ -163,9 +163,37 @@ func (this *Expression) Eval(es *EvalState) Ex {
 }
 
 func (this *Expression) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs.Eval(es)
+	oldVars := es.GetDefinedSnapshot()
+	es.log.Debugf(es.Pre() + "In Expression.Replace. First trying this.IsMatchQ(r.Lhs, es).")
+	es.log.Debugf(es.Pre()+"Rule r is: %s", r.ToString())
+
+	matchq := this.IsMatchQ(r.Lhs, es)
+	toreturn := r.Rhs.DeepCopy().Eval(es)
+	es.ClearPD()
+	es.defined = oldVars
+	if matchq {
+		es.log.Debugf(es.Pre()+"After MatchQ, rule is: %s", r.ToString())
+		es.log.Debugf(es.Pre()+"MatchQ succeeded. Returning r.Rhs: %s", r.Rhs.ToString())
+		return toreturn
 	}
+
+	thisSym, thisSymOk := this.Parts[0].(*Symbol)
+	lhsExpr, lhsExprOk := r.Lhs.(*Expression)
+	if lhsExprOk {
+		otherSym, otherSymOk := lhsExpr.Parts[0].(*Symbol)
+		if thisSymOk && otherSymOk {
+			if thisSym.Name == otherSym.Name {
+				if IsOrderless(thisSym) {
+					es.log.Debugf(es.Pre() + "r.Lhs is Orderless. Now running CommutativeReplace")
+					replaced := this.Parts[1:len(this.Parts)]
+					CommutativeReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Rhs, es)
+					this.Parts = this.Parts[0:1]
+					this.Parts = append(this.Parts, replaced...)
+				}
+			}
+		}
+	}
+
 	for i := range this.Parts {
 		this.Parts[i] = this.Parts[i].Replace(r, es)
 	}
@@ -223,7 +251,7 @@ func (this *Expression) IsEqual(otherEx Ex, es *EvalState) string {
 	if thisSymOk && otherSymOk {
 		if thisSym.Name == otherSym.Name {
 			if IsOrderless(thisSym) {
-				return CommutativeIsEqual(this.Parts[1:len(this.Parts)], other.Parts[1:len(this.Parts)], es)
+				return CommutativeIsEqual(this.Parts[1:len(this.Parts)], other.Parts[1:len(other.Parts)], es)
 			}
 		}
 	}
@@ -258,12 +286,12 @@ func (this *Expression) IsMatchQ(otherEx Ex, es *EvalState) bool {
 			return true
 		}
 	}
-	thisEx := this.Eval(es)
-	otherEx = otherEx.Eval(es)
-	this, ok := thisEx.(*Expression)
-	if !ok {
-		return thisEx.IsMatchQ(otherEx, es)
-	}
+	//thisEx := this.Eval(es)
+	//otherEx = otherEx.Eval(es)
+	//this, ok := thisEx.(*Expression)
+	//if !ok {
+		//return thisEx.IsMatchQ(otherEx, es)
+	//}
 	other, otherOk := otherEx.(*Expression)
 	if !otherOk {
 		return false
@@ -274,7 +302,7 @@ func (this *Expression) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	if thisSymOk && otherSymOk {
 		if thisSym.Name == otherSym.Name {
 			if IsOrderless(thisSym) {
-				return CommutativeIsMatchQ(this.Parts[1:len(this.Parts)], other.Parts[1:len(this.Parts)], es)
+				return CommutativeIsMatchQ(this.Parts[1:len(this.Parts)], other.Parts[1:len(other.Parts)], es)
 			}
 		}
 	}

@@ -68,16 +68,14 @@ expr	:    LPARSYM expr RPARSYM
 		}
 	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3, $5, $7, $9}
+			fc := &Expression{}
+			fc.Parts = []Ex{$1, $3, $5, $7, $9}
 			$$ = fc
 		}
 	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3, $5, $7, $9, $11}
+			fc := &Expression{}
+			fc.Parts = []Ex{$1, $3, $5, $7, $9, $11}
 			$$ = fc
 		}
 	|    expr PLUSSYM expr
