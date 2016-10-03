@@ -6,6 +6,19 @@ type Expression struct {
 	Parts []Ex
 }
 
+func HeadAssertion(ex Ex, head string) (*Expression, bool) {
+	expr, isExpr := ex.(*Expression)
+	if isExpr {
+		sym, isSym := expr.Parts[0].(*Symbol)
+		if isSym {
+			if sym.Name == head {
+				return expr, true
+			}
+		}
+	}
+	return &Expression{}, false
+}
+
 func (this *Expression) Eval(es *EvalState) Ex {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	if isHeadSym {
@@ -37,8 +50,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			return t.Eval(es)
 		}
 		if headStr == "Times" {
-			t := &Times{Multiplicands: args}
-			return t.Eval(es)
+			//t := &Times{Multiplicands: args}
+			return this.EvalTimes(es)
 		}
 		if headStr == "Set" && len(args) == 2 {
 			t := &Set{
@@ -128,6 +141,15 @@ func (this *Expression) Replace(r *Rule, es *EvalState) Ex {
 }
 
 func (this *Expression) ToString() string {
+	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
+	if isHeadSym {
+		headStr := headAsSym.Name
+		if headStr == "Times" {
+			return this.ToStringTimes()
+		}
+	}
+
+	// Default printing format
 	var buffer bytes.Buffer
 	buffer.WriteString(this.Parts[0].ToString())
 	buffer.WriteString("[")
@@ -144,11 +166,36 @@ func (this *Expression) ToString() string {
 	return buffer.String()
 }
 
+func IsOrderless(sym *Symbol) bool {
+	if sym.Name == "Times" {
+		return true
+	}
+	return false
+}
+
 func (this *Expression) IsEqual(otherEx Ex, es *EvalState) string {
+	thisEvaled := this.Eval(es)
+	otherEx = otherEx.Eval(es)
+	this, ok := thisEvaled.(*Expression)
+	if !ok {
+		return thisEvaled.IsEqual(otherEx, es)
+	}
+
 	other, ok := otherEx.(*Expression)
 	if !ok {
 		return "EQUAL_UNK"
 	}
+
+	thisSym, thisSymOk := this.Parts[0].(*Symbol)
+	otherSym, otherSymOk := other.Parts[0].(*Symbol)
+	if thisSymOk && otherSymOk {
+		if thisSym.Name == otherSym.Name {
+			if IsOrderless(thisSym) {
+				return CommutativeIsEqual(this.Parts[1:len(this.Parts)], other.Parts[1:len(this.Parts)], es)
+			}
+		}
+	}
+
 	return FunctionIsEqual(this.Parts, other.Parts, es)
 }
 
@@ -157,6 +204,17 @@ func (this *Expression) IsSameQ(otherEx Ex, es *EvalState) bool {
 	if !ok {
 		return false
 	}
+
+	thisSym, thisSymOk := this.Parts[0].(*Symbol)
+	otherSym, otherSymOk := other.Parts[0].(*Symbol)
+	if thisSymOk && otherSymOk {
+		if thisSym.Name == otherSym.Name {
+			if IsOrderless(thisSym) {
+				return this.IsEqual(otherEx, es) == "EQUAL_TRUE"
+			}
+		}
+	}
+
 	return FunctionIsSameQ(this.Parts, other.Parts, es)
 }
 
@@ -164,14 +222,31 @@ func (this *Expression) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	if isHeadSym {
 		headStr := headAsSym.Name
-		if IsBlankType(otherEx, headStr) {
+		if IsBlankTypeCapturing(otherEx, this, headStr, es) {
 			return true
 		}
 	}
-	other, ok := otherEx.(*Expression)
+	thisEx := this.Eval(es)
+	otherEx = otherEx.Eval(es)
+	this, ok := thisEx.(*Expression)
 	if !ok {
+		return thisEx.IsMatchQ(otherEx, es)
+	}
+	other, otherOk := otherEx.(*Expression)
+	if !otherOk {
 		return false
 	}
+
+	thisSym, thisSymOk := this.Parts[0].(*Symbol)
+	otherSym, otherSymOk := other.Parts[0].(*Symbol)
+	if thisSymOk && otherSymOk {
+		if thisSym.Name == otherSym.Name {
+			if IsOrderless(thisSym) {
+				return CommutativeIsMatchQ(this.Parts[1:len(this.Parts)], other.Parts[1:len(this.Parts)], es)
+			}
+		}
+	}
+
 	return NonCommutativeIsMatchQ(this.Parts, other.Parts, es)
 }
 

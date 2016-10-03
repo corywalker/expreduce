@@ -69,11 +69,11 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr PLUSSYM expr
 		{ $$  =  &Plus{[]Ex{$1, $3}} }
 	|    expr MINUSSYM expr
-		{ $$  =  &Plus{ []Ex{$1, &Times{[]Ex{$3, &Integer{big.NewInt(-1)}}} } } }
+		{ $$  =  &Plus{ []Ex{$1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}} } } }
 	|    expr MULTSYM expr
-		{ $$  =  &Times{[]Ex{$1, $3}} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $3}} }
 	|    expr DIVSYM expr
-		{ $$  =  &Times{ []Ex{$1, &Power{$3, &Integer{big.NewInt(-1)}} } } }
+		{ $$  =  &Expression{ []Ex{&Symbol{"Times"}, $1, &Power{$3, &Integer{big.NewInt(-1)}} } } }
 	|    expr EXPSYM expr
 		{ $$  =  &Power{$1, $3} }
 	|    expr RULESYM expr
@@ -91,7 +91,7 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr EQUALSYM expr
 		{ $$  =  &Equal{$1, $3} }
 	|    MINUSSYM expr
-		{ $$  =  &Times{[]Ex{$2, &Integer{big.NewInt(-1)}}} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $2, &Integer{big.NewInt(-1)}}} }
 	|    PATTERN
 		{ $$  =  $1 }
 	|    NAME

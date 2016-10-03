@@ -13,7 +13,8 @@ func TestConstants(t *testing.T) {
 
 	es := NewEvalState()
 
-	var a Ex = &Times{[]Ex{
+	var a Ex = &Expression{[]Ex{
+		&Symbol{"Times"},
 		&Flt{big.NewFloat(1e9)},
 		&Flt{big.NewFloat(1e9)},
 		&Flt{big.NewFloat(1e9)},

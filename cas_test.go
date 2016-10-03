@@ -55,7 +55,8 @@ func Test(t *testing.T) {
 		}},
 		&Flt{big.NewFloat(2)},
 	}}
-	var c = &Times{[]Ex{
+	var c = &Expression{[]Ex{
+		&Symbol{"Times"},
 		&Flt{big.NewFloat(2.5)},
 		&Plus{[]Ex{
 			&Flt{big.NewFloat(3)},
@@ -96,11 +97,13 @@ func Test(t *testing.T) {
 		&Flt{big.NewFloat(1)},
 	}}
 	assert.Equal(t, "EQUAL_UNK", t3.IsEqual(t4, es))
-	var t5 = &Times{[]Ex{
+	var t5 = &Expression{[]Ex{
+		&Symbol{"Times"},
 		&Flt{big.NewFloat(1)},
 		&Symbol{"x"},
 	}}
-	var t6 = &Times{[]Ex{
+	var t6 = &Expression{[]Ex{
+		&Symbol{"Times"},
 		&Symbol{"x"},
 		&Flt{big.NewFloat(1)},
 	}}
@@ -141,12 +144,14 @@ func Test(t *testing.T) {
 			&Symbol{"x"},
 		}},
 		&Flt{big.NewFloat(2)},
-		&Times{[]Ex{
+		&Expression{[]Ex{
+			&Symbol{"Times"},
 			&Symbol{"x"},
 			&Flt{big.NewFloat(2)},
 			&Flt{big.NewFloat(2)},
 		}},
-		&Times{[]Ex{
+		&Expression{[]Ex{
+			&Symbol{"Times"},
 			&Flt{big.NewFloat(0)},
 			&Flt{big.NewFloat(3)},
 			&Symbol{"x"},
