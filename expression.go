@@ -33,19 +33,19 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	for i := 0; i < origLen; i++ {
 		j := i + offset
 		e := this.Parts[j]
-		seq, isseq := e.(*Sequence)
+		seq, isseq := HeadAssertion(e, "Sequence")
 		if isseq {
 			start := j
 			end := j + 1
 			if j == 0 {
-				this.Parts = append(seq.Arguments, this.Parts[end:]...)
+				this.Parts = append(seq.Parts[1:], this.Parts[end:]...)
 			} else if j == len(this.Parts)-1 {
-				this.Parts = append(this.Parts[:start], seq.Arguments...)
+				this.Parts = append(this.Parts[:start], seq.Parts[1:]...)
 			} else {
 				// All of these deep copies may not be needed.
-				this.Parts = append(append(this.DeepCopy().(*Expression).Parts[:start], seq.DeepCopy().(*Sequence).Arguments...), this.DeepCopy().(*Expression).Parts[end:]...)
+				this.Parts = append(append(this.DeepCopy().(*Expression).Parts[:start], seq.DeepCopy().(*Expression).Parts[1:]...), this.DeepCopy().(*Expression).Parts[end:]...)
 			}
-			offset += len(seq.Arguments) - 1
+			offset += len(seq.Parts[1:]) - 1
 		}
 	}
 
@@ -131,10 +131,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 		if headStr == "Definition" {
 			return this.EvalDefinition(es)
-		}
-		if headStr == "Sequence" {
-			t := &Sequence{Arguments: args}
-			return t.Eval(es)
 		}
 
 		theRes, isDefined := es.GetDef(headStr, this)

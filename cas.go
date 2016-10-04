@@ -376,7 +376,9 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 					if isPat {
 						sAsSymbol, sAsSymbolOk := pat.S.(*Symbol)
 						if sAsSymbolOk {
-							target := &Sequence{Arguments: seqToTry}
+							toTryParts := []Ex{&Symbol{"Sequence"}}
+							toTryParts = append(toTryParts, seqToTry...)
+							target := &Expression{toTryParts}
 							_, isd := es.defined[sAsSymbol.Name]
 							_, ispd := es.patternDefined[sAsSymbol.Name]
 							if !ispd {
