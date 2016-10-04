@@ -12,18 +12,21 @@ func TestPower(t *testing.T) {
 
 	es := NewEvalState()
 
-	var t9 = &Power{
+	var t9 = &Expression{[]Ex{
+		&Symbol{"Power"},
 		&Symbol{"x"},
 		&Flt{big.NewFloat(2)},
-	}
-	var t10 = &Power{
+	}}
+	var t10 = &Expression{[]Ex{
+		&Symbol{"Power"},
 		&Symbol{"x"},
 		&Expression{[]Ex{&Symbol{"Plus"}, &Flt{big.NewFloat(-1)}, &Flt{big.NewFloat(3)}}},
-	}
-	var t11 = &Power{
+	}}
+	var t11 = &Expression{[]Ex{
+		&Symbol{"Power"},
 		&Symbol{"x"},
 		&Flt{big.NewFloat(3)},
-	}
+	}}
 	assert.Equal(t, "x^2.", t9.ToString())
 	assert.Equal(t, "x^(-1. + 3.)", t10.ToString())
 	assert.Equal(t, "x^3.", t11.ToString())

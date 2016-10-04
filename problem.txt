@@ -1,0 +1,2 @@
+4*a*b*c*d*e*f + -7*a*b*c*g*e*f /. c1match_Integer*matcha__ + c2match_Integer*matcha__ -> (c1match+c2match)*matcha
+will actually combine, even though the terms are not the same

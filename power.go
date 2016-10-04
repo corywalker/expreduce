@@ -4,35 +4,28 @@ import (
 	"bytes"
 	"github.com/corywalker/mathbigext"
 	"math/big"
-	//"fmt"
 )
 
-// An exponent expression with a base and an exponent
-type Power struct {
-	Base  Ex
-	Power Ex
-}
-
-func (this *Power) Eval(es *EvalState) Ex {
-	// Start by evaluating each part
-	this.Base = this.Base.Eval(es)
-	this.Power = this.Power.Eval(es)
+func (this *Expression) EvalPower(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
 
 	// TODO: Handle cases like float raised to the float and things raised to
 	// zero and 1
 
-	baseInt, baseIsInt := this.Base.(*Integer)
-	powerInt, powerIsInt := this.Power.(*Integer)
-	baseFlt, baseIsFlt := this.Base.(*Flt)
-	powerFlt, powerIsFlt := this.Power.(*Flt)
+	baseInt, baseIsInt := this.Parts[1].(*Integer)
+	powerInt, powerIsInt := this.Parts[2].(*Integer)
+	baseFlt, baseIsFlt := this.Parts[1].(*Flt)
+	powerFlt, powerIsFlt := this.Parts[2].(*Flt)
 	// Anything raised to the 1st power is itself
 	if powerIsFlt {
 		if powerFlt.Val.Cmp(big.NewFloat(1)) == 0 {
-			return this.Base
+			return this.Parts[1]
 		}
 	} else if powerIsInt {
 		if powerInt.Val.Cmp(big.NewInt(1)) == 0 {
-			return this.Base
+			return this.Parts[1]
 		}
 	}
 	// Anything raised to the 0th power is 1, with a small exception
@@ -83,7 +76,7 @@ func (this *Power) Eval(es *EvalState) Ex {
 			if newbase.Cmp(big.NewInt(-1)) == 0 {
 				return &Integer{big.NewInt(-1)}
 			}
-			return &Power{&Integer{newbase}, &Integer{big.NewInt(-1)}}
+			return &Expression{[]Ex{&Symbol{"Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}}}
 		} else {
 			return &Error{"Unexpected zero power in Power evaluation."}
 		}
@@ -102,74 +95,10 @@ func (this *Power) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Power) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.Base = this.Base.Replace(r, es)
-	this.Power = this.Power.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *Power) ToString() string {
+func (this *Expression) ToStringPower() string {
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Base.ToString())
+	buffer.WriteString(this.Parts[1].ToString())
 	buffer.WriteString("^")
-	buffer.WriteString(this.Power.ToString())
+	buffer.WriteString(this.Parts[2].ToString())
 	return buffer.String()
-}
-
-func (this *Power) IsEqual(otherEx Ex, es *EvalState) string {
-	thisEx := this.Eval(es)
-	otherEx = otherEx.Eval(es)
-	this, ok := thisEx.(*Power)
-	if !ok {
-		return thisEx.IsEqual(otherEx, es)
-	}
-	other, ok := otherEx.(*Power)
-	if !ok {
-		return "EQUAL_UNK"
-	}
-	// TODO: Could be improved by knowing about base conversions and logarithms
-	var baseEqual = this.Base.IsEqual(other.Base, es) == "EQUAL_TRUE"
-	var exponentEqual = this.Power.IsEqual(other.Power, es) == "EQUAL_TRUE"
-
-	if baseEqual && exponentEqual {
-		return "EQUAL_TRUE"
-	}
-	return "EQUAL_UNK"
-}
-
-func (this *Power) IsSameQ(otherEx Ex, es *EvalState) bool {
-	thisEx := this.Eval(es)
-	otherEx = otherEx.Eval(es)
-	this, ok := thisEx.(*Power)
-	if !ok {
-		return thisEx.IsSameQ(otherEx, es)
-	}
-	other, ok := otherEx.(*Power)
-	if !ok {
-		return false
-	}
-	var baseSame = this.Base.IsMatchQ(other.Base, es)
-	var exponentSame = this.Power.IsMatchQ(other.Power, es)
-
-	if baseSame && exponentSame {
-		return true
-	}
-	return false
-}
-
-func (this *Power) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankTypeCapturing(otherEx, this, "Power", es) {
-		return true
-	}
-	return this.IsSameQ(otherEx, es)
-}
-
-func (this *Power) DeepCopy() Ex {
-	return &Power{
-		this.Base.DeepCopy(),
-		this.Power.DeepCopy(),
-	}
 }

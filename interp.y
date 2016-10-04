@@ -85,9 +85,23 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr MULTSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $3}} }
 	|    expr DIVSYM expr
-		{ $$  =  &Expression{ []Ex{&Symbol{"Times"}, $1, &Power{$3, &Integer{big.NewInt(-1)}} } } }
+		{ $$  =  &Expression{[]Ex{
+		           &Symbol{"Times"},
+				   $1,
+				   &Expression{[]Ex{
+				     &Symbol{"Power"},
+				     $3,
+					 &Integer{big.NewInt(-1)},
+				   }},
+			     }}
+		}
 	|    expr EXPSYM expr
-		{ $$  =  &Power{$1, $3} }
+		{ $$  =  &Expression{[]Ex{
+		           &Symbol{"Power"},
+				   $1,
+				   $3,
+				 }}
+		}
 	|    expr RULESYM expr
 		{ $$  =  &Rule{$1, $3} }
 	|    expr REPLACEREPSYM expr

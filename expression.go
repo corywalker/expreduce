@@ -54,11 +54,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		headStr := headAsSym.Name
 		args := this.Parts[1:len(this.Parts)]
 		if headStr == "Power" && len(args) == 2 {
-			t := &Power{
-				Base:  args[0],
-				Power: args[1],
-			}
-			return t.Eval(es)
+			return this.EvalPower(es)
 		}
 		if headStr == "Equal" && len(args) == 2 {
 			t := &Equal{
@@ -207,6 +203,8 @@ func (this *Expression) ToString() string {
 			return this.ToStringTimes()
 		} else if headStr == "Plus" {
 			return this.ToStringPlus()
+		} else if headStr == "Power" {
+			return this.ToStringPower()
 		}
 	}
 
