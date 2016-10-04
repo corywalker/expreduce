@@ -207,6 +207,15 @@ func RuleArrayToString(exArray []Rule) string {
 	return buffer.String()
 }
 
+func ExArrayContainsFloat(a []Ex) bool {
+	res := false
+	for _, e := range a {
+		_, isfloat := e.(*Flt)
+		res = res || isfloat
+	}
+	return res
+}
+
 func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
 	es.log.Infof(es.Pre()+"Entering CommutativeIsEqual(components: %s, other_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(other_components), es.ToString())
 	if len(components) != len(other_components) {

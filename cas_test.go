@@ -20,8 +20,10 @@ func Test(t *testing.T) {
 	assert.Equal(t, "5.5", f.ToString())
 
 	// Test nested addition functionality
-	var a = &Plus{[]Ex{
-		&Plus{[]Ex{
+	var a = &Expression{[]Ex{
+		&Symbol{"Plus"},
+		&Expression{[]Ex{
+			&Symbol{"Plus"},
 			&Flt{big.NewFloat(80)},
 			&Flt{big.NewFloat(3)},
 		}},
@@ -38,80 +40,22 @@ func Test(t *testing.T) {
 	assert.Equal(t, "EQUAL_TRUE", (&Symbol{"x"}).IsEqual(&Symbol{"x"}, es))
 	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"X"}, es))
 	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"y"}, es))
-	var t1 = &Plus{[]Ex{
+	var t1 = &Expression{[]Ex{
+		&Symbol{"Plus"},
 		&Flt{big.NewFloat(2.5)},
 		&Flt{big.NewFloat(5)},
 	}}
-	var t2 = &Plus{[]Ex{
+	var t2 = &Expression{[]Ex{
+		&Symbol{"Plus"},
 		&Flt{big.NewFloat(5)},
 		&Flt{big.NewFloat(2.5)},
 	}}
 	assert.Equal(t, "EQUAL_TRUE", t1.IsEqual(t2, es))
-	var b = &Plus{[]Ex{
-		&Flt{big.NewFloat(2.5)},
-		&Plus{[]Ex{
-			&Flt{big.NewFloat(3)},
-			&Flt{big.NewFloat(80)},
-		}},
-		&Flt{big.NewFloat(2)},
-	}}
-	var c = &Expression{[]Ex{
-		&Symbol{"Times"},
-		&Flt{big.NewFloat(2.5)},
-		&Plus{[]Ex{
-			&Flt{big.NewFloat(3)},
-			&Flt{big.NewFloat(80)},
-		}},
-		&Flt{big.NewFloat(2)},
-	}}
-	var e = &Plus{[]Ex{
-		&Flt{big.NewFloat(2.5)},
-		&Plus{[]Ex{
-			&Flt{big.NewFloat(3)},
-			&Flt{big.NewFloat(80)},
-		}},
-		&Flt{big.NewFloat(2.5)},
-	}}
-	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(b, es))
-	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(c, es))
-	assert.Equal(t, "EQUAL_FALSE", b.IsEqual(c, es))
-	//assert.Equal(t, "EQUAL_FALSE", a.Eval(es).IsEqual(d.Eval(es), es))
 	CasAssertSame(t, es, "False", "2.5 + (3. + 80.) + 2.5 == (80. + 3.) + 2. + 2.5")
-	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(e, es))
-	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, es))
-	var t3 = &Plus{[]Ex{
-		&Flt{big.NewFloat(1)},
-		&Symbol{"x"},
-	}}
-	var t4 = &Plus{[]Ex{
-		&Symbol{"x"},
-		&Flt{big.NewFloat(1)},
-	}}
-	assert.Equal(t, "EQUAL_TRUE", t3.IsEqual(t4, es))
-	t3 = &Plus{[]Ex{
-		&Flt{big.NewFloat(1)},
-		&Symbol{"x"},
-	}}
-	t4 = &Plus{[]Ex{
-		&Symbol{"y"},
-		&Flt{big.NewFloat(1)},
-	}}
-	assert.Equal(t, "EQUAL_UNK", t3.IsEqual(t4, es))
-	var t5 = &Expression{[]Ex{
-		&Symbol{"Times"},
-		&Flt{big.NewFloat(1)},
-		&Symbol{"x"},
-	}}
-	var t6 = &Expression{[]Ex{
-		&Symbol{"Times"},
-		&Symbol{"x"},
-		&Flt{big.NewFloat(1)},
-	}}
-	assert.Equal(t, "EQUAL_TRUE", t5.IsEqual(t6, es))
 
 	// Test evaluation
-	a.Eval(es)
-	assert.Equal(t, "(87.5)", a.ToString())
+	newa := a.Eval(es)
+	assert.Equal(t, "87.5", newa.ToString())
 	//fmt.Println(a)
 	//fmt.Println(a.ToString())
 
@@ -122,8 +66,10 @@ func Test(t *testing.T) {
 	assert.Equal(t, "x", v.ToString())
 
 	// Test nested addition functionality
-	var withVar = &Plus{[]Ex{
-		&Plus{[]Ex{
+	var withVar = &Expression{[]Ex{
+		&Symbol{"Plus"},
+		&Expression{[]Ex{
+			&Symbol{"Plus"},
 			&Symbol{"x"},
 			&Flt{big.NewFloat(80)},
 			&Flt{big.NewFloat(3)},
@@ -136,8 +82,10 @@ func Test(t *testing.T) {
 	withVar.Eval(es)
 
 	// Test nested addition and multiplication functionality
-	withVar = &Plus{[]Ex{
-		&Plus{[]Ex{
+	withVar = &Expression{[]Ex{
+		&Symbol{"Plus"},
+		&Expression{[]Ex{
+			&Symbol{"Plus"},
 			&Symbol{"x"},
 			&Flt{big.NewFloat(80)},
 			&Flt{big.NewFloat(3)},

@@ -18,7 +18,7 @@ func TestPower(t *testing.T) {
 	}
 	var t10 = &Power{
 		&Symbol{"x"},
-		&Plus{[]Ex{&Flt{big.NewFloat(-1)}, &Flt{big.NewFloat(3)}}},
+		&Expression{[]Ex{&Symbol{"Plus"}, &Flt{big.NewFloat(-1)}, &Flt{big.NewFloat(3)}}},
 	}
 	var t11 = &Power{
 		&Symbol{"x"},

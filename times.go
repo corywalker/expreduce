@@ -3,15 +3,6 @@ package cas
 import "bytes"
 import "math/big"
 
-func ExArrayContainsFloat(a []Ex) bool {
-	res := false
-	for _, e := range a {
-		_, isfloat := e.(*Flt)
-		res = res || isfloat
-	}
-	return res
-}
-
 func (this *Expression) EvalTimes(es *EvalState) Ex {
 	multiplicands := this.Parts[1:len(this.Parts)]
 	// Start by evaluating each multiplicand
@@ -40,28 +31,6 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 			offset += len(subMultiplicands) - 1
 		}
 	}
-
-	// If any of the multiplicands are Sequence, merge them with m and remove them
-	/*
-	origLen = len(multiplicands)
-	offset = 0
-	for i := 0; i < origLen; i++ {
-		j := i + offset
-		e := multiplicands[j]
-		seq, isseq := e.(*Sequence)
-		if isseq {
-			start := j
-			end := j + 1
-			if j == 0 {
-				multiplicands = append(seq.Arguments, multiplicands[end:]...)
-			} else if j == len(multiplicands)-1 {
-				multiplicands = append(multiplicands[:start], seq.Arguments...)
-			} else {
-				multiplicands = append(append(multiplicands[:start], seq.Arguments...), multiplicands[end:]...)
-			}
-			offset += len(seq.Arguments) - 1
-		}
-	}*/
 
 	// If this expression contains any floats, convert everything possible to
 	// a float
@@ -170,10 +139,10 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	if len(multiplicands) == 2 {
 		leftint, leftintok := multiplicands[0].(*Integer)
 		rightint, rightintok := multiplicands[1].(*Integer)
-		leftplus, leftplusok := multiplicands[0].(*Plus)
-		rightplus, rightplusok := multiplicands[1].(*Plus)
+		leftplus, leftplusok := HeadAssertion(multiplicands[0], "Plus")
+		rightplus, rightplusok := HeadAssertion(multiplicands[1], "Plus")
 		var theInt *Integer = nil
-		var thePlus *Plus = nil
+		var thePlus *Expression = nil
 		if leftintok {
 			theInt = leftint
 		}
@@ -188,14 +157,15 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 		}
 		if theInt != nil && thePlus != nil {
 			if theInt.Val.Cmp(big.NewInt(-1)) == 0 {
-				toreturn := &Plus{}
-				for i := range thePlus.Addends {
+				toreturn := &Expression{[]Ex{&Symbol{"Plus"}}}
+				addends := thePlus.Parts[1:len(thePlus.Parts)]
+				for i := range addends {
 					toAppend := &Expression{[]Ex{
 						&Symbol{"Times"},
-						thePlus.Addends[i],
+						addends[i],
 						&Integer{big.NewInt(-1)},
 					}}
-					toreturn.Addends = append(toreturn.Addends, toAppend)
+					toreturn.Parts = append(toreturn.Parts, toAppend)
 				}
 				return toreturn.Eval(es)
 			}

@@ -79,9 +79,9 @@ expr	:    LPARSYM expr RPARSYM
 			$$ = fc
 		}
 	|    expr PLUSSYM expr
-		{ $$  =  &Plus{[]Ex{$1, $3}} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Plus"}, $1, $3}} }
 	|    expr MINUSSYM expr
-		{ $$  =  &Plus{ []Ex{$1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}} } } }
+		{ $$  =  &Expression{ []Ex{&Symbol{"Plus"}, $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}} } } }
 	|    expr MULTSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $3}} }
 	|    expr DIVSYM expr

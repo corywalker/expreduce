@@ -75,11 +75,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			return t.Eval(es)
 		}
 		if headStr == "Plus" {
-			t := &Plus{Addends: args}
-			return t.Eval(es)
+			return this.EvalPlus(es)
 		}
 		if headStr == "Times" {
-			//t := &Times{Multiplicands: args}
 			return this.EvalTimes(es)
 		}
 		if headStr == "Set" && len(args) == 2 {
@@ -207,6 +205,8 @@ func (this *Expression) ToString() string {
 		headStr := headAsSym.Name
 		if headStr == "Times" {
 			return this.ToStringTimes()
+		} else if headStr == "Plus" {
+			return this.ToStringPlus()
 		}
 	}
 
@@ -229,6 +229,8 @@ func (this *Expression) ToString() string {
 
 func IsOrderless(sym *Symbol) bool {
 	if sym.Name == "Times" {
+		return true
+	} else if sym.Name == "Plus" {
 		return true
 	}
 	return false
@@ -291,7 +293,7 @@ func (this *Expression) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	//otherEx = otherEx.Eval(es)
 	//this, ok := thisEx.(*Expression)
 	//if !ok {
-		//return thisEx.IsMatchQ(otherEx, es)
+	//return thisEx.IsMatchQ(otherEx, es)
 	//}
 	other, otherOk := otherEx.(*Expression)
 	if !otherOk {
