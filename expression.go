@@ -57,17 +57,14 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			return this.EvalPower(es)
 		}
 		if headStr == "Equal" && len(args) == 2 {
-			t := &Equal{
-				Lhs: args[0],
-				Rhs: args[1],
-			}
-			return t.Eval(es)
+			return this.EvalEqual(es)
 		}
 		if headStr == "SameQ" && len(args) == 2 {
-			t := &Equal{
-				Lhs: args[0],
-				Rhs: args[1],
-			}
+			t := &Expression{[]Ex{
+				&Symbol{"Equal"}, // ??????
+				args[0],
+				args[1],
+			}}
 			return t.Eval(es)
 		}
 		if headStr == "Plus" {
@@ -205,6 +202,8 @@ func (this *Expression) ToString() string {
 			return this.ToStringPlus()
 		} else if headStr == "Power" {
 			return this.ToStringPower()
+		} else if headStr == "Equal" {
+			return this.ToStringEqual()
 		}
 	}
 

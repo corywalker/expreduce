@@ -2,13 +2,12 @@ package cas
 
 import "bytes"
 
-type Equal struct {
-	Lhs Ex
-	Rhs Ex
-}
+func (this *Expression) EvalEqual(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
 
-func (this *Equal) Eval(es *EvalState) Ex {
-	var isequal string = this.Lhs.Eval(es).IsEqual(this.Rhs.Eval(es), es)
+	var isequal string = this.Parts[1].Eval(es).IsEqual(this.Parts[2].Eval(es), es)
 	if isequal == "EQUAL_UNK" {
 		return this
 	} else if isequal == "EQUAL_TRUE" {
@@ -20,6 +19,7 @@ func (this *Equal) Eval(es *EvalState) Ex {
 	return &Error{"Unexpected equality return value."}
 }
 
+/*
 func (this *Equal) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
@@ -27,18 +27,18 @@ func (this *Equal) Replace(r *Rule, es *EvalState) Ex {
 	this.Lhs = this.Lhs.Replace(r, es)
 	this.Rhs = this.Rhs.Replace(r, es)
 	return this.Eval(es)
-}
+}*/
 
-func (this *Equal) ToString() string {
+func (this *Expression) ToStringEqual() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Lhs.ToString())
+	buffer.WriteString(this.Parts[1].ToString())
 	buffer.WriteString(") == (")
-	buffer.WriteString(this.Rhs.ToString())
+	buffer.WriteString(this.Parts[2].ToString())
 	buffer.WriteString(")")
 	return buffer.String()
 }
-
+/*
 func (this *Equal) IsEqual(otherEx Ex, es *EvalState) string {
 	other, ok := otherEx.(*Equal)
 	if !ok {
@@ -79,7 +79,7 @@ func (this *Equal) DeepCopy() Ex {
 		this.Lhs.DeepCopy(),
 		this.Rhs.DeepCopy(),
 	}
-}
+}*/
 
 type SameQ struct {
 	Lhs Ex

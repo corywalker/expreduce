@@ -115,7 +115,7 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr SAMESYM expr
 		{ $$  =  &SameQ{$1, $3} }
 	|    expr EQUALSYM expr
-		{ $$  =  &Equal{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Equal"}, $1, $3}} }
 	|    MINUSSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $2, &Integer{big.NewInt(-1)}}} }
 	|    PATTERN
