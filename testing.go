@@ -7,7 +7,7 @@ import (
 )
 
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {
-	inTree := (&BasicSimplify{EvalInterp(in, es)}).Eval(es)
+	inTree := (&Expression{[]Ex{&Symbol{"BasicSimplify"}, EvalInterp(in, es)}}).Eval(es)
 	outTree := Interp(out)
 	theTestTree := SameQ{Lhs: inTree, Rhs: outTree}
 	theTest := theTestTree.Eval(es)

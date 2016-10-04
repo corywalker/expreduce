@@ -123,20 +123,14 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			}
 			return t.Eval(es)
 		}
-		if headStr == "BasicSimplify" && len(args) == 1 {
-			t := &BasicSimplify{
-				Expr: args[0],
-			}
-			return t.Eval(es)
+		if headStr == "BasicSimplify" {
+			return this.EvalBasicSimplify(es)
 		}
 		if headStr == "SetLogging" {
 			return this.EvalSetLogging(es)
 		}
-		if headStr == "Definition" && len(args) == 1 {
-			t := &Definition{
-				Expr: args[0],
-			}
-			return t.Eval(es)
+		if headStr == "Definition" {
+			return this.EvalDefinition(es)
 		}
 		if headStr == "Sequence" {
 			t := &Sequence{Arguments: args}

@@ -11,8 +11,8 @@ func TestSequence(t *testing.T) {
 
 	es := NewEvalState()
 
-	CasAssertSame(t, es, "Sequence[2]", "Sequence[2]")
-	CasAssertSame(t, es, "Sequence[2, 3]", "Sequence[2, 3]")
+	//CasAssertSame(t, es, "Sequence[2]", "Sequence[2]")
+	//CasAssertSame(t, es, "Sequence[2, 3]", "Sequence[2, 3]")
 	CasAssertSame(t, es, "14", "Sequence[2, 3] + Sequence[5, 4]")
 	CasAssertSame(t, es, "120", "Sequence[2, 3]*Sequence[5, 4]")
 	CasAssertSame(t, es, "foo[2, 3]", "foo[Sequence[2, 3]]")
