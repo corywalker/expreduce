@@ -3,11 +3,6 @@ package cas
 import "bytes"
 import "math/big"
 
-// A sequence of Expressions to be multiplied together
-type Times struct {
-	Multiplicands []Ex
-}
-
 func ExArrayContainsFloat(a []Ex) bool {
 	res := false
 	for _, e := range a {
@@ -47,6 +42,7 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	}
 
 	// If any of the multiplicands are Sequence, merge them with m and remove them
+	/*
 	origLen = len(multiplicands)
 	offset = 0
 	for i := 0; i < origLen; i++ {
@@ -65,7 +61,7 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 			}
 			offset += len(seq.Arguments) - 1
 		}
-	}
+	}*/
 
 	// If this expression contains any floats, convert everything possible to
 	// a float
@@ -210,36 +206,7 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	this.Parts = append(this.Parts, multiplicands...)
 	return this
 }
-/*
-func (this *Times) Replace(r *Rule, es *EvalState) Ex {
-	oldVars := es.GetDefinedSnapshot()
-	es.log.Debugf(es.Pre() + "In Times.Replace. First trying this.IsMatchQ(r.Lhs, es).")
-	es.log.Debugf(es.Pre()+"Rule r is: %s", r.ToString())
-	matchq := this.IsMatchQ(r.Lhs, es)
-	toreturn := r.Rhs.DeepCopy().Eval(es)
-	es.ClearPD()
-	es.defined = oldVars
-	if matchq {
-		es.log.Debugf(es.Pre()+"After MatchQ, rule is: %s", r.ToString())
-		es.log.Debugf(es.Pre()+"MatchQ succeeded. Returning r.Rhs: %s", r.Rhs.ToString())
-		return toreturn
-	}
 
-	//IterableReplace(&this.Multiplicands, r, es)
-	rConv, ok := r.Lhs.(*Times)
-	if ok {
-		es.log.Debugf(es.Pre() + "r.Lhs is a Times. Now running CommutativeReplace")
-		CommutativeReplace(&this.Multiplicands, rConv.Multiplicands, r.Rhs, es)
-	}
-	es.log.Debugf(es.Pre()+"Ex before iterative replace: %s", this.ToString())
-	for i := range this.Multiplicands {
-		this.Multiplicands[i] = this.Multiplicands[i].Replace(r, es)
-	}
-	es.log.Debugf(es.Pre()+"Ex after iterative replace: %s", this.ToString())
-	es.log.Debugf(es.Pre()+"Before eval. Context: %v\n", es.ToString())
-	return this.Eval(es)
-}
-*/
 func (this *Expression) ToStringTimes() string {
 	multiplicands := this.Parts[1:len(this.Parts)]
 	var buffer bytes.Buffer
@@ -253,29 +220,3 @@ func (this *Expression) ToStringTimes() string {
 	buffer.WriteString(")")
 	return buffer.String()
 }
-/*
-func (this *Times) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankTypeCapturing(otherEx, this, "Times", es) {
-		return true
-	}
-	thisEx := this.Eval(es)
-	otherEx = otherEx.Eval(es)
-	this, ok := thisEx.(*Times)
-	if !ok {
-		return thisEx.IsMatchQ(otherEx, es)
-	}
-	other, ok := otherEx.(*Times)
-	if !ok {
-		return false
-	}
-	return CommutativeIsMatchQ(this.Multiplicands, other.Multiplicands, es)
-}
-
-func (this *Times) DeepCopy() Ex {
-	var thiscopy = &Times{}
-	for i := range this.Multiplicands {
-		thiscopy.Multiplicands = append(thiscopy.Multiplicands, this.Multiplicands[i].DeepCopy())
-	}
-	return thiscopy
-}
-*/

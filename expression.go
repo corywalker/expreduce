@@ -42,7 +42,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			} else if j == len(this.Parts)-1 {
 				this.Parts = append(this.Parts[:start], seq.Arguments...)
 			} else {
-				this.Parts = append(append(this.Parts[:start], seq.Arguments...), this.Parts[end:]...)
+				// All of these deep copies may not be needed.
+				this.Parts = append(append(this.DeepCopy().(*Expression).Parts[:start], seq.DeepCopy().(*Sequence).Arguments...), this.DeepCopy().(*Expression).Parts[end:]...)
 			}
 			offset += len(seq.Arguments) - 1
 		}
