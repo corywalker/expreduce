@@ -53,10 +53,10 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	if isHeadSym {
 		headStr := headAsSym.Name
 		args := this.Parts[1:len(this.Parts)]
-		if headStr == "Power" && len(args) == 2 {
+		if headStr == "Power" {
 			return this.EvalPower(es)
 		}
-		if headStr == "Equal" && len(args) == 2 {
+		if headStr == "Equal" {
 			return this.EvalEqual(es)
 		}
 		if headStr == "SameQ" && len(args) == 2 {
@@ -129,11 +129,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			}
 			return t.Eval(es)
 		}
-		if headStr == "SetLogging" && len(args) == 1 {
-			t := &SetLogging{
-				Expr: args[0],
-			}
-			return t.Eval(es)
+		if headStr == "SetLogging" {
+			return this.EvalSetLogging(es)
 		}
 		if headStr == "Definition" && len(args) == 1 {
 			t := &Definition{

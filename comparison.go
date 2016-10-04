@@ -19,16 +19,6 @@ func (this *Expression) EvalEqual(es *EvalState) Ex {
 	return &Error{"Unexpected equality return value."}
 }
 
-/*
-func (this *Equal) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.Lhs = this.Lhs.Replace(r, es)
-	this.Rhs = this.Rhs.Replace(r, es)
-	return this.Eval(es)
-}*/
-
 func (this *Expression) ToStringEqual() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
@@ -38,48 +28,6 @@ func (this *Expression) ToStringEqual() string {
 	buffer.WriteString(")")
 	return buffer.String()
 }
-/*
-func (this *Equal) IsEqual(otherEx Ex, es *EvalState) string {
-	other, ok := otherEx.(*Equal)
-	if !ok {
-		return "EQUAL_UNK"
-	}
-	return FunctionIsEqual([]Ex{
-		this.Lhs,
-		this.Rhs,
-	}, []Ex{
-		other.Lhs,
-		other.Rhs,
-	}, es)
-}
-
-func (this *Equal) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*Equal)
-	if !ok {
-		return false
-	}
-	return FunctionIsSameQ([]Ex{
-		this.Lhs,
-		this.Rhs,
-	}, []Ex{
-		other.Lhs,
-		other.Rhs,
-	}, es)
-}
-
-func (this *Equal) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankTypeCapturing(otherEx, this, "Equal", es) {
-		return true
-	}
-	return this.IsSameQ(otherEx, es)
-}
-
-func (this *Equal) DeepCopy() Ex {
-	return &Equal{
-		this.Lhs.DeepCopy(),
-		this.Rhs.DeepCopy(),
-	}
-}*/
 
 type SameQ struct {
 	Lhs Ex
