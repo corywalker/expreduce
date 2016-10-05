@@ -105,9 +105,9 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr RULESYM expr
 		{ $$  =  &Rule{$1, $3} }
 	|    expr REPLACEREPSYM expr
-		{ $$  =  &ReplaceRepeated{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"ReplaceRepeated"}, $1, $3}} }
 	|    expr REPLACESYM expr
-		{ $$  =  &Replace{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Replace"}, $1, $3}} }
 	|    expr SETSYM expr
 		{ $$  =  &Set{$1, $3} }
 	|    expr SETDELAYEDSYM expr

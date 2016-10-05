@@ -72,19 +72,17 @@ func (this *Rule) DeepCopy() Ex {
 	}
 }
 
-type Replace struct {
-	Expr  Ex
-	Rules Ex
-}
-
-func (this *Replace) Eval(es *EvalState) Ex {
-	this.Expr = this.Expr.Eval(es)
-	this.Rules = this.Rules.Eval(es)
-	//_, ok := this.Rules.(*Rule)
-	rulesRule, ok := this.Rules.(*Rule)
+func (this *Expression) EvalReplace(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+	this.Parts[1] = this.Parts[1].Eval(es)
+	this.Parts[2] = this.Parts[2].Eval(es)
+	//_, ok := this.Parts[2].(*Rule)
+	rulesRule, ok := this.Parts[2].(*Rule)
 	if ok {
 		oldVars := es.GetDefinedSnapshot()
-		newEx := this.Expr.Replace(rulesRule, es)
+		newEx := this.Parts[1].Replace(rulesRule, es)
 		es.ClearPD()
 		newEx = newEx.Eval(es)
 		es.defined = oldVars
@@ -94,78 +92,28 @@ func (this *Replace) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Replace) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.Expr = this.Expr.Replace(r, es)
-	this.Rules = this.Rules.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *Replace) ToString() string {
+func (this *Expression) ToStringReplace() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Expr.ToString())
+	buffer.WriteString(this.Parts[1].ToString())
 	buffer.WriteString(") /. (")
-	buffer.WriteString(this.Rules.ToString())
+	buffer.WriteString(this.Parts[2].ToString())
 	buffer.WriteString(")")
 	return buffer.String()
 }
 
-func (this *Replace) IsEqual(otherEx Ex, es *EvalState) string {
-	other, ok := otherEx.(*Replace)
-	if !ok {
-		return "EQUAL_UNK"
+func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
 	}
-	return FunctionIsEqual([]Ex{
-		this.Expr,
-		this.Rules,
-	}, []Ex{
-		other.Expr,
-		other.Rules,
-	}, es)
-}
-
-func (this *Replace) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*Replace)
-	if !ok {
-		return false
-	}
-	return FunctionIsSameQ([]Ex{
-		this.Expr,
-		this.Rules,
-	}, []Ex{
-		other.Expr,
-		other.Rules,
-	}, es)
-}
-
-func (this *Replace) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	return this.IsSameQ(otherEx, es)
-}
-
-func (this *Replace) DeepCopy() Ex {
-	return &Replace{
-		this.Expr.DeepCopy(),
-		this.Rules.DeepCopy(),
-	}
-}
-
-type ReplaceRepeated struct {
-	Expr  Ex
-	Rules Ex
-}
-
-func (this *ReplaceRepeated) Eval(es *EvalState) Ex {
 	es.log.Infof(es.Pre() + "Starting ReplaceRepeated.")
-	this.Expr = this.Expr.Eval(es)
-	this.Rules = this.Rules.Eval(es)
-	//_, ok := this.Rules.(*Rule)
-	rulesRule, ok := this.Rules.(*Rule)
+	this.Parts[1] = this.Parts[1].Eval(es)
+	this.Parts[2] = this.Parts[2].Eval(es)
+	//_, ok := this.Parts[2].(*Rule)
+	rulesRule, ok := this.Parts[2].(*Rule)
 	if ok {
 		isSame := false
-		oldEx := this.Expr
+		oldEx := this.Parts[1]
 		es.log.Infof(es.Pre()+"In ReplaceRepeated. Initial expr: %v", oldEx.ToString())
 		for !isSame {
 			oldVars := es.GetDefinedSnapshot()
@@ -189,60 +137,12 @@ func (this *ReplaceRepeated) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *ReplaceRepeated) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.Expr = this.Expr.Replace(r, es)
-	this.Rules = this.Rules.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *ReplaceRepeated) ToString() string {
+func (this *Expression) ToStringReplaceRepeated() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Expr.ToString())
+	buffer.WriteString(this.Parts[1].ToString())
 	buffer.WriteString(") //. (")
-	buffer.WriteString(this.Rules.ToString())
+	buffer.WriteString(this.Parts[2].ToString())
 	buffer.WriteString(")")
 	return buffer.String()
-}
-
-func (this *ReplaceRepeated) IsEqual(otherEx Ex, es *EvalState) string {
-	other, ok := otherEx.(*ReplaceRepeated)
-	if !ok {
-		return "EQUAL_UNK"
-	}
-	return FunctionIsEqual([]Ex{
-		this.Expr,
-		this.Rules,
-	}, []Ex{
-		other.Expr,
-		other.Rules,
-	}, es)
-}
-
-func (this *ReplaceRepeated) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*ReplaceRepeated)
-	if !ok {
-		return false
-	}
-	return FunctionIsSameQ([]Ex{
-		this.Expr,
-		this.Rules,
-	}, []Ex{
-		other.Expr,
-		other.Rules,
-	}, es)
-}
-
-func (this *ReplaceRepeated) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	return this.IsSameQ(otherEx, es)
-}
-
-func (this *ReplaceRepeated) DeepCopy() Ex {
-	return &ReplaceRepeated{
-		this.Expr.DeepCopy(),
-		this.Rules.DeepCopy(),
-	}
 }

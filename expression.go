@@ -116,12 +116,11 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			}
 			return t.Eval(es)
 		}
-		if headStr == "Replace" && len(args) == 2 {
-			t := &Replace{
-				Expr:  args[0],
-				Rules: args[1],
-			}
-			return t.Eval(es)
+		if headStr == "Replace" {
+			return this.EvalReplace(es)
+		}
+		if headStr == "ReplaceRepeated" {
+			return this.EvalReplaceRepeated(es)
 		}
 		if headStr == "BasicSimplify" {
 			return this.EvalBasicSimplify(es)

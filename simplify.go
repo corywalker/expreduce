@@ -1,7 +1,7 @@
 package cas
 
 func (this *Expression) RepeatRun(es *EvalState, rule string) {
-	this.Parts[1] = (&ReplaceRepeated{this.Parts[1], Interp(rule)}).Eval(es)
+	this.Parts[1] = (&Expression{[]Ex{&Symbol{"ReplaceRepeated"}, this.Parts[1], Interp(rule)}}).Eval(es)
 }
 
 func (this *Expression) EvalBasicSimplify(es *EvalState) Ex {
