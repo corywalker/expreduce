@@ -109,9 +109,9 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr REPLACESYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Replace"}, $1, $3}} }
 	|    expr SETSYM expr
-		{ $$  =  &Set{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Set"}, $1, $3}} }
 	|    expr SETDELAYEDSYM expr
-		{ $$  =  &SetDelayed{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"SetDelayed"}, $1, $3}} }
 	|    expr SAMESYM expr
 		{ $$  =  &SameQ{$1, $3} }
 	|    expr EQUALSYM expr

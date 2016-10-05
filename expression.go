@@ -21,7 +21,17 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 
 func (this *Expression) Eval(es *EvalState) Ex {
 	// Start by evaluating each argument
+	headSym, headIsSym := &Symbol{}, false
+	if len(this.Parts) > 0 {
+		headSym, headIsSym = this.Parts[0].(*Symbol)
+	}
 	for i := range this.Parts {
+		if headIsSym && i ==  1 && IsHoldFirst(headSym) {
+			continue
+		}
+		if headIsSym && IsHoldAll(headSym) {
+			continue
+		}
 		this.Parts[i] = this.Parts[i].Eval(es)
 	}
 
@@ -73,41 +83,17 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Times" {
 			return this.EvalTimes(es)
 		}
-		if headStr == "Set" && len(args) == 2 {
-			t := &Set{
-				Lhs: args[0],
-				Rhs: args[1],
-			}
-			return t.Eval(es)
+		if headStr == "Set" {
+			return this.EvalSet(es)
 		}
-		if headStr == "SetDelayed" && len(args) == 2 {
-			t := &SetDelayed{
-				Lhs: args[0],
-				Rhs: args[1],
-			}
-			return t.Eval(es)
+		if headStr == "SetDelayed" {
+			return this.EvalSetDelayed(es)
 		}
-		if headStr == "If" && len(args) == 3 {
-			t := &If{
-				Condition: args[0],
-				T:         args[1],
-				F:         args[2],
-			}
-			return t.Eval(es)
+		if headStr == "If" {
+			return this.EvalIf(es)
 		}
-		if headStr == "While" && len(args) == 1 {
-			t := &While{
-				Test: args[0],
-				Body: &Symbol{"Null"},
-			}
-			return t.Eval(es)
-		}
-		if headStr == "While" && len(args) == 2 {
-			t := &While{
-				Test: args[0],
-				Body: args[1],
-			}
-			return t.Eval(es)
+		if headStr == "While" {
+			return this.EvalWhile(es)
 		}
 		if headStr == "MatchQ" && len(args) == 2 {
 			t := &MatchQ{
@@ -190,6 +176,10 @@ func (this *Expression) ToString() string {
 			return this.ToStringPower()
 		} else if headStr == "Equal" {
 			return this.ToStringEqual()
+		} else if headStr == "Replace" {
+			return this.ToStringReplace()
+		} else if headStr == "ReplaceRepeated" {
+			return this.ToStringReplaceRepeated()
 		}
 	}
 
@@ -210,10 +200,27 @@ func (this *Expression) ToString() string {
 	return buffer.String()
 }
 
+// TODO: convert to a map
 func IsOrderless(sym *Symbol) bool {
 	if sym.Name == "Times" {
 		return true
 	} else if sym.Name == "Plus" {
+		return true
+	}
+	return false
+}
+
+// TODO: convert to a map
+func IsHoldFirst(sym *Symbol) bool {
+	if sym.Name == "Set" {
+		return true
+	}
+	return false
+}
+
+// TODO: convert to a map
+func IsHoldAll(sym *Symbol) bool {
+	if sym.Name == "SetDelayed" {
 		return true
 	}
 	return false

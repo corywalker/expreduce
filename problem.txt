@@ -4,3 +4,5 @@ will actually combine, even though the terms are not the same
 I should take a step to re-organize how infix functions are printed. I could factor out common functionality.
 
 A lot of the function-specific eval functions start by evaluating their inputs. This is not needed because Expression now handles this by default.
+
+Rule should be the last thing that I convert. It is embedded deep in the design.

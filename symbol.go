@@ -68,76 +68,46 @@ func (this *Symbol) DeepCopy() Ex {
 	return &thiscopy
 }
 
-type Set struct {
-	Lhs Ex
-	Rhs Ex
-}
+func (this *Expression) EvalSet(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
 
-func (this *Set) Eval(es *EvalState) Ex {
-	LhsSym, ok := this.Lhs.(*Symbol)
+	LhsSym, ok := this.Parts[1].(*Symbol)
 	if !ok {
 		return &Error{"Cannot set non-symbol to an expression"}
 	}
-	var evaluated Ex = this.Rhs.Eval(es)
+	var evaluated Ex = this.Parts[2].Eval(es)
 	//es.defined[LhsSym.Name] = evaluated
 	es.Define(LhsSym.Name, LhsSym, evaluated)
 	return evaluated
 }
 
-func (this *Set) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.Lhs = this.Lhs.Replace(r, es)
-	this.Rhs = this.Rhs.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *Set) ToString() string {
+func (this *Expression) ToStringSet() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Lhs.ToString())
+	buffer.WriteString(this.Parts[1].ToString())
 	buffer.WriteString(") = (")
-	buffer.WriteString(this.Rhs.ToString())
+	buffer.WriteString(this.Parts[2].ToString())
 	buffer.WriteString(")")
 	return buffer.String()
 }
 
-func (this *Set) IsEqual(otherEx Ex, es *EvalState) string {
-	return "EQUAL_UNK"
-}
-
-func (this *Set) IsSameQ(otherEx Ex, es *EvalState) bool {
-	return false
-}
-
-func (this *Set) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	return this.IsSameQ(otherEx, es)
-}
-
-func (this *Set) DeepCopy() Ex {
-	return &Set{
-		this.Lhs.DeepCopy(),
-		this.Rhs.DeepCopy(),
+func (this *Expression) EvalSetDelayed(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
 	}
-}
 
-type SetDelayed struct {
-	Lhs Ex
-	Rhs Ex
-}
-
-func (this *SetDelayed) Eval(es *EvalState) Ex {
-	LhsSym, ok := this.Lhs.(*Symbol)
+	LhsSym, ok := this.Parts[1].(*Symbol)
 	if ok {
-		es.Define(LhsSym.Name, LhsSym, this.Rhs)
+		es.Define(LhsSym.Name, LhsSym, this.Parts[2])
 		return &Symbol{"Null"}
 	}
-	LhsF, ok := this.Lhs.(*Expression)
+	LhsF, ok := this.Parts[1].(*Expression)
 	if ok {
 		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
 		if headIsSym {
-			es.Define(headAsSym.Name, LhsF, this.Rhs)
+			es.Define(headAsSym.Name, LhsF, this.Parts[2])
 			return &Symbol{"Null"}
 		}
 	}
@@ -145,40 +115,12 @@ func (this *SetDelayed) Eval(es *EvalState) Ex {
 	return &Error{"Can only set expression to a symbol or a function"}
 }
 
-func (this *SetDelayed) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.Lhs = this.Lhs.Replace(r, es)
-	this.Rhs = this.Rhs.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *SetDelayed) ToString() string {
+func (this *Expression) ToStringSetDelayed() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Lhs.ToString())
+	buffer.WriteString(this.Parts[1].ToString())
 	buffer.WriteString(") := (")
-	buffer.WriteString(this.Rhs.ToString())
+	buffer.WriteString(this.Parts[2].ToString())
 	buffer.WriteString(")")
 	return buffer.String()
-}
-
-func (this *SetDelayed) IsEqual(otherEx Ex, es *EvalState) string {
-	return "EQUAL_UNK"
-}
-
-func (this *SetDelayed) IsSameQ(otherEx Ex, es *EvalState) bool {
-	return false
-}
-
-func (this *SetDelayed) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	return this.IsSameQ(otherEx, es)
-}
-
-func (this *SetDelayed) DeepCopy() Ex {
-	return &SetDelayed{
-		this.Lhs.DeepCopy(),
-		this.Rhs.DeepCopy(),
-	}
 }
