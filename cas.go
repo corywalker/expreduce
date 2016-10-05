@@ -253,11 +253,11 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 	containsBlankSequence := false
 	for i := range lhs_components {
 		pat, isPat := lhs_components[i].(*Pattern)
-		_, isBns := lhs_components[i].(*BlankNullSequence)
-		_, isBs := lhs_components[i].(*BlankSequence)
+		_, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
+		_, isBs := HeadAssertion(lhs_components[i], "BlankSequence")
 		if isPat {
-			_, isBns = pat.Obj.(*BlankNullSequence)
-			_, isBs = pat.Obj.(*BlankSequence)
+			_, isBns = HeadAssertion(pat.Obj, "BlankNullSequence")
+			_, isBs = HeadAssertion(pat.Obj, "BlankSequence")
 		}
 		if isBs || isBns {
 			containsBlankSequence = true
@@ -334,11 +334,11 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 			es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
 		}
 		pat, isPat := lhs_components[i].(*Pattern)
-		bns, isBns := lhs_components[i].(*BlankNullSequence)
-		bs, isBs := lhs_components[i].(*BlankSequence)
+		bns, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
+		bs, isBs := HeadAssertion(lhs_components[i], "BlankSequence")
 		if isPat {
-			bns, isBns = pat.Obj.(*BlankNullSequence)
-			bs, isBs = pat.Obj.(*BlankSequence)
+			bns, isBns = HeadAssertion(pat.Obj, "BlankNullSequence")
+			bs, isBs = HeadAssertion(pat.Obj, "BlankSequence")
 		}
 		if isBns || isBs {
 			es.log.Debug(es.Pre() + "Encountered BS or BNS!")

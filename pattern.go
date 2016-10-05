@@ -71,17 +71,17 @@ func IsBlankType(e Ex, t string) bool {
 	// t == "Integer" would return false.
 	asPattern, patternOk := e.(*Pattern)
 	if patternOk {
-		asBlank, blankOk := asPattern.Obj.(*Blank)
+		asBlank, blankOk := HeadAssertion(asPattern.Obj, "Blank")
 		if blankOk {
-			asSymbol, symbolOk := asBlank.H.(*Symbol)
+			asSymbol, symbolOk := asBlank.Parts[1].(*Symbol)
 			if symbolOk {
 				return asSymbol.Name == t
 			}
 		}
 	}
-	asBlank, blankOk := e.(*Blank)
+	asBlank, blankOk := HeadAssertion(e, "Blank")
 	if blankOk {
-		asSymbol, symbolOk := asBlank.H.(*Symbol)
+		asSymbol, symbolOk := asBlank.Parts[1].(*Symbol)
 		if symbolOk {
 			return asSymbol.Name == t
 		}
@@ -96,18 +96,18 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 	// if there is a valid match.
 	asPattern, patternOk := e.(*Pattern)
 	if patternOk {
-		asBlank, blankOk := asPattern.Obj.(*Blank)
-		asBS, bsOk := asPattern.Obj.(*BlankSequence)
-		asBNS, bnsOk := asPattern.Obj.(*BlankNullSequence)
+		asBlank, blankOk := HeadAssertion(asPattern.Obj, "Blank")
+		asBS, bsOk := HeadAssertion(asPattern.Obj, "BlankSequence")
+		asBNS, bnsOk := HeadAssertion(asPattern.Obj, "BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			var asSymbol *Symbol
 			symbolOk := false
 			if blankOk {
-				asSymbol, symbolOk = asBlank.H.(*Symbol)
+				asSymbol, symbolOk = asBlank.Parts[1].(*Symbol)
 			} else if bsOk {
-				asSymbol, symbolOk = asBS.H.(*Symbol)
+				asSymbol, symbolOk = asBS.Parts[1].(*Symbol)
 			} else if bnsOk {
-				asSymbol, symbolOk = asBNS.H.(*Symbol)
+				asSymbol, symbolOk = asBNS.Parts[1].(*Symbol)
 			}
 			if symbolOk {
 				if asSymbol.Name == t || asSymbol.Name == "" {
@@ -138,18 +138,18 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 			}
 		}
 	}
-	asBlank, blankOk := e.(*Blank)
-	asBS, bsOk := e.(*BlankSequence)
-	asBNS, bnsOk := e.(*BlankNullSequence)
+	asBlank, blankOk := HeadAssertion(e, "Blank")
+	asBS, bsOk := HeadAssertion(e, "BlankSequence")
+	asBNS, bnsOk := HeadAssertion(e, "BlankNullSequence")
 	if blankOk || bsOk || bnsOk {
 		var asSymbol *Symbol
 		symbolOk := false
 		if blankOk {
-			asSymbol, symbolOk = asBlank.H.(*Symbol)
+			asSymbol, symbolOk = asBlank.Parts[1].(*Symbol)
 		} else if bsOk {
-			asSymbol, symbolOk = asBS.H.(*Symbol)
+			asSymbol, symbolOk = asBS.Parts[1].(*Symbol)
 		} else if bnsOk {
-			asSymbol, symbolOk = asBNS.H.(*Symbol)
+			asSymbol, symbolOk = asBNS.Parts[1].(*Symbol)
 		}
 		if symbolOk {
 			return asSymbol.Name == t || asSymbol.Name == ""
@@ -173,223 +173,61 @@ func (this *Pattern) DeepCopy() Ex {
 	}
 }
 
-type Blank struct {
-	H Ex
-}
-
-func (this *Blank) Eval(es *EvalState) Ex {
-	return this
-}
-
-func (this *Blank) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.H = this.H.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *Blank) ToString() string {
+func (this *Expression) ToStringBlank() string {
 	var buffer bytes.Buffer
 	if false {
 		buffer.WriteString("Blank[")
-		buffer.WriteString(this.H.ToString())
+		buffer.WriteString(this.Parts[1].ToString())
 		buffer.WriteString("]")
 	} else {
 		buffer.WriteString("_")
-		buffer.WriteString(this.H.ToString())
+		buffer.WriteString(this.Parts[1].ToString())
 	}
 	return buffer.String()
 }
 
-func (this *Blank) IsEqual(otherEx Ex, es *EvalState) string {
-	other, ok := otherEx.(*Blank)
-	if !ok {
-		return "EQUAL_UNK"
-	}
-	return FunctionIsEqual([]Ex{
-		this.H,
-	}, []Ex{
-		other.H,
-	}, es)
-}
-
-func (this *Blank) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*Blank)
-	if !ok {
-		return false
-	}
-	return FunctionIsSameQ([]Ex{
-		this.H,
-	}, []Ex{
-		other.H,
-	}, es)
-}
-
-func (this *Blank) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Blank") {
-		return true
-	}
-	//return this.IsSameQ(otherEx, es)
-	return false
-}
-
-func (this *Blank) DeepCopy() Ex {
-	return &Blank{
-		this.H.DeepCopy(),
-	}
-}
-
-type BlankSequence struct {
-	H Ex
-}
-
-func (this *BlankSequence) Eval(es *EvalState) Ex {
-	return this
-}
-
-func (this *BlankSequence) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.H = this.H.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *BlankSequence) ToString() string {
+func (this *Expression) ToStringBlankSequence() string {
 	var buffer bytes.Buffer
 	if false {
 		buffer.WriteString("BlankSequence[")
-		buffer.WriteString(this.H.ToString())
+		buffer.WriteString(this.Parts[1].ToString())
 		buffer.WriteString("]")
 	} else {
 		buffer.WriteString("__")
-		buffer.WriteString(this.H.ToString())
+		buffer.WriteString(this.Parts[1].ToString())
 	}
 	return buffer.String()
 }
 
-func (this *BlankSequence) IsEqual(otherEx Ex, es *EvalState) string {
-	other, ok := otherEx.(*BlankSequence)
-	if !ok {
-		return "EQUAL_UNK"
-	}
-	return FunctionIsEqual([]Ex{
-		this.H,
-	}, []Ex{
-		other.H,
-	}, es)
-}
-
-func (this *BlankSequence) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*BlankSequence)
-	if !ok {
-		return false
-	}
-	return FunctionIsSameQ([]Ex{
-		this.H,
-	}, []Ex{
-		other.H,
-	}, es)
-}
-
-func (this *BlankSequence) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "BlankSequence") {
-		return true
-	}
-	//return this.IsSameQ(otherEx, es)
-	return false
-}
-
-func (this *BlankSequence) DeepCopy() Ex {
-	return &BlankSequence{
-		this.H.DeepCopy(),
-	}
-}
-
-type BlankNullSequence struct {
-	H Ex
-}
-
-func (this *BlankNullSequence) Eval(es *EvalState) Ex {
-	return this
-}
-
-func (this *BlankNullSequence) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.H = this.H.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *BlankNullSequence) ToString() string {
+func (this *Expression) ToStringBlankNullSequence() string {
 	var buffer bytes.Buffer
 	if false {
 		buffer.WriteString("BlankNullSequence[")
-		buffer.WriteString(this.H.ToString())
+		buffer.WriteString(this.Parts[1].ToString())
 		buffer.WriteString("]")
 	} else {
 		buffer.WriteString("___")
-		buffer.WriteString(this.H.ToString())
+		buffer.WriteString(this.Parts[1].ToString())
 	}
 	return buffer.String()
-}
-
-func (this *BlankNullSequence) IsEqual(otherEx Ex, es *EvalState) string {
-	other, ok := otherEx.(*BlankNullSequence)
-	if !ok {
-		return "EQUAL_UNK"
-	}
-	return FunctionIsEqual([]Ex{
-		this.H,
-	}, []Ex{
-		other.H,
-	}, es)
-}
-
-func (this *BlankNullSequence) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*BlankNullSequence)
-	if !ok {
-		return false
-	}
-	return FunctionIsSameQ([]Ex{
-		this.H,
-	}, []Ex{
-		other.H,
-	}, es)
-}
-
-func (this *BlankNullSequence) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "BlankNullSequence") {
-		return true
-	}
-	//return this.IsSameQ(otherEx, es)
-	return false
-}
-
-func (this *BlankNullSequence) DeepCopy() Ex {
-	return &BlankNullSequence{
-		this.H.DeepCopy(),
-	}
 }
 
 // -------------------------
 
-func BlankNullSequenceToBlank(bns *BlankNullSequence) *Blank {
-	return &Blank{bns.H}
+func BlankNullSequenceToBlank(bns *Expression) *Expression {
+	return &Expression{[]Ex{&Symbol{"Blank"}, bns.Parts[1]}}
 }
 
-func BlankSequenceToBlank(bs *BlankSequence) *Blank {
-	return &Blank{bs.H}
+func BlankSequenceToBlank(bs *Expression) *Expression {
+	return &Expression{[]Ex{&Symbol{"Blank"}, bs.Parts[1]}}
 }
 
-func ExArrayTestRepeatingMatch(array []Ex, b *Blank, es *EvalState) bool {
+func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, es *EvalState) bool {
 	toReturn := true
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog()
-		isMatch := e.IsMatchQ(b, tmpEs)
-		es.log.Debug(e.ToString(), b.ToString(), isMatch)
+		isMatch := e.IsMatchQ(blank, tmpEs)
+		es.log.Debug(e.ToString(), blank.ToString(), isMatch)
 		toReturn = toReturn && isMatch
 	}
 	return toReturn

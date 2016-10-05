@@ -170,6 +170,8 @@ func (this *Expression) ToString() string {
 			return this.ToStringReplace()
 		} else if headStr == "ReplaceRepeated" {
 			return this.ToStringReplaceRepeated()
+		} else if headStr == "BlankNullSequence" {
+			return this.ToStringBlankNullSequence()
 		}
 	}
 
