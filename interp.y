@@ -113,7 +113,7 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr SETDELAYEDSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"SetDelayed"}, $1, $3}} }
 	|    expr SAMESYM expr
-		{ $$  =  &SameQ{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"SameQ"}, $1, $3}} }
 	|    expr EQUALSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Equal"}, $1, $3}} }
 	|    MINUSSYM expr

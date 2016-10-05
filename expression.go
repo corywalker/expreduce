@@ -62,20 +62,14 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	if isHeadSym {
 		headStr := headAsSym.Name
-		args := this.Parts[1:len(this.Parts)]
 		if headStr == "Power" {
 			return this.EvalPower(es)
 		}
 		if headStr == "Equal" {
 			return this.EvalEqual(es)
 		}
-		if headStr == "SameQ" && len(args) == 2 {
-			t := &Expression{[]Ex{
-				&Symbol{"Equal"}, // ??????
-				args[0],
-				args[1],
-			}}
-			return t.Eval(es)
+		if headStr == "SameQ" {
+			return this.EvalSameQ(es)
 		}
 		if headStr == "Plus" {
 			return this.EvalPlus(es)
@@ -95,12 +89,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "While" {
 			return this.EvalWhile(es)
 		}
-		if headStr == "MatchQ" && len(args) == 2 {
-			t := &MatchQ{
-				Expr: args[0],
-				Form: args[1],
-			}
-			return t.Eval(es)
+		if headStr == "MatchQ" {
+			return this.EvalMatchQ(es)
 		}
 		if headStr == "Replace" {
 			return this.EvalReplace(es)
