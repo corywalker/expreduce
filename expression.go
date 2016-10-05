@@ -206,6 +206,8 @@ func IsOrderless(sym *Symbol) bool {
 func IsHoldFirst(sym *Symbol) bool {
 	if sym.Name == "Set" {
 		return true
+	} else if sym.Name == "Pattern" {
+		return true
 	}
 	return false
 }

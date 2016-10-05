@@ -117,11 +117,11 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
     parts := strings.Split(string(y.buf), delim)
     if len(parts) == 1 {
         if delim == "___" {
-            lval.val = &Pattern{&Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankNullSequence"}}}}
+            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankNullSequence"}}}}}
         } else if delim == "__" {
-            lval.val = &Pattern{&Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankSequence"}}}}
+            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankSequence"}}}}}
         } else {
-            lval.val = &Pattern{&Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"Blank"}}}}
+            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"Blank"}}}}}
         }
         return PATTERN
     }
@@ -137,11 +137,11 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
             return PATTERN
         } else {
             if delim == "___" {
-                lval.val = &Pattern{&Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankNullSequence"}, &Symbol{parts[1]}}}}
+                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankNullSequence"}, &Symbol{parts[1]}}}}}
             } else if delim == "__" {
-                lval.val = &Pattern{&Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankSequence"}, &Symbol{parts[1]}}}}
+                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankSequence"}, &Symbol{parts[1]}}}}}
             } else {
-                lval.val = &Pattern{&Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"Blank"}, &Symbol{parts[1]}}}}
+                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"Blank"}, &Symbol{parts[1]}}}}}
             }
             return PATTERN
         }

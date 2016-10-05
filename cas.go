@@ -252,12 +252,12 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 	es.log.Infof(es.Pre()+"Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())
 	containsBlankSequence := false
 	for i := range lhs_components {
-		pat, isPat := lhs_components[i].(*Pattern)
+		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
 		_, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
 		_, isBs := HeadAssertion(lhs_components[i], "BlankSequence")
 		if isPat {
-			_, isBns = HeadAssertion(pat.Obj, "BlankNullSequence")
-			_, isBs = HeadAssertion(pat.Obj, "BlankSequence")
+			_, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
+			_, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
 		}
 		if isBs || isBns {
 			containsBlankSequence = true
@@ -333,12 +333,12 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 		} else {
 			es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
 		}
-		pat, isPat := lhs_components[i].(*Pattern)
+		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
 		bns, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
 		bs, isBs := HeadAssertion(lhs_components[i], "BlankSequence")
 		if isPat {
-			bns, isBns = HeadAssertion(pat.Obj, "BlankNullSequence")
-			bs, isBs = HeadAssertion(pat.Obj, "BlankSequence")
+			bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
+			bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
 		}
 		if isBns || isBs {
 			es.log.Debug(es.Pre() + "Encountered BS or BNS!")
@@ -374,7 +374,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 				es.log.Debugf(es.Pre()+"%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				if seqMatches && NonCommutativeIsMatchQ(remainingComps, remainingLhs, es) {
 					if isPat {
-						sAsSymbol, sAsSymbolOk := pat.S.(*Symbol)
+						sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 						if sAsSymbolOk {
 							toTryParts := []Ex{&Symbol{"Sequence"}}
 							toTryParts = append(toTryParts, seqToTry...)

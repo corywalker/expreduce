@@ -2,75 +2,70 @@ package cas
 
 import "bytes"
 
-type Pattern struct {
-	S   Ex
-	Obj Ex
-}
-
-func (this *Pattern) Eval(es *EvalState) Ex {
-	return this
-}
-
-func (this *Pattern) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	this.S = this.S.Replace(r, es)
-	this.Obj = this.Obj.Replace(r, es)
-	return this.Eval(es)
-}
-
-func (this *Pattern) ToString() string {
+func (this *Expression) ToStringPattern() string {
 	var buffer bytes.Buffer
 	if false {
 		buffer.WriteString("Pattern[")
-		buffer.WriteString(this.S.ToString())
+		buffer.WriteString(this.Parts[1].ToString())
 		buffer.WriteString(", ")
 		// Assuming Obj will always be a Blank[] Expression
-		buffer.WriteString(this.Obj.ToString())
+		buffer.WriteString(this.Parts[2].ToString())
 		buffer.WriteString("]")
 	} else {
-		buffer.WriteString(this.S.ToString())
+		buffer.WriteString(this.Parts[1].ToString())
 		// Assuming Obj will always be a Blank[] Expression
-		buffer.WriteString(this.Obj.ToString())
+		buffer.WriteString(this.Parts[2].ToString())
 	}
 	return buffer.String()
 }
 
-func (this *Pattern) IsEqual(otherEx Ex, es *EvalState) string {
-	other, ok := otherEx.(*Pattern)
-	if !ok {
-		return "EQUAL_UNK"
+func (this *Expression) ToStringBlank() string {
+	var buffer bytes.Buffer
+	if false {
+		buffer.WriteString("Blank[")
+		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString("]")
+	} else {
+		buffer.WriteString("_")
+		buffer.WriteString(this.Parts[1].ToString())
 	}
-	return FunctionIsEqual([]Ex{
-		this.S,
-		this.Obj,
-	}, []Ex{
-		other.S,
-		other.Obj,
-	}, es)
+	return buffer.String()
 }
 
-func (this *Pattern) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*Pattern)
-	if !ok {
-		return false
+func (this *Expression) ToStringBlankSequence() string {
+	var buffer bytes.Buffer
+	if false {
+		buffer.WriteString("BlankSequence[")
+		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString("]")
+	} else {
+		buffer.WriteString("__")
+		buffer.WriteString(this.Parts[1].ToString())
 	}
-	return FunctionIsSameQ([]Ex{
-		this.S,
-		this.Obj,
-	}, []Ex{
-		other.S,
-		other.Obj,
-	}, es)
+	return buffer.String()
 }
+
+func (this *Expression) ToStringBlankNullSequence() string {
+	var buffer bytes.Buffer
+	if false {
+		buffer.WriteString("BlankNullSequence[")
+		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString("]")
+	} else {
+		buffer.WriteString("___")
+		buffer.WriteString(this.Parts[1].ToString())
+	}
+	return buffer.String()
+}
+
+// -------------------------
 
 func IsBlankTypeOnly(e Ex) bool {
-	asPattern, patternOk := e.(*Pattern)
+	asPattern, patternOk := HeadAssertion(e, "Pattern")
 	if patternOk {
-		_, blankOk := HeadAssertion(asPattern.Obj, "Blank")
-		_, bsOk := HeadAssertion(asPattern.Obj, "BlankSequence")
-		_, bnsOk := HeadAssertion(asPattern.Obj, "BlankNullSequence")
+		_, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
+		_, bsOk := HeadAssertion(asPattern.Parts[2], "BlankSequence")
+		_, bnsOk := HeadAssertion(asPattern.Parts[2], "BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			return true
 		}
@@ -88,9 +83,9 @@ func IsBlankType(e Ex, t string) bool {
 	// Calling this function on an amatch_Integer with t == "Integer" would
 	// yield true, while calling this function on an actual integer with
 	// t == "Integer" would return false.
-	asPattern, patternOk := e.(*Pattern)
+	asPattern, patternOk := HeadAssertion(e, "Pattern")
 	if patternOk {
-		asBlank, blankOk := HeadAssertion(asPattern.Obj, "Blank")
+		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
 		if blankOk {
 			asSymbol, symbolOk := asBlank.Parts[1].(*Symbol)
 			if symbolOk {
@@ -113,11 +108,11 @@ func IsBlankType(e Ex, t string) bool {
 func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
-	asPattern, patternOk := e.(*Pattern)
+	asPattern, patternOk := HeadAssertion(e, "Pattern")
 	if patternOk {
-		asBlank, blankOk := HeadAssertion(asPattern.Obj, "Blank")
-		asBS, bsOk := HeadAssertion(asPattern.Obj, "BlankSequence")
-		asBNS, bnsOk := HeadAssertion(asPattern.Obj, "BlankNullSequence")
+		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
+		asBS, bsOk := HeadAssertion(asPattern.Parts[2], "BlankSequence")
+		asBNS, bnsOk := HeadAssertion(asPattern.Parts[2], "BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			var asSymbol *Symbol
 			symbolOk := false
@@ -130,7 +125,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 			}
 			if symbolOk {
 				if asSymbol.Name == t || asSymbol.Name == "" {
-					sAsSymbol, sAsSymbolOk := asPattern.S.(*Symbol)
+					sAsSymbol, sAsSymbolOk := asPattern.Parts[1].(*Symbol)
 					if sAsSymbolOk {
 						// TODO: we should handle matches with BlankSequences
 						// differently here.
@@ -176,62 +171,6 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 	}
 	return false
 }
-
-func (this *Pattern) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Pattern") {
-		return true
-	}
-	//return this.IsSameQ(otherEx, es)
-	return false
-}
-
-func (this *Pattern) DeepCopy() Ex {
-	return &Pattern{
-		this.S.DeepCopy(),
-		this.Obj.DeepCopy(),
-	}
-}
-
-func (this *Expression) ToStringBlank() string {
-	var buffer bytes.Buffer
-	if false {
-		buffer.WriteString("Blank[")
-		buffer.WriteString(this.Parts[1].ToString())
-		buffer.WriteString("]")
-	} else {
-		buffer.WriteString("_")
-		buffer.WriteString(this.Parts[1].ToString())
-	}
-	return buffer.String()
-}
-
-func (this *Expression) ToStringBlankSequence() string {
-	var buffer bytes.Buffer
-	if false {
-		buffer.WriteString("BlankSequence[")
-		buffer.WriteString(this.Parts[1].ToString())
-		buffer.WriteString("]")
-	} else {
-		buffer.WriteString("__")
-		buffer.WriteString(this.Parts[1].ToString())
-	}
-	return buffer.String()
-}
-
-func (this *Expression) ToStringBlankNullSequence() string {
-	var buffer bytes.Buffer
-	if false {
-		buffer.WriteString("BlankNullSequence[")
-		buffer.WriteString(this.Parts[1].ToString())
-		buffer.WriteString("]")
-	} else {
-		buffer.WriteString("___")
-		buffer.WriteString(this.Parts[1].ToString())
-	}
-	return buffer.String()
-}
-
-// -------------------------
 
 func BlankNullSequenceToBlank(bns *Expression) *Expression {
 	return &Expression{[]Ex{&Symbol{"Blank"}, bns.Parts[1]}}
