@@ -2,74 +2,14 @@ package cas
 
 import "bytes"
 
-type Rule struct {
-	Lhs Ex
-	Rhs Ex
-}
-
-func (this *Rule) Eval(es *EvalState) Ex {
-	this.Lhs = this.Lhs.Eval(es)
-	this.Rhs = this.Rhs.Eval(es)
-	return this
-}
-
-func (this *Rule) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
-	}
-	return this
-}
-
-func (this *Rule) ToString() string {
+func (this *Expression) ToStringRule() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Lhs.ToString())
+	buffer.WriteString(this.Parts[1].ToString())
 	buffer.WriteString(") -> (")
-	buffer.WriteString(this.Rhs.ToString())
+	buffer.WriteString(this.Parts[2].ToString())
 	buffer.WriteString(")")
 	return buffer.String()
-}
-
-func (this *Rule) IsEqual(otherEx Ex, es *EvalState) string {
-	other, ok := otherEx.(*Rule)
-	if !ok {
-		return "EQUAL_UNK"
-	}
-	return FunctionIsEqual([]Ex{
-		this.Lhs,
-		this.Rhs,
-	}, []Ex{
-		other.Lhs,
-		other.Rhs,
-	}, es)
-}
-
-func (this *Rule) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*Rule)
-	if !ok {
-		return false
-	}
-	return FunctionIsSameQ([]Ex{
-		this.Lhs,
-		this.Rhs,
-	}, []Ex{
-		other.Lhs,
-		other.Rhs,
-	}, es)
-}
-
-func (this *Rule) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Rule") {
-		return true
-	}
-	return this.IsSameQ(otherEx, es)
-}
-
-func (this *Rule) DeepCopy() Ex {
-	return &Rule{
-		this.Lhs.DeepCopy(),
-		this.Rhs.DeepCopy(),
-	}
 }
 
 func (this *Expression) EvalReplace(es *EvalState) Ex {
@@ -79,7 +19,7 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 	this.Parts[1] = this.Parts[1].Eval(es)
 	this.Parts[2] = this.Parts[2].Eval(es)
 	//_, ok := this.Parts[2].(*Rule)
-	rulesRule, ok := this.Parts[2].(*Rule)
+	rulesRule, ok := HeadAssertion(this.Parts[2], "Rule")
 	if ok {
 		oldVars := es.GetDefinedSnapshot()
 		newEx := this.Parts[1].Replace(rulesRule, es)
@@ -110,7 +50,7 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 	this.Parts[1] = this.Parts[1].Eval(es)
 	this.Parts[2] = this.Parts[2].Eval(es)
 	//_, ok := this.Parts[2].(*Rule)
-	rulesRule, ok := this.Parts[2].(*Rule)
+	rulesRule, ok := HeadAssertion(this.Parts[2], "Rule")
 	if ok {
 		isSame := false
 		oldEx := this.Parts[1]

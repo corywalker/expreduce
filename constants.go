@@ -13,9 +13,9 @@ func (f *Flt) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (this *Flt) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
+func (this *Flt) Replace(r *Expression, es *EvalState) Ex {
+	if this.IsMatchQ(r.Parts[1], es) {
+		return r.Parts[2]
 	}
 	return this
 }
@@ -78,9 +78,9 @@ func (f *Integer) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (this *Integer) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
+func (this *Integer) Replace(r *Expression, es *EvalState) Ex {
+	if this.IsMatchQ(r.Parts[1], es) {
+		return r.Parts[2]
 	}
 	return this
 }
@@ -137,9 +137,9 @@ func (this *String) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *String) Replace(r *Rule, es *EvalState) Ex {
-	if this.IsMatchQ(r.Lhs, es) {
-		return r.Rhs
+func (this *String) Replace(r *Expression, es *EvalState) Ex {
+	if this.IsMatchQ(r.Parts[1], es) {
+		return r.Parts[2]
 	}
 	return this
 }

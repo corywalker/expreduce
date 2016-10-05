@@ -17,7 +17,7 @@ var format = logging.MustStringFormatter(
 )
 
 type EvalState struct {
-	defined        map[string][]Rule
+	defined        map[string][]Expression
 	patternDefined map[string]Ex
 	log            *logging.Logger
 	leveled        logging.LeveledBackend
@@ -25,7 +25,7 @@ type EvalState struct {
 
 func NewEvalState() *EvalState {
 	var es EvalState
-	es.defined = make(map[string][]Rule)
+	es.defined = make(map[string][]Expression)
 	es.patternDefined = make(map[string]Ex)
 
 	// Set up logging
@@ -41,7 +41,7 @@ func NewEvalState() *EvalState {
 
 func NewEvalStateNoLog() *EvalState {
 	var es EvalState
-	es.defined = make(map[string][]Rule)
+	es.defined = make(map[string][]Expression)
 	es.patternDefined = make(map[string]Ex)
 	return &es
 }
@@ -73,20 +73,20 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	this.log.Debugf(this.Pre()+"Inside GetDef(\"%s\",%s)", name, lhs.ToString())
 	oldVars := this.GetDefinedSnapshot()
 	for i := range this.defined[name] {
-		if lhs.IsMatchQ(this.defined[name][i].Lhs, this) {
+		if lhs.IsMatchQ(this.defined[name][i].Parts[1], this) {
 			//Probably not needed:
 			//this.ClearPD()
-			//this.defined = CopyRuleMap(oldVars)
+			//this.defined = CopyExpressionMap(oldVars)
 			this.log.Debugf(this.Pre()+"Found match! Current context before: %s", this.ToString())
 			res := lhs.Replace(&this.defined[name][i], this)
 			this.log.Debugf(this.Pre()+"Found match! Current context after: %s", this.ToString())
 			this.ClearPD()
-			this.defined = CopyRuleMap(oldVars)
+			this.defined = CopyExpressionMap(oldVars)
 			this.log.Debugf(this.Pre()+"After reset: %s", this.ToString())
 			return res, true
 		}
 		this.ClearPD()
-		this.defined = CopyRuleMap(oldVars)
+		this.defined = CopyExpressionMap(oldVars)
 	}
 	return nil, false
 }
@@ -95,13 +95,13 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	this.log.Debugf(this.Pre()+"Inside es.Define(\"%s\",%s,%s)", name, lhs.ToString(), rhs.ToString())
 	_, isd := this.defined[name]
 	if !isd {
-		this.defined[name] = []Rule{{lhs, rhs}}
+		this.defined[name] = []Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}}
 		return
 	}
 
 	for i := range this.defined[name] {
-		if this.defined[name][i].Lhs.IsSameQ(lhs, this) {
-			this.defined[name][i].Rhs = rhs
+		if this.defined[name][i].Parts[1].IsSameQ(lhs, this) {
+			this.defined[name][i].Parts[2] = rhs
 			return
 		}
 	}
@@ -112,17 +112,17 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	// to attempt f[x_Integer] before we attempt f[x_].
 	newLhsLen := len(lhs.ToString())
 	for i := range this.defined[name] {
-		thisLhsLen := len(this.defined[name][i].Lhs.ToString())
+		thisLhsLen := len(this.defined[name][i].Parts[1].ToString())
 		if thisLhsLen < newLhsLen {
-			this.defined[name] = append(this.defined[name][:i], append([]Rule{{lhs, rhs}}, this.defined[name][i:]...)...)
+			this.defined[name] = append(this.defined[name][:i], append([]Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}}, this.defined[name][i:]...)...)
 			return
 		}
 	}
-	this.defined[name] = append(this.defined[name], Rule{lhs, rhs})
+	this.defined[name] = append(this.defined[name], Expression{[]Ex{&Symbol{"Rule"}, lhs, rhs}})
 }
 
 func (this *EvalState) ClearAll() {
-	this.defined = make(map[string][]Rule)
+	this.defined = make(map[string][]Expression)
 	this.patternDefined = make(map[string]Ex)
 }
 
@@ -130,18 +130,18 @@ func (this *EvalState) ClearPD() {
 	this.patternDefined = make(map[string]Ex)
 }
 
-func CopyRuleMap(in map[string][]Rule) map[string][]Rule {
-	out := make(map[string][]Rule)
+func CopyExpressionMap(in map[string][]Expression) map[string][]Expression {
+	out := make(map[string][]Expression)
 	for k, v := range in {
 		for _, rule := range v {
-			out[k] = append(out[k], *rule.DeepCopy().(*Rule))
+			out[k] = append(out[k], *rule.DeepCopy().(*Expression))
 		}
 	}
 	return out
 }
 
-func (this *EvalState) GetDefinedSnapshot() map[string][]Rule {
-	return CopyRuleMap(this.defined)
+func (this *EvalState) GetDefinedSnapshot() map[string][]Expression {
+	return CopyExpressionMap(this.defined)
 }
 
 func (this *EvalState) ToString() string {
@@ -150,7 +150,7 @@ func (this *EvalState) ToString() string {
 	for k, v := range this.defined {
 		buffer.WriteString(k)
 		buffer.WriteString(": ")
-		buffer.WriteString(RuleArrayToString(v))
+		buffer.WriteString(ExpressionArrayToString(v))
 		buffer.WriteString(", ")
 	}
 	for k, v := range this.patternDefined {
@@ -169,7 +169,7 @@ func (this *EvalState) ToString() string {
 // Ex stands for Expression. Most structs should implement this
 type Ex interface {
 	Eval(es *EvalState) Ex
-	Replace(r *Rule, es *EvalState) Ex
+	Replace(r *Expression, es *EvalState) Ex
 	ToString() string
 	IsEqual(b Ex, es *EvalState) string
 	IsSameQ(b Ex, es *EvalState) bool
@@ -194,7 +194,7 @@ func ExArrayToString(exArray []Ex) string {
 	return buffer.String()
 }
 
-func RuleArrayToString(exArray []Rule) string {
+func ExpressionArrayToString(exArray []Expression) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range exArray {
@@ -445,12 +445,12 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool
 	return true
 }
 
-func IterableReplace(components *[]Ex, r *Rule, es *EvalState) {
+func IterableReplace(components *[]Ex, r *Expression, es *EvalState) {
 	for i := range *components {
-		es.log.Debugf(es.Pre()+"Attempting (%s).IsMatchQ(%s, %s)", (*components)[i].ToString(), r.Lhs.ToString(), es.ToString())
+		es.log.Debugf(es.Pre()+"Attempting (%s).IsMatchQ(%s, %s)", (*components)[i].ToString(), r.Parts[1].ToString(), es.ToString())
 		oldVars := es.GetDefinedSnapshot()
-		if (*components)[i].IsMatchQ(r.Lhs, es) {
-			(*components)[i] = r.Rhs.DeepCopy()
+		if (*components)[i].IsMatchQ(r.Parts[1], es) {
+			(*components)[i] = r.Parts[2].DeepCopy()
 			es.log.Debugf(es.Pre()+"IsMatchQ succeeded, new components: %s", ExArrayToString(*components))
 		}
 		es.ClearPD()
