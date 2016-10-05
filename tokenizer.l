@@ -146,7 +146,7 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
             return PATTERN
         }
     }
-    lval.val = &Error{"Pattern parse error."}
+    lval.val = &Expression{[]Ex{&Symbol{"Error"}, &String{"Pattern parse error."}}}
     return PATTERN
 
 {ident}

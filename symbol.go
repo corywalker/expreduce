@@ -75,7 +75,7 @@ func (this *Expression) EvalSet(es *EvalState) Ex {
 
 	LhsSym, ok := this.Parts[1].(*Symbol)
 	if !ok {
-		return &Error{"Cannot set non-symbol to an expression"}
+		return &Expression{[]Ex{&Symbol{"Error"}, &String{"Cannot set non-symbol to an expression"}}}
 	}
 	var evaluated Ex = this.Parts[2].Eval(es)
 	//es.defined[LhsSym.Name] = evaluated
@@ -112,7 +112,7 @@ func (this *Expression) EvalSetDelayed(es *EvalState) Ex {
 		}
 	}
 
-	return &Error{"Can only set expression to a symbol or a function"}
+	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
 }
 
 func (this *Expression) ToStringSetDelayed() string {

@@ -129,27 +129,27 @@ func (this *Integer) DeepCopy() Ex {
 	return &Integer{tmp}
 }
 
-type Error struct {
+type String struct {
 	Val string
 }
 
-func (this *Error) Eval(es *EvalState) Ex {
+func (this *String) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Error) Replace(r *Rule, es *EvalState) Ex {
+func (this *String) Replace(r *Rule, es *EvalState) Ex {
 	if this.IsMatchQ(r.Lhs, es) {
 		return r.Rhs
 	}
 	return this
 }
 
-func (this *Error) ToString() string {
-	return fmt.Sprintf("%v", this.Val)
+func (this *String) ToString() string {
+	return fmt.Sprintf("\"%v\"", this.Val)
 }
 
-func (this *Error) IsEqual(other Ex, es *EvalState) string {
-	otherConv, ok := other.(*Error)
+func (this *String) IsEqual(other Ex, es *EvalState) string {
+	otherConv, ok := other.(*String)
 	if !ok {
 		return "EQUAL_FALSE"
 	}
@@ -159,22 +159,22 @@ func (this *Error) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Error) IsSameQ(other Ex, es *EvalState) bool {
-	_, ok := other.(*Error)
+func (this *String) IsSameQ(other Ex, es *EvalState) bool {
+	_, ok := other.(*String)
 	if !ok {
 		return false
 	}
 	return this.IsEqual(other, es) == "EQUAL_TRUE"
 }
 
-func (this *Error) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankType(otherEx, "Error") {
+func (this *String) IsMatchQ(otherEx Ex, es *EvalState) bool {
+	if IsBlankTypeCapturing(otherEx, this, "String", es) {
 		return true
 	}
 	return this.IsSameQ(otherEx, es)
 }
 
-func (this *Error) DeepCopy() Ex {
+func (this *String) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy
 }

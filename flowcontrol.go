@@ -14,7 +14,7 @@ func (this *Expression) EvalIf(es *EvalState) Ex {
 		return this.Parts[3].Eval(es)
 	}
 
-	return &Error{"Unexpected equality return value."}
+	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 }
 
 func (this *Expression) EvalWhile(es *EvalState) Ex {
@@ -30,12 +30,12 @@ func (this *Expression) EvalWhile(es *EvalState) Ex {
 	}
 
 	if isequal == "EQUAL_UNK" {
-		return &Error{"Encountered EQUAL_UNK when evaluating test for the While."}
+		return &Expression{[]Ex{&Symbol{"Error"}, &String{"Encountered EQUAL_UNK when evaluating test for the While."}}}
 	} else if isequal == "EQUAL_TRUE" {
 		return &Symbol{"Null"}
 	} else if isequal == "EQUAL_FALSE" {
 		return &Symbol{"Null"}
 	}
 
-	return &Error{"Unexpected equality return value."}
+	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 }

@@ -24,5 +24,5 @@ func (this *Expression) EvalDefinition(es *EvalState) Ex {
 	}
 
 	//sym, ok := this.Expr.(*Symbol)
-	return &Error{es.ToString()}
+	return &Expression{[]Ex{&Symbol{"Error"}, &String{es.ToString()}}}
 }

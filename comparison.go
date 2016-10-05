@@ -16,7 +16,7 @@ func (this *Expression) EvalEqual(es *EvalState) Ex {
 		return &Symbol{"False"}
 	}
 
-	return &Error{"Unexpected equality return value."}
+	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 }
 
 func (this *Expression) ToStringEqual() string {
