@@ -267,8 +267,11 @@ func (this *Expression) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	if isHeadSym {
 		headStr := headAsSym.Name
-		if IsBlankTypeCapturing(otherEx, this, headStr, es) {
-			return true
+		if IsBlankTypeOnly(otherEx) {
+			if IsBlankTypeCapturing(otherEx, this, headStr, es) {
+				return true
+			}
+			return false
 		}
 	}
 	//thisEx := this.Eval(es)

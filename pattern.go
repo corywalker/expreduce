@@ -65,6 +65,25 @@ func (this *Pattern) IsSameQ(otherEx Ex, es *EvalState) bool {
 	}, es)
 }
 
+func IsBlankTypeOnly(e Ex) bool {
+	asPattern, patternOk := e.(*Pattern)
+	if patternOk {
+		_, blankOk := HeadAssertion(asPattern.Obj, "Blank")
+		_, bsOk := HeadAssertion(asPattern.Obj, "BlankSequence")
+		_, bnsOk := HeadAssertion(asPattern.Obj, "BlankNullSequence")
+		if blankOk || bsOk || bnsOk {
+			return true
+		}
+	}
+	_, blankOk := HeadAssertion(e, "Blank")
+	_, bsOk := HeadAssertion(e, "BlankSequence")
+	_, bnsOk := HeadAssertion(e, "BlankNullSequence")
+	if blankOk || bsOk || bnsOk {
+		return true
+	}
+	return false
+}
+
 func IsBlankType(e Ex, t string) bool {
 	// Calling this function on an amatch_Integer with t == "Integer" would
 	// yield true, while calling this function on an actual integer with
