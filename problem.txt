@@ -1,0 +1,10 @@
+4*a*b*c*d*e*f + -7*a*b*c*g*e*f /. c1match_Integer*matcha__ + c2match_Integer*matcha__ -> (c1match+c2match)*matcha
+will actually combine, even though the terms are not the same
+
+I should take a step to re-organize how infix functions are printed. I could factor out common functionality.
+
+A lot of the function-specific eval functions start by evaluating their inputs. This is not needed because Expression now handles this by default.
+
+Need to implement SequenceHold
+
+Make sure all ToString methods are used and that they assert the number of parameters before accessing them. Must provide boolean as to if the operation succeeded? This could make debugging cumbersome.

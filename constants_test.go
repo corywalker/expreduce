@@ -13,7 +13,8 @@ func TestConstants(t *testing.T) {
 
 	es := NewEvalState()
 
-	var a Ex = &Times{[]Ex{
+	var a Ex = &Expression{[]Ex{
+		&Symbol{"Times"},
 		&Flt{big.NewFloat(1e9)},
 		&Flt{big.NewFloat(1e9)},
 		&Flt{big.NewFloat(1e9)},
@@ -78,12 +79,12 @@ func TestConstants(t *testing.T) {
 	assert.Equal(t, "EQUAL_FALSE", b.IsEqual(a, es))
 	//fmt.Println(a.ToString())
 
-	a = &Error{"First error"}
-	assert.Equal(t, "First error", a.ToString())
-	b = &Error{"Second error"}
-	assert.Equal(t, "Second error", b.ToString())
+	a = &Expression{[]Ex{&Symbol{"Error"}, &String{"First error"}}}
+	assert.Equal(t, "Error[\"First error\"]", a.ToString())
+	b = &Expression{[]Ex{&Symbol{"Error"}, &String{"Second error"}}}
+	assert.Equal(t, "Error[\"Second error\"]", b.ToString())
 	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, es))
 	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, es))
-	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(b, es))
-	assert.Equal(t, "EQUAL_FALSE", b.IsEqual(a, es))
+	assert.Equal(t, "EQUAL_UNK", a.IsEqual(b, es))
+	assert.Equal(t, "EQUAL_UNK", b.IsEqual(a, es))
 }

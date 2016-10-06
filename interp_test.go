@@ -6,8 +6,8 @@ import (
 	"testing"
 )
 
-func TestSymbol(t *testing.T) {
-	fmt.Println("Testing symbol")
+func TestInterp(t *testing.T) {
+	fmt.Println("Testing interp")
 
 	es := NewEvalState()
 

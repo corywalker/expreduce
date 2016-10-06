@@ -7,20 +7,20 @@ import (
 	"testing"
 )
 
-func TestFunction(t *testing.T) {
-	fmt.Println("Testing functions")
+func TestExpression(t *testing.T) {
+	fmt.Println("Testing expressions")
 
 	es := NewEvalState()
 
-	var t1 = &Function{
-		&Symbol{"Power"},
+	var t1 = &Expression{
 		[]Ex{
+			&Symbol{"Power"},
 			&Flt{big.NewFloat(5)},
 			&Flt{big.NewFloat(3)},
 		},
 	}
-	assert.Equal(t, "Power[5., 3.]", t1.ToString())
-	assert.Equal(t, "Power[5, 3]", Interp("Power[ 5,3 ]").ToString())
+	assert.Equal(t, "5.^3.", t1.ToString())
+	assert.Equal(t, "5^3", Interp("Power[ 5,3 ]").ToString())
 	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").ToString())
 	assert.Equal(t, "my2func[]", Interp("my2func[  ]").ToString())
 
@@ -42,7 +42,7 @@ func TestFunction(t *testing.T) {
 	CasAssertSame(t, es, "k", "(foo[foo[k]] /. foo[k] -> k) /. foo[k] -> k")
 	CasAssertSame(t, es, "foo[bla]", "foo[foo[k]] /. foo[k] -> bla")
 
-	// Test matching through function arguments
+	// Test matching through expression arguments
 	CasAssertSame(t, es, "True", "MatchQ[foo[2*x, x], foo[matcha_Integer*matchx_, matchx_]]")
 	CasAssertSame(t, es, "False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]")
 	CasAssertSame(t, es, "False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]")

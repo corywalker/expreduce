@@ -44,71 +44,80 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $2 }
 	|    expr LBRACKETSYM RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			$$ = fc
+			ex := &Expression{}
+			ex.Parts = []Ex{$1}
+			$$ = ex
 		}
 	|    expr LBRACKETSYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3}
-			$$ = fc
+			ex := &Expression{}
+			ex.Parts = []Ex{$1, $3}
+			$$ = ex
 		}
 	|    expr LBRACKETSYM expr COMMASYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3, $5}
-			$$ = fc
+			ex := &Expression{}
+			ex.Parts = []Ex{$1, $3, $5}
+			$$ = ex
 		}
 	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3, $5, $7}
-			$$ = fc
+			ex := &Expression{}
+			ex.Parts = []Ex{$1, $3, $5, $7}
+			$$ = ex
 		}
 	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3, $5, $7, $9}
+			fc := &Expression{}
+			fc.Parts = []Ex{$1, $3, $5, $7, $9}
 			$$ = fc
 		}
 	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
 		{
-			fc := &Function{}
-			fc.Name = $1
-			fc.Arguments = []Ex{$3, $5, $7, $9, $11}
+			fc := &Expression{}
+			fc.Parts = []Ex{$1, $3, $5, $7, $9, $11}
 			$$ = fc
 		}
 	|    expr PLUSSYM expr
-		{ $$  =  &Plus{[]Ex{$1, $3}} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Plus"}, $1, $3}} }
 	|    expr MINUSSYM expr
-		{ $$  =  &Plus{ []Ex{$1, &Times{[]Ex{$3, &Integer{big.NewInt(-1)}}} } } }
+		{ $$  =  &Expression{ []Ex{&Symbol{"Plus"}, $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}} } } }
 	|    expr MULTSYM expr
-		{ $$  =  &Times{[]Ex{$1, $3}} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $3}} }
 	|    expr DIVSYM expr
-		{ $$  =  &Times{ []Ex{$1, &Power{$3, &Integer{big.NewInt(-1)}} } } }
+		{ $$  =  &Expression{[]Ex{
+		           &Symbol{"Times"},
+				   $1,
+				   &Expression{[]Ex{
+				     &Symbol{"Power"},
+				     $3,
+					 &Integer{big.NewInt(-1)},
+				   }},
+			     }}
+		}
 	|    expr EXPSYM expr
-		{ $$  =  &Power{$1, $3} }
+		{ $$  =  &Expression{[]Ex{
+		           &Symbol{"Power"},
+				   $1,
+				   $3,
+				 }}
+		}
 	|    expr RULESYM expr
-		{ $$  =  &Rule{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Rule"}, $1, $3}} }
 	|    expr REPLACEREPSYM expr
-		{ $$  =  &ReplaceRepeated{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"ReplaceRepeated"}, $1, $3}} }
 	|    expr REPLACESYM expr
-		{ $$  =  &Replace{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Replace"}, $1, $3}} }
 	|    expr SETSYM expr
-		{ $$  =  &Set{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Set"}, $1, $3}} }
 	|    expr SETDELAYEDSYM expr
-		{ $$  =  &SetDelayed{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"SetDelayed"}, $1, $3}} }
 	|    expr SAMESYM expr
-		{ $$  =  &SameQ{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"SameQ"}, $1, $3}} }
 	|    expr EQUALSYM expr
-		{ $$  =  &Equal{$1, $3} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Equal"}, $1, $3}} }
 	|    MINUSSYM expr
-		{ $$  =  &Times{[]Ex{$2, &Integer{big.NewInt(-1)}}} }
+		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $2, &Integer{big.NewInt(-1)}}} }
 	|    PATTERN
 		{ $$  =  $1 }
 	|    NAME

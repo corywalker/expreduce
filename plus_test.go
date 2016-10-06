@@ -26,5 +26,9 @@ func TestPlus(t *testing.T) {
 	assert.Equal(t, "((a * -1) + (b * -1))", EasyRun("(a + b)/-1", es))
 	assert.Equal(t, "((a + b) * -1.)", EasyRun("(a + b)/-1.", es))
 
+	// Test that we do not delete all the addends
+	CasAssertSame(t, es, "0.", "(5.2 - .2) - 5")
+	CasAssertSame(t, es, "0", "0 + 0")
+
 	es.ClearAll()
 }

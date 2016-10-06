@@ -117,36 +117,36 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
     parts := strings.Split(string(y.buf), delim)
     if len(parts) == 1 {
         if delim == "___" {
-            lval.val = &Pattern{&Symbol{parts[0]}, &BlankNullSequence{}}
+            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankNullSequence"}}}}}
         } else if delim == "__" {
-            lval.val = &Pattern{&Symbol{parts[0]}, &BlankSequence{}}
+            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankSequence"}}}}}
         } else {
-            lval.val = &Pattern{&Symbol{parts[0]}, &Blank{}}
+            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"Blank"}}}}}
         }
         return PATTERN
     }
     if len(parts) == 2 {
         if parts[0] == "" {
             if delim == "___" {
-                lval.val = &BlankNullSequence{&Symbol{parts[1]}}
+                lval.val = &Expression{[]Ex{&Symbol{"BlankNullSequence"}, &Symbol{parts[1]}}}
             } else if delim == "__" {
-                lval.val = &BlankSequence{&Symbol{parts[1]}}
+                lval.val = &Expression{[]Ex{&Symbol{"BlankSequence"}, &Symbol{parts[1]}}}
             } else {
-                lval.val = &Blank{&Symbol{parts[1]}}
+                lval.val = &Expression{[]Ex{&Symbol{"Blank"}, &Symbol{parts[1]}}}
             }
             return PATTERN
         } else {
             if delim == "___" {
-                lval.val = &Pattern{&Symbol{parts[0]}, &BlankNullSequence{&Symbol{parts[1]}}}
+                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankNullSequence"}, &Symbol{parts[1]}}}}}
             } else if delim == "__" {
-                lval.val = &Pattern{&Symbol{parts[0]}, &BlankSequence{&Symbol{parts[1]}}}
+                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankSequence"}, &Symbol{parts[1]}}}}}
             } else {
-                lval.val = &Pattern{&Symbol{parts[0]}, &Blank{&Symbol{parts[1]}}}
+                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"Blank"}, &Symbol{parts[1]}}}}}
             }
             return PATTERN
         }
     }
-    lval.val = &Error{"Pattern parse error."}
+    lval.val = &Expression{[]Ex{&Symbol{"Error"}, &String{"Pattern parse error."}}}
     return PATTERN
 
 {ident}
