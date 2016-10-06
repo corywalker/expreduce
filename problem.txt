@@ -5,8 +5,6 @@ I should take a step to re-organize how infix functions are printed. I could fac
 
 A lot of the function-specific eval functions start by evaluating their inputs. This is not needed because Expression now handles this by default.
 
-Rule should be the last thing that I convert. It is embedded deep in the design.
-
 Need to implement SequenceHold
 
 Make sure all ToString methods are used and that they assert the number of parameters before accessing them. Must provide boolean as to if the operation succeeded? This could make debugging cumbersome.

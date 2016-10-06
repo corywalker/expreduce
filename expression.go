@@ -166,12 +166,26 @@ func (this *Expression) ToString() string {
 			return this.ToStringPower()
 		} else if headStr == "Equal" {
 			return this.ToStringEqual()
+		} else if headStr == "SameQ" {
+			return this.ToStringSameQ()
 		} else if headStr == "Replace" {
 			return this.ToStringReplace()
 		} else if headStr == "ReplaceRepeated" {
 			return this.ToStringReplaceRepeated()
+		} else if headStr == "Pattern" {
+			return this.ToStringPattern()
+		} else if headStr == "Blank" {
+			return this.ToStringBlank()
+		} else if headStr == "BlankSequence" {
+			return this.ToStringBlankSequence()
 		} else if headStr == "BlankNullSequence" {
 			return this.ToStringBlankNullSequence()
+		} else if headStr == "Rule" {
+			return this.ToStringRule()
+		} else if headStr == "Set" {
+			return this.ToStringSet()
+		} else if headStr == "SetDelayed" {
+			return this.ToStringSetDelayed()
 		}
 	}
 
