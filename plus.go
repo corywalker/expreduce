@@ -76,7 +76,7 @@ func (this *Expression) EvalPlus(es *EvalState) Ex {
 	// Remove zero Floats
 	for i := len(addends) - 1; i >= 0; i-- {
 		f, ok := addends[i].(*Flt)
-		if ok && f.Val.Cmp(big.NewFloat(0)) == 0 {
+		if ok && f.Val.Cmp(big.NewFloat(0)) == 0 && len(addends) > 1{
 			addends[i] = addends[len(addends)-1]
 			addends[len(addends)-1] = nil
 			addends = addends[:len(addends)-1]
@@ -99,7 +99,7 @@ func (this *Expression) EvalPlus(es *EvalState) Ex {
 	// Remove zero Integers
 	for i := len(addends) - 1; i >= 0; i-- {
 		theint, ok := addends[i].(*Integer)
-		if ok && theint.Val.Cmp(big.NewInt(0)) == 0 {
+		if ok && theint.Val.Cmp(big.NewInt(0)) == 0 && len(addends) > 1 {
 			addends[i] = addends[len(addends)-1]
 			addends[len(addends)-1] = nil
 			addends = addends[:len(addends)-1]

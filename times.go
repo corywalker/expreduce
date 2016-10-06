@@ -123,7 +123,7 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	// Remove one Integers
 	for i := len(multiplicands) - 1; i >= 0; i-- {
 		theint, ok := multiplicands[i].(*Integer)
-		if ok && theint.Val.Cmp(big.NewInt(1)) == 0 {
+		if ok && theint.Val.Cmp(big.NewInt(1)) == 0 && len(multiplicands) > 1 {
 			multiplicands[i] = multiplicands[len(multiplicands)-1]
 			multiplicands[len(multiplicands)-1] = nil
 			multiplicands = multiplicands[:len(multiplicands)-1]
