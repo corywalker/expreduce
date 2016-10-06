@@ -107,6 +107,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Definition" {
 			return this.EvalDefinition(es)
 		}
+		if headStr == "Order" {
+			return this.EvalOrder(es)
+		}
 
 		theRes, isDefined := es.GetDef(headStr, this)
 		if isDefined {

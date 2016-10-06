@@ -311,6 +311,13 @@ func Max(x, y int) int {
 	return y
 }
 
+func Min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
 func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
 	// This function is now recursive because of the existence of BlankSequence.
 	es.log.Infof(es.Pre()+"Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es.ToString())

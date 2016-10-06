@@ -69,6 +69,12 @@ func (this *Flt) DeepCopy() Ex {
 	return &Flt{tmp}
 }
 
+func IntegerToFlt(i *Integer) (*Flt, bool) {
+	newfloat := big.NewFloat(0)
+	newfloat.SetInt(i.Val)
+	return &Flt{newfloat}, true
+}
+
 // Integer numbers represented by big.Int
 type Integer struct {
 	Val *big.Int
