@@ -106,6 +106,7 @@ func TestReplacement(t *testing.T) {
 	// Test replacing functions
 	CasAssertSame(t, es, "test[]", "kfdsfdsf[] /. _Symbol -> test")
 	CasAssertSame(t, es, "11", "(x + 2)[5, 6] /. (2 + x) -> Plus")
+	CasAssertSame(t, es, "2[2, 2, 2, 2]", "a*b*c*d /. _Symbol -> 2")
 	//CasAssertSame(t, es, "2", "foo[2*x, x] /. foo[matcha_Integer*matchx_, matchx_] -> matcha")
 
 	// Test replacing with BlankSequence
