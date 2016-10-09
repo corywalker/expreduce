@@ -12,11 +12,13 @@ import (
 // as ${PREFIX}SymType, of which a reference is passed to the lexer.
 %union{
 	val Ex
+	valSeq []Ex
 }
 
 // any non-terminal which returns a value needs a type, which is
 // really a field name in the above union struct
 %type <val> expr
+%type <valSeq> exprseq
 
 // same for terminals
 %token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM LBRACKETSYM RBRACKETSYM REPLACEREPSYM REPLACESYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM SAMESYM EQUALSYM SETSYM SETDELAYEDSYM NAME PATTERN
@@ -48,35 +50,11 @@ expr	:    LPARSYM expr RPARSYM
 			ex.Parts = []Ex{$1}
 			$$ = ex
 		}
-	|    expr LBRACKETSYM expr RBRACKETSYM
+	|    expr LBRACKETSYM exprseq RBRACKETSYM
 		{
 			ex := &Expression{}
-			ex.Parts = []Ex{$1, $3}
+			ex.Parts = append([]Ex{$1}, $3...)
 			$$ = ex
-		}
-	|    expr LBRACKETSYM expr COMMASYM expr RBRACKETSYM
-		{
-			ex := &Expression{}
-			ex.Parts = []Ex{$1, $3, $5}
-			$$ = ex
-		}
-	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
-		{
-			ex := &Expression{}
-			ex.Parts = []Ex{$1, $3, $5, $7}
-			$$ = ex
-		}
-	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
-		{
-			fc := &Expression{}
-			fc.Parts = []Ex{$1, $3, $5, $7, $9}
-			$$ = fc
-		}
-	|    expr LBRACKETSYM expr COMMASYM expr COMMASYM expr COMMASYM expr COMMASYM expr RBRACKETSYM
-		{
-			fc := &Expression{}
-			fc.Parts = []Ex{$1, $3, $5, $7, $9, $11}
-			$$ = fc
 		}
 	|    expr PLUSSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Plus"}, $1, $3}} }
@@ -126,6 +104,12 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $1 }
 	|    INTEGER
 		{ $$  =  $1 }
+	;
+exprseq:
+	expr
+		{ $$ = []Ex{$1} }
+	| exprseq COMMASYM expr
+	    { $$ = append($$, $3) }
 	;
 
 %%      /*  start  of  programs  */
