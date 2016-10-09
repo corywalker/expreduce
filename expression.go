@@ -192,6 +192,8 @@ func (this *Expression) ToString() string {
 			return this.ToStringSet()
 		} else if headStr == "SetDelayed" {
 			return this.ToStringSetDelayed()
+		} else if headStr == "List" {
+			return this.ToStringList()
 		}
 	}
 

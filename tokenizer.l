@@ -94,6 +94,8 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 , return COMMASYM
 \[ return LBRACKETSYM
 \] return RBRACKETSYM
+\{ return LCURLYSYM
+\} return RCURLYSYM
 -> return RULESYM
 \+ return PLUSSYM
 \- return MINUSSYM
