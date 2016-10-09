@@ -20,6 +20,11 @@ func compareStrings(a string, b string) int64 {
 }
 
 func ExOrder(a Ex, b Ex) int64 {
+	// Support Flt, Integer, Expression, Symbol
+	// Merge Integer into Flt
+	// Need to support the following combinations
+	// ff,fs,fe,sf,ss,se,ef,es,ee
+
 	aAsSymbol, aIsSymbol := a.(*Symbol)
 	bAsSymbol, bIsSymbol := b.(*Symbol)
 
@@ -55,6 +60,36 @@ func ExOrder(a Ex, b Ex) int64 {
 		return compareStrings(aAsSymbol.Name, bAsSymbol.Name)
 	}
 
+	aAsExp, aIsExp := a.(*Expression)
+	bAsExp, bIsExp := b.(*Expression)
+	if aIsExp && bIsExp {
+		for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
+			o := ExOrder(aAsExp.Parts[i], bAsExp.Parts[i])
+			if o != 0 {
+				return o
+			}
+		}
+		if len(aAsExp.Parts) < len(bAsExp.Parts) {
+			return 1
+		} else if len(aAsExp.Parts) > len(bAsExp.Parts) {
+			return -1
+		} else {
+			return 0
+		}
+	}
+
+	if aIsFlt && bIsExp {
+		return 1
+	} else if aIsExp && bIsFlt {
+		return -1
+	}
+	if aIsSymbol && bIsExp {
+		return 1
+	} else if aIsExp && bIsSymbol {
+		return -1
+	}
+
+	// Do not support strings. Any comparison with these will go here.
 	return -2
 }
 
