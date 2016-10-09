@@ -110,6 +110,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Order" {
 			return this.EvalOrder(es)
 		}
+		if headStr == "Sort" {
+			return this.EvalSort(es)
+		}
 
 		theRes, isDefined := es.GetDef(headStr, this)
 		if isDefined {
@@ -323,4 +326,17 @@ func (this *Expression) DeepCopy() Ex {
 		thiscopy.Parts = append(thiscopy.Parts, this.Parts[i].DeepCopy())
 	}
 	return thiscopy
+}
+
+// Implement the sort.Interface
+func (this *Expression) Len() int {
+	return len(this.Parts) - 1
+}
+
+func (this *Expression) Less(i, j int) bool {
+	return ExOrder(this.Parts[i+1], this.Parts[j+1]) == 1
+}
+
+func (this *Expression) Swap(i, j int) {
+	this.Parts[j+1], this.Parts[i+1] = this.Parts[i+1], this.Parts[j+1]
 }

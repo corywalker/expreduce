@@ -28,4 +28,8 @@ func TestOrder(t *testing.T) {
 	CasAssertSame(t, es, "0", "Order[1., 1.]")
 	CasAssertSame(t, es, "1", "Order[1, 1.]")
 	CasAssertSame(t, es, "-1", "Order[1., 1]")
+
+	// Symbols vs numbers
+	CasAssertSame(t, es, "-1", "Order[ab, 1]")
+	CasAssertSame(t, es, "1", "Order[1, ab]")
 }

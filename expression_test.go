@@ -5,6 +5,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
+	"sort"
 )
 
 func TestExpression(t *testing.T) {
@@ -100,4 +101,32 @@ func TestExpression(t *testing.T) {
 	// Test replacement
 	//CasAssertSame(t, es, "2 * a + 12 * b", "foo[1, 2, 3, 4] /. foo[1, amatch__Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]")
 	//CasAssertSame(t, es, "a + 24 * b", "foo[1, 2, 3, 4] /. foo[1, amatch___Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]")
+
+	// Test sort.Interface
+	// Sort[foo[5., aa, 1.]] == foo[1., 5., aa]
+	es.ClearAll()
+	var exp = &Expression{
+		[]Ex{
+			&Symbol{"foo"},
+			&Flt{big.NewFloat(5)},
+			&Symbol{"aa"},
+			&Flt{big.NewFloat(1)},
+		},
+	}
+	assert.Equal(t, 3, exp.Len())
+	// Should i sort before j?
+	assert.Equal(t, false, exp.Less(0, 0))
+	assert.Equal(t, true, exp.Less(0, 1))
+	assert.Equal(t, true, exp.Less(2, 0))
+	assert.Equal(t, true, exp.Less(2, 1))
+	// Test the reverse of each
+	assert.Equal(t, false, exp.Less(1, 0))
+	assert.Equal(t, false, exp.Less(0, 2))
+	assert.Equal(t, false, exp.Less(1, 2))
+	// Test swap
+	assert.Equal(t, "foo[5., aa, 1.]", exp.ToString())
+	exp.Swap(0, 1)
+	assert.Equal(t, "foo[aa, 5., 1.]", exp.ToString())
+	sort.Sort(exp)
+	assert.Equal(t, "foo[1., 5., aa]", exp.ToString())
 }

@@ -19,7 +19,7 @@ func compareStrings(a string, b string) int64 {
 	return 0
 }
 
-func ExOrder(a Ex, b Ex, es *EvalState) int64 {
+func ExOrder(a Ex, b Ex) int64 {
 	aAsSymbol, aIsSymbol := a.(*Symbol)
 	bAsSymbol, bIsSymbol := b.(*Symbol)
 
@@ -45,8 +45,13 @@ func ExOrder(a Ex, b Ex, es *EvalState) int64 {
 		return initCmp
 	}
 
+	if aIsFlt && bIsSymbol {
+		return 1
+	} else if aIsSymbol && bIsFlt {
+		return -1
+	}
+
 	if aIsSymbol && bIsSymbol {
-		es.log.Debugf("%v %v", aAsSymbol.Name, bAsSymbol.Name)
 		return compareStrings(aAsSymbol.Name, bAsSymbol.Name)
 	}
 
@@ -58,6 +63,6 @@ func (this *Expression) EvalOrder(es *EvalState) Ex {
 		return this
 	}
 
-	toreturn := ExOrder(this.Parts[1], this.Parts[2], es)
+	toreturn := ExOrder(this.Parts[1], this.Parts[2])
 	return &Integer{big.NewInt(toreturn)}
 }
