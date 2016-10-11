@@ -137,6 +137,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Timing" {
 			return this.EvalTiming(es)
 		}
+		if headStr == "MemberQ" {
+			return this.EvalMemberQ(es)
+		}
 
 		theRes, isDefined := es.GetDef(headStr, this)
 		if isDefined {

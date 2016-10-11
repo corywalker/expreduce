@@ -58,3 +58,23 @@ func (this *Expression) EvalTable(es *EvalState) Ex {
 	}
 	return this
 }
+
+func (this *Expression) EvalMemberQ(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+	list, isList := HeadAssertion(this.Parts[1], "List")
+	if isList {
+		oldVars := es.GetDefinedSnapshot()
+		for _, exp := range list.Parts {
+			if exp.IsMatchQ(this.Parts[2], es) {
+				es.ClearPD()
+				es.defined = oldVars
+				return &Symbol{"True"}
+			}
+			es.ClearPD()
+			es.defined = oldVars
+		}
+	}
+	return &Symbol{"False"}
+}

@@ -29,4 +29,17 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{5, 6, 7, 8, 9, 10}", "Table[i, {i, 5, 10}]")
 	assert.Equal(t, "10", EasyRun("i", es))
 	CasAssertSame(t, es, "{1, 4, 9, 16, 25, 36, 49, 64, 81, 100}", "Table[n^2, {n, 1, 10}]")
+
+	// Test MemberQ
+	CasAssertSame(t, es, "False", "MemberQ[{1, 2, 3}, 0]")
+	CasAssertSame(t, es, "True", "MemberQ[{1, 2, 3}, 1]")
+	CasAssertSame(t, es, "False", "MemberQ[{1, 2, 3}, {1}]")
+	CasAssertSame(t, es, "True", "MemberQ[{1, 2, 3}, _Integer]")
+	CasAssertSame(t, es, "True", "MemberQ[{1, 2, 3}, _]")
+	CasAssertSame(t, es, "False", "MemberQ[{1, 2, 3}, _Real]")
+	CasAssertSame(t, es, "True", "MemberQ[{1, 2, 3}, testmatch_Integer]")
+	assert.Equal(t, "testmatch", EasyRun("testmatch", es))
+	CasAssertSame(t, es, "{Protected}", "Attributes[MemberQ]")
+	CasAssertSame(t, es, "False", "MemberQ[a, a]")
+	CasAssertSame(t, es, "False", "MemberQ[a, _]")
 }

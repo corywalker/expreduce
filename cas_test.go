@@ -132,4 +132,7 @@ func Test(t *testing.T) {
 	assert.Equal(t, "a", EasyRun("a", es))
 	assert.Equal(t, "b", EasyRun("b", es))
 	assert.Equal(t, "7", EasyRun("c", es))
+
+	CasAssertSame(t, es, "{HoldAll, Listable, Protected}", "Attributes[Attributes]")
+	CasAssertSame(t, es, "List[]", "Attributes[unknownsymbol]")
 }
