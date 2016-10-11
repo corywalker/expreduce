@@ -128,6 +128,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Length" {
 			return this.EvalLength(es)
 		}
+		if headStr == "Table" {
+			return this.EvalTable(es)
+		}
+		if headStr == "Clear" {
+			return this.EvalClear(es)
+		}
 
 		theRes, isDefined := es.GetDef(headStr, this)
 		if isDefined {
@@ -252,6 +258,12 @@ func IsHoldFirst(sym *Symbol) bool {
 // TODO: convert to a map
 func IsHoldAll(sym *Symbol) bool {
 	if sym.Name == "SetDelayed" {
+		return true
+	}
+	if sym.Name == "Table" {
+		return true
+	}
+	if sym.Name == "Clear" {
 		return true
 	}
 	return false

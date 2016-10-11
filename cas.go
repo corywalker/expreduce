@@ -129,6 +129,13 @@ func (this *EvalState) ClearAll() {
 	InitCAS(this)
 }
 
+func (this *EvalState) Clear(name string) {
+	_, ok := this.defined[name];
+	if ok {
+		delete(this.defined, name);
+	}
+}
+
 func (this *EvalState) ClearPD() {
 	this.patternDefined = make(map[string]Ex)
 }
@@ -578,4 +585,15 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 		es.defined = oldVars
 		es.log.Debugf(es.Pre()+"After clear. Context: %v\n", es.ToString())
 	}
+}
+
+func (this *Expression) EvalClear(es *EvalState) Ex {
+	for _, arg := range(this.Parts[1:]) {
+		es.log.Debugf("arg: %v", arg)
+		sym, isSym := arg.(*Symbol)
+		if isSym {
+			es.Clear(sym.Name)
+		}
+	}
+	return &Symbol{"Null"}
 }

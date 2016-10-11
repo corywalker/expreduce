@@ -27,3 +27,34 @@ func (this *Expression) EvalLength(es *EvalState) Ex {
 	}
 	return this
 }
+
+func (this *Expression) EvalTable(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+
+	list, isList := HeadAssertion(this.Parts[2], "List")
+	if isList {
+		if len(list.Parts) == 4 {
+			i, iOk := list.Parts[1].(*Symbol)
+			iMin, iMinOk := list.Parts[2].(*Integer)
+			iMax, iMaxOk := list.Parts[3].(*Integer)
+			if iOk && iMinOk && iMaxOk {
+				origDef, isOrigDef := es.GetDef(i.Name, i)
+				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+				iMaxInt := iMax.Val.Int64()
+				for curr := iMin.Val.Int64(); curr <= iMaxInt; curr++ {
+					es.Define(i.Name, i, &Integer{big.NewInt(curr)})
+					toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
+				}
+				if isOrigDef {
+					es.Define(i.Name, i, origDef)
+				} else {
+					es.Clear(i.Name)
+				}
+				return toReturn
+			}
+		}
+	}
+	return this
+}

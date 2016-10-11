@@ -120,4 +120,17 @@ func Test(t *testing.T) {
 	es.ClearAll()
 	_, containsTest = es.defined["test"]
 	assert.False(t, containsTest)
+
+
+	// Test ability to clear definitions
+	es.ClearAll()
+	CasAssertSame(t, es, "a", "a")
+	CasAssertSame(t, es, "5", "a = 5")
+	CasAssertSame(t, es, "6", "b = 6")
+	CasAssertSame(t, es, "7", "c = 7")
+	CasAssertSame(t, es, "5", "a")
+	CasAssertSame(t, es, "Null", "Clear[a, 99, b]")
+	assert.Equal(t, "a", EasyRun("a", es))
+	assert.Equal(t, "b", EasyRun("b", es))
+	assert.Equal(t, "7", EasyRun("c", es))
 }
