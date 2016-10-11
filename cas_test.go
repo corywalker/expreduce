@@ -121,7 +121,6 @@ func Test(t *testing.T) {
 	_, containsTest = es.defined["test"]
 	assert.False(t, containsTest)
 
-
 	// Test ability to clear definitions
 	es.ClearAll()
 	CasAssertSame(t, es, "a", "a")

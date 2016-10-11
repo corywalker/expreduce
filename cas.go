@@ -130,9 +130,9 @@ func (this *EvalState) ClearAll() {
 }
 
 func (this *EvalState) Clear(name string) {
-	_, ok := this.defined[name];
+	_, ok := this.defined[name]
 	if ok {
-		delete(this.defined, name);
+		delete(this.defined, name)
 	}
 }
 
@@ -588,7 +588,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 }
 
 func (this *Expression) EvalClear(es *EvalState) Ex {
-	for _, arg := range(this.Parts[1:]) {
+	for _, arg := range this.Parts[1:] {
 		es.log.Debugf("arg: %v", arg)
 		sym, isSym := arg.(*Symbol)
 		if isSym {

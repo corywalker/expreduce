@@ -134,6 +134,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Clear" {
 			return this.EvalClear(es)
 		}
+		if headStr == "Timing" {
+			return this.EvalTiming(es)
+		}
 
 		theRes, isDefined := es.GetDef(headStr, this)
 		if isDefined {
@@ -264,6 +267,9 @@ func IsHoldAll(sym *Symbol) bool {
 		return true
 	}
 	if sym.Name == "Clear" {
+		return true
+	}
+	if sym.Name == "Timing" {
 		return true
 	}
 	return false

@@ -2,8 +2,8 @@ package cas
 
 import (
 	"fmt"
-	"testing"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestList(t *testing.T) {
