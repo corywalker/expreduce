@@ -26,7 +26,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		headSym, headIsSym = this.Parts[0].(*Symbol)
 	}
 	for i := range this.Parts {
-		if headIsSym && i ==  1 && IsHoldFirst(headSym) {
+		if headIsSym && i == 1 && IsHoldFirst(headSym) {
 			continue
 		}
 		if headIsSym && IsHoldAll(headSym) {
@@ -112,6 +112,21 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 		if headStr == "Sort" {
 			return this.EvalSort(es)
+		}
+		if headStr == "RandomReal" {
+			return this.EvalRandomReal(es)
+		}
+		if headStr == "SeedRandom" {
+			return this.EvalSeedRandom(es)
+		}
+		if headStr == "UnixTime" {
+			return this.EvalUnixTime(es)
+		}
+		if headStr == "Apply" {
+			return this.EvalApply(es)
+		}
+		if headStr == "Length" {
+			return this.EvalLength(es)
 		}
 
 		theRes, isDefined := es.GetDef(headStr, this)
@@ -341,4 +356,20 @@ func (this *Expression) Less(i, j int) bool {
 
 func (this *Expression) Swap(i, j int) {
 	this.Parts[j+1], this.Parts[i+1] = this.Parts[i+1], this.Parts[j+1]
+}
+
+// Apply
+func (this *Expression) EvalApply(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+
+	sym, isSym := this.Parts[1].(*Symbol)
+	list, isList := HeadAssertion(this.Parts[2].DeepCopy(), "List")
+	if isSym && isList {
+		toReturn := &Expression{[]Ex{sym}}
+		toReturn.Parts = append(toReturn.Parts, list.Parts[1:]...)
+		return toReturn.Eval(es)
+	}
+	return this
 }

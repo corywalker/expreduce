@@ -30,5 +30,8 @@ func TestPlus(t *testing.T) {
 	CasAssertSame(t, es, "0.", "(5.2 - .2) - 5")
 	CasAssertSame(t, es, "0", "0 + 0")
 
+	// Test empty Plus expressions
+	CasAssertSame(t, es, "0", "Plus[]")
+
 	es.ClearAll()
 }

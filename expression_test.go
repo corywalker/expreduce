@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"math/big"
-	"testing"
 	"sort"
+	"testing"
 )
 
 func TestExpression(t *testing.T) {
@@ -129,4 +129,8 @@ func TestExpression(t *testing.T) {
 	assert.Equal(t, "foo[aa, 5., 1.]", exp.ToString())
 	sort.Sort(exp)
 	assert.Equal(t, "foo[1., 5., aa]", exp.ToString())
+
+	// Test Apply
+	es.ClearAll()
+	CasAssertSame(t, es, "foo[a,b,c]", "Apply[foo, {a,b,c}]")
 }

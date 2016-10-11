@@ -63,4 +63,7 @@ func TestOrder(t *testing.T) {
 	CasAssertSame(t, es, "-1", "Order[y, x]")
 	CasAssertSame(t, es, "-1", "Order[w[], x]")
 	CasAssertSame(t, es, "1", "Order[w, x]")
+
+	//CasAssertSame(t, es, "{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]")
+	//CasAssertSame(t, es, "{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]")
 }

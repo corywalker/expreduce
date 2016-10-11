@@ -36,6 +36,8 @@ func NewEvalState() *EvalState {
 	logging.SetBackend(es.leveled)
 	es.DebugOff()
 
+	InitCAS(&es)
+
 	return &es
 }
 
@@ -124,6 +126,7 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 func (this *EvalState) ClearAll() {
 	this.defined = make(map[string][]Expression)
 	this.patternDefined = make(map[string]Ex)
+	InitCAS(this)
 }
 
 func (this *EvalState) ClearPD() {

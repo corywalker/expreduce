@@ -4,6 +4,11 @@ import "bytes"
 import "math/big"
 
 func (this *Expression) EvalTimes(es *EvalState) Ex {
+	// Calls without argument receive identity values
+	if len(this.Parts) == 1 {
+		return &Integer{big.NewInt(1)}
+	}
+
 	multiplicands := this.Parts[1:len(this.Parts)]
 	// Start by evaluating each multiplicand
 	for i := range multiplicands {

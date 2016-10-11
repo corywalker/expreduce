@@ -4,6 +4,11 @@ import "bytes"
 import "math/big"
 
 func (this *Expression) EvalPlus(es *EvalState) Ex {
+	// Calls without argument receive identity values
+	if len(this.Parts) == 1 {
+		return &Integer{big.NewInt(0)}
+	}
+
 	addends := this.Parts[1:len(this.Parts)]
 	// Start by evaluating each addend
 	for i := range addends {
@@ -76,7 +81,7 @@ func (this *Expression) EvalPlus(es *EvalState) Ex {
 	// Remove zero Floats
 	for i := len(addends) - 1; i >= 0; i-- {
 		f, ok := addends[i].(*Flt)
-		if ok && f.Val.Cmp(big.NewFloat(0)) == 0 && len(addends) > 1{
+		if ok && f.Val.Cmp(big.NewFloat(0)) == 0 && len(addends) > 1 {
 			addends[i] = addends[len(addends)-1]
 			addends[len(addends)-1] = nil
 			addends = addends[:len(addends)-1]
