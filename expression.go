@@ -1,6 +1,7 @@
 package cas
 
 import "bytes"
+import "fmt"
 
 type Expression struct {
 	Parts []Ex
@@ -29,6 +30,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headIsSym && i == 1 && IsHoldFirst(headSym) {
 			continue
 		}
+		//if headIsSym && IsAttribute(headSym, "HoldAll", es) {
 		if headIsSym && IsHoldAll(headSym) {
 			continue
 		}
@@ -239,6 +241,44 @@ func (this *Expression) ToString() string {
 	}
 	buffer.WriteString("]")
 	return buffer.String()
+}
+
+func IsAttribute(sm *Symbol, attr string, es *EvalState) bool {
+	if sm.Name == "MemberQ" {
+		return attr == "Protected"
+	} else if sm.Name == "Attributes" {
+		return attr == "Protected" || attr == "HoldAll" || attr == "Listable"
+	} else if sm.Name == "List" {
+		return attr == "Protected" || attr == "Locked"
+	} else if sm.Name == "Pattern" {
+		return attr == "Protected" || attr == "HoldFirst"
+	} else if sm.Name == "Blank" {
+		return attr == "Protected"
+	} else if sm.Name == "Rule" {
+		return attr == "Protected" || attr == "SequenceHold"
+	} else if sm.Name == "Times" || sm.Name == "Plus" {
+		return attr == "Flat" || attr == "Listable" || attr == "NumericFunction" || attr == "OneIdentity" || attr == "Orderless" || attr == "Protected"
+	} else if sm.Name == "Power" {
+		return attr == "Listable" || attr == "NumericFunction" || attr == "OneIdentity" || attr == "Protected"
+	} else if sm.Name == "ReplaceRepeated" {
+		return attr == "Protected"
+	} else if sm.Name == "Equal" {
+		return attr == "Protected"
+	} // This is probably slow because it requires tons of Defined copies
+	fmt.Printf("IsAttribute(%v, %v)\n", sm.Name, attr)
+	res := (&Expression{[]Ex{
+		&Symbol{"MemberQ"},
+		&Expression{[]Ex{
+			&Symbol{"Attributes"},
+			sm,
+		}},
+		&Symbol{attr},
+	}}).Eval(es)
+	resSym, resIsSym := res.(*Symbol)
+	if resIsSym {
+		return resSym.Name == "True"
+	}
+	return false
 }
 
 // TODO: convert to a map
