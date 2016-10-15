@@ -14,7 +14,7 @@ func (f *Flt) Eval(es *EvalState) Ex {
 }
 
 func (this *Flt) Replace(r *Expression, es *EvalState) Ex {
-	if this.IsMatchQ(r.Parts[1], es) {
+	if IsMatchQ(this, r.Parts[1], es) {
 		return r.Parts[2]
 	}
 	return this
@@ -85,7 +85,7 @@ func (f *Integer) Eval(es *EvalState) Ex {
 }
 
 func (this *Integer) Replace(r *Expression, es *EvalState) Ex {
-	if this.IsMatchQ(r.Parts[1], es) {
+	if IsMatchQ(this, r.Parts[1], es) {
 		return r.Parts[2]
 	}
 	return this
@@ -144,7 +144,7 @@ func (this *String) Eval(es *EvalState) Ex {
 }
 
 func (this *String) Replace(r *Expression, es *EvalState) Ex {
-	if this.IsMatchQ(r.Parts[1], es) {
+	if IsMatchQ(this, r.Parts[1], es) {
 		return r.Parts[2]
 	}
 	return this

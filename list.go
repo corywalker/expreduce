@@ -67,7 +67,7 @@ func (this *Expression) EvalMemberQ(es *EvalState) Ex {
 	if isList {
 		oldVars := es.GetDefinedSnapshot()
 		for _, exp := range list.Parts {
-			if exp.IsMatchQ(this.Parts[2], es) {
+			if IsMatchQ(exp, this.Parts[2], es) {
 				es.ClearPD()
 				es.defined = oldVars
 				return &Symbol{"True"}

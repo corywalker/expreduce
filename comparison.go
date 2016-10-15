@@ -52,16 +52,42 @@ func (this *Expression) ToStringSameQ() string {
 	return buffer.String()
 }
 
+func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
+	isSame := false
+	aFlt, aIsFlt := a.(*Flt)
+	aInteger, aIsInteger := a.(*Integer)
+	aString, aIsString := a.(*String)
+	aExpression, aIsExpression := a.(*Expression)
+	aSymbol, aIsSymbol := a.(*Symbol)
+
+	if aIsFlt {
+		isSame = aFlt.IsMatchQ(b, es)
+	} else if aIsInteger {
+		isSame = aInteger.IsMatchQ(b, es)
+	} else if aIsString {
+		isSame = aString.IsMatchQ(b, es)
+	} else if aIsExpression {
+		isSame = aExpression.IsMatchQ(b, es)
+	} else if aIsSymbol {
+		isSame = aSymbol.IsMatchQ(b, es)
+	}
+	return isSame
+}
+
+func IsMatchQClearDefs(a Ex, b Ex, es *EvalState) bool {
+	oldVars := es.GetDefinedSnapshot()
+	isSame := IsMatchQ(a, b, es)
+	es.ClearPD()
+	es.defined = oldVars
+	return isSame
+}
+
 func (this *Expression) EvalMatchQ(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
 
-	oldVars := es.GetDefinedSnapshot()
-	var issame bool = this.Parts[1].Eval(es).IsMatchQ(this.Parts[2].Eval(es), es)
-	es.ClearPD()
-	es.defined = oldVars
-	if issame {
+	if IsMatchQClearDefs(this.Parts[1], this.Parts[2], es) {
 		return &Symbol{"True"}
 	} else {
 		return &Symbol{"False"}

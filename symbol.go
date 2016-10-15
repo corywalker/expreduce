@@ -18,7 +18,7 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 }
 
 func (this *Symbol) Replace(r *Expression, es *EvalState) Ex {
-	if this.IsMatchQ(r.Parts[1], es) {
+	if IsMatchQ(this, r.Parts[1], es) {
 		return r.Parts[2]
 	}
 	return this

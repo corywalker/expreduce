@@ -75,7 +75,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	this.log.Debugf(this.Pre()+"Inside GetDef(\"%s\",%s)", name, lhs.ToString())
 	oldVars := this.GetDefinedSnapshot()
 	for i := range this.defined[name] {
-		if lhs.IsMatchQ(this.defined[name][i].Parts[1], this) {
+		if IsMatchQ(lhs, this.defined[name][i].Parts[1], this) {
 			//Probably not needed:
 			//this.ClearPD()
 			//this.defined = CopyExpressionMap(oldVars)
@@ -183,9 +183,6 @@ type Ex interface {
 	ToString() string
 	IsEqual(b Ex, es *EvalState) string
 	IsSameQ(b Ex, es *EvalState) bool
-	// After calling an IsMatchQ and failing, one must clear the patternDefined
-	// and restore variables to their original state.
-	IsMatchQ(b Ex, es *EvalState) bool
 	DeepCopy() Ex
 }
 
@@ -346,9 +343,9 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 			return false
 		}
 		if i >= len(components) {
-			es.log.Debugf(es.Pre()+"Checking if (INDEX_ERROR).IsMatchQ(%s). i=%d, Current context: %v\n", lhs_components[i].ToString(), i, es.ToString())
+			es.log.Debugf(es.Pre()+"Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", lhs_components[i].ToString(), i, es.ToString())
 		} else {
-			es.log.Debugf(es.Pre()+"Checking if (%s).IsMatchQ(%s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
+			es.log.Debugf(es.Pre()+"Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", components[i].ToString(), lhs_components[i].ToString(), i, es.ToString())
 		}
 		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
 		bns, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
@@ -422,7 +419,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 		if i >= len(components) {
 			return false
 		}
-		if components[i].DeepCopy().IsMatchQ(lhs_components[i], es) {
+		if IsMatchQ(components[i].DeepCopy(), lhs_components[i], es) {
 			es.log.Debugf(es.Pre() + "Returned True!\n")
 		} else {
 			es.log.Debugf(es.Pre()+"NonCommutativeIsMatchQ failed. Context: %s", es.ToString())
@@ -464,9 +461,9 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool
 
 func IterableReplace(components *[]Ex, r *Expression, es *EvalState) {
 	for i := range *components {
-		es.log.Debugf(es.Pre()+"Attempting (%s).IsMatchQ(%s, %s)", (*components)[i].ToString(), r.Parts[1].ToString(), es.ToString())
+		es.log.Debugf(es.Pre()+"Attempting IsMatchQ(%s, %s, %s)", (*components)[i].ToString(), r.Parts[1].ToString(), es.ToString())
 		oldVars := es.GetDefinedSnapshot()
-		if (*components)[i].IsMatchQ(r.Parts[1], es) {
+		if IsMatchQ((*components)[i], r.Parts[1], es) {
 			(*components)[i] = r.Parts[2].DeepCopy()
 			es.log.Debugf(es.Pre()+"IsMatchQ succeeded, new components: %s", ExArrayToString(*components))
 		}
@@ -557,7 +554,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 		oldVars := es.GetDefinedSnapshot()
 		for i := range perm {
 			//es.log.Debugf(es.Pre()+"%s %s\n", (*components)[perm[i]].ToString(), lhs_components[i].ToString())
-			if (*components)[perm[i]].DeepCopy().IsMatchQ(lhs_components[i], es) {
+			if IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], es) {
 				used[pi] = perm[i]
 				pi = pi + 1
 

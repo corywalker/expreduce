@@ -16,5 +16,6 @@ func InitCAS(es *EvalState) {
 	EvalInterp("Attributes[Table] = {HoldAll}", es)
 	EvalInterp("Attributes[Clear] = {HoldAll}", es)
 	EvalInterp("Attributes[Timing] = {HoldAll}", es)
+	EvalInterp("Attributes[Hold] = {HoldAll}", es)
 	EvalInterp("Attributes[_] = List[]", es)
 }

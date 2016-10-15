@@ -153,10 +153,10 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 func (this *Expression) Replace(r *Expression, es *EvalState) Ex {
 	oldVars := es.GetDefinedSnapshot()
-	es.log.Debugf(es.Pre() + "In Expression.Replace. First trying this.IsMatchQ(r.Parts[1], es).")
+	es.log.Debugf(es.Pre() + "In Expression.Replace. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.log.Debugf(es.Pre()+"Rule r is: %s", r.ToString())
 
-	matchq := this.IsMatchQ(r.Parts[1], es)
+	matchq := IsMatchQ(this, r.Parts[1], es)
 	toreturn := r.Parts[2].DeepCopy().Eval(es)
 	es.ClearPD()
 	es.defined = oldVars
@@ -315,6 +315,9 @@ func IsHoldAll(sym *Symbol) bool {
 	if sym.Name == "Timing" {
 		return true
 	}
+	if sym.Name == "Hold" {
+		return true
+	}
 	return false
 }
 
@@ -378,7 +381,7 @@ func (this *Expression) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	//otherEx = otherEx.Eval(es)
 	//this, ok := thisEx.(*Expression)
 	//if !ok {
-	//return thisEx.IsMatchQ(otherEx, es)
+	//return IsMatchQ(thisEx, otherEx, es)
 	//}
 	other, otherOk := otherEx.(*Expression)
 	if !otherOk {
