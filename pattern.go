@@ -185,7 +185,7 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, es *EvalState) boo
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog()
 		isMatch := IsMatchQ(e, blank, tmpEs)
-		es.log.Debug(e.ToString(), blank.ToString(), isMatch)
+		es.Debugf("%v %v %v", e.ToString(), blank.ToString(), isMatch)
 		toReturn = toReturn && isMatch
 	}
 	return toReturn

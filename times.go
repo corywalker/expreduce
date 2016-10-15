@@ -61,7 +61,7 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	}
 
 	// Geometrically accumulate floating point values towards the end of the expression
-	//es.log.Debugf(es.Pre() + "Before accumulating floats: %s", m.ToString())
+	//es.Debugf("Before accumulating floats: %s", m.ToString())
 	origLen = len(multiplicands)
 	offset = 0
 	var lastf *Flt = nil
@@ -72,18 +72,18 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
-				es.log.Debugf(es.Pre()+"Encountered float. i=%d, j=%d, lastf=%s, lastfj=%d", i, j, lastf.ToString(), lastfj)
+				es.Debugf("Encountered float. i=%d, j=%d, lastf=%s, lastfj=%d", i, j, lastf.ToString(), lastfj)
 				f.Val.Mul(f.Val, lastf.Val)
 				//lastf.Val = big.NewFloat(1)
 				multiplicands = append(multiplicands[:lastfj], multiplicands[lastfj+1:]...)
 				offset++
-				es.log.Debugf(es.Pre()+"After deleting: %s", this.ToString())
+				es.Debugf("After deleting: %s", this.ToString())
 			}
 			lastf = f
 			lastfj = i - offset
 		}
 	}
-	//es.log.Debugf(es.Pre() +"After accumulating floats: %s", m.ToString())
+	//es.Debugf(es.Pre() +"After accumulating floats: %s", m.ToString())
 
 	if len(multiplicands) == 1 {
 		f, fOk := multiplicands[0].(*Flt)

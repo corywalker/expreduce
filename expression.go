@@ -153,16 +153,16 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 func (this *Expression) Replace(r *Expression, es *EvalState) Ex {
 	oldVars := es.GetDefinedSnapshot()
-	es.log.Debugf(es.Pre() + "In Expression.Replace. First trying IsMatchQ(this, r.Parts[1], es).")
-	es.log.Debugf(es.Pre()+"Rule r is: %s", r.ToString())
+	es.Debugf("In Expression.Replace. First trying IsMatchQ(this, r.Parts[1], es).")
+	es.Debugf("Rule r is: %s", r.ToString())
 
 	matchq := IsMatchQ(this, r.Parts[1], es)
 	toreturn := r.Parts[2].DeepCopy().Eval(es)
 	es.ClearPD()
 	es.defined = oldVars
 	if matchq {
-		es.log.Debugf(es.Pre()+"After MatchQ, rule is: %s", r.ToString())
-		es.log.Debugf(es.Pre()+"MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2].ToString())
+		es.Debugf("After MatchQ, rule is: %s", r.ToString())
+		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2].ToString())
 		return toreturn
 	}
 
@@ -173,7 +173,7 @@ func (this *Expression) Replace(r *Expression, es *EvalState) Ex {
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
 				if IsOrderless(thisSym) {
-					es.log.Debugf(es.Pre() + "r.Parts[1] is Orderless. Now running CommutativeReplace")
+					es.Debugf("r.Parts[1] is Orderless. Now running CommutativeReplace")
 					replaced := this.Parts[1:len(this.Parts)]
 					CommutativeReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], es)
 					this.Parts = this.Parts[0:1]

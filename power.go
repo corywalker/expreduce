@@ -56,11 +56,11 @@ func (this *Expression) EvalPower(es *EvalState) Ex {
 		return &Integer{big.NewInt(1)}
 	}
 
-	//es.log.Debugf(es.Pre() + "Power eval. baseIsInt=%v, powerIsInt=%v", baseIsInt, powerIsInt)
+	//es.Debugf("Power eval. baseIsInt=%v, powerIsInt=%v", baseIsInt, powerIsInt)
 	// Fully integer Power expression
 	if baseIsInt && powerIsInt {
 		cmpres := powerInt.Val.Cmp(big.NewInt(0))
-		//es.log.Debugf(es.Pre() + "Cmpres: %v", cmpres)
+		//es.Debugf("Cmpres: %v", cmpres)
 		if cmpres == 1 {
 			res := big.NewInt(0)
 			res.Exp(baseInt.Val, powerInt.Val, nil)

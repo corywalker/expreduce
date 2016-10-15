@@ -46,7 +46,7 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
-	es.log.Infof(es.Pre() + "Starting ReplaceRepeated.")
+	es.Infof("Starting ReplaceRepeated.")
 	this.Parts[1] = this.Parts[1].Eval(es)
 	this.Parts[2] = this.Parts[2].Eval(es)
 	//_, ok := this.Parts[2].(*Rule)
@@ -54,14 +54,14 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 	if ok {
 		isSame := false
 		oldEx := this.Parts[1]
-		es.log.Infof(es.Pre()+"In ReplaceRepeated. Initial expr: %v", oldEx.ToString())
+		es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx.ToString())
 		for !isSame {
 			oldVars := es.GetDefinedSnapshot()
 			newEx := oldEx.DeepCopy().Replace(rulesRule, es)
 			es.ClearPD()
 			newEx = newEx.Eval(es)
 			es.defined = oldVars
-			es.log.Infof(es.Pre()+"In ReplaceRepeated. New expr: %v", newEx.ToString())
+			es.Infof("In ReplaceRepeated. New expr: %v", newEx.ToString())
 
 			oldVars = es.GetDefinedSnapshot()
 			if oldEx.IsSameQ(newEx, es) {
