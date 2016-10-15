@@ -67,22 +67,22 @@ func TestConstants(t *testing.T) {
 		&Symbol{"x"},
 	}}
 	var res Ex = a.Eval(es)
-	assert.Equal(t, "(-1.0000000000000003e+360 * x)", res.ToString())
+	assert.Equal(t, "(-1.0000000000000003e+360 * x)", res.String())
 
 	a = &Symbol{"True"}
-	assert.Equal(t, "True", a.ToString())
+	assert.Equal(t, "True", a.String())
 	var b Ex = &Symbol{"False"}
-	assert.Equal(t, "False", b.ToString())
+	assert.Equal(t, "False", b.String())
 	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, es))
 	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, es))
 	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(b, es))
 	assert.Equal(t, "EQUAL_FALSE", b.IsEqual(a, es))
-	//fmt.Println(a.ToString())
+	//fmt.Println(a.String())
 
 	a = &Expression{[]Ex{&Symbol{"Error"}, &String{"First error"}}}
-	assert.Equal(t, "Error[\"First error\"]", a.ToString())
+	assert.Equal(t, "Error[\"First error\"]", a.String())
 	b = &Expression{[]Ex{&Symbol{"Error"}, &String{"Second error"}}}
-	assert.Equal(t, "Error[\"Second error\"]", b.ToString())
+	assert.Equal(t, "Error[\"Second error\"]", b.String())
 	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, es))
 	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, es))
 	assert.Equal(t, "EQUAL_UNK", a.IsEqual(b, es))

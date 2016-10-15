@@ -20,10 +20,10 @@ func TestExpression(t *testing.T) {
 			&Flt{big.NewFloat(3)},
 		},
 	}
-	assert.Equal(t, "5.^3.", t1.ToString())
-	assert.Equal(t, "5^3", Interp("Power[ 5,3 ]").ToString())
-	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").ToString())
-	assert.Equal(t, "my2func[]", Interp("my2func[  ]").ToString())
+	assert.Equal(t, "5.^3.", t1.String())
+	assert.Equal(t, "5^3", Interp("Power[ 5,3 ]").String())
+	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").String())
+	assert.Equal(t, "my2func[]", Interp("my2func[  ]").String())
 
 	// Test comparison
 	CasAssertSame(t, es, "True", "foo[x == 2, y, x] === foo[x == 2, y, x]")
@@ -124,11 +124,11 @@ func TestExpression(t *testing.T) {
 	assert.Equal(t, false, exp.Less(0, 2))
 	assert.Equal(t, false, exp.Less(1, 2))
 	// Test swap
-	assert.Equal(t, "foo[5., aa, 1.]", exp.ToString())
+	assert.Equal(t, "foo[5., aa, 1.]", exp.String())
 	exp.Swap(0, 1)
-	assert.Equal(t, "foo[aa, 5., 1.]", exp.ToString())
+	assert.Equal(t, "foo[aa, 5., 1.]", exp.String())
 	sort.Sort(exp)
-	assert.Equal(t, "foo[1., 5., aa]", exp.ToString())
+	assert.Equal(t, "foo[1., 5., aa]", exp.String())
 
 	// Test Apply
 	es.ClearAll()

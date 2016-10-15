@@ -126,7 +126,7 @@ func (this *Expression) ToStringPlus() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
 	for i, e := range addends {
-		buffer.WriteString(e.ToString())
+		buffer.WriteString(e.String())
 		if i != len(addends)-1 {
 			buffer.WriteString(" + ")
 		}

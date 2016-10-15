@@ -14,21 +14,21 @@ func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s
 
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(inTree.ToString())
+	buffer.WriteString(inTree.String())
 	if test {
 		buffer.WriteString(") != (")
 	} else {
 		buffer.WriteString(") == (")
 	}
-	buffer.WriteString(outTree.ToString())
+	buffer.WriteString(outTree.String())
 	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
 	buffer.WriteString(in)
 
 	if test {
-		return (theTest.ToString() == "True"), buffer.String()
+		return (theTest.String() == "True"), buffer.String()
 	}
-	return (theTest.ToString() == "False"), buffer.String()
+	return (theTest.String() == "False"), buffer.String()
 }
 
 func CasAssertSame(t *testing.T, es *EvalState, out string, in string) {

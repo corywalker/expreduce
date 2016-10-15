@@ -7,7 +7,7 @@ func (this *Expression) ToStringList() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range this.Parts[1:] {
-		buffer.WriteString(e.ToString())
+		buffer.WriteString(e.String())
 		if i != len(this.Parts[1:])-1 {
 			buffer.WriteString(", ")
 		}

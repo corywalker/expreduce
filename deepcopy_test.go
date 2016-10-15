@@ -28,12 +28,12 @@ func TestDeepCopy(t *testing.T) {
 	var t4 = &Flt{big.NewFloat(2)}
 	t5 := *t4
 	t6 := t4.DeepCopy().(*Flt)
-	assert.Equal(t, "2.", t4.ToString())
-	assert.Equal(t, "2.", t5.ToString())
-	assert.Equal(t, "2.", t6.ToString())
+	assert.Equal(t, "2.", t4.String())
+	assert.Equal(t, "2.", t5.String())
+	assert.Equal(t, "2.", t6.String())
 	t5.Val.Add(t5.Val, big.NewFloat(2))
 	t6.Val.Add(t6.Val, big.NewFloat(3))
-	assert.Equal(t, "4.", t4.ToString()) // Because we used the wrong copy method
-	assert.Equal(t, "4.", t5.ToString())
-	assert.Equal(t, "5.", t6.ToString())
+	assert.Equal(t, "4.", t4.String()) // Because we used the wrong copy method
+	assert.Equal(t, "4.", t5.String())
+	assert.Equal(t, "5.", t6.String())
 }

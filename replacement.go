@@ -5,9 +5,9 @@ import "bytes"
 func (this *Expression) ToStringRule() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].ToString())
+	buffer.WriteString(this.Parts[1].String())
 	buffer.WriteString(") -> (")
-	buffer.WriteString(this.Parts[2].ToString())
+	buffer.WriteString(this.Parts[2].String())
 	buffer.WriteString(")")
 	return buffer.String()
 }
@@ -35,9 +35,9 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 func (this *Expression) ToStringReplace() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].ToString())
+	buffer.WriteString(this.Parts[1].String())
 	buffer.WriteString(") /. (")
-	buffer.WriteString(this.Parts[2].ToString())
+	buffer.WriteString(this.Parts[2].String())
 	buffer.WriteString(")")
 	return buffer.String()
 }
@@ -54,14 +54,14 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 	if ok {
 		isSame := false
 		oldEx := this.Parts[1]
-		es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx.ToString())
+		es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 		for !isSame {
 			oldVars := es.GetDefinedSnapshot()
 			newEx := oldEx.DeepCopy().Replace(rulesRule, es)
 			es.ClearPD()
 			newEx = newEx.Eval(es)
 			es.defined = oldVars
-			es.Infof("In ReplaceRepeated. New expr: %v", newEx.ToString())
+			es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
 			oldVars = es.GetDefinedSnapshot()
 			if oldEx.IsSameQ(newEx, es) {
@@ -80,9 +80,9 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 func (this *Expression) ToStringReplaceRepeated() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].ToString())
+	buffer.WriteString(this.Parts[1].String())
 	buffer.WriteString(") //. (")
-	buffer.WriteString(this.Parts[2].ToString())
+	buffer.WriteString(this.Parts[2].String())
 	buffer.WriteString(")")
 	return buffer.String()
 }

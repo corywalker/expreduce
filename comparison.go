@@ -22,9 +22,9 @@ func (this *Expression) EvalEqual(es *EvalState) Ex {
 func (this *Expression) ToStringEqual() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].ToString())
+	buffer.WriteString(this.Parts[1].String())
 	buffer.WriteString(") == (")
-	buffer.WriteString(this.Parts[2].ToString())
+	buffer.WriteString(this.Parts[2].String())
 	buffer.WriteString(")")
 	return buffer.String()
 }
@@ -45,9 +45,9 @@ func (this *Expression) EvalSameQ(es *EvalState) Ex {
 func (this *Expression) ToStringSameQ() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].ToString())
+	buffer.WriteString(this.Parts[1].String())
 	buffer.WriteString(") === (")
-	buffer.WriteString(this.Parts[2].ToString())
+	buffer.WriteString(this.Parts[2].String())
 	buffer.WriteString(")")
 	return buffer.String()
 }

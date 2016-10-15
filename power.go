@@ -97,8 +97,8 @@ func (this *Expression) EvalPower(es *EvalState) Ex {
 
 func (this *Expression) ToStringPower() string {
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Parts[1].ToString())
+	buffer.WriteString(this.Parts[1].String())
 	buffer.WriteString("^")
-	buffer.WriteString(this.Parts[2].ToString())
+	buffer.WriteString(this.Parts[2].String())
 	return buffer.String()
 }

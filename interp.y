@@ -134,5 +134,5 @@ func EvalInterp(line string, es *EvalState) Ex {
 }
 
 func EasyRun(line string, es *EvalState) string {
-	return EvalInterp(line, es).ToString()
+	return EvalInterp(line, es).String()
 }

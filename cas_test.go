@@ -15,9 +15,9 @@ func Test(t *testing.T) {
 
 	// Test basic float functionality
 	var f *Flt = &Flt{big.NewFloat(5.5)}
-	assert.Equal(t, "5.5", f.ToString())
+	assert.Equal(t, "5.5", f.String())
 	f.Eval(es)
-	assert.Equal(t, "5.5", f.ToString())
+	assert.Equal(t, "5.5", f.String())
 
 	// Test nested addition functionality
 	var a = &Expression{[]Ex{
@@ -30,9 +30,9 @@ func Test(t *testing.T) {
 		&Flt{big.NewFloat(2)},
 		&Flt{big.NewFloat(2.5)},
 	}}
-	assert.Equal(t, "((80. + 3.) + 2. + 2.5)", a.ToString())
+	assert.Equal(t, "((80. + 3.) + 2. + 2.5)", a.String())
 	//fmt.Println(a)
-	//fmt.Println(a.ToString())
+	//fmt.Println(a.String())
 
 	// Test equality checking
 	assert.Equal(t, "EQUAL_TRUE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}, es))
@@ -55,15 +55,15 @@ func Test(t *testing.T) {
 
 	// Test evaluation
 	newa := a.Eval(es)
-	assert.Equal(t, "87.5", newa.ToString())
+	assert.Equal(t, "87.5", newa.String())
 	//fmt.Println(a)
-	//fmt.Println(a.ToString())
+	//fmt.Println(a.String())
 
 	// Test basic Symbol functionality
 	var v *Symbol = &Symbol{"x"}
-	assert.Equal(t, "x", v.ToString())
+	assert.Equal(t, "x", v.String())
 	v.Eval(es)
-	assert.Equal(t, "x", v.ToString())
+	assert.Equal(t, "x", v.String())
 
 	// Test nested addition functionality
 	var withVar = &Expression{[]Ex{
@@ -107,9 +107,9 @@ func Test(t *testing.T) {
 		&Symbol{"x"},
 		&Flt{big.NewFloat(2.5)},
 	}}
-	//fmt.Println(withVar.ToString())
+	//fmt.Println(withVar.String())
 	withVar.Eval(es)
-	//fmt.Println(withVar.ToString())
+	//fmt.Println(withVar.String())
 
 	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
 	assert.Equal(t, "(a * b * c * d * e * f)", EasyRun("a * b * c *d *e *f", es))

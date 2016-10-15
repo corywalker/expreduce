@@ -20,7 +20,7 @@ func (this *Flt) Replace(r *Expression, es *EvalState) Ex {
 	return this
 }
 
-func (f *Flt) ToString() string {
+func (f *Flt) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("%g", f.Val))
 	if bytes.IndexRune(buffer.Bytes(), '.') == -1 {
@@ -91,7 +91,7 @@ func (this *Integer) Replace(r *Expression, es *EvalState) Ex {
 	return this
 }
 
-func (f *Integer) ToString() string {
+func (f *Integer) String() string {
 	return fmt.Sprintf("%d", f.Val)
 }
 
@@ -150,7 +150,7 @@ func (this *String) Replace(r *Expression, es *EvalState) Ex {
 	return this
 }
 
-func (this *String) ToString() string {
+func (this *String) String() string {
 	return fmt.Sprintf("\"%v\"", this.Val)
 }
 

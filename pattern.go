@@ -6,15 +6,15 @@ func (this *Expression) ToStringPattern() string {
 	var buffer bytes.Buffer
 	if false {
 		buffer.WriteString("Pattern[")
-		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString(this.Parts[1].String())
 		buffer.WriteString(", ")
 		// Assuming Obj will always be a Blank[] Expression
-		buffer.WriteString(this.Parts[2].ToString())
+		buffer.WriteString(this.Parts[2].String())
 		buffer.WriteString("]")
 	} else {
-		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString(this.Parts[1].String())
 		// Assuming Obj will always be a Blank[] Expression
-		buffer.WriteString(this.Parts[2].ToString())
+		buffer.WriteString(this.Parts[2].String())
 	}
 	return buffer.String()
 }
@@ -23,11 +23,11 @@ func (this *Expression) ToStringBlank() string {
 	var buffer bytes.Buffer
 	if false {
 		buffer.WriteString("Blank[")
-		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString(this.Parts[1].String())
 		buffer.WriteString("]")
 	} else {
 		buffer.WriteString("_")
-		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString(this.Parts[1].String())
 	}
 	return buffer.String()
 }
@@ -36,11 +36,11 @@ func (this *Expression) ToStringBlankSequence() string {
 	var buffer bytes.Buffer
 	if false {
 		buffer.WriteString("BlankSequence[")
-		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString(this.Parts[1].String())
 		buffer.WriteString("]")
 	} else {
 		buffer.WriteString("__")
-		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString(this.Parts[1].String())
 	}
 	return buffer.String()
 }
@@ -49,11 +49,11 @@ func (this *Expression) ToStringBlankNullSequence() string {
 	var buffer bytes.Buffer
 	if false {
 		buffer.WriteString("BlankNullSequence[")
-		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString(this.Parts[1].String())
 		buffer.WriteString("]")
 	} else {
 		buffer.WriteString("___")
-		buffer.WriteString(this.Parts[1].ToString())
+		buffer.WriteString(this.Parts[1].String())
 	}
 	return buffer.String()
 }
@@ -185,7 +185,7 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, es *EvalState) boo
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog()
 		isMatch := IsMatchQ(e, blank, tmpEs)
-		es.Debugf("%v %v %v", e.ToString(), blank.ToString(), isMatch)
+		es.Debugf("%v %v %v", e, blank, isMatch)
 		toReturn = toReturn && isMatch
 	}
 	return toReturn

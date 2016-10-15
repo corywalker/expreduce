@@ -154,15 +154,15 @@ func (this *Expression) Eval(es *EvalState) Ex {
 func (this *Expression) Replace(r *Expression, es *EvalState) Ex {
 	oldVars := es.GetDefinedSnapshot()
 	es.Debugf("In Expression.Replace. First trying IsMatchQ(this, r.Parts[1], es).")
-	es.Debugf("Rule r is: %s", r.ToString())
+	es.Debugf("Rule r is: %s", r)
 
 	matchq := IsMatchQ(this, r.Parts[1], es)
 	toreturn := r.Parts[2].DeepCopy().Eval(es)
 	es.ClearPD()
 	es.defined = oldVars
 	if matchq {
-		es.Debugf("After MatchQ, rule is: %s", r.ToString())
-		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2].ToString())
+		es.Debugf("After MatchQ, rule is: %s", r)
+		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])
 		return toreturn
 	}
 
@@ -189,7 +189,7 @@ func (this *Expression) Replace(r *Expression, es *EvalState) Ex {
 	return this.Eval(es)
 }
 
-func (this *Expression) ToString() string {
+func (this *Expression) String() string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	if isHeadSym {
 		headStr := headAsSym.Name
@@ -228,13 +228,13 @@ func (this *Expression) ToString() string {
 
 	// Default printing format
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Parts[0].ToString())
+	buffer.WriteString(this.Parts[0].String())
 	buffer.WriteString("[")
 	for i, e := range this.Parts {
 		if i == 0 {
 			continue
 		}
-		buffer.WriteString(e.ToString())
+		buffer.WriteString(e.String())
 		if i != len(this.Parts)-1 {
 			buffer.WriteString(", ")
 		}

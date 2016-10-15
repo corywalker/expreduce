@@ -61,7 +61,7 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	}
 
 	// Geometrically accumulate floating point values towards the end of the expression
-	//es.Debugf("Before accumulating floats: %s", m.ToString())
+	//es.Debugf("Before accumulating floats: %s", m)
 	origLen = len(multiplicands)
 	offset = 0
 	var lastf *Flt = nil
@@ -72,18 +72,18 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 		f, ok := e.(*Flt)
 		if ok {
 			if lastf != nil {
-				es.Debugf("Encountered float. i=%d, j=%d, lastf=%s, lastfj=%d", i, j, lastf.ToString(), lastfj)
+				es.Debugf("Encountered float. i=%d, j=%d, lastf=%s, lastfj=%d", i, j, lastf, lastfj)
 				f.Val.Mul(f.Val, lastf.Val)
 				//lastf.Val = big.NewFloat(1)
 				multiplicands = append(multiplicands[:lastfj], multiplicands[lastfj+1:]...)
 				offset++
-				es.Debugf("After deleting: %s", this.ToString())
+				es.Debugf("After deleting: %s", this)
 			}
 			lastf = f
 			lastfj = i - offset
 		}
 	}
-	//es.Debugf(es.Pre() +"After accumulating floats: %s", m.ToString())
+	//es.Debugf(es.Pre() +"After accumulating floats: %s", m)
 
 	if len(multiplicands) == 1 {
 		f, fOk := multiplicands[0].(*Flt)
@@ -187,7 +187,7 @@ func (this *Expression) ToStringTimes() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
 	for i, e := range multiplicands {
-		buffer.WriteString(e.ToString())
+		buffer.WriteString(e.String())
 		if i != len(multiplicands)-1 {
 			buffer.WriteString(" * ")
 		}

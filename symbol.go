@@ -24,7 +24,7 @@ func (this *Symbol) Replace(r *Expression, es *EvalState) Ex {
 	return this
 }
 
-func (this *Symbol) ToString() string {
+func (this *Symbol) String() string {
 	return fmt.Sprintf("%v", this.Name)
 }
 
@@ -94,9 +94,9 @@ func (this *Expression) EvalSet(es *EvalState) Ex {
 func (this *Expression) ToStringSet() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].ToString())
+	buffer.WriteString(this.Parts[1].String())
 	buffer.WriteString(") = (")
-	buffer.WriteString(this.Parts[2].ToString())
+	buffer.WriteString(this.Parts[2].String())
 	buffer.WriteString(")")
 	return buffer.String()
 }
@@ -126,9 +126,9 @@ func (this *Expression) EvalSetDelayed(es *EvalState) Ex {
 func (this *Expression) ToStringSetDelayed() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].ToString())
+	buffer.WriteString(this.Parts[1].String())
 	buffer.WriteString(") := (")
-	buffer.WriteString(this.Parts[2].ToString())
+	buffer.WriteString(this.Parts[2].String())
 	buffer.WriteString(")")
 	return buffer.String()
 }
