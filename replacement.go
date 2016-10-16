@@ -12,6 +12,21 @@ func (this *Expression) ToStringRule() string {
 	return buffer.String()
 }
 
+func ReplacePD(this Ex, es *EvalState) Ex {
+	es.Infof("In ReplacePD(%v, es.patternDefined=%v)", this, es.patternDefined)
+	toReturn := this.DeepCopy()
+	for nameStr, def := range es.patternDefined {
+		toReturn = toReturn.Replace(
+			&Expression{[]Ex{
+				&Symbol{"Rule"},
+				&Symbol{nameStr},
+				def,
+			}}, es)
+	}
+	es.Infof("Finished ReplacePD with toReturn=%v", toReturn)
+	return toReturn
+}
+
 func (this *Expression) EvalReplace(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
@@ -23,6 +38,7 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 	if ok {
 		//oldVars := es.GetDefinedSnapshot()
 		newEx := this.Parts[1].Replace(rulesRule, es)
+		//newEx = ReplacePD(newEx, es)
 		es.ClearPD()
 		newEx = newEx.Eval(es)
 		//es.defined = oldVars
@@ -64,7 +80,7 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 			es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
 			//oldVars := es.GetDefinedSnapshot()
-			if oldEx.IsSameQ(newEx, es) {
+			if IsSameQ(oldEx, newEx, es) {
 				isSame = true
 			}
 			es.ClearPD()

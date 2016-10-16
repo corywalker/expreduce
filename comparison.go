@@ -34,7 +34,7 @@ func (this *Expression) EvalSameQ(es *EvalState) Ex {
 		return this
 	}
 
-	var issame bool = this.Parts[1].Eval(es).IsSameQ(this.Parts[2].Eval(es), es)
+	var issame bool = IsSameQ(this.Parts[1].Eval(es), this.Parts[2].Eval(es), es)
 	if issame {
 		return &Symbol{"True"}
 	} else {
@@ -74,6 +74,25 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	return isSame
 }
 
+func IsSameQ(a Ex, b Ex, es *EvalState) bool {
+	isSame := false
+	_, aIsFlt := a.(*Flt)
+	_, bIsFlt := b.(*Flt)
+	_, aIsInteger := a.(*Integer)
+	_, bIsInteger := b.(*Integer)
+	_, aIsString := a.(*String)
+	_, bIsString := b.(*String)
+	aExpression, aIsExpression := a.(*Expression)
+	_, aIsSymbol := a.(*Symbol)
+	_, bIsSymbol := b.(*Symbol)
+
+	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) {
+		isSame = a.IsEqual(b, es) == "EQUAL_TRUE"
+	} else if aIsExpression {
+		isSame = aExpression.IsSameQ(b, es)
+	}
+	return isSame
+}
 func IsMatchQClearDefs(a Ex, b Ex, es *EvalState) bool {
 	oldVars := es.GetDefinedSnapshot()
 	isSame := IsMatchQ(a, b, es)

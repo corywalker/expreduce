@@ -45,22 +45,11 @@ func (this *Symbol) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Symbol) IsSameQ(other Ex, es *EvalState) bool {
-	otherConv, ok := other.(*Symbol)
-	if !ok {
-		return false
-	}
-	if this.Name != otherConv.Name {
-		return false
-	}
-	return true
-}
-
 func (this *Symbol) IsMatchQ(otherEx Ex, es *EvalState) bool {
 	if IsBlankTypeCapturing(otherEx, this, "Symbol", es) {
 		return true
 	}
-	return this.IsSameQ(otherEx, es)
+	return IsSameQ(this, otherEx, es)
 }
 
 func (this *Symbol) DeepCopy() Ex {

@@ -119,7 +119,7 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	}
 
 	for i := range this.defined[name] {
-		if this.defined[name][i].Parts[1].IsSameQ(lhs, this) {
+		if IsSameQ(this.defined[name][i].Parts[1], lhs, this) {
 			this.defined[name][i].Parts[2] = rhs
 			return
 		}
@@ -199,7 +199,6 @@ type Ex interface {
 	Replace(r *Expression, es *EvalState) Ex
 	String() string
 	IsEqual(b Ex, es *EvalState) string
-	IsSameQ(b Ex, es *EvalState) bool
 	DeepCopy() Ex
 }
 
@@ -415,7 +414,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 							if !ispd {
 								es.patternDefined[sAsSymbol.Name] = target
 							}
-							if !es.patternDefined[sAsSymbol.Name].IsSameQ(target, es) {
+							if !IsSameQ(es.patternDefined[sAsSymbol.Name], target, es) {
 								return false
 							}
 
@@ -468,7 +467,7 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool
 		return false
 	}
 	for i := range components {
-		res := components[i].IsSameQ(other_components[i], es)
+		res := IsSameQ(components[i], other_components[i], es)
 		if !res {
 			return false
 		}
