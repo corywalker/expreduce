@@ -67,7 +67,8 @@ func TestConstants(t *testing.T) {
 		&Symbol{"x"},
 	}}
 	var res Ex = a.Eval(es)
-	assert.Equal(t, "(-1.0000000000000003e+360 * x)", res.String())
+	//assert.Equal(t, "(-1.0000000000000003e+360 * x)", res.String())
+	assert.Equal(t, "(-1e+360. * x)", res.String())
 
 	a = &Symbol{"True"}
 	assert.Equal(t, "True", a.String())

@@ -22,7 +22,7 @@ func (this *Flt) Replace(r *Expression, es *EvalState) Ex {
 
 func (f *Flt) String() string {
 	var buffer bytes.Buffer
-	buffer.WriteString(fmt.Sprintf("%g", f.Val))
+	buffer.WriteString(fmt.Sprintf("%.6g", f.Val))
 	if bytes.IndexRune(buffer.Bytes(), '.') == -1 {
 		buffer.WriteString(".")
 	}

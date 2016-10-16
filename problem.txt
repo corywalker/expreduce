@@ -48,3 +48,18 @@ In[14]:= Hold[test + 2]
 Out[14]= Hold[test + 2]
 
 but definitions do not. So perhaps I should rewrite the Replace function to use replace internally with matched values rather than temporarily adding them to the es.Defined set. After this change, I might no longer need to do GetDefinedSnapshot or ClearPD. We'll see. Could be much faster as well.
+
+Also, this is an issue with the evaluation:
+> 100/2
+In:  (100 * 2^-1)
+Out: (100 * 2^-1)
+> 1/2*100
+In:  ((1 * 2^-1) * 100)
+Out: (2^-1 * 100)
+> 1/2*1/2
+In:  (((1 * 2^-1) * 1) * 2^-1)
+Out: 2
+> 1/2*5/2
+In:  (((1 * 2^-1) * 5) * 2^-1)
+Out: 10
+>

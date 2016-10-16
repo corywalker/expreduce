@@ -65,10 +65,14 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "-125", EvalInterp("(-5)^3", es).String())
 	assert.Equal(t, "-125^-1", EvalInterp("(-5)^-3", es).String())
 
-	assert.Equal(t, "2.975379863266329e+1589", EvalInterp("39^999.", es).String())
-	assert.Equal(t, "3.360915398890324e-1590", EvalInterp("39^-999.", es).String())
-	assert.Equal(t, "1.9950631168791027e+3010", EvalInterp(".5^-10000.", es).String())
-	assert.Equal(t, "1.9950631168791027e+3010", EvalInterp(".5^-10000", es).String())
+	//assert.Equal(t, "2.975379863266329e+1589", EvalInterp("39^999.", es).String())
+	//assert.Equal(t, "3.360915398890324e-1590", EvalInterp("39^-999.", es).String())
+	//assert.Equal(t, "1.9950631168791027e+3010", EvalInterp(".5^-10000.", es).String())
+	//assert.Equal(t, "1.9950631168791027e+3010", EvalInterp(".5^-10000", es).String())
+	assert.Equal(t, "2.97538e+1589", EvalInterp("39^999.", es).String())
+	assert.Equal(t, "3.36092e-1590", EvalInterp("39^-999.", es).String())
+	assert.Equal(t, "1.99506e+3010", EvalInterp(".5^-10000.", es).String())
+	assert.Equal(t, "1.99506e+3010", EvalInterp(".5^-10000", es).String())
 
 	es.ClearAll()
 	assert.Equal(t, "1", EasyRun("1^1", es))

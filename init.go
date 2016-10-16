@@ -1,11 +1,7 @@
 package cas
 
 func InitCAS(es *EvalState) {
-	EvalInterp("Total[lmatch__List] := Apply[Plus, lmatch]", es)
-	EvalInterp("Mean[lmatch__List] := Total[lmatch]/Length[lmatch]", es)
-	// Serious problems lurk here.
-	EvalInterp("Table[amatch_, bmatch_Integer] := Table[amatch, {i, 1, bmatch}]", es)
-
+	// Set Attributes
 	EvalInterp("Attributes[MemberQ] = {Protected}", es)
 	EvalInterp("Attributes[Attributes] = {HoldAll, Listable, Protected}", es)
 	EvalInterp("Attributes[Times] = {Orderless}", es)
@@ -18,4 +14,20 @@ func InitCAS(es *EvalState) {
 	EvalInterp("Attributes[Timing] = {HoldAll}", es)
 	EvalInterp("Attributes[Hold] = {HoldAll}", es)
 	EvalInterp("Attributes[_] = List[]", es)
+
+	// Define functions
+	EvalInterp("Total[lmatch__List] := Apply[Plus, lmatch]", es)
+	EvalInterp("Mean[lmatch__List] := Total[lmatch]/Length[lmatch]", es)
+	EvalInterp("Table[amatch_, bmatch_Integer] := Table[amatch, {i, 1, bmatch}]", es)
+	EvalInterp("RandomReal[{minmatch_, maxmatch_}] := RandomReal[]*(maxmatch - minmatch) + minmatch", es)
+	EvalInterp("RandomReal[maxmatch_] := RandomReal[]*maxmatch", es)
+
+	// Define function simplifications
+	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Integer}] := 1/2*nmatch*(1 + nmatch)", es)
+	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 1, nmatch_Integer}] := 1/2*nmatch*(1 + nmatch)", es)
+	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Symbol}] := 1/2*nmatch*(1 + nmatch)", es)
+	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 1, nmatch_Symbol}] := 1/2*nmatch*(1 + nmatch)", es)
+
+	// System initialization
+	EvalInterp("SeedRandom[UnixTime[]]", es)
 }

@@ -31,6 +31,7 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{1, 4, 9, 16, 25, 36, 49, 64, 81, 100}", "Table[n^2, {n, 1, 10}]")
 
 	// Test MemberQ
+	es.ClearAll()
 	CasAssertSame(t, es, "False", "MemberQ[{1, 2, 3}, 0]")
 	CasAssertSame(t, es, "True", "MemberQ[{1, 2, 3}, 1]")
 	CasAssertSame(t, es, "False", "MemberQ[{1, 2, 3}, {1}]")
@@ -42,4 +43,16 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{Protected}", "Attributes[MemberQ]")
 	CasAssertSame(t, es, "False", "MemberQ[a, a]")
 	CasAssertSame(t, es, "False", "MemberQ[a, _]")
+
+	//CasAssertSame(t, es, "5000", "Length[Table[{3 + i + RandomReal[{-3, 7}], i + RandomReal[{-2, 5}]}, {i, 1, 5000}]]")
+
+	// Test Sum
+	es.ClearAll()
+	CasAssertSame(t, es, "45", "Sum[i, {i, 5, 10}]")
+	CasAssertSame(t, es, "55", "Sum[i, {i, 1, 10}]")
+	CasAssertSame(t, es, "55", "Sum[i, {i, 0, 10}]")
+	CasAssertSame(t, es, "450015000", "Sum[i, {i, 1, 30000}]")
+	CasAssertSame(t, es, "450015000", "Sum[i, {i, 0, 30000}]")
+	CasAssertSame(t, es, "1/2*n*(1 + n)", "Sum[i, {i, 0, n}]")
+	CasAssertSame(t, es, "1/2*n*(1 + n)", "Sum[i, {i, 1, n}]")
 }

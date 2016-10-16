@@ -139,6 +139,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Table" {
 			return this.EvalTable(es)
 		}
+		if headStr == "Sum" {
+			return this.EvalSum(es)
+		}
 		if headStr == "Clear" {
 			return this.EvalClear(es)
 		}
