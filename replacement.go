@@ -21,11 +21,11 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 	//_, ok := this.Parts[2].(*Rule)
 	rulesRule, ok := HeadAssertion(this.Parts[2], "Rule")
 	if ok {
-		oldVars := es.GetDefinedSnapshot()
+		//oldVars := es.GetDefinedSnapshot()
 		newEx := this.Parts[1].Replace(rulesRule, es)
 		es.ClearPD()
 		newEx = newEx.Eval(es)
-		es.defined = oldVars
+		//es.defined = oldVars
 		return newEx
 		//return this
 	}
@@ -56,19 +56,19 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 		oldEx := this.Parts[1]
 		es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 		for !isSame {
-			oldVars := es.GetDefinedSnapshot()
+			//oldVars := es.GetDefinedSnapshot()
 			newEx := oldEx.DeepCopy().Replace(rulesRule, es)
 			es.ClearPD()
 			newEx = newEx.Eval(es)
-			es.defined = oldVars
+			//es.defined = oldVars
 			es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
-			oldVars = es.GetDefinedSnapshot()
+			//oldVars := es.GetDefinedSnapshot()
 			if oldEx.IsSameQ(newEx, es) {
 				isSame = true
 			}
 			es.ClearPD()
-			es.defined = oldVars
+			//es.defined = oldVars
 			oldEx = newEx
 		}
 		return oldEx

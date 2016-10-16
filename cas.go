@@ -306,7 +306,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 	es.Debugf("Permutations to try: %v\n", perms)
 
 	for _, perm := range perms {
-		oldVars := es.GetDefinedSnapshot()
+		//oldVars := es.GetDefinedSnapshot()
 		es.Debugf("Using perm: %v\n", perm)
 
 		// Build a version of components with the correct order. Can I do this
@@ -322,7 +322,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 		}
 
 		es.ClearPD()
-		es.defined = oldVars
+		//es.defined = oldVars
 	}
 	es.Debugf("CommutativeIsMatchQ failed. Context: %s", es)
 	return false
