@@ -64,6 +64,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	if isHeadSym {
 		headStr := headAsSym.Name
+
+		theRes, isDefined := es.GetDef(headStr, this)
+		if isDefined {
+			return theRes
+		}
+
 		if headStr == "Power" {
 			return this.EvalPower(es)
 		}
@@ -141,11 +147,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 		if headStr == "MemberQ" {
 			return this.EvalMemberQ(es)
-		}
-
-		theRes, isDefined := es.GetDef(headStr, this)
-		if isDefined {
-			return theRes
 		}
 	}
 	return this

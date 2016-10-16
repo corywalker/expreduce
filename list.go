@@ -65,15 +65,10 @@ func (this *Expression) EvalMemberQ(es *EvalState) Ex {
 	}
 	list, isList := HeadAssertion(this.Parts[1], "List")
 	if isList {
-		oldVars := es.GetDefinedSnapshot()
 		for _, exp := range list.Parts {
-			if IsMatchQ(exp, this.Parts[2], es) {
-				es.ClearPD()
-				es.defined = oldVars
+			if IsMatchQClearDefs(exp, this.Parts[2], es) {
 				return &Symbol{"True"}
 			}
-			es.ClearPD()
-			es.defined = oldVars
 		}
 	}
 	return &Symbol{"False"}
