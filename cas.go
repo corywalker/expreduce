@@ -97,7 +97,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 			//this.ClearPD()
 			//this.defined = CopyExpressionMap(oldVars)
 			this.Debugf(this.Pre()+"Found match! Current context before: %s", this)
-			res := lhs.Replace(&this.defined[name][i], this)
+			res := Replace(lhs, &this.defined[name][i], this)
 			this.Debugf(this.Pre()+"Found match! Current context after: %s", this)
 			this.ClearPD()
 			this.defined = CopyExpressionMap(oldVars)
@@ -196,7 +196,7 @@ func (this *EvalState) String() string {
 // Ex stands for Expression. Most structs should implement this
 type Ex interface {
 	Eval(es *EvalState) Ex
-	Replace(r *Expression, es *EvalState) Ex
+	//Replace(r *Expression, es *EvalState) Ex
 	String() string
 	IsEqual(b Ex, es *EvalState) string
 	DeepCopy() Ex

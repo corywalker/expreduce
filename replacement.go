@@ -16,7 +16,7 @@ func ReplacePD(this Ex, es *EvalState) Ex {
 	es.Infof("In ReplacePD(%v, es.patternDefined=%v)", this, es.patternDefined)
 	toReturn := this.DeepCopy()
 	for nameStr, def := range es.patternDefined {
-		toReturn = toReturn.Replace(
+		toReturn = Replace(toReturn,
 			&Expression{[]Ex{
 				&Symbol{"Rule"},
 				&Symbol{nameStr},
@@ -25,6 +25,27 @@ func ReplacePD(this Ex, es *EvalState) Ex {
 	}
 	es.Infof("Finished ReplacePD with toReturn=%v", toReturn)
 	return toReturn
+}
+
+func Replace(this Ex, r *Expression, es *EvalState) Ex {
+	asFlt, isFlt := this.(*Flt)
+	asInteger, isInteger := this.(*Integer)
+	asString, isString := this.(*String)
+	asExpression, isExpression := this.(*Expression)
+	asSymbol, isSymbol := this.(*Symbol)
+
+	if isFlt {
+		return asFlt.Replace(r, es)
+	} else if isInteger {
+		return asInteger.Replace(r, es)
+	} else if isString {
+		return asString.Replace(r, es)
+	} else if isExpression {
+		return asExpression.Replace(r, es)
+	} else if isSymbol {
+		return asSymbol.Replace(r, es)
+	}
+	return &Symbol{"ReplaceFailed"}
 }
 
 func (this *Expression) EvalReplace(es *EvalState) Ex {
@@ -37,7 +58,7 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 	rulesRule, ok := HeadAssertion(this.Parts[2], "Rule")
 	if ok {
 		//oldVars := es.GetDefinedSnapshot()
-		newEx := this.Parts[1].Replace(rulesRule, es)
+		newEx := Replace(this.Parts[1], rulesRule, es)
 		//newEx = ReplacePD(newEx, es)
 		es.ClearPD()
 		newEx = newEx.Eval(es)
@@ -73,7 +94,7 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 		es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 		for !isSame {
 			//oldVars := es.GetDefinedSnapshot()
-			newEx := oldEx.DeepCopy().Replace(rulesRule, es)
+			newEx := Replace(oldEx.DeepCopy(), rulesRule, es)
 			es.ClearPD()
 			newEx = newEx.Eval(es)
 			//es.defined = oldVars

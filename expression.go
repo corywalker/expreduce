@@ -188,7 +188,7 @@ func (this *Expression) Replace(r *Expression, es *EvalState) Ex {
 	}
 
 	for i := range this.Parts {
-		this.Parts[i] = this.Parts[i].Replace(r, es)
+		this.Parts[i] = Replace(this.Parts[i], r, es)
 	}
 	return this.Eval(es)
 }
