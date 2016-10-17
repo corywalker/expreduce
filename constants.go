@@ -41,13 +41,6 @@ func (this *Flt) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Flt) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankTypeCapturing(otherEx, this, "Real", es) {
-		return true
-	}
-	return IsSameQ(this, otherEx, es)
-}
-
 func (this *Flt) DeepCopy() Ex {
 	tmp := big.NewFloat(0)
 	tmp.Copy(this.Val)
@@ -92,13 +85,6 @@ func (this *Integer) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Integer) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankTypeCapturing(otherEx, this, "Integer", es) {
-		return true
-	}
-	return IsSameQ(this, otherEx, es)
-}
-
 func (this *Integer) DeepCopy() Ex {
 	tmp := big.NewInt(0)
 	tmp.Set(this.Val)
@@ -126,13 +112,6 @@ func (this *String) IsEqual(other Ex, es *EvalState) string {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
-}
-
-func (this *String) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankTypeCapturing(otherEx, this, "String", es) {
-		return true
-	}
-	return IsSameQ(this, otherEx, es)
 }
 
 func (this *String) DeepCopy() Ex {

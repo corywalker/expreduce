@@ -38,13 +38,6 @@ func (this *Symbol) IsEqual(other Ex, es *EvalState) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Symbol) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	if IsBlankTypeCapturing(otherEx, this, "Symbol", es) {
-		return true
-	}
-	return IsSameQ(this, otherEx, es)
-}
-
 func (this *Symbol) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy

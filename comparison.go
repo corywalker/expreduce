@@ -53,25 +53,33 @@ func (this *Expression) ToStringSameQ() string {
 }
 
 func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
-	isSame := false
-	aFlt, aIsFlt := a.(*Flt)
-	aInteger, aIsInteger := a.(*Integer)
-	aString, aIsString := a.(*String)
+	_, aIsFlt := a.(*Flt)
+	_, aIsInteger := a.(*Integer)
+	_, aIsString := a.(*String)
 	aExpression, aIsExpression := a.(*Expression)
-	aSymbol, aIsSymbol := a.(*Symbol)
+	_, aIsSymbol := a.(*Symbol)
 
+	// This initial value is just a randomly chosen placeholder
+	headStr := "Unknown"
 	if aIsFlt {
-		isSame = aFlt.IsMatchQ(b, es)
+		headStr = "Real"
 	} else if aIsInteger {
-		isSame = aInteger.IsMatchQ(b, es)
+		headStr = "Integer"
 	} else if aIsString {
-		isSame = aString.IsMatchQ(b, es)
+		headStr = "String"
 	} else if aIsExpression {
-		isSame = aExpression.IsMatchQ(b, es)
+		headStr = aExpression.Parts[0].String()
 	} else if aIsSymbol {
-		isSame = aSymbol.IsMatchQ(b, es)
+		headStr = "Symbol"
 	}
-	return isSame
+
+	if IsBlankTypeCapturing(b, a, headStr, es) {
+		return true
+	}
+	if aIsFlt || aIsInteger || aIsString || aIsSymbol {
+		return IsSameQ(a, b, es)
+	}
+	return aExpression.IsMatchQ(b, es)
 }
 
 func IsSameQ(a Ex, b Ex, es *EvalState) bool {
