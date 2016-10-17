@@ -28,22 +28,19 @@ func ReplacePD(this Ex, es *EvalState) Ex {
 }
 
 func Replace(this Ex, r *Expression, es *EvalState) Ex {
-	asFlt, isFlt := this.(*Flt)
-	asInteger, isInteger := this.(*Integer)
-	asString, isString := this.(*String)
+	_, isFlt := this.(*Flt)
+	_, isInteger := this.(*Integer)
+	_, isString := this.(*String)
 	asExpression, isExpression := this.(*Expression)
-	asSymbol, isSymbol := this.(*Symbol)
+	_, isSymbol := this.(*Symbol)
 
-	if isFlt {
-		return asFlt.Replace(r, es)
-	} else if isInteger {
-		return asInteger.Replace(r, es)
-	} else if isString {
-		return asString.Replace(r, es)
+	if isFlt || isInteger || isString || isSymbol {
+		if IsMatchQ(this, r.Parts[1], es) {
+			return r.Parts[2]
+		}
+		return this
 	} else if isExpression {
 		return asExpression.Replace(r, es)
-	} else if isSymbol {
-		return asSymbol.Replace(r, es)
 	}
 	return &Symbol{"ReplaceFailed"}
 }

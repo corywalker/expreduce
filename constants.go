@@ -13,13 +13,6 @@ func (f *Flt) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (this *Flt) Replace(r *Expression, es *EvalState) Ex {
-	if IsMatchQ(this, r.Parts[1], es) {
-		return r.Parts[2]
-	}
-	return this
-}
-
 func (f *Flt) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("%.6g", f.Val))
@@ -76,13 +69,6 @@ func (f *Integer) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (this *Integer) Replace(r *Expression, es *EvalState) Ex {
-	if IsMatchQ(this, r.Parts[1], es) {
-		return r.Parts[2]
-	}
-	return this
-}
-
 func (f *Integer) String() string {
 	return fmt.Sprintf("%d", f.Val)
 }
@@ -124,13 +110,6 @@ type String struct {
 }
 
 func (this *String) Eval(es *EvalState) Ex {
-	return this
-}
-
-func (this *String) Replace(r *Expression, es *EvalState) Ex {
-	if IsMatchQ(this, r.Parts[1], es) {
-		return r.Parts[2]
-	}
 	return this
 }
 

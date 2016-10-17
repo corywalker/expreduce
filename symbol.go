@@ -17,13 +17,6 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Symbol) Replace(r *Expression, es *EvalState) Ex {
-	if IsMatchQ(this, r.Parts[1], es) {
-		return r.Parts[2]
-	}
-	return this
-}
-
 func (this *Symbol) String() string {
 	return fmt.Sprintf("%v", this.Name)
 }
