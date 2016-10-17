@@ -5,7 +5,7 @@ func (this *Expression) EvalIf(es *EvalState) Ex {
 		return this
 	}
 
-	var isequal string = this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, es)
+	var isequal string = this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 	if isequal == "EQUAL_UNK" {
 		return this
 	} else if isequal == "EQUAL_TRUE" {
@@ -21,11 +21,11 @@ func (this *Expression) EvalWhile(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
-	isequal := this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, es)
+	isequal := this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 	cont := isequal == "EQUAL_TRUE"
 	for cont {
 
-		isequal = this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, es)
+		isequal = this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 		cont = isequal == "EQUAL_TRUE"
 	}
 

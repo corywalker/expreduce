@@ -325,13 +325,13 @@ func IsHoldAll(sym *Symbol) bool {
 	return false
 }
 
-func (this *Expression) IsEqual(otherEx Ex, es *EvalState) string {
-	thisEvaled := this.Eval(es)
-	otherEx = otherEx.Eval(es)
-	this, ok := thisEvaled.(*Expression)
-	if !ok {
-		return thisEvaled.IsEqual(otherEx, es)
-	}
+func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
+	//thisEvaled := this.Eval(es)
+	//otherEx = otherEx.Eval(es)
+	//this, ok := thisEvaled.(*Expression)
+	//if !ok {
+		//return thisEvaled.IsEqual(otherEx, cl)
+	//}
 
 	other, ok := otherEx.(*Expression)
 	if !ok {
@@ -343,12 +343,12 @@ func (this *Expression) IsEqual(otherEx Ex, es *EvalState) string {
 	if thisSymOk && otherSymOk {
 		if thisSym.Name == otherSym.Name {
 			if IsOrderless(thisSym) {
-				return CommutativeIsEqual(this.Parts[1:len(this.Parts)], other.Parts[1:len(other.Parts)], es)
+				return CommutativeIsEqual(this.Parts[1:len(this.Parts)], other.Parts[1:len(other.Parts)], cl)
 			}
 		}
 	}
 
-	return FunctionIsEqual(this.Parts, other.Parts, es)
+	return FunctionIsEqual(this.Parts, other.Parts, cl)
 }
 
 func (this *Expression) DeepCopy() Ex {

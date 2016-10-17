@@ -21,7 +21,7 @@ func (this *Symbol) String() string {
 	return fmt.Sprintf("%v", this.Name)
 }
 
-func (this *Symbol) IsEqual(other Ex, es *EvalState) string {
+func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {
 	otherConv, ok := other.(*Symbol)
 	if !ok {
 		return "EQUAL_UNK"

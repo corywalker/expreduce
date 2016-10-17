@@ -74,18 +74,18 @@ func TestConstants(t *testing.T) {
 	assert.Equal(t, "True", a.String())
 	var b Ex = &Symbol{"False"}
 	assert.Equal(t, "False", b.String())
-	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, es))
-	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, es))
-	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(b, es))
-	assert.Equal(t, "EQUAL_FALSE", b.IsEqual(a, es))
+	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, &es.CASLogger))
+	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, &es.CASLogger))
+	assert.Equal(t, "EQUAL_FALSE", a.IsEqual(b, &es.CASLogger))
+	assert.Equal(t, "EQUAL_FALSE", b.IsEqual(a, &es.CASLogger))
 	//fmt.Println(a.String())
 
 	a = &Expression{[]Ex{&Symbol{"Error"}, &String{"First error"}}}
 	assert.Equal(t, "Error[\"First error\"]", a.String())
 	b = &Expression{[]Ex{&Symbol{"Error"}, &String{"Second error"}}}
 	assert.Equal(t, "Error[\"Second error\"]", b.String())
-	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, es))
-	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, es))
-	assert.Equal(t, "EQUAL_UNK", a.IsEqual(b, es))
-	assert.Equal(t, "EQUAL_UNK", b.IsEqual(a, es))
+	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, &es.CASLogger))
+	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", a.IsEqual(b, &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", b.IsEqual(a, &es.CASLogger))
 }

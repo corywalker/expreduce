@@ -7,7 +7,7 @@ func (this *Expression) EvalEqual(es *EvalState) Ex {
 		return this
 	}
 
-	var isequal string = this.Parts[1].Eval(es).IsEqual(this.Parts[2].Eval(es), es)
+	var isequal string = this.Parts[1].Eval(es).IsEqual(this.Parts[2].Eval(es), &es.CASLogger)
 	if isequal == "EQUAL_UNK" {
 		return this
 	} else if isequal == "EQUAL_TRUE" {
@@ -117,7 +117,7 @@ func IsSameQ(a Ex, b Ex, es *EvalState) bool {
 	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) {
 
 		// a and b are identical raw types
-		return a.IsEqual(b, es) == "EQUAL_TRUE"
+		return a.IsEqual(b, &es.CASLogger) == "EQUAL_TRUE"
 
 	} else if aIsExpression && bIsExpression {
 
@@ -127,7 +127,7 @@ func IsSameQ(a Ex, b Ex, es *EvalState) bool {
 		if aSymOk && otherSymOk {
 			if aSym.Name == otherSym.Name {
 				if IsOrderless(aSym) {
-					return a.IsEqual(b, es) == "EQUAL_TRUE"
+					return a.IsEqual(b, &es.CASLogger) == "EQUAL_TRUE"
 				}
 			}
 		}

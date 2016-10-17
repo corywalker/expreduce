@@ -35,11 +35,11 @@ func Test(t *testing.T) {
 	//fmt.Println(a.String())
 
 	// Test equality checking
-	assert.Equal(t, "EQUAL_TRUE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}, es))
-	assert.Equal(t, "EQUAL_FALSE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(98)}, es))
-	assert.Equal(t, "EQUAL_TRUE", (&Symbol{"x"}).IsEqual(&Symbol{"x"}, es))
-	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"X"}, es))
-	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"y"}, es))
+	assert.Equal(t, "EQUAL_TRUE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}, &es.CASLogger))
+	assert.Equal(t, "EQUAL_FALSE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(98)}, &es.CASLogger))
+	assert.Equal(t, "EQUAL_TRUE", (&Symbol{"x"}).IsEqual(&Symbol{"x"}, &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"X"}, &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"y"}, &es.CASLogger))
 	var t1 = &Expression{[]Ex{
 		&Symbol{"Plus"},
 		&Flt{big.NewFloat(2.5)},
@@ -50,7 +50,7 @@ func Test(t *testing.T) {
 		&Flt{big.NewFloat(5)},
 		&Flt{big.NewFloat(2.5)},
 	}}
-	assert.Equal(t, "EQUAL_TRUE", t1.IsEqual(t2, es))
+	assert.Equal(t, "EQUAL_TRUE", t1.IsEqual(t2, &es.CASLogger))
 	CasAssertSame(t, es, "False", "2.5 + (3. + 80.) + 2.5 == (80. + 3.) + 2. + 2.5")
 
 	// Test evaluation

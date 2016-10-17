@@ -23,7 +23,9 @@ type CASLogger struct {
 }
 
 type EvalState struct {
+	// Embedded type for logging
 	CASLogger
+
 	defined        map[string][]Expression
 	patternDefined map[string]Ex
 }
@@ -200,9 +202,8 @@ func (this *EvalState) String() string {
 // Ex stands for Expression. Most structs should implement this
 type Ex interface {
 	Eval(es *EvalState) Ex
-	//Replace(r *Expression, es *EvalState) Ex
 	String() string
-	IsEqual(b Ex, es *EvalState) string
+	IsEqual(b Ex, cl *CASLogger) string
 	DeepCopy() Ex
 }
 
@@ -243,8 +244,8 @@ func ExArrayContainsFloat(a []Ex) bool {
 	return res
 }
 
-func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
-	es.Infof("Entering CommutativeIsEqual(components: %s, other_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(other_components), es)
+func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) string {
+	cl.Infof("Entering CommutativeIsEqual(components: %s, other_components: %s)", ExArrayToString(components), ExArrayToString(other_components))
 	if len(components) != len(other_components) {
 		return "EQUAL_FALSE"
 	}
@@ -256,7 +257,7 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, es *EvalState) s
 			if taken {
 				continue
 			}
-			res := e1.IsEqual(e2, es)
+			res := e1.IsEqual(e2, cl)
 			switch res {
 			case "EQUAL_FALSE":
 			case "EQUAL_TRUE":
@@ -449,12 +450,12 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 	return progressI == len(lhs_components)-1
 }
 
-func FunctionIsEqual(components []Ex, other_components []Ex, es *EvalState) string {
+func FunctionIsEqual(components []Ex, other_components []Ex, cl *CASLogger) string {
 	if len(components) != len(other_components) {
 		return "EQUAL_UNK"
 	}
 	for i := range components {
-		res := components[i].IsEqual(other_components[i], es)
+		res := components[i].IsEqual(other_components[i], cl)
 		switch res {
 		case "EQUAL_FALSE":
 			return "EQUAL_UNK"

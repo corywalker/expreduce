@@ -30,8 +30,8 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "x^2.", t9.String())
 	assert.Equal(t, "x^(-1. + 3.)", t10.String())
 	assert.Equal(t, "x^3.", t11.String())
-	assert.Equal(t, "EQUAL_TRUE", t9.IsEqual(t10, es))
-	assert.Equal(t, "EQUAL_UNK", t9.IsEqual(t11, es))
+	assert.Equal(t, "EQUAL_TRUE", t9.IsEqual(t10.Eval(es), &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", t9.IsEqual(t11, &es.CASLogger))
 
 	// Test raising expressions to the first power
 	assert.Equal(t, "(x + 1)", EvalInterp("(x+1)^1", es).String())

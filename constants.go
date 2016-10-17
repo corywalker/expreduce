@@ -22,7 +22,7 @@ func (f *Flt) String() string {
 	return buffer.String()
 }
 
-func (this *Flt) IsEqual(other Ex, es *EvalState) string {
+func (this *Flt) IsEqual(other Ex, cl *CASLogger) string {
 	otherConv, ok := other.(*Flt)
 	if !ok {
 		otherInteger, ok := other.(*Integer)
@@ -66,7 +66,7 @@ func (f *Integer) String() string {
 	return fmt.Sprintf("%d", f.Val)
 }
 
-func (this *Integer) IsEqual(other Ex, es *EvalState) string {
+func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {
 	otherConv, ok := other.(*Integer)
 	if !ok {
 		otherFlt, ok := other.(*Flt)
@@ -103,7 +103,7 @@ func (this *String) String() string {
 	return fmt.Sprintf("\"%v\"", this.Val)
 }
 
-func (this *String) IsEqual(other Ex, es *EvalState) string {
+func (this *String) IsEqual(other Ex, cl *CASLogger) string {
 	otherConv, ok := other.(*String)
 	if !ok {
 		return "EQUAL_FALSE"
