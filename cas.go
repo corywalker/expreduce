@@ -125,7 +125,7 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	}
 
 	for i := range this.defined[name] {
-		if IsSameQ(this.defined[name][i].Parts[1], lhs, this) {
+		if IsSameQ(this.defined[name][i].Parts[1], lhs, &this.CASLogger) {
 			this.defined[name][i].Parts[2] = rhs
 			return
 		}
@@ -419,7 +419,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 							if !ispd {
 								es.patternDefined[sAsSymbol.Name] = target
 							}
-							if !IsSameQ(es.patternDefined[sAsSymbol.Name], target, es) {
+							if !IsSameQ(es.patternDefined[sAsSymbol.Name], target, &es.CASLogger) {
 								return false
 							}
 
@@ -427,7 +427,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 								//es.defined[sAsSymbol.Name] = target
 								es.Define(sAsSymbol.Name, sAsSymbol, target)
 							} else {
-								//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
+								//return es.defined[sAsSymbol.Name].IsSameQ(target, &es.CASLogger)
 								return true
 							}
 						}
@@ -467,12 +467,12 @@ func FunctionIsEqual(components []Ex, other_components []Ex, cl *CASLogger) stri
 	return "EQUAL_TRUE"
 }
 
-func FunctionIsSameQ(components []Ex, other_components []Ex, es *EvalState) bool {
+func FunctionIsSameQ(components []Ex, other_components []Ex, cl *CASLogger) bool {
 	if len(components) != len(other_components) {
 		return false
 	}
 	for i := range components {
-		res := IsSameQ(components[i], other_components[i], es)
+		res := IsSameQ(components[i], other_components[i], cl)
 		if !res {
 			return false
 		}

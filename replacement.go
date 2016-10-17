@@ -98,7 +98,7 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 			es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
 			//oldVars := es.GetDefinedSnapshot()
-			if IsSameQ(oldEx, newEx, es) {
+			if IsSameQ(oldEx, newEx, &es.CASLogger) {
 				isSame = true
 			}
 			es.ClearPD()

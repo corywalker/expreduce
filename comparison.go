@@ -34,7 +34,7 @@ func (this *Expression) EvalSameQ(es *EvalState) Ex {
 		return this
 	}
 
-	var issame bool = IsSameQ(this.Parts[1].Eval(es), this.Parts[2].Eval(es), es)
+	var issame bool = IsSameQ(this.Parts[1].Eval(es), this.Parts[2].Eval(es), &es.CASLogger)
 	if issame {
 		return &Symbol{"True"}
 	} else {
@@ -82,7 +82,7 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 		return false
 	}
 	if aIsFlt || aIsInteger || aIsString || aIsSymbol {
-		return IsSameQ(a, b, es)
+		return IsSameQ(a, b, &es.CASLogger)
 	}
 
 	if !(aIsExpression && bIsExpression) {
@@ -102,7 +102,7 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	return NonCommutativeIsMatchQ(aExpression.Parts, bExpression.Parts, es)
 }
 
-func IsSameQ(a Ex, b Ex, es *EvalState) bool {
+func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 	_, aIsFlt := a.(*Flt)
 	_, bIsFlt := b.(*Flt)
 	_, aIsInteger := a.(*Integer)
@@ -117,7 +117,7 @@ func IsSameQ(a Ex, b Ex, es *EvalState) bool {
 	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) {
 
 		// a and b are identical raw types
-		return a.IsEqual(b, &es.CASLogger) == "EQUAL_TRUE"
+		return a.IsEqual(b, cl) == "EQUAL_TRUE"
 
 	} else if aIsExpression && bIsExpression {
 
@@ -127,12 +127,12 @@ func IsSameQ(a Ex, b Ex, es *EvalState) bool {
 		if aSymOk && otherSymOk {
 			if aSym.Name == otherSym.Name {
 				if IsOrderless(aSym) {
-					return a.IsEqual(b, &es.CASLogger) == "EQUAL_TRUE"
+					return a.IsEqual(b, cl) == "EQUAL_TRUE"
 				}
 			}
 		}
 
-		return FunctionIsSameQ(aExpression.Parts, bExpression.Parts, es)
+		return FunctionIsSameQ(aExpression.Parts, bExpression.Parts, cl)
 	}
 
 	// This should never happen
