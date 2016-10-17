@@ -56,10 +56,12 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
-	aExpression, aIsExpression := a.(*Expression)
 	_, aIsSymbol := a.(*Symbol)
+	aExpression, aIsExpression := a.(*Expression)
+	bExpression, bIsExpression := b.(*Expression)
 
 	// This initial value is just a randomly chosen placeholder
+	// TODO, convert headStr to symbol type, have Ex implement getHead() Symbol
 	headStr := "Unknown"
 	if aIsFlt {
 		headStr = "Real"
@@ -73,33 +75,68 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 		headStr = "Symbol"
 	}
 
-	if IsBlankTypeCapturing(b, a, headStr, es) {
-		return true
+	if IsBlankTypeOnly(b) {
+		if IsBlankTypeCapturing(b, a, headStr, es) {
+			return true
+		}
+		return false
 	}
 	if aIsFlt || aIsInteger || aIsString || aIsSymbol {
 		return IsSameQ(a, b, es)
 	}
-	return aExpression.IsMatchQ(b, es)
+
+	if !(aIsExpression && bIsExpression) {
+		return false
+	}
+
+	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
+	bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
+	if aExpressionSymOk && bExpressionSymOk {
+		if aExpressionSym.Name == bExpressionSym.Name {
+			if IsOrderless(aExpressionSym) {
+				return CommutativeIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], es)
+			}
+		}
+	}
+
+	return NonCommutativeIsMatchQ(aExpression.Parts, bExpression.Parts, es)
 }
 
 func IsSameQ(a Ex, b Ex, es *EvalState) bool {
-	isSame := false
 	_, aIsFlt := a.(*Flt)
 	_, bIsFlt := b.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, bIsInteger := b.(*Integer)
 	_, aIsString := a.(*String)
 	_, bIsString := b.(*String)
-	aExpression, aIsExpression := a.(*Expression)
 	_, aIsSymbol := a.(*Symbol)
 	_, bIsSymbol := b.(*Symbol)
+	aExpression, aIsExpression := a.(*Expression)
+	bExpression, bIsExpression := b.(*Expression)
 
 	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) {
-		isSame = a.IsEqual(b, es) == "EQUAL_TRUE"
-	} else if aIsExpression {
-		isSame = aExpression.IsSameQ(b, es)
+
+		// a and b are identical raw types
+		return a.IsEqual(b, es) == "EQUAL_TRUE"
+
+	} else if aIsExpression && bIsExpression {
+
+		// a and b are both expressions
+		aSym, aSymOk := aExpression.Parts[0].(*Symbol)
+		otherSym, otherSymOk := bExpression.Parts[0].(*Symbol)
+		if aSymOk && otherSymOk {
+			if aSym.Name == otherSym.Name {
+				if IsOrderless(aSym) {
+					return a.IsEqual(b, es) == "EQUAL_TRUE"
+				}
+			}
+		}
+
+		return FunctionIsSameQ(aExpression.Parts, bExpression.Parts, es)
 	}
-	return isSame
+
+	// This should never happen
+	return false
 }
 func IsMatchQClearDefs(a Ex, b Ex, es *EvalState) bool {
 	oldVars := es.GetDefinedSnapshot()

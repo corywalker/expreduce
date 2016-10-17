@@ -351,60 +351,6 @@ func (this *Expression) IsEqual(otherEx Ex, es *EvalState) string {
 	return FunctionIsEqual(this.Parts, other.Parts, es)
 }
 
-func (this *Expression) IsSameQ(otherEx Ex, es *EvalState) bool {
-	other, ok := otherEx.(*Expression)
-	if !ok {
-		return false
-	}
-
-	thisSym, thisSymOk := this.Parts[0].(*Symbol)
-	otherSym, otherSymOk := other.Parts[0].(*Symbol)
-	if thisSymOk && otherSymOk {
-		if thisSym.Name == otherSym.Name {
-			if IsOrderless(thisSym) {
-				return this.IsEqual(otherEx, es) == "EQUAL_TRUE"
-			}
-		}
-	}
-
-	return FunctionIsSameQ(this.Parts, other.Parts, es)
-}
-
-func (this *Expression) IsMatchQ(otherEx Ex, es *EvalState) bool {
-	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
-	if isHeadSym {
-		headStr := headAsSym.Name
-		if IsBlankTypeOnly(otherEx) {
-			if IsBlankTypeCapturing(otherEx, this, headStr, es) {
-				return true
-			}
-			return false
-		}
-	}
-	//thisEx := this.Eval(es)
-	//otherEx = otherEx.Eval(es)
-	//this, ok := thisEx.(*Expression)
-	//if !ok {
-	//return IsMatchQ(thisEx, otherEx, es)
-	//}
-	other, otherOk := otherEx.(*Expression)
-	if !otherOk {
-		return false
-	}
-
-	thisSym, thisSymOk := this.Parts[0].(*Symbol)
-	otherSym, otherSymOk := other.Parts[0].(*Symbol)
-	if thisSymOk && otherSymOk {
-		if thisSym.Name == otherSym.Name {
-			if IsOrderless(thisSym) {
-				return CommutativeIsMatchQ(this.Parts[1:len(this.Parts)], other.Parts[1:len(other.Parts)], es)
-			}
-		}
-	}
-
-	return NonCommutativeIsMatchQ(this.Parts, other.Parts, es)
-}
-
 func (this *Expression) DeepCopy() Ex {
 	var thiscopy = &Expression{}
 	for i := range this.Parts {
