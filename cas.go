@@ -16,12 +16,16 @@ var format = logging.MustStringFormatter(
 	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 )
 
-type EvalState struct {
-	defined        map[string][]Expression
-	patternDefined map[string]Ex
-	_log            *logging.Logger
+type CASLogger struct {
+	_log           *logging.Logger
 	leveled        logging.LeveledBackend
 	debugState     bool
+}
+
+type EvalState struct {
+	CASLogger
+	defined        map[string][]Expression
+	patternDefined map[string]Ex
 }
 
 func NewEvalState() *EvalState {
@@ -30,11 +34,11 @@ func NewEvalState() *EvalState {
 	es.patternDefined = make(map[string]Ex)
 
 	// Set up logging
-	es._log = logging.MustGetLogger("example")
+	es.CASLogger._log = logging.MustGetLogger("example")
 	backend := logging.NewLogBackend(os.Stderr, "", 0)
 	formatter := logging.NewBackendFormatter(backend, format)
-	es.leveled = logging.AddModuleLevel(formatter)
-	logging.SetBackend(es.leveled)
+	es.CASLogger.leveled = logging.AddModuleLevel(formatter)
+	logging.SetBackend(es.CASLogger.leveled)
 	es.DebugOff()
 
 	InitCAS(&es)
@@ -46,33 +50,33 @@ func NewEvalStateNoLog() *EvalState {
 	var es EvalState
 	es.defined = make(map[string][]Expression)
 	es.patternDefined = make(map[string]Ex)
-	es.debugState = false
+	es.CASLogger.debugState = false
 	return &es
 }
 
-func (this *EvalState) Debugf(fmt string, args ...interface{}) {
+func (this *CASLogger) Debugf(fmt string, args ...interface{}) {
 	if this.debugState {
 		this._log.Debugf(this.Pre() + fmt, args...)
 	}
 }
 
-func (this *EvalState) Infof(fmt string, args ...interface{}) {
+func (this *CASLogger) Infof(fmt string, args ...interface{}) {
 	if this.debugState {
 		this._log.Infof(this.Pre() + fmt, args...)
 	}
 }
 
-func (this *EvalState) DebugOn() {
+func (this *CASLogger) DebugOn() {
 	this.leveled.SetLevel(logging.DEBUG, "")
 	this.debugState = true
 }
 
-func (this *EvalState) DebugOff() {
+func (this *CASLogger) DebugOff() {
 	this.leveled.SetLevel(logging.ERROR, "")
 	this.debugState = false
 }
 
-func (this *EvalState) Pre() string {
+func (this *CASLogger) Pre() string {
 	toReturn := ""
 	if this.leveled.GetLevel("") != logging.ERROR {
 		depth := (bytes.Count(debug.Stack(), []byte{'\n'}) - 15) / 2
@@ -88,7 +92,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	if !isd {
 		return nil, false
 	}
-	//this.Debugf(this.Pre()+"Inside GetDef(\"%s\",%s)", name, lhs)
+	//this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	oldVars := this.GetDefinedSnapshot()
 	for i := range this.defined[name] {
@@ -96,12 +100,12 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 			//Probably not needed:
 			//this.ClearPD()
 			//this.defined = CopyExpressionMap(oldVars)
-			this.Debugf(this.Pre()+"Found match! Current context before: %s", this)
+			this.Debugf("Found match! Current context before: %s", this)
 			res := Replace(lhs, &this.defined[name][i], this)
-			this.Debugf(this.Pre()+"Found match! Current context after: %s", this)
+			this.Debugf("Found match! Current context after: %s", this)
 			this.ClearPD()
 			this.defined = CopyExpressionMap(oldVars)
-			this.Debugf(this.Pre()+"After reset: %s", this)
+			this.Debugf("After reset: %s", this)
 			return res, true
 		}
 		this.ClearPD()
@@ -111,7 +115,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 }
 
 func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
-	this.Debugf(this.Pre()+"Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
+	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
 	_, isd := this.defined[name]
 	if !isd {
 		this.defined[name] = []Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}}
