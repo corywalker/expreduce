@@ -98,6 +98,7 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 \{ return LCURLYSYM
 \} return RCURLYSYM
 -> return RULESYM
+:> return RULEDELAYEDSYM
 \+ return PLUSSYM
 \- return MINUSSYM
 \* return MULTSYM

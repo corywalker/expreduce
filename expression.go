@@ -30,6 +30,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headIsSym && i == 1 && IsHoldFirst(headSym) {
 			continue
 		}
+		if headIsSym && i > 1 && IsHoldRest(headSym) {
+			continue
+		}
 		//if headIsSym && IsAttribute(headSym, "HoldAll", es) {
 		if headIsSym && IsHoldAll(headSym) {
 			continue
@@ -227,6 +230,8 @@ func (this *Expression) String() string {
 			return this.ToStringBlankNullSequence()
 		} else if headStr == "Rule" {
 			return this.ToStringRule()
+		} else if headStr == "RuleDelayed" {
+			return this.ToStringRuleDelayed()
 		} else if headStr == "Set" {
 			return this.ToStringSet()
 		} else if headStr == "SetDelayed" {
@@ -306,6 +311,18 @@ func IsHoldFirst(sym *Symbol) bool {
 	if sym.Name == "Set" {
 		return true
 	} else if sym.Name == "Pattern" {
+		return true
+	}
+	return false
+}
+
+// TODO: convert to a map
+func IsHoldRest(sym *Symbol) bool {
+	if sym.Name == "If" {
+		return true
+	} else if sym.Name == "RuleDelayed" {
+		return true
+	} else if sym.Name == "foo" {
 		return true
 	}
 	return false
