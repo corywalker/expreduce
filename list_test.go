@@ -55,4 +55,13 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "450015000", "Sum[i, {i, 0, 30000}]")
 	CasAssertSame(t, es, "1/2*n*(1 + n)", "Sum[i, {i, 0, n}]")
 	CasAssertSame(t, es, "1/2*n*(1 + n)", "Sum[i, {i, 1, n}]")
+
+	// Test Map
+	CasAssertSame(t, es, "{foo[a], foo[b], foo[c]}", "Map[foo, {a, b, c}]")
+	CasAssertSame(t, es, "{foo[a], foo[b], foo[c]}", "foo /@ {a, b, c}")
+	CasAssertSame(t, es, "{2, 4, 9}", "Times /@ {2, 4, 9}")
+	CasAssertSame(t, es, "{foo[{a, b}], foo[c]}", "Map[foo, {{a, b}, c}]")
+	CasAssertSame(t, es, "Map[foo]", "Map[foo]")
+	CasAssertSame(t, es, "foo", "Map[foo, foo]")
+	CasAssertSame(t, es, "Map[foo, foo, foo]", "Map[foo, foo, foo]")
 }

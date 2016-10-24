@@ -133,4 +133,11 @@ func TestExpression(t *testing.T) {
 	// Test Apply
 	es.ClearAll()
 	CasAssertSame(t, es, "foo[a,b,c]", "Apply[foo, {a,b,c}]")
+	CasAssertSame(t, es, "foo[bar, buzz]", "Apply[foo, {bar, buzz}]")
+	CasAssertSame(t, es, "foo[bar, buzz]", "foo @@ {bar, buzz}")
+	CasAssertSame(t, es, "foo[1, 2]", "foo @@ {1, 2}")
+	CasAssertSame(t, es, "1", "foo @@ 1")
+	CasAssertSame(t, es, "bar", "foo @@ bar")
+	CasAssertSame(t, es, "12", "Times @@ {2, 6}")
+	CasAssertSame(t, es, "a b", "Times @@ {a, b}")
 }

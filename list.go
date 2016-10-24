@@ -104,3 +104,22 @@ func (this *Expression) EvalMemberQ(es *EvalState) Ex {
 	}
 	return &Symbol{"False"}
 }
+
+func (this *Expression) EvalMap(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+
+	list, isList := HeadAssertion(this.Parts[2], "List")
+	if isList {
+		toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+		for i := 1; i < len(list.Parts); i++ {
+			toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
+				this.Parts[1].DeepCopy(),
+				list.Parts[i].DeepCopy(),
+			}})
+		}
+		return toReturn
+	}
+	return this.Parts[2]
+}

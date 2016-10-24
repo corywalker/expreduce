@@ -95,4 +95,16 @@ func TestSimplify(t *testing.T) {
 	//CasAssertSame(t, es, "-3 + (-4 + r) s", "4 r*s - 2 s - 3 (r*s + 1) - 2 s // BasicSimplify")
 	//CasAssertSame(t, es, "7 y - z + 3 y z", "8 y - 2 z - (y - z) + 3 y*z")
 	//CasAssertSame(t, es, "-z + y (7 + 3 z)", "8 y - 2 z - (y - z) + 3 y*z // BasicSimplify")
+
+	CasAssertSame(t, es, "Infinity", "Infinity - 1")
+	CasAssertSame(t, es, "Infinity", "Infinity - 990999999")
+	CasAssertSame(t, es, "Infinity", "Infinity - 990999999.")
+	CasAssertSame(t, es, "Indeterminate", "Infinity - Infinity")
+	// I can't simplify this type of infinity until I have ;/ rules
+	//CasAssertSame(t, es, "Infinity", "Infinity*2")
+	CasAssertSame(t, es, "-Infinity", "Infinity*-1")
+	CasAssertSame(t, es, "-Infinity", "-Infinity + 1")
+	CasAssertSame(t, es, "-Infinity", "-Infinity + 999")
+	CasAssertSame(t, es, "Infinity", "-Infinity*-1")
+	CasAssertSame(t, es, "0", "1/Infinity")
 }

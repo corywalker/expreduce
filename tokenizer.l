@@ -110,6 +110,10 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 == return EQUALSYM
 \/\. return REPLACESYM
 \/\/\. return REPLACEREPSYM
+\/\/ return POSTFIXSYM
+@ return FUNCAPPSYM
+@@ return APPLYSYM
+\/@ return MAPSYM
 
 {pattern}
     delim := "_"

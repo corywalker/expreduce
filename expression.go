@@ -160,6 +160,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "CompoundExpression" {
 			return this.EvalCompoundExpression(es)
 		}
+		if headStr == "Map" {
+			return this.EvalMap(es)
+		}
 	}
 	return this
 }
@@ -411,5 +414,5 @@ func (this *Expression) EvalApply(es *EvalState) Ex {
 		toReturn.Parts = append(toReturn.Parts, list.Parts[1:]...)
 		return toReturn.Eval(es)
 	}
-	return this
+	return this.Parts[2]
 }

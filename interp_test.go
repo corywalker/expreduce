@@ -28,4 +28,8 @@ func TestInterp(t *testing.T) {
 	CasAssertSame(t, es, "2*x+5*y", "2 x+5 y")
 	CasAssertSame(t, es, "2*x+5*foo[x]", "2x+5foo[x]")
 	CasAssertSame(t, es, "2*x+5*foo[x]", "2x+5 foo[x]")
+
+	CasAssertSame(t, es, "{x, x, g[x], g[x]}", "{f[f[x]], f[x], g[f[x]], f[g[f[x]]]} //. f[xmatch_] -> xmatch")
+	CasAssertSame(t, es, "foo[{x, x, g[x], g[x]}]", "{f[f[x]], f[x], g[f[x]], f[g[f[x]]]} //. f[xmatch_] -> xmatch // foo")
+	CasAssertSame(t, es, "3[P[1[2]]]", "P@1@2//3")
 }
