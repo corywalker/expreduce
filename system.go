@@ -2,6 +2,7 @@ package cas
 
 import "math/big"
 import "time"
+import "fmt"
 
 func (this *Expression) EvalSetLogging(es *EvalState) Ex {
 	if len(this.Parts) != 2 {
@@ -39,4 +40,13 @@ func (this *Expression) EvalTiming(es *EvalState) Ex {
 	res := this.Parts[1].Eval(es)
 	elapsed := time.Since(start).Seconds()
 	return &Expression{[]Ex{&Symbol{"List"}, &Flt{big.NewFloat(elapsed)}, res}}
+}
+
+func (this *Expression) EvalPrint(es *EvalState) Ex {
+	if len(this.Parts) != 2 {
+		return this
+	}
+
+	fmt.Printf("%s\n", this.Parts[1].String())
+	return &Symbol{"Null"}
 }

@@ -151,6 +151,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "MemberQ" {
 			return this.EvalMemberQ(es)
 		}
+		if headStr == "Print" {
+			return this.EvalPrint(es)
+		}
 	}
 	return this
 }

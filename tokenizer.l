@@ -92,6 +92,7 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 \( return LPARSYM
 \) return RPARSYM
 , return COMMASYM
+; return SEMISYM
 \[ return LBRACKETSYM
 \] return RBRACKETSYM
 \{ return LCURLYSYM

@@ -21,7 +21,7 @@ import (
 %type <valSeq> exprseq
 
 // same for terminals
-%token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACESYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM SAMESYM EQUALSYM SETSYM SETDELAYEDSYM NAME PATTERN
+%token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACESYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM SAMESYM EQUALSYM SETSYM SETDELAYEDSYM NAME PATTERN
 
 %left REPLACEREPSYM REPLACESYM
 %left SAMESYM EQUALSYM
@@ -44,12 +44,10 @@ stat	:    expr
 
 expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $2 }
-	|    expr LBRACKETSYM RBRACKETSYM
-		{
-			ex := &Expression{}
-			ex.Parts = []Ex{$1}
-			$$ = ex
-		}
+	/*|    INTEGER NAME*/
+		/*{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }*/
+	/*|    expr SEMISYM expr*/
+		/*{ $$  =  &Expression{[]Ex{&Symbol{"CompoundExpression"}, $1, $3}} }*/
 	|    expr LBRACKETSYM exprseq RBRACKETSYM
 		{
 			ex := &Expression{}
@@ -113,10 +111,14 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $1 }
 	;
 exprseq:
-	expr
-		{ $$ = []Ex{$1} }
+	/* empty */
+		{ $$ = []Ex{} }
+	| expr
+	    { $$ = append($$, $1) }
 	| exprseq COMMASYM expr
 	    { $$ = append($$, $3) }
+	| exprseq COMMASYM
+	    { $$ = append($$, &Symbol{"Null"}) }
 	;
 
 %%      /*  start  of  programs  */
