@@ -59,16 +59,33 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
-	currRule := this.Parts[2]
-	rulesRule, ok := HeadAssertion(currRule, "Rule")
+
+	rulesRule, ok := HeadAssertion(this.Parts[2], "Rule")
 	if !ok {
-		rulesRule, ok = HeadAssertion(currRule, "RuleDelayed")
+		rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
 	}
 	if ok {
 		newEx := Replace(this.Parts[1], rulesRule, es)
 		es.ClearPD()
 		return newEx
 	}
+
+	asList, isList := HeadAssertion(this.Parts[2], "List")
+	if isList {
+		toReturn := this.Parts[1]
+		for i := 1; i < len(asList.Parts); i++ {
+			rulesRule, ok := HeadAssertion(asList.Parts[i], "Rule")
+			if !ok {
+				rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
+			}
+			if ok {
+				toReturn = Replace(toReturn.DeepCopy(), rulesRule, es)
+				es.ClearPD()
+			}
+		}
+		return toReturn
+	}
+
 	return this
 }
 

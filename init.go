@@ -21,6 +21,7 @@ func InitCAS(es *EvalState) {
 	EvalInterp("Table[amatch_, bmatch_Integer] := Table[amatch, {i, 1, bmatch}]", es)
 	EvalInterp("RandomReal[{minmatch_, maxmatch_}] := RandomReal[]*(maxmatch - minmatch) + minmatch", es)
 	EvalInterp("RandomReal[maxmatch_] := RandomReal[]*maxmatch", es)
+	EvalInterp("PowerExpand[expmatch_] := expmatch //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}", es)
 
 	// Define function simplifications
 	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Integer}] := 1/2*nmatch*(1 + nmatch)", es)
