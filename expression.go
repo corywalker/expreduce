@@ -154,6 +154,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Print" {
 			return this.EvalPrint(es)
 		}
+		if headStr == "CompoundExpression" {
+			return this.EvalCompoundExpression(es)
+		}
 	}
 	return this
 }
@@ -323,6 +326,9 @@ func IsHoldAll(sym *Symbol) bool {
 		return true
 	}
 	if sym.Name == "Hold" {
+		return true
+	}
+	if sym.Name == "CompoundExpression" {
 		return true
 	}
 	return false

@@ -50,3 +50,11 @@ func (this *Expression) EvalPrint(es *EvalState) Ex {
 	fmt.Printf("%s\n", this.Parts[1].String())
 	return &Symbol{"Null"}
 }
+
+func (this *Expression) EvalCompoundExpression(es *EvalState) Ex {
+	var toReturn Ex
+	for i := 1; i < len(this.Parts); i++ {
+		toReturn = this.Parts[i].Eval(es)
+	}
+	return toReturn
+}

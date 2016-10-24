@@ -13,12 +13,14 @@ import (
 %union{
 	val Ex
 	valSeq []Ex
+	compExpr []Ex
 }
 
 // any non-terminal which returns a value needs a type, which is
 // really a field name in the above union struct
 %type <val> expr
 %type <valSeq> exprseq
+%type <compExpr> compexpr
 
 // same for terminals
 %token <val> FLOAT INTEGER LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACESYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM SAMESYM EQUALSYM SETSYM SETDELAYEDSYM NAME PATTERN
@@ -44,6 +46,13 @@ stat	:    expr
 
 expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $2 }
+	|    LPARSYM compexpr RPARSYM
+		{
+			ex := &Expression{}
+			ex.Parts = []Ex{&Symbol{"CompoundExpression"}}
+			ex.Parts = append(ex.Parts, $2...)
+			$$ = ex
+		}
 	/*|    INTEGER NAME*/
 		/*{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }*/
 	/*|    expr SEMISYM expr*/
@@ -118,6 +127,16 @@ exprseq:
 	| exprseq COMMASYM expr
 	    { $$ = append($$, $3) }
 	| exprseq COMMASYM
+	    { $$ = append($$, &Symbol{"Null"}) }
+	;
+compexpr:
+	/* empty */
+		{ $$ = []Ex{} }
+	| expr
+	    { $$ = append($$, $1) }
+	| compexpr SEMISYM expr
+	    { $$ = append($$, $3) }
+	| compexpr SEMISYM
 	    { $$ = append($$, &Symbol{"Null"}) }
 	;
 
