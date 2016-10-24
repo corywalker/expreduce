@@ -76,6 +76,8 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  &Expression{ []Ex{&Symbol{"Plus"}, $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}} } } }
 	|    expr MULTSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $3}} }
+	|    expr expr %prec MULTSYM
+		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }
 	|    expr DIVSYM expr
 		{ $$  =  &Expression{[]Ex{
 		           &Symbol{"Times"},

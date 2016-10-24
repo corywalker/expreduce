@@ -23,4 +23,9 @@ func TestInterp(t *testing.T) {
 	// Test proper behavior of unary minus sign
 	assert.Equal(t, "-15", EvalInterp("5*-3", es).String())
 	assert.Equal(t, "15", EvalInterp("-5*-3", es).String())
+	CasAssertSame(t, es, "2*x", "2x")
+	CasAssertSame(t, es, "2*x+5*y", "2x+5y")
+	CasAssertSame(t, es, "2*x+5*y", "2 x+5 y")
+	CasAssertSame(t, es, "2*x+5*foo[x]", "2x+5foo[x]")
+	CasAssertSame(t, es, "2*x+5*foo[x]", "2x+5 foo[x]")
 }
