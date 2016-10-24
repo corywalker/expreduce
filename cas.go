@@ -27,6 +27,7 @@ type EvalState struct {
 	CASLogger
 
 	defined        map[string][]Expression
+	NoInit		   bool
 	patternDefined map[string]Ex
 }
 
@@ -43,7 +44,10 @@ func NewEvalState() *EvalState {
 	logging.SetBackend(es.CASLogger.leveled)
 	es.DebugOff()
 
-	InitCAS(&es)
+	es.NoInit = false
+	if !es.NoInit {
+		InitCAS(&es)
+	}
 
 	return &es
 }
@@ -149,7 +153,9 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 func (this *EvalState) ClearAll() {
 	this.defined = make(map[string][]Expression)
 	this.patternDefined = make(map[string]Ex)
-	InitCAS(this)
+	if !this.NoInit {
+		InitCAS(this)
+	}
 }
 
 func (this *EvalState) Clear(name string) {

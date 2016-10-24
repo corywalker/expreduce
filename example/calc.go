@@ -2,11 +2,15 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"github.com/corywalker/cas"
 	"gopkg.in/readline.v1"
 )
 
 func main() {
+	var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
+	flag.Parse()
+
 	rl, err := readline.NewEx(&readline.Config{
 		Prompt:      "> ",
 		HistoryFile: "/tmp/readline.tmp",
@@ -17,6 +21,10 @@ func main() {
 	defer rl.Close()
 
 	es := cas.NewEvalState()
+	if *debug {
+		es.NoInit = true
+		es.ClearAll()
+	}
 	//es.DebugOn()
 
 	for {
@@ -27,14 +35,18 @@ func main() {
 
 		exp := cas.Interp(line)
 		fmt.Printf("In:  %s\n", exp)
-		res := (
-		&cas.Expression{
-			[]cas.Ex{
-				&cas.Symbol{"BasicSimplify"},
-				exp.Eval(es),
-			},
-		}).Eval(es)
-		//res := exp.Eval(es)
+		var res cas.Ex
+		if *debug {
+			res = exp.Eval(es)
+		} else {
+			res = (
+			&cas.Expression{
+				[]cas.Ex{
+					&cas.Symbol{"BasicSimplify"},
+					exp.Eval(es),
+				},
+			}).Eval(es)
+		}
 		fmt.Printf("Out: %s\n", res)
 	}
 }

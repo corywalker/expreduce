@@ -23,6 +23,17 @@ func InitCAS(es *EvalState) {
 	EvalInterp("RandomReal[maxmatch_] := RandomReal[]*maxmatch", es)
 	EvalInterp("PowerExpand[expmatch_] := expmatch //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}", es)
 
+	// Calculus
+	EvalInterp("D[x_,x_]:=1", es)
+	EvalInterp("D[a_,x_]:=0", es)
+	// The following line hangs with: D[bar+foo+bar,bar]
+	//EvalInterp("D[a_+b__,x_]:=D[a,x]+D[Plus[b],x]", es)
+	//EvalInterp("D[a_ b__,x_]:=D[a,x] b+a D[Times[b],x]", es)
+	//EvalInterp("D[a_^(b_), x_]:= a^b(D[b,x] Log[a]+D[a,x]/a b)", es)
+	//EvalInterp("D[Log[a_], x_]:= D[a, x]/a", es)
+	//EvalInterp("D[Sin[a_], x_]:= D[a,x] Cos[a]", es)
+	//EvalInterp("D[Cos[a_], x_]:=-D[a,x] Sin[a]", es)
+
 	// Define function simplifications
 	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Integer}] := 1/2*nmatch*(1 + nmatch)", es)
 	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 1, nmatch_Integer}] := 1/2*nmatch*(1 + nmatch)", es)
