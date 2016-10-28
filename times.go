@@ -3,6 +3,26 @@ package cas
 import "bytes"
 import "math/big"
 
+func RationalAssertion(num Ex, den Ex) (r *Rational, isR bool) {
+	numInt, numIsInt := num.(*Integer)
+	denPow, denIsPow := HeadAssertion(den, "Power")
+	if !numIsInt || !denIsPow {
+		return nil, false
+	}
+	powInt, powIsInt := denPow.Parts[2].(*Integer)
+	if !powIsInt {
+		return nil, false
+	}
+	if powInt.Val.Cmp(big.NewInt(-1)) != 0 {
+		return nil, false
+	}
+	denInt, denIsInt := denPow.Parts[1].(*Integer)
+	if !denIsInt {
+		return nil, false
+	}
+	return &Rational{numInt.Val, denInt.Val}, true
+}
+
 func (this *Expression) EvalTimes(es *EvalState) Ex {
 	// Calls without argument receive identity values
 	if len(this.Parts) == 1 {
@@ -174,6 +194,17 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 				}
 				return toreturn.Eval(es)
 			}
+		}
+	}
+
+	if len(multiplicands) == 2 {
+		rational, isRational := RationalAssertion(multiplicands[0], multiplicands[1])
+		if isRational {
+			return rational.Eval(es)
+		}
+		rational, isRational = RationalAssertion(multiplicands[1], multiplicands[0])
+		if isRational {
+			return rational.Eval(es)
 		}
 	}
 

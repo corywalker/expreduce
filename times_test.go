@@ -2,6 +2,7 @@ package cas
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -34,6 +35,16 @@ func TestTimes(t *testing.T) {
 	CasAssertSame(t, es, "1", "Factorial[-0]")
 	CasAssertSame(t, es, "ComplexInfinity", "Factorial[-10]")
 	CasAssertSame(t, es, "120", "Factorial[5]")
+
+	// Test Rational detection
+	assert.Equal(t, "10", EasyRun("40/2^2", es))
+	assert.Equal(t, "10", EasyRun("40/4", es))
+	assert.Equal(t, "40/3", EasyRun("40/3", es))
+	assert.Equal(t, "20/3", EasyRun("40/6", es))
+	assert.Equal(t, "10", EasyRun("1/4*40", es))
+	assert.Equal(t, "10", EasyRun("1/(2^2)*40", es))
+	assert.Equal(t, "10", EasyRun("2^-2*40", es))
+	assert.Equal(t, "-10", EasyRun("2^-2*-40", es))
 
 	es.ClearAll()
 }
