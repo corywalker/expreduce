@@ -10,5 +10,13 @@ func TestSystem(t *testing.T) {
 
 	es := NewEvalState()
 
-	CasAssertSame(t, es, "1", "1")
+	CasAssertSame(t, es, "f", "Head[f[x]]")
+	CasAssertSame(t, es, "Symbol", "Head[x]")
+	CasAssertSame(t, es, "List", "Head[{x}]")
+	CasAssertSame(t, es, "Plus", "Head[a + b]")
+	CasAssertSame(t, es, "Integer", "Head[1]")
+	CasAssertSame(t, es, "Real", "Head[1.]")
+	CasAssertSame(t, es, "Rational", "Head[1/7]")
+	CasAssertSame(t, es, "String", "Head[\"1\"]")
+	CasAssertSame(t, es, "Plus", "Head[Head[(a + b)[x]]]")
 }

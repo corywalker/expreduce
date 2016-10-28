@@ -58,3 +58,31 @@ func (this *Expression) EvalCompoundExpression(es *EvalState) Ex {
 	}
 	return toReturn
 }
+
+func (this *Expression) EvalHead(es *EvalState) Ex {
+	if len(this.Parts) != 2 {
+		return this
+	}
+
+	_, IsFlt := this.Parts[1].(*Flt)
+	if IsFlt {
+		return &Symbol{"Real"}
+	}
+	_, IsInteger := this.Parts[1].(*Integer)
+	if IsInteger {
+		return &Symbol{"Integer"}
+	}
+	_, IsString := this.Parts[1].(*String)
+	if IsString {
+		return &Symbol{"String"}
+	}
+	_, IsSymbol := this.Parts[1].(*Symbol)
+	if IsSymbol {
+		return &Symbol{"Symbol"}
+	}
+	asExpr, IsExpression := this.Parts[1].(*Expression)
+	if IsExpression {
+		return asExpr.Parts[0].DeepCopy()
+	}
+	return this
+}

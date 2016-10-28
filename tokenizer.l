@@ -58,6 +58,7 @@ D  [0-9]+
 /*E  [eE][-+]?{D}*/
 /*F  {D}"."{D}?{E}?|{D}{E}?|"."{D}{E}?*/
 F  {D}"."{D}?|"."{D}|{D}
+S \"(\\.|[^"])*\"
 L [A-Za-z]
 ident {L}({L}|{D})*
 blanks ___|__|_
@@ -88,6 +89,11 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
     lval.val = &Flt{big.NewFloat(tmpf)}
 
     return FLOAT
+
+{S}
+    tmps := string(y.buf)
+    lval.val = &String{tmps[1:len(tmps)-1]}
+    return STRING
 
 \( return LPARSYM
 \) return RPARSYM

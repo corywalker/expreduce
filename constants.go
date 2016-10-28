@@ -100,7 +100,7 @@ func (this *String) Eval(es *EvalState) Ex {
 }
 
 func (this *String) String() string {
-	return fmt.Sprintf("\"%v\"", this.Val)
+	return fmt.Sprintf("%v", this.Val)
 }
 
 func (this *String) IsEqual(other Ex, cl *CASLogger) string {

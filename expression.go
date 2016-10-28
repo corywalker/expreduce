@@ -166,6 +166,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Factorial" {
 			return this.EvalFactorial(es)
 		}
+		if headStr == "Head" {
+			return this.EvalHead(es)
+		}
 	}
 	return this
 }

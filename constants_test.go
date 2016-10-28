@@ -81,11 +81,17 @@ func TestConstants(t *testing.T) {
 	//fmt.Println(a.String())
 
 	a = &Expression{[]Ex{&Symbol{"Error"}, &String{"First error"}}}
-	assert.Equal(t, "Error[\"First error\"]", a.String())
+	assert.Equal(t, "Error[First error]", a.String())
 	b = &Expression{[]Ex{&Symbol{"Error"}, &String{"Second error"}}}
-	assert.Equal(t, "Error[\"Second error\"]", b.String())
+	assert.Equal(t, "Error[Second error]", b.String())
 	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, &es.CASLogger))
 	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, &es.CASLogger))
 	assert.Equal(t, "EQUAL_UNK", a.IsEqual(b, &es.CASLogger))
 	assert.Equal(t, "EQUAL_UNK", b.IsEqual(a, &es.CASLogger))
+
+	// Test String
+	CasAssertSame(t, es, "\"Hello\"", "\"Hello\"")
+	CasAssertSame(t, es, "True", "\"Hello\" == \"Hello\"")
+	CasAssertSame(t, es, "False", "\"Hello\" == \"Hello world\"")
+	CasAssertSame(t, es, "True", "\"Hello, 世界\" == \"Hello, 世界\"")
 }
