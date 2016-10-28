@@ -195,3 +195,32 @@ func (this *Expression) ToStringTimes() string {
 	buffer.WriteString(")")
 	return buffer.String()
 }
+
+func factorial(n *big.Int) (result *big.Int) {
+	result = new(big.Int)
+
+	switch n.Cmp(&big.Int{}) {
+	case -1, 0:
+		result.SetInt64(1)
+	default:
+		result.Set(n)
+		var one big.Int
+		one.SetInt64(1)
+		result.Mul(result, factorial(n.Sub(n, &one)))
+	}
+	return
+}
+
+func (this *Expression) EvalFactorial(es *EvalState) Ex {
+	if len(this.Parts) != 2 {
+		return this
+	}
+	asInt, isInt := this.Parts[1].(*Integer)
+	if isInt {
+		if asInt.Val.Cmp(big.NewInt(0)) == -1 {
+			return &Symbol{"ComplexInfinity"}
+		}
+		return &Integer{factorial(asInt.Val)}
+	}
+	return this
+}
