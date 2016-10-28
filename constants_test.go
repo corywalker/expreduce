@@ -93,5 +93,22 @@ func TestConstants(t *testing.T) {
 	CasAssertSame(t, es, "\"Hello\"", "\"Hello\"")
 	CasAssertSame(t, es, "True", "\"Hello\" == \"Hello\"")
 	CasAssertSame(t, es, "False", "\"Hello\" == \"Hello world\"")
-	CasAssertSame(t, es, "True", "\"Hello, 世界\" == \"Hello, 世界\"")
+
+	// Test Rational
+	assert.Equal(t, "10/7", EasyRun("Rational[10, 7]", es))
+	assert.Equal(t, "5/3", EasyRun("Rational[10, 6]", es))
+	assert.Equal(t, "Rational[x, 10]", EasyRun("Rational[x, 10]", es))
+	assert.Equal(t, "10", EasyRun("Rational[100, 10]", es))
+	assert.Equal(t, "-10", EasyRun("Rational[-100, 10]", es))
+	assert.Equal(t, "10", EasyRun("Rational[-100, -10]", es))
+	assert.Equal(t, "-5/3", EasyRun("Rational[-10, 6]", es))
+	assert.Equal(t, "5/3", EasyRun("Rational[-10, -6]", es))
+	assert.Equal(t, "0", EasyRun("Rational[0, 5]", es))
+	assert.Equal(t, "Rational[0, n]", EasyRun("Rational[0, n]", es))
+	assert.Equal(t, "Indeterminate", EasyRun("Rational[0, 0]", es))
+	assert.Equal(t, "ComplexInfinity", EasyRun("Rational[1, 0]", es))
+	assert.Equal(t, "ComplexInfinity", EasyRun("Rational[-1, 0]", es))
+	assert.Equal(t, "ComplexInfinity", EasyRun("Rational[-1, -0]", es))
+	assert.Equal(t, "Indeterminate", EasyRun("Rational[-0, -0]", es))
+	assert.Equal(t, "Indeterminate", EasyRun("Rational[-0, 0]", es))
 }

@@ -169,6 +169,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Head" {
 			return this.EvalHead(es)
 		}
+		if headStr == "Rational" {
+			return this.EvalRational(es)
+		}
 	}
 	return this
 }
