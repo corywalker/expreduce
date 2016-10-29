@@ -140,4 +140,10 @@ func TestExpression(t *testing.T) {
 	CasAssertSame(t, es, "bar", "foo @@ bar")
 	CasAssertSame(t, es, "12", "Times @@ {2, 6}")
 	CasAssertSame(t, es, "a b", "Times @@ {a, b}")
+
+	// Test Evaluate
+	assert.Equal(t, "Hold[4, (2 + 1)]", EasyRun("Hold[Evaluate[1 + 3], 2 + 1]", es))
+	assert.Equal(t, "Hold[foo[Evaluate[(1 + 1)]]]", EasyRun("Hold[foo[Evaluate[1 + 1]]]", es))
+	assert.Equal(t, "Hold[4, 7, (2 + 1)]", EasyRun("Hold[Evaluate[1 + 3, 5 + 2], 2 + 1]", es))
+	assert.Equal(t, "Hold[(1 + 3), (5 + 2), (2 + 1)]", EasyRun("Hold[Sequence[1 + 3, 5 + 2], 2 + 1]", es))
 }

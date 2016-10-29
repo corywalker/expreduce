@@ -71,6 +71,7 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 		return newEx
 	}
 
+	// Also handle a list of Rules
 	asList, isList := HeadAssertion(this.Parts[2], "List")
 	if isList {
 		toReturn := this.Parts[1]

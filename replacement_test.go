@@ -2,6 +2,7 @@ package cas
 
 import (
 	"fmt"
+	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -116,4 +117,10 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "a + b", "a + b /. a + b + amatch__ -> foo[amatch]")
 	CasAssertSame(t, es, "foo[b, c, d]", "a + b + c + d /. a + amatch__ -> foo[amatch]")
 	CasAssertSame(t, es, "foo[a + b + c + d]", "a + b + c + d /. amatch__ -> foo[amatch]")
+
+	// Test replacement within Hold parts
+	CasAssertSame(t, es, "3", "{a, b, c} /. {n__} :> Length[{n}]")
+	CasAssertSame(t, es, "1", "{a, b, c} /. {n__} -> Length[{n}]")
+	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} :> Hold[Length[{n}]]", es))
+	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} -> Hold[Length[{n}]]", es))
 }

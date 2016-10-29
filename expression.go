@@ -20,6 +20,36 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 	return &Expression{}, false
 }
 
+func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval bool) {
+	// TODO: I should not be attempting to merge the head if it happens to be
+	// a Sequence type
+	origLen := len(this.Parts)
+	offset := 0
+	for i := 0; i < origLen; i++ {
+		j := i + offset
+		e := this.Parts[j]
+		seq, isseq := HeadAssertion(e, headStr)
+		if shouldEval {
+			for j := 1; j < len(seq.Parts); j++ {
+				seq.Parts[j] = seq.Parts[j].Eval(es)
+			}
+		}
+		if isseq {
+			start := j
+			end := j + 1
+			if j == 0 {
+				this.Parts = append(seq.Parts[1:], this.Parts[end:]...)
+			} else if j == len(this.Parts)-1 {
+				this.Parts = append(this.Parts[:start], seq.Parts[1:]...)
+			} else {
+				// All of these deep copies may not be needed.
+				this.Parts = append(append(this.DeepCopy().(*Expression).Parts[:start], seq.DeepCopy().(*Expression).Parts[1:]...), this.DeepCopy().(*Expression).Parts[end:]...)
+			}
+			offset += len(seq.Parts[1:]) - 1
+		}
+	}
+}
+
 func (this *Expression) Eval(es *EvalState) Ex {
 	// Start by evaluating each argument
 	headSym, headIsSym := &Symbol{}, false
@@ -41,28 +71,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	}
 
 	// If any of the parts are Sequence, merge them with parts
-	// TODO: I should not be attempting to merge the head if it happens to be
-	// a Sequence type
-	origLen := len(this.Parts)
-	offset := 0
-	for i := 0; i < origLen; i++ {
-		j := i + offset
-		e := this.Parts[j]
-		seq, isseq := HeadAssertion(e, "Sequence")
-		if isseq {
-			start := j
-			end := j + 1
-			if j == 0 {
-				this.Parts = append(seq.Parts[1:], this.Parts[end:]...)
-			} else if j == len(this.Parts)-1 {
-				this.Parts = append(this.Parts[:start], seq.Parts[1:]...)
-			} else {
-				// All of these deep copies may not be needed.
-				this.Parts = append(append(this.DeepCopy().(*Expression).Parts[:start], seq.DeepCopy().(*Expression).Parts[1:]...), this.DeepCopy().(*Expression).Parts[end:]...)
-			}
-			offset += len(seq.Parts[1:]) - 1
-		}
-	}
+	this.mergeSequences(es, "Sequence", false)
+	this.mergeSequences(es, "Evaluate", true)
 
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	if isHeadSym {
