@@ -22,13 +22,18 @@ type CASLogger struct {
 	debugState     bool
 }
 
+type PDManager struct {
+	patternDefined map[string]Ex
+}
+
 type EvalState struct {
 	// Embedded type for logging
 	CASLogger
 
+	PDManager
+
 	defined        map[string][]Expression
 	NoInit		   bool
-	patternDefined map[string]Ex
 }
 
 func NewEvalState() *EvalState {
@@ -107,7 +112,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 			//this.ClearPD()
 			//this.defined = CopyExpressionMap(oldVars)
 			this.Debugf("Found match! Current context before: %s", this)
-			res := Replace(lhs, &this.defined[name][i], this)
+			res := ReplaceAll(lhs, &this.defined[name][i], this)
 			this.Debugf("Found match! Current context after: %s", this)
 			this.ClearPD()
 			this.defined = CopyExpressionMap(oldVars)

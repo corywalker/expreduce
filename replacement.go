@@ -26,7 +26,7 @@ func ReplacePD(this Ex, es *EvalState) Ex {
 	es.Infof("In ReplacePD(%v, es.patternDefined=%v)", this, es.patternDefined)
 	toReturn := this.DeepCopy()
 	for nameStr, def := range es.patternDefined {
-		toReturn = Replace(toReturn,
+		toReturn = ReplaceAll(toReturn,
 			&Expression{[]Ex{
 				&Symbol{"Rule"},
 				&Symbol{nameStr},
@@ -37,7 +37,11 @@ func ReplacePD(this Ex, es *EvalState) Ex {
 	return toReturn
 }
 
-func Replace(this Ex, r *Expression, es *EvalState) Ex {
+// The goal of this function is to replace all matching expressions with the
+// RHS upon successful matches. We will NOT substitute any named patterns in
+// the RHS. We will merely make sure that the named patterns are added to pm.
+// Final named pattern substitution will occur at the last possible time.
+func ReplaceAll(this Ex, r *Expression, es *EvalState) Ex {
 	_, isFlt := this.(*Flt)
 	_, isInteger := this.(*Integer)
 	_, isString := this.(*String)
@@ -47,16 +51,18 @@ func Replace(this Ex, r *Expression, es *EvalState) Ex {
 
 	if isFlt || isInteger || isString || isSymbol || isRational {
 		if IsMatchQ(this, r.Parts[1], es) {
-			return r.Parts[2]
+			toReturn := ReplacePD(r.Parts[2], es)
+			es.ClearPD()
+			return toReturn
 		}
 		return this
 	} else if isExpression {
-		return asExpression.Replace(r, es)
+		return asExpression.ReplaceAll(r, es)
 	}
-	return &Symbol{"ReplaceFailed"}
+	return &Symbol{"ReplaceAllFailed"}
 }
 
-func (this *Expression) EvalReplace(es *EvalState) Ex {
+func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
@@ -66,7 +72,7 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 		rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
 	}
 	if ok {
-		newEx := Replace(this.Parts[1], rulesRule, es)
+		newEx := ReplaceAll(this.Parts[1], rulesRule, es)
 		es.ClearPD()
 		return newEx
 	}
@@ -81,7 +87,7 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 				rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
 			}
 			if ok {
-				toReturn = Replace(toReturn.DeepCopy(), rulesRule, es)
+				toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, es)
 				es.ClearPD()
 			}
 		}
@@ -91,7 +97,7 @@ func (this *Expression) EvalReplace(es *EvalState) Ex {
 	return this
 }
 
-func (this *Expression) ToStringReplace() string {
+func (this *Expression) ToStringReplaceAll() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
 	buffer.WriteString(this.Parts[1].String())
@@ -111,7 +117,7 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 	es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 	for !isSame {
 		newEx := (&Expression{[]Ex{
-			&Symbol{"Replace"},
+			&Symbol{"ReplaceAll"},
 			oldEx.DeepCopy(),
 			this.Parts[2],
 		}}).Eval(es)

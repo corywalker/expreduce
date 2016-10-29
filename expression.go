@@ -113,8 +113,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "MatchQ" {
 			return this.EvalMatchQ(es)
 		}
-		if headStr == "Replace" {
-			return this.EvalReplace(es)
+		if headStr == "ReplaceAll" {
+			return this.EvalReplaceAll(es)
 		}
 		if headStr == "ReplaceRepeated" {
 			return this.EvalReplaceRepeated(es)
@@ -192,9 +192,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Expression) Replace(r *Expression, es *EvalState) Ex {
+func (this *Expression) ReplaceAll(r *Expression, es *EvalState) Ex {
 	oldVars := es.GetDefinedSnapshot()
-	es.Debugf("In Expression.Replace. First trying IsMatchQ(this, r.Parts[1], es).")
+	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.Debugf("Rule r is: %s", r)
 
 	matchq := IsMatchQ(this, r.Parts[1], es)
@@ -225,7 +225,7 @@ func (this *Expression) Replace(r *Expression, es *EvalState) Ex {
 	}
 
 	for i := range this.Parts {
-		this.Parts[i] = Replace(this.Parts[i], r, es)
+		this.Parts[i] = ReplaceAll(this.Parts[i], r, es)
 	}
 	return this.Eval(es)
 }
@@ -244,8 +244,8 @@ func (this *Expression) String() string {
 			return this.ToStringEqual()
 		} else if headStr == "SameQ" {
 			return this.ToStringSameQ()
-		} else if headStr == "Replace" {
-			return this.ToStringReplace()
+		} else if headStr == "ReplaceAll" {
+			return this.ToStringReplaceAll()
 		} else if headStr == "ReplaceRepeated" {
 			return this.ToStringReplaceRepeated()
 		} else if headStr == "Pattern" {
