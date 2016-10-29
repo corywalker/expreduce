@@ -79,7 +79,7 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	}
 
 	if IsBlankTypeOnly(b) {
-		if IsBlankTypeCapturing(b, a, headStr, es) {
+		if IsBlankTypeCapturing(b, a, headStr, &es.PDManager, &es.CASLogger) {
 			return true
 		}
 		return false

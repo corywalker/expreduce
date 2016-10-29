@@ -105,7 +105,7 @@ func IsBlankType(e Ex, t string) bool {
 	return false
 }
 
-func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
+func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) bool {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
 	asPattern, patternOk := HeadAssertion(e, "Pattern")
@@ -129,22 +129,22 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 					if sAsSymbolOk {
 						// TODO: we should handle matches with BlankSequences
 						// differently here.
-						_, isd := es.defined[sAsSymbol.Name]
-						_, ispd := es.patternDefined[sAsSymbol.Name]
+						//_, isd := es.defined[sAsSymbol.Name]
+						_, ispd := pm.patternDefined[sAsSymbol.Name]
 						if !ispd {
-							es.patternDefined[sAsSymbol.Name] = target
+							pm.patternDefined[sAsSymbol.Name] = target
 						}
-						if !IsSameQ(es.patternDefined[sAsSymbol.Name], target, &es.CASLogger) {
+						if !IsSameQ(pm.patternDefined[sAsSymbol.Name], target, cl) {
 							return false
 						}
 
-						if !isd {
+						/*if !isd {
 							//es.defined[sAsSymbol.Name] = target
 							es.Define(sAsSymbol.Name, sAsSymbol, target)
 						} else {
 							//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
 							return true
-						}
+						}*/
 					}
 					return true
 				}
