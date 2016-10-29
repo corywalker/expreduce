@@ -56,6 +56,11 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "1/2*n*(1 + n)", "Sum[i, {i, 0, n}]")
 	CasAssertSame(t, es, "1/2*n*(1 + n)", "Sum[i, {i, 1, n}]")
 
+	// Test Product
+	CasAssertSame(t, es, "120", "Product[a, {a, 1, 5}]")
+	CasAssertSame(t, es, "14400", "Product[a^2, {a, 1, 5}]")
+	CasAssertSame(t, es, "576", "Product[a^2, {a, 4}]")
+
 	// Test Map
 	CasAssertSame(t, es, "{foo[a], foo[b], foo[c]}", "Map[foo, {a, b, c}]")
 	CasAssertSame(t, es, "{foo[a], foo[b], foo[c]}", "foo /@ {a, b, c}")
@@ -64,4 +69,12 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "Map[foo]", "Map[foo]")
 	CasAssertSame(t, es, "foo", "Map[foo, foo]")
 	CasAssertSame(t, es, "Map[foo, foo, foo]", "Map[foo, foo, foo]")
+
+	// Test Array
+	CasAssertSame(t, es, "{f[1], f[2], f[3]}", "Array[f, 3]")
+	CasAssertSame(t, es, "Null", "mytest[x_] := 5")
+	CasAssertSame(t, es, "{5, 5, 5}", "Array[mytest, 3]")
+	CasAssertSame(t, es, "{(a + b)[1], (a + b)[2], (a + b)[3]}", "Array[a + b, 3]")
+	CasAssertSame(t, es, "Array[a, a]", "Array[a, a]")
+	es.ClearAll()
 }

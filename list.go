@@ -59,35 +59,52 @@ func (this *Expression) EvalTable(es *EvalState) Ex {
 	return this
 }
 
-func (this *Expression) EvalSum(es *EvalState) Ex {
+func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
 
 	list, isList := HeadAssertion(this.Parts[2], "List")
 	if isList {
-		if len(list.Parts) == 4 {
-			i, iOk := list.Parts[1].(*Symbol)
-			iMin, iMinOk := list.Parts[2].(*Integer)
-			iMax, iMaxOk := list.Parts[3].(*Integer)
-			if iOk && iMinOk && iMaxOk {
-				origDef, isOrigDef := es.GetDef(i.Name, i)
-				var toReturn Ex = &Integer{big.NewInt(0)}
-				iMaxInt := iMax.Val.Int64()
-				for curr := iMin.Val.Int64(); curr <= iMaxInt; curr++ {
-					es.Define(i.Name, i, &Integer{big.NewInt(curr)})
-					toReturn = (&Expression{[]Ex{&Symbol{"Plus"}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
-				}
-				if isOrigDef {
-					es.Define(i.Name, i, origDef)
-				} else {
-					es.Clear(i.Name)
-				}
-				return toReturn
+		// Retrieve variables of iteration
+		var i *Symbol
+		var iMin, iMax *Integer
+		iOk, iMinOk, iMaxOk := false, false, false
+		if len(list.Parts) == 3 {
+			i, iOk = list.Parts[1].(*Symbol)
+			iMin, iMinOk = &Integer{big.NewInt(1)}, true
+			iMax, iMaxOk = list.Parts[2].(*Integer)
+		} else if len(list.Parts) == 4 {
+			i, iOk = list.Parts[1].(*Symbol)
+			iMin, iMinOk = list.Parts[2].(*Integer)
+			iMax, iMaxOk = list.Parts[3].(*Integer)
+		}
+
+		if iOk && iMinOk && iMaxOk {
+			origDef, isOrigDef := es.GetDef(i.Name, i)
+			var toReturn Ex = init
+			iMaxInt := iMax.Val.Int64()
+			for curr := iMin.Val.Int64(); curr <= iMaxInt; curr++ {
+				es.Define(i.Name, i, &Integer{big.NewInt(curr)})
+				toReturn = (&Expression{[]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
 			}
+			if isOrigDef {
+				es.Define(i.Name, i, origDef)
+			} else {
+				es.Clear(i.Name)
+			}
+			return toReturn
 		}
 	}
 	return this
+}
+
+func (this *Expression) EvalSum(es *EvalState) Ex {
+	return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
+}
+
+func (this *Expression) EvalProduct(es *EvalState) Ex {
+	return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
 }
 
 func (this *Expression) EvalMemberQ(es *EvalState) Ex {
@@ -117,6 +134,26 @@ func (this *Expression) EvalMap(es *EvalState) Ex {
 			toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
 				this.Parts[1].DeepCopy(),
 				list.Parts[i].DeepCopy(),
+			}})
+		}
+		return toReturn
+	}
+	return this.Parts[2]
+}
+
+func (this *Expression) EvalArray(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+
+	nInt, nOk := this.Parts[2].(*Integer)
+	if nOk {
+		n := nInt.Val.Int64()
+		toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+		for i := int64(1); i <= n; i++ {
+			toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
+				this.Parts[1].DeepCopy(),
+				&Integer{big.NewInt(i)},
 			}})
 		}
 		return toReturn

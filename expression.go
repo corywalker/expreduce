@@ -145,6 +145,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if headStr == "Sum" {
 			return this.EvalSum(es)
 		}
+		if headStr == "Product" {
+			return this.EvalProduct(es)
+		}
 		if headStr == "Clear" {
 			return this.EvalClear(es)
 		}
@@ -171,6 +174,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 		if headStr == "Rational" {
 			return this.EvalRational(es)
+		}
+		if headStr == "Array" {
+			return this.EvalArray(es)
 		}
 	}
 	return this
