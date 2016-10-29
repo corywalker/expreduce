@@ -80,6 +80,10 @@ func (this *Expression) EvalHead(es *EvalState) Ex {
 	if IsSymbol {
 		return &Symbol{"Symbol"}
 	}
+	_, IsRational := this.Parts[1].(*Rational)
+	if IsRational {
+		return &Symbol{"Rational"}
+	}
 	asExpr, IsExpression := this.Parts[1].(*Expression)
 	if IsExpression {
 		return asExpr.Parts[0].DeepCopy()

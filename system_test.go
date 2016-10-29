@@ -16,7 +16,8 @@ func TestSystem(t *testing.T) {
 	CasAssertSame(t, es, "Plus", "Head[a + b]")
 	CasAssertSame(t, es, "Integer", "Head[1]")
 	CasAssertSame(t, es, "Real", "Head[1.]")
-	CasAssertSame(t, es, "Rational", "Head[1/7]")
+	CasAssertSame(t, es, "Rational", "Head[2/7]")
+	//CasAssertSame(t, es, "Rational", "Head[1/7]")
 	CasAssertSame(t, es, "String", "Head[\"1\"]")
 	CasAssertSame(t, es, "Plus", "Head[Head[(a + b)[x]]]")
 }

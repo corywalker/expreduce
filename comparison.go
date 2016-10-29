@@ -57,6 +57,7 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
 	_, aIsSymbol := a.(*Symbol)
+	_, aIsRational := a.(*Rational)
 	aExpression, aIsExpression := a.(*Expression)
 	bExpression, bIsExpression := b.(*Expression)
 
@@ -73,6 +74,8 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 		headStr = aExpression.Parts[0].String()
 	} else if aIsSymbol {
 		headStr = "Symbol"
+	} else if aIsRational {
+		headStr = "Rational"
 	}
 
 	if IsBlankTypeOnly(b) {
@@ -81,7 +84,7 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 		}
 		return false
 	}
-	if aIsFlt || aIsInteger || aIsString || aIsSymbol {
+	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
 		return IsSameQ(a, b, &es.CASLogger)
 	}
 
@@ -111,10 +114,12 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 	_, bIsString := b.(*String)
 	_, aIsSymbol := a.(*Symbol)
 	_, bIsSymbol := b.(*Symbol)
+	_, aIsRational := a.(*Rational)
+	_, bIsRational := b.(*Rational)
 	aExpression, aIsExpression := a.(*Expression)
 	bExpression, bIsExpression := b.(*Expression)
 
-	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) {
+	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) || (aIsRational && bIsRational) {
 
 		// a and b are identical raw types
 		return a.IsEqual(b, cl) == "EQUAL_TRUE"

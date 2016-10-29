@@ -43,8 +43,9 @@ func Replace(this Ex, r *Expression, es *EvalState) Ex {
 	_, isString := this.(*String)
 	asExpression, isExpression := this.(*Expression)
 	_, isSymbol := this.(*Symbol)
+	_, isRational := this.(*Rational)
 
-	if isFlt || isInteger || isString || isSymbol {
+	if isFlt || isInteger || isString || isSymbol || isRational {
 		if IsMatchQ(this, r.Parts[1], es) {
 			return r.Parts[2]
 		}
