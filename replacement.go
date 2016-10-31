@@ -50,10 +50,8 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState) Ex {
 	_, isRational := this.(*Rational)
 
 	if isFlt || isInteger || isString || isSymbol || isRational {
-		if IsMatchQ(this, r.Parts[1], es) {
-			toReturn := ReplacePD(r.Parts[2], es)
-			es.ClearPD()
-			return toReturn
+		if res, _ := IsMatchQ(this, r.Parts[1], &es.PDManager, &es.CASLogger); res {
+			return r.Parts[2]
 		}
 		return this
 	} else if isExpression {

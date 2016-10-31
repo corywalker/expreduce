@@ -193,6 +193,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 }
 
 func (this *Expression) ReplaceAll(r *Expression, es *EvalState) Ex {
+	/*
 	oldVars := es.GetDefinedSnapshot()
 	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.Debugf("Rule r is: %s", r)
@@ -227,6 +228,7 @@ func (this *Expression) ReplaceAll(r *Expression, es *EvalState) Ex {
 	for i := range this.Parts {
 		this.Parts[i] = ReplaceAll(this.Parts[i], r, es)
 	}
+	*/
 	return this.Eval(es)
 }
 

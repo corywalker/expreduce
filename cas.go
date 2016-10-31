@@ -8,7 +8,7 @@ import (
 	"github.com/op/go-logging"
 	"os"
 	"runtime/debug"
-	"sort"
+	//"sort"
 	"strings"
 )
 
@@ -26,6 +26,16 @@ type PDManager struct {
 	patternDefined map[string]Ex
 }
 
+func EmptyPD() map[string]Ex {
+	return make(map[string]Ex)
+}
+
+func MergePDs(src *map[string]Ex, dst *map[string]Ex) {
+	for k, v := range *src {
+		(*dst)[k] = v
+	}
+}
+
 type EvalState struct {
 	// Embedded type for logging
 	CASLogger
@@ -39,7 +49,7 @@ type EvalState struct {
 func NewEvalState() *EvalState {
 	var es EvalState
 	es.defined = make(map[string][]Expression)
-	es.patternDefined = make(map[string]Ex)
+	es.patternDefined = EmptyPD()
 
 	// Set up logging
 	es.CASLogger._log = logging.MustGetLogger("example")
@@ -60,7 +70,7 @@ func NewEvalState() *EvalState {
 func NewEvalStateNoLog() *EvalState {
 	var es EvalState
 	es.defined = make(map[string][]Expression)
-	es.patternDefined = make(map[string]Ex)
+	es.patternDefined = EmptyPD()
 	es.CASLogger.debugState = false
 	return &es
 }
@@ -107,7 +117,8 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	oldVars := this.GetDefinedSnapshot()
 	for i := range this.defined[name] {
-		if IsMatchQ(lhs, this.defined[name][i].Parts[1], this) {
+		ismatchq, _ := IsMatchQ(lhs, this.defined[name][i].Parts[1], &this.PDManager, &this.CASLogger)
+		if ismatchq {
 			//Probably not needed:
 			//this.ClearPD()
 			//this.defined = CopyExpressionMap(oldVars)
@@ -157,7 +168,7 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 
 func (this *EvalState) ClearAll() {
 	this.defined = make(map[string][]Expression)
-	this.patternDefined = make(map[string]Ex)
+	this.patternDefined = EmptyPD()
 	if !this.NoInit {
 		InitCAS(this)
 	}
@@ -171,7 +182,7 @@ func (this *EvalState) Clear(name string) {
 }
 
 func (this *EvalState) ClearPD() {
-	this.patternDefined = make(map[string]Ex)
+	this.patternDefined = EmptyPD()
 }
 
 func CopyExpressionMap(in map[string][]Expression) map[string][]Expression {
@@ -287,8 +298,9 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) s
 	return "EQUAL_TRUE"
 }
 
-func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
-	es.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es)
+func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
+	cl.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+	newPDs := EmptyPD()
 	containsBlankSequence := false
 	for i := range lhs_components {
 		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
@@ -303,12 +315,12 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 			break
 		}
 	}
-	es.Infof("containsBlankSequence %s", containsBlankSequence)
+	cl.Infof("containsBlankSequence %s", containsBlankSequence)
 	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
 	// though because MatchQ[a + b + c, c + __] == True.
 	if !containsBlankSequence && len(components) != len(lhs_components) {
-		es.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
-		return false
+		cl.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
+		return false, newPDs
 	}
 
 	// Generate all possible orders of components. There is certainly a more
@@ -318,11 +330,10 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 		toPermute[i] = i
 	}
 	perms := permutations(toPermute, len(components))
-	es.Debugf("Permutations to try: %v\n", perms)
+	cl.Debugf("Permutations to try: %v\n", perms)
 
 	for _, perm := range perms {
-		//oldVars := es.GetDefinedSnapshot()
-		es.Debugf("Using perm: %v\n", perm)
+		cl.Debugf("Using perm: %v\n", perm)
 
 		// Build a version of components with the correct order. Can I do this
 		// more efficiently with a slice notation? Let's copy for now.
@@ -330,17 +341,15 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bo
 		for oci, ci := range perm {
 			orderedComponents[oci] = components[ci].DeepCopy()
 		}
-		es.Infof("%s", ExArrayToString(orderedComponents))
-		if NonCommutativeIsMatchQ(orderedComponents, lhs_components, es) {
-			es.Debugf("CommutativeIsMatchQ succeeded. Context: %s", es)
-			return true
+		cl.Infof("%s", ExArrayToString(orderedComponents))
+		ncIsMatchQ, ncNewPDs := NonCommutativeIsMatchQ(orderedComponents, lhs_components, pm, cl)
+		if ncIsMatchQ {
+			cl.Debugf("CommutativeIsMatchQ succeeded. Context: %s", pm)
+			return true, ncNewPDs
 		}
-
-		es.ClearPD()
-		//es.defined = oldVars
 	}
-	es.Debugf("CommutativeIsMatchQ failed. Context: %s", es)
-	return false
+	cl.Debugf("CommutativeIsMatchQ failed. Context: %s", pm)
+	return false, newPDs
 }
 
 func Max(x, y int) int {
@@ -357,28 +366,30 @@ func Min(x, y int) int {
 	return y
 }
 
-func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState) bool {
+func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
 	// This function is now recursive because of the existence of BlankSequence.
-	es.Infof("Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, es: %s)", ExArrayToString(components), ExArrayToString(lhs_components), es)
+	cl.Infof("Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+	newPDs := EmptyPD()
 	// A base case for the recursion
 	if len(components) == 0 && len(lhs_components) == 0 {
-		return true
+		return true, EmptyPD()
 	}
 	if len(components) != 0 && len(lhs_components) == 0 {
-		return false
+		return false, EmptyPD()
 	}
 
 	progressI := 0
 	for i := 0; i < Max(len(components), len(lhs_components)); i++ {
 		progressI = i
 		if i >= len(lhs_components) {
-			return false
+			return false, EmptyPD()
 		}
 		if i >= len(components) {
-			es.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", lhs_components[i], i, es)
+			cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", lhs_components[i], i, pm)
 		} else {
-			es.Debugf("Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", components[i], lhs_components[i], i, es)
+			cl.Debugf("Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", components[i], lhs_components[i], i, pm)
 		}
+		/*
 		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
 		bns, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
 		bs, isBs := HeadAssertion(lhs_components[i], "BlankSequence")
@@ -387,7 +398,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 			bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
 		}
 		if isBns || isBs {
-			es.Debugf("Encountered BS or BNS!")
+			cl.Debugf("Encountered BS or BNS!")
 			remainingLhs := make([]Ex, len(lhs_components)-i-1)
 			for k := i + 1; k < len(lhs_components); k++ {
 				remainingLhs[k-i-1] = lhs_components[k].DeepCopy()
@@ -408,17 +419,17 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 				}
 				seqMatches := false
 				if isBns {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), es)
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), cl)
 				} else {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), es)
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), cl)
 				}
-				es.Debugf("%v", seqMatches)
+				cl.Debugf("%v", seqMatches)
 				remainingComps := make([]Ex, len(components)-j-1)
 				for k := j + 1; k < len(components); k++ {
 					remainingComps[k-j-1] = components[k].DeepCopy()
 				}
-				es.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
-				if seqMatches && NonCommutativeIsMatchQ(remainingComps, remainingLhs, es) {
+				cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
+				if seqMatches && NonCommutativeIsMatchQ(remainingComps, remainingLhs, pm, cl) {
 					if isPat {
 						sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 						if sAsSymbolOk {
@@ -450,15 +461,24 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, es *EvalState)
 		}
 		if i >= len(components) {
 			return false
-		}
-		if IsMatchQ(components[i].DeepCopy(), lhs_components[i], es) {
-			es.Debugf("Returned True!\n")
+		}*/
+		ismatchq, toAdd := IsMatchQ(components[i].DeepCopy(), lhs_components[i], pm, cl)
+		if ismatchq {
+			cl.Debugf("Returned True!\n")
+			// TODO: This is odd to have two calls here - can we potentially
+			// migrate them to just one?
+			MergePDs(&toAdd, &newPDs)
+			MergePDs(&toAdd, &pm.patternDefined)
 		} else {
-			es.Debugf("NonCommutativeIsMatchQ failed. Context: %s", es)
-			return false
+			cl.Debugf("NonCommutativeIsMatchQ failed. Context: %s", pm)
+			return false, EmptyPD()
 		}
 	}
-	return progressI == len(lhs_components)-1
+	if progressI == len(lhs_components)-1 {
+		return true, newPDs
+	} else {
+		return false, EmptyPD()
+	}
 }
 
 func FunctionIsEqual(components []Ex, other_components []Ex, cl *CASLogger) string {
@@ -491,16 +511,13 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, cl *CASLogger) bool
 	return true
 }
 
-func IterableReplace(components *[]Ex, r *Expression, es *EvalState) {
+func IterableReplace(components *[]Ex, r *Expression, pm *PDManager, cl *CASLogger) {
 	for i := range *components {
-		es.Debugf("Attempting IsMatchQ(%s, %s, %s)", (*components)[i], r.Parts[1], es)
-		oldVars := es.GetDefinedSnapshot()
-		if IsMatchQ((*components)[i], r.Parts[1], es) {
+		cl.Debugf("Attempting IsMatchQ(%s, %s, %s)", (*components)[i], r.Parts[1], pm)
+		if res, _ := IsMatchQ((*components)[i], r.Parts[1], pm, cl); res {
 			(*components)[i] = r.Parts[2].DeepCopy()
-			es.Debugf("IsMatchQ succeeded, new components: %s", ExArrayToString(*components))
+			cl.Debugf("IsMatchQ succeeded, new components: %s", ExArrayToString(*components))
 		}
-		es.ClearPD()
-		es.defined = oldVars
 	}
 }
 
@@ -569,6 +586,7 @@ func permutations(iterable []int, r int) [][]int {
 }
 
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
+	/*
 	es.Infof("Entering CommutativeReplace(components: *%s, lhs_components: %s, es: %s)", ExArrayToString(*components), ExArrayToString(lhs_components), es)
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
@@ -613,7 +631,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalS
 		es.ClearPD()
 		es.defined = oldVars
 		es.Debugf("After clear. Context: %v\n", es)
-	}
+	}*/
 }
 
 func (this *Expression) EvalClear(es *EvalState) Ex {

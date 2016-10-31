@@ -105,9 +105,10 @@ func IsBlankType(e Ex, t string) bool {
 	return false
 }
 
-func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) bool {
+func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
+	newPDs := make(map[string]Ex)
 	asPattern, patternOk := HeadAssertion(e, "Pattern")
 	if patternOk {
 		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
@@ -130,12 +131,13 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 						// TODO: we should handle matches with BlankSequences
 						// differently here.
 						//_, isd := es.defined[sAsSymbol.Name]
-						_, ispd := pm.patternDefined[sAsSymbol.Name]
+						toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
 						if !ispd {
-							pm.patternDefined[sAsSymbol.Name] = target
+							toMatch = target
+							newPDs[sAsSymbol.Name] = target
 						}
-						if !IsSameQ(pm.patternDefined[sAsSymbol.Name], target, cl) {
-							return false
+						if !IsSameQ(toMatch, target, cl) {
+							return false, newPDs
 						}
 
 						/*if !isd {
@@ -146,9 +148,9 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 							return true
 						}*/
 					}
-					return true
+					return true, newPDs
 				}
-				return false
+				return false, newPDs
 			}
 		}
 	}
@@ -166,10 +168,10 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 			asSymbol, symbolOk = asBNS.Parts[1].(*Symbol)
 		}
 		if symbolOk {
-			return asSymbol.Name == t || asSymbol.Name == ""
+			return asSymbol.Name == t || asSymbol.Name == "", newPDs
 		}
 	}
-	return false
+	return false, newPDs
 }
 
 func BlankNullSequenceToBlank(bns *Expression) *Expression {
@@ -180,12 +182,12 @@ func BlankSequenceToBlank(bs *Expression) *Expression {
 	return &Expression{[]Ex{&Symbol{"Blank"}, bs.Parts[1]}}
 }
 
-func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, es *EvalState) bool {
+func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) bool {
 	toReturn := true
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog()
-		isMatch := IsMatchQ(e, blank, tmpEs)
-		es.Debugf("%v %v %v", e, blank, isMatch)
+		isMatch, _ := IsMatchQ(e, blank, &tmpEs.PDManager, &tmpEs.CASLogger)
+		cl.Debugf("%v %v %v", e, blank, isMatch)
 		toReturn = toReturn && isMatch
 	}
 	return toReturn

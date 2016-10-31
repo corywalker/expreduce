@@ -52,7 +52,8 @@ func (this *Expression) ToStringSameQ() string {
 	return buffer.String()
 }
 
-func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
+func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
+	newPDs := make(map[string]Ex)
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
@@ -79,17 +80,18 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	}
 
 	if IsBlankTypeOnly(b) {
-		if IsBlankTypeCapturing(b, a, headStr, &es.PDManager, &es.CASLogger) {
-			return true
+		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headStr, pm, cl)
+		if ibtc {
+			return true, ibtcNewPDs
 		}
-		return false
+		return false, newPDs
 	}
 	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-		return IsSameQ(a, b, &es.CASLogger)
+		return IsSameQ(a, b, cl), newPDs
 	}
 
 	if !(aIsExpression && bIsExpression) {
-		return false
+		return false, newPDs
 	}
 
 	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
@@ -97,12 +99,12 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
 			if IsOrderless(aExpressionSym) {
-				return CommutativeIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], es)
+				return CommutativeIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
 			}
 		}
 	}
 
-	return NonCommutativeIsMatchQ(aExpression.Parts, bExpression.Parts, es)
+	return NonCommutativeIsMatchQ(aExpression.Parts, bExpression.Parts, pm, cl)
 }
 
 func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
@@ -143,20 +145,13 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 	// This should never happen
 	return false
 }
-func IsMatchQClearDefs(a Ex, b Ex, es *EvalState) bool {
-	oldVars := es.GetDefinedSnapshot()
-	isSame := IsMatchQ(a, b, es)
-	es.ClearPD()
-	es.defined = oldVars
-	return isSame
-}
 
 func (this *Expression) EvalMatchQ(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
 
-	if IsMatchQClearDefs(this.Parts[1], this.Parts[2], es) {
+	if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], &es.PDManager, &es.CASLogger); res {
 		return &Symbol{"True"}
 	} else {
 		return &Symbol{"False"}
