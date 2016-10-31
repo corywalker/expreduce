@@ -196,9 +196,8 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {
 	cl.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	cl.Debugf("Rule r is: %s", r)
 
-	matchq, _ := IsMatchQ(this, r.Parts[1], EmptyPD(), cl)
-	// TODO: do a replace PD here
-	toreturn := r.Parts[2].DeepCopy()
+	matchq, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), cl)
+	toreturn := ReplacePD(r.Parts[2].DeepCopy(), cl, matches)
 	if matchq {
 		cl.Debugf("After MatchQ, rule is: %s", r)
 		cl.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])

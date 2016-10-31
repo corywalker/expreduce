@@ -602,7 +602,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLo
 		//cl.Debugf("Before snapshot. Context: %v\n", es)
 		for i := range perm {
 			//cl.Debugf("%s %s\n", (*components)[perm[i]], lhs_components[i])
-			mq, _ := IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], EmptyPD(), cl)
+			mq, matches := IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], EmptyPD(), cl)
 			if mq {
 				used[pi] = perm[i]
 				pi = pi + 1
@@ -617,7 +617,7 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLo
 					cl.Debugf("components after: %s", ExArrayToString(*components))
 					cl.Debugf("Appending %s\n", rhs)
 					//cl.Debugf("Context: %v\n", es)
-					*components = append(*components, []Ex{rhs.DeepCopy()}...)
+					*components = append(*components, []Ex{ReplacePD(rhs.DeepCopy(), cl, matches)}...)
 					cl.Debugf("components after append: %s", ExArrayToString(*components))
 					//cl.Debugf("After clear. Context: %v\n", es)
 					return
