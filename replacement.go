@@ -22,8 +22,8 @@ func (this *Expression) ToStringRuleDelayed() string {
 	return buffer.String()
 }
 
-func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
-	es.Infof("In ReplacePD(%v, pm=%v)", this, pm)
+func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
+	cl.Infof("In ReplacePD(%v, pm=%v)", this, pm)
 	toReturn := this.DeepCopy()
 	for nameStr, def := range pm.patternDefined {
 		toReturn = ReplaceAll(toReturn,
@@ -31,9 +31,9 @@ func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
 				&Symbol{"Rule"},
 				&Symbol{nameStr},
 				def,
-			}}, es, EmptyPD())
+			}}, cl, EmptyPD())
 	}
-	es.Infof("Finished ReplacePD with toReturn=%v", toReturn)
+	cl.Infof("Finished ReplacePD with toReturn=%v", toReturn)
 	return toReturn
 }
 
@@ -41,7 +41,7 @@ func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
 // RHS upon successful matches. We will NOT substitute any named patterns in
 // the RHS. We will merely make sure that the named patterns are added to pm.
 // Final named pattern substitution will occur at the last possible time.
-func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager) Ex {
+func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 	_, isFlt := this.(*Flt)
 	_, isInteger := this.(*Integer)
 	_, isString := this.(*String)
@@ -50,12 +50,13 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager) Ex {
 	_, isRational := this.(*Rational)
 
 	if isFlt || isInteger || isString || isSymbol || isRational {
-		if res, _ := IsMatchQ(this, r.Parts[1], pm, &es.CASLogger); res {
+		if res, _ := IsMatchQ(this, r.Parts[1], pm, cl); res {
 			return r.Parts[2]
 		}
 		return this
 	} else if isExpression {
-		return asExpression.ReplaceAll(r, es)
+		cl.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
+		return asExpression.ReplaceAll(r, cl)
 	}
 	return &Symbol{"ReplaceAllFailed"}
 }
@@ -70,7 +71,7 @@ func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
 		rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
 	}
 	if ok {
-		newEx := ReplaceAll(this.Parts[1], rulesRule, es, EmptyPD())
+		newEx := ReplaceAll(this.Parts[1], rulesRule, &es.CASLogger, EmptyPD())
 		return newEx
 	}
 
@@ -84,7 +85,7 @@ func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
 				rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
 			}
 			if ok {
-				toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, es, EmptyPD())
+				toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, &es.CASLogger, EmptyPD())
 			}
 		}
 		return toReturn

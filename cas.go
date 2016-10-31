@@ -119,7 +119,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 			//this.ClearPD()
 			//this.defined = CopyExpressionMap(oldVars)
 			this.Debugf("Found match! Current context before: %s", this)
-			res := ReplaceAll(lhs, &this.defined[name][i], this, EmptyPD())
+			res := ReplaceAll(lhs, &this.defined[name][i], &this.CASLogger, EmptyPD())
 			this.Debugf("Found match! Current context after: %s", this)
 			this.defined = CopyExpressionMap(oldVars)
 			this.Debugf("After reset: %s", this)
@@ -584,7 +584,7 @@ func permutations(iterable []int, r int) [][]int {
 
 }
 
-func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
+func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
 	/*
 	es.Infof("Entering CommutativeReplace(components: *%s, lhs_components: %s, es: %s)", ExArrayToString(*components), ExArrayToString(lhs_components), es)
 	// Each permutation is a potential order of the Rule's LHS in which matches
