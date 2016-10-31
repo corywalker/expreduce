@@ -316,6 +316,7 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) s
 //    and could easily be incorrectly used.
 // See IsBlankCapturing for a good example of good use.
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	pm = CopyPD(pm)
 	cl.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	containsBlankSequence := false
 	for i := range lhs_components {
@@ -336,7 +337,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 	// though because MatchQ[a + b + c, c + __] == True.
 	if !containsBlankSequence && len(components) != len(lhs_components) {
 		cl.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
-		return false, EmptyPD()
+		return false, pm
 	}
 
 	// Generate all possible orders of components. There is certainly a more
@@ -358,14 +359,14 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 			orderedComponents[oci] = components[ci].DeepCopy()
 		}
 		cl.Infof("%s", ExArrayToString(orderedComponents))
-		ncIsMatchQ, ncNewPDs := NonCommutativeIsMatchQ(orderedComponents, lhs_components, pm, cl)
+		ncIsMatchQ, newPm := NonCommutativeIsMatchQ(orderedComponents, lhs_components, pm, cl)
 		if ncIsMatchQ {
 			cl.Debugf("CommutativeIsMatchQ succeeded. Context: %s", pm)
-			return true, ncNewPDs
+			return true, newPm
 		}
 	}
 	cl.Debugf("CommutativeIsMatchQ failed. Context: %s", pm)
-	return false, EmptyPD()
+	return false, pm
 }
 
 func Max(x, y int) int {
@@ -383,22 +384,22 @@ func Min(x, y int) int {
 }
 
 func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	pm = CopyPD(pm)
 	// This function is now recursive because of the existence of BlankSequence.
 	cl.Infof("Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
-	newPDs := EmptyPD()
 	// A base case for the recursion
 	if len(components) == 0 && len(lhs_components) == 0 {
-		return true, EmptyPD()
+		return true, pm
 	}
 	if len(components) != 0 && len(lhs_components) == 0 {
-		return false, EmptyPD()
+		return false, pm
 	}
 
 	progressI := 0
 	for i := 0; i < Max(len(components), len(lhs_components)); i++ {
 		progressI = i
 		if i >= len(lhs_components) {
-			return false, EmptyPD()
+			return false, pm
 		}
 		if i >= len(components) {
 			cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", lhs_components[i], i, pm)
@@ -481,19 +482,16 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager,
 		ismatchq, toAdd := IsMatchQ(components[i].DeepCopy(), lhs_components[i], pm, cl)
 		if ismatchq {
 			cl.Debugf("Returned True!\n")
-			// TODO: This is odd to have two calls here - can we potentially
-			// migrate them to just one?
-			newPDs.Update(toAdd)
 			pm.Update(toAdd)
 		} else {
 			cl.Debugf("NonCommutativeIsMatchQ failed. Context: %s", pm)
-			return false, EmptyPD()
+			return false, pm
 		}
 	}
 	if progressI == len(lhs_components)-1 {
-		return true, newPDs
+		return true, pm
 	} else {
-		return false, EmptyPD()
+		return false, pm
 	}
 }
 
@@ -528,6 +526,7 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, cl *CASLogger) bool
 }
 
 func IterableReplace(components *[]Ex, r *Expression, pm *PDManager, cl *CASLogger) {
+	pm = CopyPD(pm)
 	for i := range *components {
 		cl.Debugf("Attempting IsMatchQ(%s, %s, %s)", (*components)[i], r.Parts[1], pm)
 		if res, _ := IsMatchQ((*components)[i], r.Parts[1], pm, cl); res {

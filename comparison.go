@@ -53,6 +53,7 @@ func (this *Expression) ToStringSameQ() string {
 }
 
 func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	pm = CopyPD(pm)
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
