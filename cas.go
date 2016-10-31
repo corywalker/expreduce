@@ -31,6 +31,14 @@ func EmptyPD() *PDManager {
 	return &PDManager{make(map[string]Ex)}
 }
 
+func CopyPD(orig *PDManager) (dest *PDManager) {
+	dest = EmptyPD()
+	for k, v := range (*orig).patternDefined {
+		(*dest).patternDefined[k] = v.DeepCopy()
+	}
+	return
+}
+
 func (this *PDManager) Update(toAdd *PDManager) {
 	for k, v := range (*toAdd).patternDefined {
 		(*this).patternDefined[k] = v
@@ -602,11 +610,13 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLo
 	for _, perm := range perms {
 		used := make([]int, len(perm))
 		pi := 0
+		pm := EmptyPD()
 		//cl.Debugf("Before snapshot. Context: %v\n", es)
 		for i := range perm {
 			//cl.Debugf("%s %s\n", (*components)[perm[i]], lhs_components[i])
-			mq, matches := IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], EmptyPD(), cl)
+			mq, matches := IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], pm, cl)
 			if mq {
+				pm.Update(matches)
 				used[pi] = perm[i]
 				pi = pi + 1
 
