@@ -308,9 +308,15 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) s
 	return "EQUAL_TRUE"
 }
 
+// Should a MatchQ call do:
+// 1. Modify pm directly <- bad idea. If we attempt a match and it partially
+//    matches, we'll have to restore pm from a snapshot
+// 2. Return a modified pm <- probably simplest
+// 3. Return a pm with fields to add <- would be most efficient, but complicated
+//    and could easily be incorrectly used.
+// See IsBlankCapturing for a good example of good use.
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	cl.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
-	newPDs := EmptyPD()
 	containsBlankSequence := false
 	for i := range lhs_components {
 		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
@@ -330,7 +336,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 	// though because MatchQ[a + b + c, c + __] == True.
 	if !containsBlankSequence && len(components) != len(lhs_components) {
 		cl.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
-		return false, newPDs
+		return false, EmptyPD()
 	}
 
 	// Generate all possible orders of components. There is certainly a more
@@ -359,7 +365,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 		}
 	}
 	cl.Debugf("CommutativeIsMatchQ failed. Context: %s", pm)
-	return false, newPDs
+	return false, EmptyPD()
 }
 
 func Max(x, y int) int {

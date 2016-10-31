@@ -108,7 +108,7 @@ func IsBlankType(e Ex, t string) bool {
 func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
-	newPDs := EmptyPD()
+	pm = CopyPD(pm)
 	asPattern, patternOk := HeadAssertion(e, "Pattern")
 	if patternOk {
 		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
@@ -134,10 +134,10 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 						toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
 						if !ispd {
 							toMatch = target
-							newPDs.patternDefined[sAsSymbol.Name] = target
+							pm.patternDefined[sAsSymbol.Name] = target
 						}
 						if !IsSameQ(toMatch, target, cl) {
-							return false, EmptyPD()
+							return false, pm
 						}
 
 						/*if !isd {
@@ -148,9 +148,9 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 							return true
 						}*/
 					}
-					return true, newPDs
+					return true, pm
 				}
-				return false, EmptyPD()
+				return false, pm
 			}
 		}
 	}
@@ -168,10 +168,10 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 			asSymbol, symbolOk = asBNS.Parts[1].(*Symbol)
 		}
 		if symbolOk {
-			return asSymbol.Name == t || asSymbol.Name == "", EmptyPD()
+			return asSymbol.Name == t || asSymbol.Name == "", pm
 		}
 	}
-	return false, EmptyPD()
+	return false, pm
 }
 
 func BlankNullSequenceToBlank(bns *Expression) *Expression {
