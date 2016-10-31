@@ -105,10 +105,10 @@ func IsBlankType(e Ex, t string) bool {
 	return false
 }
 
-func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
+func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
-	newPDs := make(map[string]Ex)
+	newPDs := EmptyPD()
 	asPattern, patternOk := HeadAssertion(e, "Pattern")
 	if patternOk {
 		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
@@ -134,10 +134,10 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 						toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
 						if !ispd {
 							toMatch = target
-							newPDs[sAsSymbol.Name] = target
+							newPDs.patternDefined[sAsSymbol.Name] = target
 						}
 						if !IsSameQ(toMatch, target, cl) {
-							return false, newPDs
+							return false, EmptyPD()
 						}
 
 						/*if !isd {
@@ -150,7 +150,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 					}
 					return true, newPDs
 				}
-				return false, newPDs
+				return false, EmptyPD()
 			}
 		}
 	}
@@ -168,10 +168,10 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 			asSymbol, symbolOk = asBNS.Parts[1].(*Symbol)
 		}
 		if symbolOk {
-			return asSymbol.Name == t || asSymbol.Name == "", newPDs
+			return asSymbol.Name == t || asSymbol.Name == "", EmptyPD()
 		}
 	}
-	return false, newPDs
+	return false, EmptyPD()
 }
 
 func BlankNullSequenceToBlank(bns *Expression) *Expression {
@@ -186,7 +186,7 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 	toReturn := true
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog()
-		isMatch, _ := IsMatchQ(e, blank, &tmpEs.PDManager, &tmpEs.CASLogger)
+		isMatch, _ := IsMatchQ(e, blank, EmptyPD(), &tmpEs.CASLogger)
 		cl.Debugf("%v %v %v", e, blank, isMatch)
 		toReturn = toReturn && isMatch
 	}

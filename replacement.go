@@ -22,16 +22,16 @@ func (this *Expression) ToStringRuleDelayed() string {
 	return buffer.String()
 }
 
-func ReplacePD(this Ex, es *EvalState) Ex {
-	es.Infof("In ReplacePD(%v, es.patternDefined=%v)", this, es.patternDefined)
+func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
+	es.Infof("In ReplacePD(%v, pm=%v)", this, pm)
 	toReturn := this.DeepCopy()
-	for nameStr, def := range es.patternDefined {
+	for nameStr, def := range pm.patternDefined {
 		toReturn = ReplaceAll(toReturn,
 			&Expression{[]Ex{
 				&Symbol{"Rule"},
 				&Symbol{nameStr},
 				def,
-			}}, es)
+			}}, es, EmptyPD())
 	}
 	es.Infof("Finished ReplacePD with toReturn=%v", toReturn)
 	return toReturn
@@ -41,7 +41,7 @@ func ReplacePD(this Ex, es *EvalState) Ex {
 // RHS upon successful matches. We will NOT substitute any named patterns in
 // the RHS. We will merely make sure that the named patterns are added to pm.
 // Final named pattern substitution will occur at the last possible time.
-func ReplaceAll(this Ex, r *Expression, es *EvalState) Ex {
+func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager) Ex {
 	_, isFlt := this.(*Flt)
 	_, isInteger := this.(*Integer)
 	_, isString := this.(*String)
@@ -50,7 +50,7 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState) Ex {
 	_, isRational := this.(*Rational)
 
 	if isFlt || isInteger || isString || isSymbol || isRational {
-		if res, _ := IsMatchQ(this, r.Parts[1], &es.PDManager, &es.CASLogger); res {
+		if res, _ := IsMatchQ(this, r.Parts[1], pm, &es.CASLogger); res {
 			return r.Parts[2]
 		}
 		return this
@@ -70,8 +70,7 @@ func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
 		rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
 	}
 	if ok {
-		newEx := ReplaceAll(this.Parts[1], rulesRule, es)
-		es.ClearPD()
+		newEx := ReplaceAll(this.Parts[1], rulesRule, es, EmptyPD())
 		return newEx
 	}
 
@@ -85,8 +84,7 @@ func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
 				rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
 			}
 			if ok {
-				toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, es)
-				es.ClearPD()
+				toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, es, EmptyPD())
 			}
 		}
 		return toReturn

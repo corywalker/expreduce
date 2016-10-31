@@ -26,21 +26,19 @@ type PDManager struct {
 	patternDefined map[string]Ex
 }
 
-func EmptyPD() map[string]Ex {
-	return make(map[string]Ex)
+func EmptyPD() *PDManager {
+	return &PDManager{make(map[string]Ex)}
 }
 
-func MergePDs(src *map[string]Ex, dst *map[string]Ex) {
-	for k, v := range *src {
-		(*dst)[k] = v
+func (this *PDManager) Update(toAdd *PDManager) {
+	for k, v := range (*toAdd).patternDefined {
+		(*this).patternDefined[k] = v
 	}
 }
 
 type EvalState struct {
 	// Embedded type for logging
 	CASLogger
-
-	PDManager
 
 	defined        map[string][]Expression
 	NoInit		   bool
@@ -49,7 +47,6 @@ type EvalState struct {
 func NewEvalState() *EvalState {
 	var es EvalState
 	es.defined = make(map[string][]Expression)
-	es.patternDefined = EmptyPD()
 
 	// Set up logging
 	es.CASLogger._log = logging.MustGetLogger("example")
@@ -70,7 +67,6 @@ func NewEvalState() *EvalState {
 func NewEvalStateNoLog() *EvalState {
 	var es EvalState
 	es.defined = make(map[string][]Expression)
-	es.patternDefined = EmptyPD()
 	es.CASLogger.debugState = false
 	return &es
 }
@@ -117,20 +113,18 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	oldVars := this.GetDefinedSnapshot()
 	for i := range this.defined[name] {
-		ismatchq, _ := IsMatchQ(lhs, this.defined[name][i].Parts[1], &this.PDManager, &this.CASLogger)
+		ismatchq, _ := IsMatchQ(lhs, this.defined[name][i].Parts[1], EmptyPD(), &this.CASLogger)
 		if ismatchq {
 			//Probably not needed:
 			//this.ClearPD()
 			//this.defined = CopyExpressionMap(oldVars)
 			this.Debugf("Found match! Current context before: %s", this)
-			res := ReplaceAll(lhs, &this.defined[name][i], this)
+			res := ReplaceAll(lhs, &this.defined[name][i], this, EmptyPD())
 			this.Debugf("Found match! Current context after: %s", this)
-			this.ClearPD()
 			this.defined = CopyExpressionMap(oldVars)
 			this.Debugf("After reset: %s", this)
 			return res, true
 		}
-		this.ClearPD()
 		this.defined = CopyExpressionMap(oldVars)
 	}
 	return nil, false
@@ -168,7 +162,6 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 
 func (this *EvalState) ClearAll() {
 	this.defined = make(map[string][]Expression)
-	this.patternDefined = EmptyPD()
 	if !this.NoInit {
 		InitCAS(this)
 	}
@@ -179,10 +172,6 @@ func (this *EvalState) Clear(name string) {
 	if ok {
 		delete(this.defined, name)
 	}
-}
-
-func (this *EvalState) ClearPD() {
-	this.patternDefined = EmptyPD()
 }
 
 func CopyExpressionMap(in map[string][]Expression) map[string][]Expression {
@@ -208,6 +197,16 @@ func (this *EvalState) String() string {
 		buffer.WriteString(ExpressionArrayToString(v))
 		buffer.WriteString(", ")
 	}
+	if strings.HasSuffix(buffer.String(), ", ") {
+		buffer.Truncate(buffer.Len() - 2)
+	}
+	buffer.WriteString("}")
+	return buffer.String()
+}
+
+func (this *PDManager) String() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
 	for k, v := range this.patternDefined {
 		buffer.WriteString(k)
 		buffer.WriteString("_: ")
@@ -298,7 +297,7 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) s
 	return "EQUAL_TRUE"
 }
 
-func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
+func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	cl.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	newPDs := EmptyPD()
 	containsBlankSequence := false
@@ -366,7 +365,7 @@ func Min(x, y int) int {
 	return y
 }
 
-func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
+func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	// This function is now recursive because of the existence of BlankSequence.
 	cl.Infof("Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	newPDs := EmptyPD()
@@ -467,8 +466,8 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager,
 			cl.Debugf("Returned True!\n")
 			// TODO: This is odd to have two calls here - can we potentially
 			// migrate them to just one?
-			MergePDs(&toAdd, &newPDs)
-			MergePDs(&toAdd, &pm.patternDefined)
+			newPDs.Update(toAdd)
+			pm.Update(toAdd)
 		} else {
 			cl.Debugf("NonCommutativeIsMatchQ failed. Context: %s", pm)
 			return false, EmptyPD()

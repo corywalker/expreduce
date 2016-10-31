@@ -52,8 +52,7 @@ func (this *Expression) ToStringSameQ() string {
 	return buffer.String()
 }
 
-func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
-	newPDs := make(map[string]Ex)
+func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
@@ -84,14 +83,14 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, map[string]Ex) {
 		if ibtc {
 			return true, ibtcNewPDs
 		}
-		return false, newPDs
+		return false, EmptyPD()
 	}
 	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-		return IsSameQ(a, b, cl), newPDs
+		return IsSameQ(a, b, cl), EmptyPD()
 	}
 
 	if !(aIsExpression && bIsExpression) {
-		return false, newPDs
+		return false, EmptyPD()
 	}
 
 	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
@@ -151,7 +150,7 @@ func (this *Expression) EvalMatchQ(es *EvalState) Ex {
 		return this
 	}
 
-	if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], &es.PDManager, &es.CASLogger); res {
+	if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger); res {
 		return &Symbol{"True"}
 	} else {
 		return &Symbol{"False"}
