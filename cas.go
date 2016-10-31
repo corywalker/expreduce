@@ -8,7 +8,7 @@ import (
 	"github.com/op/go-logging"
 	"os"
 	"runtime/debug"
-	//"sort"
+	"sort"
 	"strings"
 )
 
@@ -585,8 +585,8 @@ func permutations(iterable []int, r int) [][]int {
 }
 
 func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
-	/*
-	es.Infof("Entering CommutativeReplace(components: *%s, lhs_components: %s, es: %s)", ExArrayToString(*components), ExArrayToString(lhs_components), es)
+	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
+	cl.Infof("Entering CommutativeReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(*components))
@@ -594,43 +594,39 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLo
 		toPermute[i] = i
 	}
 	perms := permutations(toPermute, len(lhs_components))
-	es.Debugf("Permutations to try: %v\n", perms)
+	cl.Debugf("Permutations to try: %v\n", perms)
 
 	for _, perm := range perms {
 		used := make([]int, len(perm))
 		pi := 0
-		es.Debugf("Before snapshot. Context: %v\n", es)
-		oldVars := es.GetDefinedSnapshot()
+		//cl.Debugf("Before snapshot. Context: %v\n", es)
 		for i := range perm {
-			//es.Debugf("%s %s\n", (*components)[perm[i]], lhs_components[i])
-			if IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], es) {
+			//cl.Debugf("%s %s\n", (*components)[perm[i]], lhs_components[i])
+			mq, _ := IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], EmptyPD(), cl)
+			if mq {
 				used[pi] = perm[i]
 				pi = pi + 1
 
 				if pi == len(perm) {
 					sort.Ints(used)
-					es.Debugf("About to delete components matching lhs.")
-					es.Debugf("components before: %s", ExArrayToString(*components))
+					cl.Debugf("About to delete components matching lhs.")
+					cl.Debugf("components before: %s", ExArrayToString(*components))
 					for tdi, todelete := range used {
 						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 					}
-					es.Debugf("components after: %s", ExArrayToString(*components))
-					es.Debugf("Appending %s\n", rhs)
-					es.Debugf("Context: %v\n", es)
-					*components = append(*components, []Ex{rhs.DeepCopy().Eval(es)}...)
-					es.Debugf("components after append: %s", ExArrayToString(*components))
-					es.ClearPD()
-					es.defined = oldVars
-					es.Debugf("After clear. Context: %v\n", es)
+					cl.Debugf("components after: %s", ExArrayToString(*components))
+					cl.Debugf("Appending %s\n", rhs)
+					//cl.Debugf("Context: %v\n", es)
+					*components = append(*components, []Ex{rhs.DeepCopy()}...)
+					cl.Debugf("components after append: %s", ExArrayToString(*components))
+					//cl.Debugf("After clear. Context: %v\n", es)
 					return
 				}
 			}
-			es.Debugf("Done checking. Context: %v\n", es)
+			//cl.Debugf("Done checking. Context: %v\n", es)
 		}
-		es.ClearPD()
-		es.defined = oldVars
-		es.Debugf("After clear. Context: %v\n", es)
-	}*/
+		//cl.Debugf("After clear. Context: %v\n", es)
+	}
 }
 
 func (this *Expression) EvalClear(es *EvalState) Ex {
