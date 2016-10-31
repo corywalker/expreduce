@@ -50,8 +50,8 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 	_, isRational := this.(*Rational)
 
 	if isFlt || isInteger || isString || isSymbol || isRational {
-		if res, _ := IsMatchQ(this, r.Parts[1], pm, cl); res {
-			return r.Parts[2]
+		if res, matches := IsMatchQ(this, r.Parts[1], pm, cl); res {
+			return ReplacePD(r.Parts[2], cl, matches)
 		}
 		return this
 	} else if isExpression {
@@ -72,7 +72,7 @@ func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
 	}
 	if ok {
 		newEx := ReplaceAll(this.Parts[1], rulesRule, &es.CASLogger, EmptyPD())
-		return newEx
+		return newEx.Eval(es)
 	}
 
 	// Also handle a list of Rules
@@ -88,7 +88,7 @@ func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
 				toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, &es.CASLogger, EmptyPD())
 			}
 		}
-		return toReturn
+		return toReturn.Eval(es)
 	}
 
 	return this

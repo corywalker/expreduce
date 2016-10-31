@@ -13,7 +13,8 @@ import (
 )
 
 var format = logging.MustStringFormatter(
-	`%{color}%{time:15:04:05.000} %{shortfunc} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	//`%{color}%{time:15:04:05.000} %{callpath} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
+	`%{color}%{time:15:04:05.000} %{callpath} ▶ %{id:03x}%{color:reset} %{message}`,
 )
 
 type CASLogger struct {
@@ -73,13 +74,15 @@ func NewEvalStateNoLog() *EvalState {
 
 func (this *CASLogger) Debugf(fmt string, args ...interface{}) {
 	if this.debugState {
-		this._log.Debugf(this.Pre() + fmt, args...)
+		//this._log.Debugf(this.Pre() + fmt, args...)
+		this._log.Debugf(fmt, args...)
 	}
 }
 
 func (this *CASLogger) Infof(fmt string, args ...interface{}) {
 	if this.debugState {
-		this._log.Infof(this.Pre() + fmt, args...)
+		//this._log.Infof(this.Pre() + fmt, args...)
+		this._log.Infof(fmt, args...)
 	}
 }
 
