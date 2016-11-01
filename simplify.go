@@ -10,7 +10,6 @@ func (this *Expression) EvalBasicSimplify(es *EvalState) Ex {
 	}
 
 	// Simplify expressions with Infinity
-	/*
 	this.RepeatRun(es, "Infinity + matcha_Integer -> Infinity")
 	this.RepeatRun(es, "Infinity + matcha_Real -> Infinity")
 	this.RepeatRun(es, "-Infinity + matcha_Integer -> -Infinity")
@@ -35,7 +34,6 @@ func (this *Expression) EvalBasicSimplify(es *EvalState) Ex {
 	// Simplify nested exponents
 	this.RepeatRun(es, "(matcha_^matchb_Integer)^matchc_Integer -> matcha^(matchb^matchc)")
 	this.RepeatRun(es, "(matcha_^matchb_Real)^matchc_Integer -> matcha^(matchb^matchc)")
-	*/
 
 	return this.Parts[1]
 }

@@ -406,7 +406,6 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager,
 		} else {
 			cl.Debugf("Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", components[i], lhs_components[i], i, pm)
 		}
-		/*
 		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
 		bns, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
 		bs, isBs := HeadAssertion(lhs_components[i], "BlankSequence")
@@ -446,39 +445,32 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager,
 					remainingComps[k-j-1] = components[k].DeepCopy()
 				}
 				cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
-				if seqMatches && NonCommutativeIsMatchQ(remainingComps, remainingLhs, pm, cl) {
+				matchq, newPDs := NonCommutativeIsMatchQ(remainingComps, remainingLhs, pm, cl)
+				if seqMatches && matchq {
+					pm.Update(newPDs)
 					if isPat {
 						sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 						if sAsSymbolOk {
 							toTryParts := []Ex{&Symbol{"Sequence"}}
 							toTryParts = append(toTryParts, seqToTry...)
 							target := &Expression{toTryParts}
-							_, isd := es.defined[sAsSymbol.Name]
-							_, ispd := es.patternDefined[sAsSymbol.Name]
+							_, ispd := pm.patternDefined[sAsSymbol.Name]
 							if !ispd {
-								es.patternDefined[sAsSymbol.Name] = target
+								pm.patternDefined[sAsSymbol.Name] = target
 							}
-							if !IsSameQ(es.patternDefined[sAsSymbol.Name], target, &es.CASLogger) {
-								return false
-							}
-
-							if !isd {
-								//es.defined[sAsSymbol.Name] = target
-								es.Define(sAsSymbol.Name, sAsSymbol, target)
-							} else {
-								//return es.defined[sAsSymbol.Name].IsSameQ(target, &es.CASLogger)
-								return true
+							if !IsSameQ(pm.patternDefined[sAsSymbol.Name], target, cl) {
+								return false, pm
 							}
 						}
 					}
-					return true
+					return true, pm
 				}
 			}
-			return false
+			return false, pm
 		}
 		if i >= len(components) {
-			return false
-		}*/
+			return false, pm
+		}
 		ismatchq, toAdd := IsMatchQ(components[i].DeepCopy(), lhs_components[i], pm, cl)
 		if ismatchq {
 			cl.Debugf("Returned True!\n")
