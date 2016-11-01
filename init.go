@@ -28,7 +28,7 @@ func InitCAS(es *EvalState) {
 	EvalInterp("D[x_,x_]:=1", es)
 	EvalInterp("D[a_,x_]:=0", es)
 	// The following line hangs with: D[bar+foo+bar,bar]
-	//EvalInterp("D[a_+b__,x_]:=D[a,x]+D[Plus[b],x]", es)
+	EvalInterp("D[a_+b__,x_]:=D[a,x]+D[Plus[b],x]", es)
 	//EvalInterp("D[a_ b__,x_]:=D[a,x] b+a D[Times[b],x]", es)
 	//EvalInterp("D[a_^(b_), x_]:= a^b(D[b,x] Log[a]+D[a,x]/a b)", es)
 	//EvalInterp("D[Log[a_], x_]:= D[a, x]/a", es)
