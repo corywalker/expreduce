@@ -16,5 +16,5 @@ func TestCalculus(t *testing.T) {
 	CasAssertSame(t, es, "1", "D[foo,foo]")
 	CasAssertSame(t, es, "0", "D[foo,bar]")
 	CasAssertSame(t, es, "2", "D[bar+foo+bar,bar]")
-	//CasAssertSame(t, es, "2x", "D[x^2,x]")
+	CasAssertSame(t, es, "2x", "D[x^2,x]")
 }

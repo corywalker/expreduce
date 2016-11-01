@@ -24,6 +24,7 @@ func (this *Expression) EvalBasicSimplify(es *EvalState) Ex {
 	this.RepeatRun(es, "(c1match_Integer*matcha_) + matcha_ -> (c1match+1)*matcha")
 	this.RepeatRun(es, "(c1match_Real*matcha_) + (c2match_Integer*matcha_) -> (c1match+c2match)*matcha")
 
+	this.RepeatRun(es, "0*matcha_ -> 0")
 	this.RepeatRun(es, "matcha_/matcha_ -> 1")
 	this.RepeatRun(es, "matcha_*matcha_ -> matcha^2")
 	this.RepeatRun(es, "matcha_^matchb_ / matcha_ -> matcha^(matchb-1)")
