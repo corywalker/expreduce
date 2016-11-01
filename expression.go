@@ -51,145 +51,124 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 }
 
 func (this *Expression) Eval(es *EvalState) Ex {
-	// Start by evaluating each argument
-	headSym, headIsSym := &Symbol{}, false
-	if len(this.Parts) > 0 {
-		headSym, headIsSym = this.Parts[0].(*Symbol)
+	shouldEval := true
+	var lastEx Ex = this.DeepCopy()
+	var currEx Ex = this.DeepCopy()
+	for shouldEval {
+		curr, isExpr := currEx.(*Expression)
+		// Transition to the right Eval() if this is no longer an Expression
+		if !isExpr {
+			return currEx.Eval(es)
+		}
+
+		// Start by evaluating each argument
+		headSym, headIsSym := &Symbol{}, false
+		if len(curr.Parts) > 0 {
+			headSym, headIsSym = curr.Parts[0].(*Symbol)
+		}
+		for i := range curr.Parts {
+			if headIsSym && i == 1 && IsHoldFirst(headSym) {
+				continue
+			}
+			if headIsSym && i > 1 && IsHoldRest(headSym) {
+				continue
+			}
+			//if headIsSym && IsAttribute(headSym, "HoldAll", es) {
+			if headIsSym && IsHoldAll(headSym) {
+				continue
+			}
+			curr.Parts[i] = curr.Parts[i].Eval(es)
+		}
+
+		// If any of the parts are Sequence, merge them with parts
+		curr.mergeSequences(es, "Sequence", false)
+		curr.mergeSequences(es, "Evaluate", true)
+
+		headAsSym, isHeadSym := curr.Parts[0].(*Symbol)
+		if isHeadSym {
+			headStr := headAsSym.Name
+
+			theRes, isDefined := es.GetDef(headStr, curr)
+			if isDefined {
+				currEx = theRes
+			} else if headStr == "Power" {
+				currEx = curr.EvalPower(es)
+			} else if headStr == "Equal" {
+				currEx = curr.EvalEqual(es)
+			} else if headStr == "SameQ" {
+				currEx = curr.EvalSameQ(es)
+			} else if headStr == "Plus" {
+				currEx = curr.EvalPlus(es)
+			} else if headStr == "Times" {
+				currEx = curr.EvalTimes(es)
+			} else if headStr == "Set" {
+				currEx = curr.EvalSet(es)
+			} else if headStr == "SetDelayed" {
+				currEx = curr.EvalSetDelayed(es)
+			} else if headStr == "If" {
+				currEx = curr.EvalIf(es)
+			} else if headStr == "While" {
+				currEx = curr.EvalWhile(es)
+			} else if headStr == "MatchQ" {
+				currEx = curr.EvalMatchQ(es)
+			} else if headStr == "ReplaceAll" {
+				currEx = curr.EvalReplaceAll(es)
+			} else if headStr == "ReplaceRepeated" {
+				currEx = curr.EvalReplaceRepeated(es)
+			} else if headStr == "BasicSimplify" {
+				currEx = curr.EvalBasicSimplify(es)
+			} else if headStr == "SetLogging" {
+				currEx = curr.EvalSetLogging(es)
+			} else if headStr == "Definition" {
+				currEx = curr.EvalDefinition(es)
+			} else if headStr == "Order" {
+				currEx = curr.EvalOrder(es)
+			} else if headStr == "Sort" {
+				currEx = curr.EvalSort(es)
+			} else if headStr == "RandomReal" {
+				currEx = curr.EvalRandomReal(es)
+			} else if headStr == "SeedRandom" {
+				currEx = curr.EvalSeedRandom(es)
+			} else if headStr == "UnixTime" {
+				currEx = curr.EvalUnixTime(es)
+			} else if headStr == "Apply" {
+				currEx = curr.EvalApply(es)
+			} else if headStr == "Length" {
+				currEx = curr.EvalLength(es)
+			} else if headStr == "Table" {
+				currEx = curr.EvalTable(es)
+			} else if headStr == "Sum" {
+				currEx = curr.EvalSum(es)
+			} else if headStr == "Product" {
+				currEx = curr.EvalProduct(es)
+			} else if headStr == "Clear" {
+				currEx = curr.EvalClear(es)
+			} else if headStr == "Timing" {
+				currEx = curr.EvalTiming(es)
+			} else if headStr == "MemberQ" {
+				currEx = curr.EvalMemberQ(es)
+			} else if headStr == "Print" {
+				currEx = curr.EvalPrint(es)
+			} else if headStr == "CompoundExpression" {
+				currEx = curr.EvalCompoundExpression(es)
+			} else if headStr == "Map" {
+				currEx = curr.EvalMap(es)
+			} else if headStr == "Factorial" {
+				currEx = curr.EvalFactorial(es)
+			} else if headStr == "Head" {
+				currEx = curr.EvalHead(es)
+			} else if headStr == "Rational" {
+				currEx = curr.EvalRational(es)
+			} else if headStr == "Array" {
+				currEx = curr.EvalArray(es)
+			}
+		}
+		if IsSameQ(currEx, lastEx, &es.CASLogger) {
+			shouldEval = false
+		}
+		lastEx = currEx
 	}
-	for i := range this.Parts {
-		if headIsSym && i == 1 && IsHoldFirst(headSym) {
-			continue
-		}
-		if headIsSym && i > 1 && IsHoldRest(headSym) {
-			continue
-		}
-		//if headIsSym && IsAttribute(headSym, "HoldAll", es) {
-		if headIsSym && IsHoldAll(headSym) {
-			continue
-		}
-		this.Parts[i] = this.Parts[i].Eval(es)
-	}
-
-	// If any of the parts are Sequence, merge them with parts
-	this.mergeSequences(es, "Sequence", false)
-	this.mergeSequences(es, "Evaluate", true)
-
-	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
-	if isHeadSym {
-		headStr := headAsSym.Name
-
-		theRes, isDefined := es.GetDef(headStr, this)
-		if isDefined {
-			return theRes
-		}
-
-		if headStr == "Power" {
-			return this.EvalPower(es)
-		}
-		if headStr == "Equal" {
-			return this.EvalEqual(es)
-		}
-		if headStr == "SameQ" {
-			return this.EvalSameQ(es)
-		}
-		if headStr == "Plus" {
-			return this.EvalPlus(es)
-		}
-		if headStr == "Times" {
-			return this.EvalTimes(es)
-		}
-		if headStr == "Set" {
-			return this.EvalSet(es)
-		}
-		if headStr == "SetDelayed" {
-			return this.EvalSetDelayed(es)
-		}
-		if headStr == "If" {
-			return this.EvalIf(es)
-		}
-		if headStr == "While" {
-			return this.EvalWhile(es)
-		}
-		if headStr == "MatchQ" {
-			return this.EvalMatchQ(es)
-		}
-		if headStr == "ReplaceAll" {
-			return this.EvalReplaceAll(es)
-		}
-		if headStr == "ReplaceRepeated" {
-			return this.EvalReplaceRepeated(es)
-		}
-		if headStr == "BasicSimplify" {
-			return this.EvalBasicSimplify(es)
-		}
-		if headStr == "SetLogging" {
-			return this.EvalSetLogging(es)
-		}
-		if headStr == "Definition" {
-			return this.EvalDefinition(es)
-		}
-		if headStr == "Order" {
-			return this.EvalOrder(es)
-		}
-		if headStr == "Sort" {
-			return this.EvalSort(es)
-		}
-		if headStr == "RandomReal" {
-			return this.EvalRandomReal(es)
-		}
-		if headStr == "SeedRandom" {
-			return this.EvalSeedRandom(es)
-		}
-		if headStr == "UnixTime" {
-			return this.EvalUnixTime(es)
-		}
-		if headStr == "Apply" {
-			return this.EvalApply(es)
-		}
-		if headStr == "Length" {
-			return this.EvalLength(es)
-		}
-		if headStr == "Table" {
-			return this.EvalTable(es)
-		}
-		if headStr == "Sum" {
-			return this.EvalSum(es)
-		}
-		if headStr == "Product" {
-			return this.EvalProduct(es)
-		}
-		if headStr == "Clear" {
-			return this.EvalClear(es)
-		}
-		if headStr == "Timing" {
-			return this.EvalTiming(es)
-		}
-		if headStr == "MemberQ" {
-			return this.EvalMemberQ(es)
-		}
-		if headStr == "Print" {
-			return this.EvalPrint(es)
-		}
-		if headStr == "CompoundExpression" {
-			return this.EvalCompoundExpression(es)
-		}
-		if headStr == "Map" {
-			return this.EvalMap(es)
-		}
-		if headStr == "Factorial" {
-			return this.EvalFactorial(es)
-		}
-		if headStr == "Head" {
-			return this.EvalHead(es)
-		}
-		if headStr == "Rational" {
-			return this.EvalRational(es)
-		}
-		if headStr == "Array" {
-			return this.EvalArray(es)
-		}
-	}
-	return this
+	return currEx
 }
 
 func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {

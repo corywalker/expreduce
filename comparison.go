@@ -7,7 +7,7 @@ func (this *Expression) EvalEqual(es *EvalState) Ex {
 		return this
 	}
 
-	var isequal string = this.Parts[1].Eval(es).IsEqual(this.Parts[2].Eval(es), &es.CASLogger)
+	var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
 	if isequal == "EQUAL_UNK" {
 		return this
 	} else if isequal == "EQUAL_TRUE" {
@@ -34,7 +34,7 @@ func (this *Expression) EvalSameQ(es *EvalState) Ex {
 		return this
 	}
 
-	var issame bool = IsSameQ(this.Parts[1].Eval(es), this.Parts[2].Eval(es), &es.CASLogger)
+	var issame bool = IsSameQ(this.Parts[1], this.Parts[2], &es.CASLogger)
 	if issame {
 		return &Symbol{"True"}
 	} else {
