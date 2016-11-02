@@ -114,7 +114,7 @@ func (this *Expression) EvalMemberQ(es *EvalState) Ex {
 	list, isList := HeadAssertion(this.Parts[1], "List")
 	if isList {
 		for _, exp := range list.Parts {
-			if IsMatchQClearDefs(exp, this.Parts[2], es) {
+			if res, _ := IsMatchQ(exp, this.Parts[2], EmptyPD(), &es.CASLogger); res {
 				return &Symbol{"True"}
 			}
 		}

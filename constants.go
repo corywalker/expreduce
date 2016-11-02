@@ -144,7 +144,10 @@ func (this *Rational) String() string {
 }
 
 func (this *Rational) IsEqual(other Ex, cl *CASLogger) string {
-	otherConv, _ := other.(*Rational)
+	otherConv, otherIsRational := other.(*Rational)
+	if !otherIsRational {
+		return "EQUAL_FALSE"
+	}
 	// Assume rational already simplified
 	if (this.Num.Cmp(otherConv.Num) != 0) || (this.Den.Cmp(otherConv.Den) != 0) {
 		return "EQUAL_FALSE"

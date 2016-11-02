@@ -7,7 +7,7 @@ func (this *Expression) EvalEqual(es *EvalState) Ex {
 		return this
 	}
 
-	var isequal string = this.Parts[1].Eval(es).IsEqual(this.Parts[2].Eval(es), &es.CASLogger)
+	var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
 	if isequal == "EQUAL_UNK" {
 		return this
 	} else if isequal == "EQUAL_TRUE" {
@@ -34,7 +34,7 @@ func (this *Expression) EvalSameQ(es *EvalState) Ex {
 		return this
 	}
 
-	var issame bool = IsSameQ(this.Parts[1].Eval(es), this.Parts[2].Eval(es), &es.CASLogger)
+	var issame bool = IsSameQ(this.Parts[1], this.Parts[2], &es.CASLogger)
 	if issame {
 		return &Symbol{"True"}
 	} else {
@@ -52,7 +52,8 @@ func (this *Expression) ToStringSameQ() string {
 	return buffer.String()
 }
 
-func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
+func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	pm = CopyPD(pm)
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
@@ -79,17 +80,18 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	}
 
 	if IsBlankTypeOnly(b) {
-		if IsBlankTypeCapturing(b, a, headStr, es) {
-			return true
+		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headStr, pm, cl)
+		if ibtc {
+			return true, ibtcNewPDs
 		}
-		return false
+		return false, EmptyPD()
 	}
 	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-		return IsSameQ(a, b, &es.CASLogger)
+		return IsSameQ(a, b, cl), EmptyPD()
 	}
 
 	if !(aIsExpression && bIsExpression) {
-		return false
+		return false, EmptyPD()
 	}
 
 	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
@@ -97,12 +99,12 @@ func IsMatchQ(a Ex, b Ex, es *EvalState) bool {
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
 			if IsOrderless(aExpressionSym) {
-				return CommutativeIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], es)
+				return CommutativeIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
 			}
 		}
 	}
 
-	return NonCommutativeIsMatchQ(aExpression.Parts, bExpression.Parts, es)
+	return NonCommutativeIsMatchQ(aExpression.Parts, bExpression.Parts, pm, cl)
 }
 
 func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
@@ -143,20 +145,13 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 	// This should never happen
 	return false
 }
-func IsMatchQClearDefs(a Ex, b Ex, es *EvalState) bool {
-	oldVars := es.GetDefinedSnapshot()
-	isSame := IsMatchQ(a, b, es)
-	es.ClearPD()
-	es.defined = oldVars
-	return isSame
-}
 
 func (this *Expression) EvalMatchQ(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
 
-	if IsMatchQClearDefs(this.Parts[1], this.Parts[2], es) {
+	if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger); res {
 		return &Symbol{"True"}
 	} else {
 		return &Symbol{"False"}

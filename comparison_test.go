@@ -65,8 +65,8 @@ func TestComparison(t *testing.T) {
 	assert.Equal(t, "False", EvalInterp("(1 == 2) == (2 == 2)", es).String())
 
 	// Future
-	//assert.Equal(t, "False", EvalInterp("4/3==3/2", es).String())
-	//assert.Equal(t, "True", EvalInterp("4/3==8/6", es).String())
+	assert.Equal(t, "False", EvalInterp("4/3==3/2", es).String())
+	assert.Equal(t, "True", EvalInterp("4/3==8/6", es).String())
 
 	CasAssertSame(t, es, "True", "MatchQ[2*x, c1_Integer*a_Symbol]")
 	_, containsC1 := es.defined["c1"]
@@ -76,4 +76,9 @@ func TestComparison(t *testing.T) {
 	assert.False(t, containsBase)
 	CasAssertSame(t, es, "True", "MatchQ[2+x, c1_Integer+a_Symbol]")
 	CasAssertSame(t, es, "True", "MatchQ[a + b, x_Symbol + y_Symbol]")
+	CasAssertSame(t, es, "False", "MatchQ[a + b, x_Symbol + x_Symbol]")
+	CasAssertSame(t, es, "True", "MatchQ[{a,b}, {x_Symbol,y_Symbol}]")
+	CasAssertSame(t, es, "False", "MatchQ[{a,b}, {x_Symbol,x_Symbol}]")
+	CasAssertSame(t, es, "True", "MatchQ[{2^a, a}, {2^x_Symbol, x_Symbol}]")
+	CasAssertSame(t, es, "False", "MatchQ[{2^a, b}, {2^x_Symbol, x_Symbol}]")
 }

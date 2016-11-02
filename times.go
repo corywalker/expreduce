@@ -72,10 +72,16 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 
 	// If there is a zero in the expression, return zero
 	for _, e := range multiplicands {
-		f, ok := e.(*Flt)
-		if ok {
-			if f.Val.Cmp(big.NewFloat(0)) == 0 {
+		float, isFlt := e.(*Flt)
+		if isFlt {
+			if float.Val.Cmp(big.NewFloat(0)) == 0 {
 				return &Flt{big.NewFloat(0)}
+			}
+		}
+		integer, isInteger := e.(*Integer)
+		if isInteger {
+			if integer.Val.Cmp(big.NewInt(0)) == 0 {
+				return &Integer{big.NewInt(0)}
 			}
 		}
 	}

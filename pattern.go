@@ -105,9 +105,10 @@ func IsBlankType(e Ex, t string) bool {
 	return false
 }
 
-func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
+func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
+	pm = CopyPD(pm)
 	asPattern, patternOk := HeadAssertion(e, "Pattern")
 	if patternOk {
 		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
@@ -129,26 +130,27 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 					if sAsSymbolOk {
 						// TODO: we should handle matches with BlankSequences
 						// differently here.
-						_, isd := es.defined[sAsSymbol.Name]
-						_, ispd := es.patternDefined[sAsSymbol.Name]
+						//_, isd := es.defined[sAsSymbol.Name]
+						toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
 						if !ispd {
-							es.patternDefined[sAsSymbol.Name] = target
+							toMatch = target
+							pm.patternDefined[sAsSymbol.Name] = target
 						}
-						if !IsSameQ(es.patternDefined[sAsSymbol.Name], target, &es.CASLogger) {
-							return false
+						if !IsSameQ(toMatch, target, cl) {
+							return false, pm
 						}
 
-						if !isd {
+						/*if !isd {
 							//es.defined[sAsSymbol.Name] = target
 							es.Define(sAsSymbol.Name, sAsSymbol, target)
 						} else {
 							//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
 							return true
-						}
+						}*/
 					}
-					return true
+					return true, pm
 				}
-				return false
+				return false, pm
 			}
 		}
 	}
@@ -166,10 +168,10 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, es *EvalState) bool {
 			asSymbol, symbolOk = asBNS.Parts[1].(*Symbol)
 		}
 		if symbolOk {
-			return asSymbol.Name == t || asSymbol.Name == ""
+			return asSymbol.Name == t || asSymbol.Name == "", pm
 		}
 	}
-	return false
+	return false, pm
 }
 
 func BlankNullSequenceToBlank(bns *Expression) *Expression {
@@ -180,12 +182,12 @@ func BlankSequenceToBlank(bs *Expression) *Expression {
 	return &Expression{[]Ex{&Symbol{"Blank"}, bs.Parts[1]}}
 }
 
-func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, es *EvalState) bool {
+func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) bool {
 	toReturn := true
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog()
-		isMatch := IsMatchQ(e, blank, tmpEs)
-		es.Debugf("%v %v %v", e, blank, isMatch)
+		isMatch, _ := IsMatchQ(e, blank, EmptyPD(), &tmpEs.CASLogger)
+		cl.Debugf("%v %v %v", e, blank, isMatch)
 		toReturn = toReturn && isMatch
 	}
 	return toReturn
