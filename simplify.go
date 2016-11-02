@@ -30,6 +30,7 @@ func (this *Expression) EvalBasicSimplify(es *EvalState) Ex {
 	this.RepeatRun(es, "matcha_^matchb_ / matcha_^matchc_ -> matcha^(matchb-matchc)")
 	this.RepeatRun(es, "matcha_^matchb_ * matcha_ -> matcha^(matchb+1)")
 	this.RepeatRun(es, "matcha_^matchb_ * matcha_^matchc_ -> matcha^(matchb+matchc)")
+	this.RepeatRun(es, "den_Integer^(-1)*num_Integer -> Rational[num,den]")
 
 	// Simplify nested exponents
 	this.RepeatRun(es, "(matcha_^matchb_Integer)^matchc_Integer -> matcha^(matchb^matchc)")
