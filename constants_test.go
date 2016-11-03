@@ -111,4 +111,11 @@ func TestConstants(t *testing.T) {
 	assert.Equal(t, "ComplexInfinity", EasyRun("Rational[-1, -0]", es))
 	assert.Equal(t, "Indeterminate", EasyRun("Rational[-0, -0]", es))
 	assert.Equal(t, "Indeterminate", EasyRun("Rational[-0, 0]", es))
+
+	// Rational matching and replacement
+	CasAssertSame(t, es, "2/3", "test = Rational[2, 3]")
+	CasAssertSame(t, es, "True", "MatchQ[test, 2/3]")
+	CasAssertSame(t, es, "True", "MatchQ[test, Rational[a_Integer, b_Integer]]")
+	CasAssertSame(t, es, "{2, 3}", "2/3 /. Rational[a_Integer, b_Integer] -> {a, b}")
+	CasAssertSame(t, es, "2/3", "2/3 /. a_Integer/b_Integer -> {a, b}")
 }
