@@ -36,6 +36,10 @@ Out: 15
 > Total[Table[i,{i,1,5}]]
 In:  Total[Table[i, {i, 1, 5}]]
 Out: 15
+
+> bar[1, foo[a, b]] + bar[2, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]] -> bar[amatch + bmatch, foo[cmatch]]
+In:  ((bar[1, foo[a, b]] + bar[2, foo[a, b]])) /. (((bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]])) -> (bar[(amatch + bmatch), foo[cmatch]]))
+Out: bar[3, foo[a, b]]
 ```
 
 ## Development
