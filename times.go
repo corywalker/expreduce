@@ -160,10 +160,41 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 		}
 	}
 
-	// Remove one Integers
+	// Geometrically accumulate rational values towards the end of the expression
+	var lastr *Rational = nil
+	for _, e := range multiplicands {
+		therat, ok := e.(*Rational)
+		if ok {
+			if lastr != nil {
+				therat.Num.Mul(therat.Num, lastr.Num)
+				therat.Den.Mul(therat.Den, lastr.Den)
+				lastr.Num = big.NewInt(1)
+				lastr.Den = big.NewInt(1)
+			}
+			lastr = therat
+		}
+	}
+
+	// If there is one Integer and one Rational left, merge the Integer into
+	// the Rational
+	if lasti != nil && lastr != nil {
+		lastr.Num.Mul(lastr.Num, lasti.Val)
+		// This will get cleaned up in the next step
+		lasti.Val = big.NewInt(1)
+	}
+
+	// Remove one Integers and Rationals
 	for i := len(multiplicands) - 1; i >= 0; i-- {
-		theint, ok := multiplicands[i].(*Integer)
-		if ok && theint.Val.Cmp(big.NewInt(1)) == 0 && len(multiplicands) > 1 {
+		toRemove := false
+		theint, isInt := multiplicands[i].(*Integer)
+		if isInt {
+			toRemove = theint.Val.Cmp(big.NewInt(1)) == 0
+		}
+		therat, isRat := multiplicands[i].(*Rational)
+		if isRat {
+			toRemove = therat.Num.Cmp(big.NewInt(1)) == 0 && therat.Den.Cmp(big.NewInt(1)) == 0
+		}
+		if toRemove && len(multiplicands) > 1 {
 			multiplicands[i] = multiplicands[len(multiplicands)-1]
 			multiplicands[len(multiplicands)-1] = nil
 			multiplicands = multiplicands[:len(multiplicands)-1]

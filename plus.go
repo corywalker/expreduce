@@ -110,10 +110,45 @@ func (this *Expression) EvalPlus(es *EvalState) Ex {
 		}
 	}
 
-	// Remove zero Integers
+	// Accumulate rational values towards the end of the expression
+	var lastr *Rational = nil
+	for _, e := range addends {
+		therat, ok := e.(*Rational)
+		if ok {
+			if lastr != nil {
+				tmp := big.NewInt(0)
+				// lastrNum/lastrDen + theratNum/theratDen // Together
+				tmp.Mul(therat.Den, lastr.Num)
+				therat.Den.Mul(therat.Den, lastr.Den)
+				therat.Num.Mul(therat.Num, lastr.Den)
+				therat.Num.Add(therat.Num, tmp)
+				lastr.Num = big.NewInt(0)
+				lastr.Den = big.NewInt(1)
+			}
+			lastr = therat
+		}
+	}
+
+	// If there is one Integer and one Rational left, merge the Integer into
+	// the Rational
+	if lasti != nil && lastr != nil {
+		lasti.Val.Mul(lasti.Val, lastr.Den)
+		lastr.Num.Add(lastr.Num, lasti.Val)
+		lasti.Val = big.NewInt(0)
+	}
+
+	// Remove zero Integers and Rationals
 	for i := len(addends) - 1; i >= 0; i-- {
-		theint, ok := addends[i].(*Integer)
-		if ok && theint.Val.Cmp(big.NewInt(0)) == 0 && len(addends) > 1 {
+		toRemove := false
+		theint, isInt := addends[i].(*Integer)
+		if isInt {
+			toRemove = theint.Val.Cmp(big.NewInt(0)) == 0
+		}
+		therat, isRat := addends[i].(*Rational)
+		if isRat {
+			toRemove = therat.Num.Cmp(big.NewInt(0)) == 0 && therat.Den.Cmp(big.NewInt(1)) == 0
+		}
+		if toRemove && len(addends) > 1 {
 			addends[i] = addends[len(addends)-1]
 			addends[len(addends)-1] = nil
 			addends = addends[:len(addends)-1]

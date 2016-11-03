@@ -33,5 +33,11 @@ func TestPlus(t *testing.T) {
 	// Test empty Plus expressions
 	CasAssertSame(t, es, "0", "Plus[]")
 
+	// Test proper accumulation of Rationals
+	assert.Equal(t, "(47/6 + sym)", EasyRun("Rational[5, 2] + Rational[7, 3] + 3 + sym", es))
+	assert.Equal(t, "(17/6 + sym)", EasyRun("Rational[5, -2] + Rational[7, 3] + 3 + sym", es))
+	assert.Equal(t, "(-19/6 + sym)", EasyRun("Rational[5, -2] + Rational[7, 3] - 3 + sym", es))
+	assert.Equal(t, "(-47/6 + sym)", EasyRun("Rational[5, -2] + Rational[-7, 3] - 3 + sym", es))
+
 	es.ClearAll()
 }
