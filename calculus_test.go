@@ -24,6 +24,6 @@ func TestCalculus(t *testing.T) {
 	// All of these are correct, just not in the same form as the interpreted
 	// answer.
 	CasAssertSame(t, es, "1 + x + x^2/2 + x^3/6", "D[1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4, x]")
-	CasAssertSame(t, es, "-(10/x^3) - 7/x^2", "D[1 + 7/x + 5/(x^2), x]")
+	CasAssertSame(t, es, "-10*Power[x,-3] - 7*Power[x,-2]", "D[1 + 7/x + 5/(x^2), x]")
 	CasAssertSame(t, es, "Sqrt[x] + x^(3/2)", "D[2/3*x^(3/2) + 2/5*x^(5/2), x]")
 }

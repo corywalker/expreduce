@@ -326,8 +326,6 @@ func IsHoldRest(sym *Symbol) bool {
 		return true
 	} else if sym.Name == "RuleDelayed" {
 		return true
-	} else if sym.Name == "foo" {
-		return true
 	}
 	return false
 }

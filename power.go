@@ -76,8 +76,8 @@ func (this *Expression) EvalPower(es *EvalState) Ex {
 			if newbase.Cmp(big.NewInt(-1)) == 0 {
 				return &Integer{big.NewInt(-1)}
 			}
-			return &Expression{[]Ex{&Symbol{"Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}}}
-			//return &Expression{[]Ex{&Symbol{"Rational"}, &Integer{big.NewInt(1)}, &Integer{newbase}}}
+			//return &Expression{[]Ex{&Symbol{"Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}}}
+			return &Expression{[]Ex{&Symbol{"Rational"}, &Integer{big.NewInt(1)}, &Integer{newbase}}}
 		} else {
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected zero power in Power evaluation."}}}
 		}
@@ -92,6 +92,17 @@ func (this *Expression) EvalPower(es *EvalState) Ex {
 	if baseIsFlt && powerIsFlt {
 		return &Flt{mathbigext.Pow(baseFlt.Val, powerFlt.Val)}
 	}
+
+	powerRat, powerIsRat := this.Parts[2].(*Rational)
+	if powerIsRat {
+		if powerRat.Num.Cmp(big.NewInt(1)) == 0 && powerRat.Den.Cmp(big.NewInt(2)) == 0 {
+			return &Expression{[]Ex{
+				&Symbol{"Sqrt"},
+				this.Parts[1],
+			}}
+		}
+	}
+
 
 	return this
 }
