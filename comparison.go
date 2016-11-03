@@ -52,13 +52,24 @@ func (this *Expression) ToStringSameQ() string {
 	return buffer.String()
 }
 
+func IsMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	return IsMatchQ(
+		&Expression{[]Ex{
+			&Symbol{"Rational"},
+			&Integer{a.Num},
+			&Integer{a.Den},
+		}},
+		b, pm, cl)
+}
+
 func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	pm = CopyPD(pm)
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
 	_, aIsSymbol := a.(*Symbol)
-	_, aIsRational := a.(*Rational)
+	aRational, aIsRational := a.(*Rational)
+	bRational, bIsRational := b.(*Rational)
 	aExpression, aIsExpression := a.(*Expression)
 	bExpression, bIsExpression := b.(*Expression)
 
@@ -86,11 +97,17 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 		}
 		return false, EmptyPD()
 	}
-	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-		return IsSameQ(a, b, cl), EmptyPD()
+
+	// Handle special case for matching Rational[a_Integer, b_Integer]
+	if aIsRational && bIsExpression {
+		return IsMatchQRational(aRational, bExpression, pm, cl)
+	} else if aIsExpression && bIsRational {
+		return IsMatchQRational(bRational, aExpression, pm, cl)
 	}
 
-	if !(aIsExpression && bIsExpression) {
+	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
+		return IsSameQ(a, b, cl), EmptyPD()
+	} else if !(aIsExpression && bIsExpression) {
 		return false, EmptyPD()
 	}
 

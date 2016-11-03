@@ -61,9 +61,9 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "1", EvalInterp("99^0", es).String())
 
 	assert.Equal(t, "125", EvalInterp("5^3", es).String())
-	assert.Equal(t, "125^-1", EvalInterp("5^-3", es).String())
+	assert.Equal(t, "1/125", EvalInterp("5^-3", es).String())
 	assert.Equal(t, "-125", EvalInterp("(-5)^3", es).String())
-	assert.Equal(t, "-125^-1", EvalInterp("(-5)^-3", es).String())
+	assert.Equal(t, "-1/125", EvalInterp("(-5)^-3", es).String())
 
 	//assert.Equal(t, "2.975379863266329e+1589", EvalInterp("39^999.", es).String())
 	//assert.Equal(t, "3.360915398890324e-1590", EvalInterp("39^-999.", es).String())
@@ -95,4 +95,11 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "1.", EasyRun("(-1.)^30", es))
 	assert.Equal(t, "4.", EasyRun("(1.*2*-1.)^2", es))
 	assert.Equal(t, "-0.5", EasyRun("(1.*2*-1.)^(-1)", es))
+
+	es.ClearAll()
+	CasAssertSame(t, es, "Rational", "Power[2, -1] // Head")
+	CasAssertSame(t, es, "Integer", "Power[1, -1] // Head")
+	CasAssertSame(t, es, "Integer", "Power[2, 2] // Head")
+	CasAssertSame(t, es, "Rational", "Power[-2, -1] // Head")
+	CasAssertSame(t, es, "Rational", "Power[2, -2] // Head")
 }
