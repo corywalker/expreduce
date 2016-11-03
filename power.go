@@ -77,6 +77,7 @@ func (this *Expression) EvalPower(es *EvalState) Ex {
 				return &Integer{big.NewInt(-1)}
 			}
 			return &Expression{[]Ex{&Symbol{"Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}}}
+			//return &Expression{[]Ex{&Symbol{"Rational"}, &Integer{big.NewInt(1)}, &Integer{newbase}}}
 		} else {
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected zero power in Power evaluation."}}}
 		}

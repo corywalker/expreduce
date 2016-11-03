@@ -95,4 +95,11 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "1.", EasyRun("(-1.)^30", es))
 	assert.Equal(t, "4.", EasyRun("(1.*2*-1.)^2", es))
 	assert.Equal(t, "-0.5", EasyRun("(1.*2*-1.)^(-1)", es))
+
+	es.ClearAll()
+	CasAssertSame(t, es, "Rational", "Power[2, -1] // Head")
+	CasAssertSame(t, es, "Integer", "Power[1, -1] // Head")
+	CasAssertSame(t, es, "Integer", "Power[2, 2] // Head")
+	CasAssertSame(t, es, "Rational", "Power[-2, -1] // Head")
+	CasAssertSame(t, es, "Rational", "Power[2, -2] // Head")
 }
