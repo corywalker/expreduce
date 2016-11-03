@@ -32,15 +32,6 @@ func (this *Expression) EvalBasicSimplify(es *EvalState) Ex {
 	this.RepeatRun(es, "matcha_^matchb_ * matcha_^matchc_ -> matcha^(matchb+matchc)")
 	this.RepeatRun(es, "den_Integer^(-1)*num_Integer -> Rational[num,den]")
 
-	// Simplify rational expressions
-	// I've decided that I should do this within Times and Plus itself by
-	// by treating Integers and Rationals all as Rationals
-	//this.RepeatRun(es, "Rational[w_Integer, x_Integer]*Rational[y_Integer, z_Integer] -> Rational[w*y, x*z]")
-	//this.RepeatRun(es, "Rational[x_Integer, y_Integer]+z_Integer -> Rational[x+y*z, y]")
-	//this.RepeatRun(es, "Rational[x_Integer, y_Integer]*z_Integer -> Rational[x*z, y]")
-	//this.RepeatRun(es, "base_^(1/2) -> Sqrt[base]")
-	//this.RepeatRun(es, "base_^Rational[1,2] -> Sqrt[base]")
-
 	// Simplify nested exponents
 	this.RepeatRun(es, "(matcha_^matchb_Integer)^matchc_Integer -> matcha^(matchb*matchc)")
 	this.RepeatRun(es, "(matcha_^matchb_Real)^matchc_Integer -> matcha^(matchb*matchc)")

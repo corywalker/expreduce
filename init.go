@@ -32,9 +32,9 @@ func InitCAS(es *EvalState) {
 	EvalInterp("D[a_ b__,x_]:=D[a,x] b+a D[Times[b],x]", es)
 	// The times operator is needed here. Whitespace precedence is messed up
 	EvalInterp("D[a_^(b_), x_]:= a^b*(D[b,x] Log[a]+D[a,x]/a*b)", es)
-	//EvalInterp("D[Log[a_], x_]:= D[a, x]/a", es)
-	//EvalInterp("D[Sin[a_], x_]:= D[a,x] Cos[a]", es)
-	//EvalInterp("D[Cos[a_], x_]:=-D[a,x] Sin[a]", es)
+	EvalInterp("D[Log[a_], x_]:= D[a, x]/a", es)
+	EvalInterp("D[Sin[a_], x_]:= D[a,x] Cos[a]", es)
+	EvalInterp("D[Cos[a_], x_]:=-D[a,x] Sin[a]", es)
 
 	// Define function simplifications
 	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Integer}] := 1/2*nmatch*(1 + nmatch)", es)
