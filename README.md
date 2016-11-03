@@ -16,24 +16,26 @@ go run calc.go
 
 ```
 # go run calc.go
-> y=a*a
-In:  (y) = ((a * a))
-Out: (a * a)
-> y=y*y
-In:  (y) = ((y * y))
-Out: (a * a * a * a)
-> a=2
-In:  (a) = (2)
-Out: 2
-> y
-In:  y
-Out: 16
-> BasicSimplify[(a+b)-(a+b)+c-c+2*c^a+2*d+5*d+d-5*d+3*c^a]
-In:  BasicSimplify[((((((((((a + b) + ((a + b) * -1)) + c) + (c * -1)) + (2 * c^a)) + (2 * d)) + (5 * d)) + d) + ((5 * d) * -1)) + (3 * c^a))]
-Out: ((5 * c^a) + (3 * d))
-> BasicSimplify[a^2*a^c]
-In:  BasicSimplify[(a^2 * a^c)]
-Out: a^(2 + c)
+
+> D[Sin[x]/x,x]
+In:  D[(Sin[x] * x^-1), x]
+Out: ((Cos[x] * x^-1) + (Sin[x] * -1 * x^-2))
+
+> Table[a^2,{a,1,10}]
+In:  Table[a^2, {a, 1, 10}]
+Out: {1, 4, 9, 16, 25, 36, 49, 64, 81, 100}
+
+> Sum[i, {i, 1, n}]
+In:  Sum[i, {i, 1, n}]
+Out: (2^-1 * n * (1 + n))
+
+> (2^(-1) * n * (1 + n)) /. n->5
+In:  (((2^(1 * -1) * n) * (1 + n))) /. ((n) -> (5))
+Out: 15
+
+> Total[Table[i,{i,1,5}]]
+In:  Total[Table[i, {i, 1, 5}]]
+Out: 15
 ```
 
 ## Development
