@@ -62,10 +62,19 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	if ExArrayContainsFloat(multiplicands) {
 		for i, e := range multiplicands {
 			subint, isint := e.(*Integer)
+			subrat, israt := e.(*Rational)
 			if isint {
 				newfloat := big.NewFloat(0)
 				newfloat.SetInt(subint.Val)
 				multiplicands[i] = &Flt{newfloat}
+			} else if israt {
+				num := big.NewFloat(0)
+				den := big.NewFloat(0)
+				newquo := big.NewFloat(0)
+				num.SetInt(subrat.Num)
+				den.SetInt(subrat.Den)
+				newquo.Quo(num, den)
+				multiplicands[i] = &Flt{newquo}
 			}
 		}
 	}

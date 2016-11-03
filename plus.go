@@ -42,10 +42,19 @@ func (this *Expression) EvalPlus(es *EvalState) Ex {
 	if ExArrayContainsFloat(addends) {
 		for i, e := range addends {
 			subint, isint := e.(*Integer)
+			subrat, israt := e.(*Rational)
 			if isint {
 				newfloat := big.NewFloat(0)
 				newfloat.SetInt(subint.Val)
 				addends[i] = &Flt{newfloat}
+			} else if israt {
+				num := big.NewFloat(0)
+				den := big.NewFloat(0)
+				newquo := big.NewFloat(0)
+				num.SetInt(subrat.Num)
+				den.SetInt(subrat.Den)
+				newquo.Quo(num, den)
+				addends[i] = &Flt{newquo}
 			}
 		}
 	}

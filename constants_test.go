@@ -124,4 +124,5 @@ func TestConstants(t *testing.T) {
 	CasAssertSame(t, es, "buzz[bar]", "foo[bar, Rational[1, 2]] /. foo[base_, Rational[1, 2]] -> buzz[base]")
 	CasAssertSame(t, es, "True", "MatchQ[1/2, Rational[1, 2]]")
 	CasAssertSame(t, es, "True", "MatchQ[Rational[1, 2], 1/2]")
+	CasAssertSame(t, es, "False", "Hold[Rational[1, 2]] === Hold[1/2]")
 }
