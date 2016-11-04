@@ -307,7 +307,9 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) s
 // See IsBlankCapturing for a good example of good use.
 func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	pm = CopyPD(pm)
-	cl.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+	if cl.debugState {
+		cl.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+	}
 	containsBlankSequence := false
 	for i := range lhs_components {
 		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
@@ -348,7 +350,9 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 		for oci, ci := range perm {
 			orderedComponents[oci] = components[ci].DeepCopy()
 		}
-		cl.Infof("%s", ExArrayToString(orderedComponents))
+		if cl.debugState {
+			cl.Infof("%s", ExArrayToString(orderedComponents))
+		}
 		ncIsMatchQ, newPm := NonCommutativeIsMatchQ(orderedComponents, lhs_components, pm, cl)
 		if ncIsMatchQ {
 			cl.Debugf("CommutativeIsMatchQ succeeded. Context: %s", pm)
@@ -376,7 +380,9 @@ func Min(x, y int) int {
 func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	pm = CopyPD(pm)
 	// This function is now recursive because of the existence of BlankSequence.
-	cl.Infof("Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+	if cl.debugState {
+		cl.Infof("Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+	}
 	// A base case for the recursion
 	if len(components) == 0 && len(lhs_components) == 0 {
 		return true, pm
@@ -434,7 +440,9 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager,
 				for k := j + 1; k < len(components); k++ {
 					remainingComps[k-j-1] = components[k].DeepCopy()
 				}
-				cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
+				if cl.debugState {
+					cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
+				}
 				matchq, newPDs := NonCommutativeIsMatchQ(remainingComps, remainingLhs, pm, cl)
 				if seqMatches && matchq {
 					pm.Update(newPDs)
