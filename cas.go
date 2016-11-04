@@ -120,23 +120,13 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	if !isd {
 		return nil, false
 	}
-	//this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
-	oldVars := this.GetDefinedSnapshot()
 	for i := range this.defined[name] {
 		ismatchq, _ := IsMatchQ(lhs, this.defined[name][i].Parts[1], EmptyPD(), &this.CASLogger)
 		if ismatchq {
-			//Probably not needed:
-			//this.ClearPD()
-			//this.defined = CopyExpressionMap(oldVars)
-			this.Debugf("Found match! Current context before: %s", this)
 			res := ReplaceAll(lhs, &this.defined[name][i], &this.CASLogger, EmptyPD())
-			this.Debugf("Found match! Current context after: %s", this)
-			this.defined = CopyExpressionMap(oldVars)
-			this.Debugf("After reset: %s", this)
 			return res, true
 		}
-		this.defined = CopyExpressionMap(oldVars)
 	}
 	return nil, false
 }
