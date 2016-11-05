@@ -107,16 +107,23 @@ func (this *Expression) EvalProduct(es *EvalState) Ex {
 	return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
 }
 
+func MemberQ(components []Ex, item Ex, cl *CASLogger) bool {
+	for _, part := range components {
+		if matchq, _ := IsMatchQ(part, item, EmptyPD(), cl); matchq {
+			return true
+		}
+	}
+	return false
+}
+
 func (this *Expression) EvalMemberQ(es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
 	list, isList := HeadAssertion(this.Parts[1], "List")
 	if isList {
-		for _, exp := range list.Parts {
-			if res, _ := IsMatchQ(exp, this.Parts[2], EmptyPD(), &es.CASLogger); res {
-				return &Symbol{"True"}
-			}
+		if MemberQ(list.Parts, this.Parts[2], &es.CASLogger) {
+			return &Symbol{"True"}
 		}
 	}
 	return &Symbol{"False"}

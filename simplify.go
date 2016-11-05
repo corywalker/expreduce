@@ -10,11 +10,11 @@ func (this *Expression) EvalBasicSimplify(es *EvalState) Ex {
 	}
 
 	// Simplify expressions with Infinity
-	this.RepeatRun(es, "Infinity + matcha_Integer -> Infinity")
-	this.RepeatRun(es, "Infinity + matcha_Real -> Infinity")
-	this.RepeatRun(es, "-Infinity + matcha_Integer -> -Infinity")
-	this.RepeatRun(es, "-Infinity + matcha_Real -> -Infinity")
-	this.RepeatRun(es, "Infinity - Infinity -> Indeterminate")
+	//this.RepeatRun(es, "Infinity + matcha_Integer -> Infinity")
+	//this.RepeatRun(es, "Infinity + matcha_Real -> Infinity")
+	//this.RepeatRun(es, "-Infinity + matcha_Integer -> -Infinity")
+	//this.RepeatRun(es, "-Infinity + matcha_Real -> -Infinity")
+	//this.RepeatRun(es, "Infinity - Infinity -> Indeterminate")
 	this.RepeatRun(es, "1/Infinity -> 0")
 
 	this.RepeatRun(es, "amatch_ - amatch_ -> 0")

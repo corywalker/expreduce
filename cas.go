@@ -332,6 +332,17 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 		return false, pm
 	}
 
+	// After deterimining that there is a blanksequence, I should go through
+	// Each element of the pattern to be matched to see if it even exists within
+	// components. I should use MemberQ for this. This can avoid the time-
+	// consuming algorithms below
+
+	for _, mustContain := range lhs_components {
+		if !MemberQ(components, mustContain, cl) {
+			return false, pm
+		}
+	}
+
 	// Generate all possible orders of components. There is certainly a more
 	// elegant recursive solution, but this is easier for now.
 	toPermute := make([]int, len(components))

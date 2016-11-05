@@ -43,11 +43,13 @@ func InitCAS(es *EvalState) {
 	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 1, nmatch_Symbol}] := 1/2*nmatch*(1 + nmatch)", es)
 
 	// Simplify expressions with Infinity
-	//EvalInterp("Plus[Infinity, _Integer, rest___] := Infinity + rest", es)
-	//EvalInterp("Plus[Infinity, _Real, rest___] := Infinity + rest", es)
-	//EvalInterp("Plus[-Infinity, _Integer, rest___] := -Infinity + rest", es)
-	//EvalInterp("Plus[-Infinity, _Real, rest___] := -Infinity + rest", es)
-	//EvalInterp("Plus[Infinity, -Infinity, rest___] := Indeterminate + rest", es)
+	EvalInterp("Plus[Infinity, _Integer, rest___] := Infinity + rest", es)
+	EvalInterp("Plus[Infinity, _Real, rest___] := Infinity + rest", es)
+	EvalInterp("Plus[-Infinity, _Integer, rest___] := -Infinity + rest", es)
+	EvalInterp("Plus[-Infinity, _Real, rest___] := -Infinity + rest", es)
+	EvalInterp("Plus[Infinity, -Infinity, rest___] := Indeterminate + rest", es)
+
+	//EvalInterp("Times[a_, a_, rest___] := a^2 + rest", es)
 
 	// System initialization
 	EvalInterp("SeedRandom[UnixTime[]]", es)

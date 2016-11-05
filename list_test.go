@@ -43,6 +43,17 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{Protected}", "Attributes[MemberQ]")
 	CasAssertSame(t, es, "False", "MemberQ[a, a]")
 	CasAssertSame(t, es, "False", "MemberQ[a, _]")
+	// More tests to be used in CommutativeIsMatchQ
+	CasAssertSame(t, es, "False", "MemberQ[{a, b}, c]")
+	CasAssertSame(t, es, "True", "MemberQ[{a, b}, a]")
+	CasAssertSame(t, es, "True", "MemberQ[{a, b}, ___]")
+	CasAssertSame(t, es, "True", "MemberQ[{a, b}, __]")
+	CasAssertSame(t, es, "False", "MemberQ[{a, b}, __Integer]")
+	CasAssertSame(t, es, "False", "MemberQ[{a, b}, ___Integer]")
+	CasAssertSame(t, es, "True", "MemberQ[{a, b}, ___Symbol]")
+	CasAssertSame(t, es, "True", "MemberQ[{a, b}, __Symbol]")
+	CasAssertSame(t, es, "True", "MemberQ[{a, b, 1}, __Symbol]")
+	CasAssertSame(t, es, "True", "MemberQ[{a, b, 1}, __Integer]")
 
 	//CasAssertSame(t, es, "5000", "Length[Table[{3 + i + RandomReal[{-3, 7}], i + RandomReal[{-2, 5}]}, {i, 1, 5000}]]")
 
