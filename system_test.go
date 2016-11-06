@@ -23,5 +23,5 @@ func TestSystem(t *testing.T) {
 
 	// Test speed of CommutativeIsMatchQ
 	CasAssertSame(t, es, "Null", "Plus[foo, -foo, rest___] := bar + rest")
-	CasAssertSame(t, es, "bar + 1 + a + b + c + d + e", "Plus[foo,1,-foo,a,b,c,d,e]")
+	CasAssertSame(t, es, "bar + 1 + a + b + c + d + e + f + g", "Plus[foo,1,-foo,a,b,c,d,e,f,g]")
 }

@@ -345,14 +345,12 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 
 	// Generate all possible orders of components. There is certainly a more
 	// elegant recursive solution, but this is easier for now.
-	toPermute := make([]int, len(components))
-	for i := range toPermute {
-		toPermute[i] = i
+	perm, cont := make([]int, len(components)), 1
+	for i := range perm {
+		perm[i] = i
 	}
-	perms := permutations(toPermute, len(components))
-	cl.Debugf("Permutations to try: %v\n", perms)
 
-	for _, perm := range perms {
+	for cont == 1 {
 		cl.Debugf("Using perm: %v\n", perm)
 
 		// Build a version of components with the correct order. Can I do this
@@ -369,6 +367,9 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 			cl.Debugf("CommutativeIsMatchQ succeeded. Context: %s", pm)
 			return true, newPm
 		}
+
+		// Generate next permutation, if any
+		cont = nextKPermutation(perm, len(components), len(components))
 	}
 	cl.Debugf("CommutativeIsMatchQ failed. Context: %s", pm)
 	return false, pm
