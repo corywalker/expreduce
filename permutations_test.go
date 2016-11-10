@@ -52,5 +52,23 @@ func TestPermutations(t *testing.T) {
 	cont = nextKPermutation(ar3, 3, 2)
 	assert.Equal(t, []int{2,1,0}, ar3)
 	assert.Equal(t, 0, cont)
+
+	// Test with k = 1
+	ar3, cont = []int{0,1,2}, 1
+	assert.Equal(t, []int{0,1,2}, ar3)
+	assert.Equal(t, 1, cont)
+
+	cont = nextKPermutation(ar3, 3, 1)
+	assert.Equal(t, []int{1,0,2}, ar3)
+	assert.Equal(t, 1, cont)
+
+	cont = nextKPermutation(ar3, 3, 1)
+	assert.Equal(t, []int{2,0,1}, ar3)
+	assert.Equal(t, 1, cont)
+
+	// The algorithm should elect not to continue after this
+	cont = nextKPermutation(ar3, 3, 1)
+	assert.Equal(t, []int{2,1,0}, ar3)
+	assert.Equal(t, 0, cont)
 }
 

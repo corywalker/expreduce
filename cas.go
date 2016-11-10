@@ -298,6 +298,24 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) s
 	return "EQUAL_TRUE"
 }
 
+func ExtractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
+	for _, c := range(components) {
+		pat, isPat := HeadAssertion(c, "Pattern")
+		_, isBns := HeadAssertion(c, "BlankNullSequence")
+		_, isBs := HeadAssertion(c, "BlankSequence")
+		if isPat {
+			_, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
+			_, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
+		}
+		if isBs || isBns {
+			bs = append(bs, c)
+		} else {
+			nonBS = append(nonBS, c)
+		}
+	}
+	return
+}
+
 // Should a MatchQ call do:
 // 1. Modify pm directly <- bad idea. If we attempt a match and it partially
 //    matches, we'll have to restore pm from a snapshot
@@ -310,29 +328,18 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 	if cl.debugState {
 		cl.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	}
-	containsBlankSequence := false
-	for i := range lhs_components {
-		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
-		_, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
-		_, isBs := HeadAssertion(lhs_components[i], "BlankSequence")
-		if isPat {
-			_, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
-			_, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
-		}
-		if isBs || isBns {
-			containsBlankSequence = true
-			break
-		}
-	}
-	cl.Infof("containsBlankSequence %s", containsBlankSequence)
+	nonBS, bs := ExtractBlankSequences(lhs_components)
 	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
 	// though because MatchQ[a + b + c, c + __] == True.
-	if !containsBlankSequence && len(components) != len(lhs_components) {
+	if len(bs) == 0 && len(components) != len(lhs_components) {
 		cl.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
+		return false, pm
+	} else if len(nonBS) > len(components) {
+		cl.Debugf("len(nonBS) > len(components). CommutativeMatchQ failed")
 		return false, pm
 	}
 
-	// After deterimining that there is a blanksequence, I should go through
+	// After determining that there is a blanksequence, I should go through
 	// Each element of the pattern to be matched to see if it even exists within
 	// components. I should use MemberQ for this. This can avoid the time-
 	// consuming algorithms below
@@ -343,13 +350,24 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 		}
 	}
 
-	// Generate all possible orders of components. There is certainly a more
-	// elegant recursive solution, but this is easier for now.
+	kConstant := len(components)
+	if len(bs) == 1 {
+		// This is probably the most common case. It would be rare for us to
+		// have multiple BlankSequences in the same LHS. It saves us a lot of
+		// time by doing this
+		kConstant = len(nonBS)
+	}
+
+	// Start iterating through each permutation of LHS expressions
 	perm, cont := make([]int, len(components)), 1
 	for i := range perm {
 		perm[i] = i
 	}
-
+	// Order lhs_components because if we have len(bs) == 1, we will depend on
+	// the last n-k items to be orderless. This means that the BlankSequence
+	// must be at the end. Eventually this may not be needed once automatic
+	// sorting is implemented
+	ordered_lhs_components := append(nonBS, bs...)
 	for cont == 1 {
 		cl.Debugf("Using perm: %v\n", perm)
 
@@ -362,14 +380,14 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 		if cl.debugState {
 			cl.Infof("%s", ExArrayToString(orderedComponents))
 		}
-		ncIsMatchQ, newPm := NonCommutativeIsMatchQ(orderedComponents, lhs_components, pm, cl)
+		ncIsMatchQ, newPm := NonCommutativeIsMatchQ(orderedComponents, ordered_lhs_components, pm, cl)
 		if ncIsMatchQ {
 			cl.Debugf("CommutativeIsMatchQ succeeded. Context: %s", pm)
 			return true, newPm
 		}
 
 		// Generate next permutation, if any
-		cont = nextKPermutation(perm, len(components), len(components))
+		cont = nextKPermutation(perm, len(components), kConstant)
 	}
 	cl.Debugf("CommutativeIsMatchQ failed. Context: %s", pm)
 	return false, pm
