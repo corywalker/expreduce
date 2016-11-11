@@ -23,8 +23,8 @@ func TestSymbol(t *testing.T) {
 	assert.Equal(t, "6", EasyRun("x=x*2", es))
 	assert.Equal(t, "36", EasyRun("x=x*x", es))
 
-	assert.Equal(t, "(a * a)", EasyRun("y=a*a", es))
-	assert.Equal(t, "(a * a * a * a)", EasyRun("y=y*y", es))
+	assert.Equal(t, "a^2", EasyRun("y=a*a", es))
+	assert.Equal(t, "a^4", EasyRun("y=y*y", es))
 	assert.Equal(t, "2", EasyRun("a=2", es))
 	assert.Equal(t, "16", EasyRun("y", es))
 

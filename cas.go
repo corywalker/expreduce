@@ -344,6 +344,7 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 	// components. I should use MemberQ for this. This can avoid the time-
 	// consuming algorithms below
 
+	// These lines are causing MatchQ[a + b, a + b + x___Plus] == True to fail
 	for _, mustContain := range lhs_components {
 		if !MemberQ(components, mustContain, cl) {
 			return false, pm

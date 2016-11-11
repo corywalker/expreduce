@@ -49,9 +49,14 @@ func InitCAS(es *EvalState) {
 	EvalInterp("Plus[-Infinity, _Real, rest___] := -Infinity + rest", es)
 	EvalInterp("Plus[Infinity, -Infinity, rest___] := Indeterminate + rest", es)
 
-	//EvalInterp("Times[a_, a_, rest___] := a^2 * rest", es)
-	//EvalInterp("Times[a_^n_, a_, rest___] := a^(n+1) * rest", es)
-	//EvalInterp("Times[a_^n_, a_^m_, rest___] := a^(n+m) * rest", es)
+	EvalInterp("Times[a_, a_, rest___] := a^2 * rest", es)
+	EvalInterp("Times[a_^n_, a_, rest___] := a^(n+1) * rest", es)
+	EvalInterp("Times[a_^n_, a_^m_, rest___] := a^(n+m) * rest", es)
+	EvalInterp("Times[den_Integer^(-1), num_Integer, rest___] := Rational[num,den] * rest", es)
+	EvalInterp("Times[a_, Power[a_, -1], rest___] := rest", es)
+	EvalInterp("Times[a_^b_, Power[a_, -1], rest___] := a^(b-1) * rest", es)
+	//EvalInterp("Times[a_^b_, Power[a_^c_, -1], rest___] := a^(b-c) * rest", es)
+	//EvalInterp("Times[a_^b_, Power[a_, Power[c_, -1]], rest___] := a^(b-c) * rest", es)
 
 	// System initialization
 	EvalInterp("SeedRandom[UnixTime[]]", es)
