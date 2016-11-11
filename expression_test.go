@@ -146,4 +146,12 @@ func TestExpression(t *testing.T) {
 	assert.Equal(t, "Hold[foo[Evaluate[(1 + 1)]]]", EasyRun("Hold[foo[Evaluate[1 + 1]]]", es))
 	assert.Equal(t, "Hold[4, 7, (2 + 1)]", EasyRun("Hold[Evaluate[1 + 3, 5 + 2], 2 + 1]", es))
 	assert.Equal(t, "Hold[(1 + 3), (5 + 2), (2 + 1)]", EasyRun("Hold[Sequence[1 + 3, 5 + 2], 2 + 1]", es))
+
+	// Test Function
+	CasAssertSame(t, es, "1 + x", "Function[1 + #][x]")
+	CasAssertSame(t, es, "1 + x + 2y", "Function[1 + # + 2#2][x, y]")
+	CasAssertSame(t, es, "a^2", "Function[x, x^2][a]")
+	CasAssertSame(t, es, "a^2", "Function[x, x^2][a, b]")
+	CasAssertSame(t, es, "x^2", "Function[x, x^2][x]")
+	CasAssertSame(t, es, "4", "Function[x, x^2][-2]")
 }

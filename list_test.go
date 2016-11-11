@@ -80,6 +80,8 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "Map[foo]", "Map[foo]")
 	CasAssertSame(t, es, "foo", "Map[foo, foo]")
 	CasAssertSame(t, es, "Map[foo, foo, foo]", "Map[foo, foo, foo]")
+	CasAssertSame(t, es, "{4,16}", "Function[x, x^2] /@ {2,4}")
+	CasAssertSame(t, es, "{4,16}", "Function[#^2] /@ {2,4}")
 
 	// Test Array
 	CasAssertSame(t, es, "{f[1], f[2], f[3]}", "Array[f, 3]")

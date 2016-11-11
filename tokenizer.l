@@ -114,6 +114,7 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 := return SETDELAYEDSYM
 === return SAMESYM
 == return EQUALSYM
+# return SLOTSYM
 \/\. return REPLACEALLSYM
 \/\/\. return REPLACEREPSYM
 \/\/ return POSTFIXSYM

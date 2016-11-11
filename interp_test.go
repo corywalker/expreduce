@@ -34,4 +34,9 @@ func TestInterp(t *testing.T) {
 	CasAssertSame(t, es, "3[P[1[2]]]", "P@1@2//3")
 	// Currently does not work:
 	//CasAssertSame(t, es, "(x^2)*y", "x^2 y")
+
+	// Test Slots
+	CasAssertSame(t, es, "Slot[1]", "#")
+	CasAssertSame(t, es, "Slot[2]", "#2")
+	CasAssertSame(t, es, "3*Slot[2]", "3#2")
 }

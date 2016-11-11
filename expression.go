@@ -2,6 +2,7 @@ package cas
 
 import "bytes"
 import "fmt"
+import "math/big"
 
 type Expression struct {
 	Parts []Ex
@@ -85,6 +86,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		curr.mergeSequences(es, "Evaluate", true)
 
 		headAsSym, isHeadSym := curr.Parts[0].(*Symbol)
+		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
 		if isHeadSym {
 			headStr := headAsSym.Name
 
@@ -162,6 +164,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			} else if headStr == "Array" {
 				currEx = curr.EvalArray(es)
 			}
+		} else if isPureFunction {
+			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
 		}
 		if IsSameQ(currEx, lastEx, &es.CASLogger) {
 			shouldEval = false
@@ -169,6 +173,38 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		lastEx = currEx
 	}
 	return currEx
+}
+
+func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
+	if len(this.Parts) == 2 {
+		toReturn := this.Parts[1].DeepCopy()
+		for i, arg := range args {
+			toReturn = ReplaceAll(toReturn,
+				&Expression{[]Ex{
+					&Symbol{"Rule"},
+					&Expression{[]Ex{
+						&Symbol{"Slot"},
+						&Integer{big.NewInt(int64(i+1))},
+					}},
+					arg,
+				}}, &es.CASLogger, EmptyPD())
+		}
+		return toReturn
+	} else if len(this.Parts) == 3 {
+		repSym, ok := this.Parts[1].(*Symbol)
+		if !ok {
+			return this
+		}
+		toReturn := this.Parts[2].DeepCopy()
+		toReturn = ReplaceAll(toReturn,
+			&Expression{[]Ex{
+				&Symbol{"Rule"},
+				repSym,
+				args[0],
+			}}, &es.CASLogger, EmptyPD())
+		return toReturn
+	}
+	return this
 }
 
 func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {
