@@ -27,7 +27,6 @@ func InitCAS(es *EvalState) {
 	// Calculus
 	EvalInterp("D[x_,x_]:=1", es)
 	EvalInterp("D[a_,x_]:=0", es)
-	// The following line hangs with: D[bar+foo+bar,bar]
 	EvalInterp("D[a_+b__,x_]:=D[a,x]+D[Plus[b],x]", es)
 	EvalInterp("D[a_ b__,x_]:=D[a,x] b+a D[Times[b],x]", es)
 	// The times operator is needed here. Whitespace precedence is messed up
@@ -35,6 +34,18 @@ func InitCAS(es *EvalState) {
 	EvalInterp("D[Log[a_], x_]:= D[a, x]/a", es)
 	EvalInterp("D[Sin[a_], x_]:= D[a,x] Cos[a]", es)
 	EvalInterp("D[Cos[a_], x_]:=-D[a,x] Sin[a]", es)
+
+	// Might need to be implemented in code. Try running Integrate[-10x, {x, 1, 5}]
+	// with this
+	//EvalInterp("Integrate[a_,{x_Symbol,start_Integer,end_Integer}]:=ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start]", es)
+	EvalInterp("Integrate[a_Integer,x_Symbol]:=a*x", es)
+	EvalInterp("Integrate[a_Integer*b_,x_Symbol]:=a*Integrate[b,x]", es)
+	// An outstanding bug is requiring me to write this as amatch and bmatch
+	// instead of a and b, because doing the latter causes issues with
+	// Integrate[a+b+c,x]
+	EvalInterp("Integrate[amatch_+bmatch__,x_Symbol]:=Integrate[amatch,x]+Integrate[Plus[bmatch],x]", es)
+	EvalInterp("Integrate[x_Symbol^n_Integer, x_Symbol]:=x^(n+1)/(n+1)", es)
+	EvalInterp("Integrate[x_Symbol^n_Rational, x_Symbol]:=x^(n+1)/(n+1)", es)
 
 	// Define function simplifications
 	EvalInterp("Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Integer}] := 1/2*nmatch*(1 + nmatch)", es)
