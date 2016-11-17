@@ -69,6 +69,13 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 		if len(except.Parts) == 2 {
 			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), cl)
 			return !matchq, pm
+		} else if len(except.Parts) == 3 {
+			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), cl)
+			if !matchq {
+				matchqb, newPm := IsMatchQ(a, except.Parts[2], pm, cl)
+				return matchqb, newPm
+			}
+			return false, pm
 		}
 	}
 

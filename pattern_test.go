@@ -127,4 +127,5 @@ func TestPattern(t *testing.T) {
 	// Test Except
 	CasAssertSame(t, es, "{5, 2, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, Except[_Real]]")
 	CasAssertSame(t, es, "{5, 2, x, y, 4}", "Cases[{5, 2, a^b, x, y, 4}, Except[_Symbol^_Symbol]]")
+	CasAssertSame(t, es, "{a, b, 0, foo[1], foo[2], x, y}", "{a, b, 0, 1, 2, x, y} /. Except[0, a_Integer] -> foo[a]")
 }
