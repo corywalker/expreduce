@@ -90,4 +90,9 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{(a + b)[1], (a + b)[2], (a + b)[3]}", "Array[a + b, 3]")
 	CasAssertSame(t, es, "Array[a, a]", "Array[a, a]")
 	es.ClearAll()
+
+	// Test Cases
+	CasAssertSame(t, es, "{5, 2, 3.5, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, _]")
+	CasAssertSame(t, es, "{5,2,4}", "Cases[{5, 2, 3.5, x, y, 4}, _Integer]")
+	CasAssertSame(t, es, "{3.5}", "Cases[{5, 2, 3.5, x, y, 4}, _Real]")
 }

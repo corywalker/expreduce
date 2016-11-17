@@ -163,6 +163,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				currEx = curr.EvalRational(es)
 			} else if headStr == "Array" {
 				currEx = curr.EvalArray(es)
+			} else if headStr == "Cases" {
+				currEx = curr.EvalCases(es)
 			}
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])

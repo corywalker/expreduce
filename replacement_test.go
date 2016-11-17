@@ -123,4 +123,6 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "1", "{a, b, c} /. {n__} -> Length[{n}]")
 	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} :> Hold[Length[{n}]]", es))
 	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} -> Hold[Length[{n}]]", es))
+
+	//CasAssertSame(t, es, "bar[m,n]", "foo[m, n] /. foo[a_, m_] -> bar[a, m]")
 }

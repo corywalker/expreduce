@@ -167,3 +167,23 @@ func (this *Expression) EvalArray(es *EvalState) Ex {
 	}
 	return this.Parts[2]
 }
+
+func (this *Expression) EvalCases(es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+
+	list, isList := HeadAssertion(this.Parts[1], "List")
+	if isList {
+		toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+
+		for i := 1; i < len(list.Parts); i++ {
+			if matchq, _ := IsMatchQ(list.Parts[i], this.Parts[2], EmptyPD(), &es.CASLogger); matchq {
+				toReturn.Parts = append(toReturn.Parts, list.Parts[i])
+			}
+		}
+
+		return toReturn
+	}
+	return this
+}
