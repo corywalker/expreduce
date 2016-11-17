@@ -39,4 +39,11 @@ func TestInterp(t *testing.T) {
 	CasAssertSame(t, es, "Slot[1]", "#")
 	CasAssertSame(t, es, "Slot[2]", "#2")
 	CasAssertSame(t, es, "3*Slot[2]", "3#2")
+
+	// Test PatternTest
+	CasAssertSame(t, es, "PatternTest[a,b]", "a?b")
+	//CasAssertSame(t, es, "PatternTest[foo[a], bar][b]", "foo[a]?bar[b]")
+	CasAssertSame(t, es, "PatternTest[foo[a], bar[b]]", "foo[a]?(bar[b])")
+	CasAssertSame(t, es, "PatternTest[Pattern[a, Blank[Integer]], NumberQ]", "a_Integer?NumberQ")
+	CasAssertSame(t, es, "PatternTest[Pattern[a, Blank[Integer]], Function[Divisible[Slot[1], 7]]]", "a_Integer?(Function[Divisible[#, 7]])")
 }

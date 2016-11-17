@@ -121,6 +121,7 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 @ return FUNCAPPSYM
 @@ return APPLYSYM
 \/@ return MAPSYM
+\? return PATTESTSYM
 
 {pattern}
     delim := "_"
