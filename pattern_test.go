@@ -123,4 +123,8 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "4", "bar[1, foo[a, b]] + bar[5, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] -> 2")
 	//CasAssertSame(t, es, "6 * buzz[a, b]", "bar[1, foo[a, b]] + bar[5, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] -> amatch*buzz[cmatch]")
 	CasAssertSame(t, es, "bar[3, foo[a, b]]", "bar[1, foo[a, b]] + bar[2, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]] -> bar[amatch + bmatch, foo[cmatch]]")
+
+	// Test Except
+	CasAssertSame(t, es, "{5, 2, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, Except[_Real]]")
+	CasAssertSame(t, es, "{5, 2, x, y, 4}", "Cases[{5, 2, a^b, x, y, 4}, Except[_Symbol^_Symbol]]")
 }

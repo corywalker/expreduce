@@ -63,6 +63,16 @@ func IsMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) 
 }
 
 func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	// Special case for Except
+	except, isExcept := HeadAssertion(b, "Except")
+	if isExcept {
+		if len(except.Parts) == 2 {
+			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), cl)
+			return !matchq, pm
+		}
+	}
+
+	// Continue normally
 	pm = CopyPD(pm)
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
