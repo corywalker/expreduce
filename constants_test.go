@@ -125,4 +125,13 @@ func TestConstants(t *testing.T) {
 	CasAssertSame(t, es, "True", "MatchQ[1/2, Rational[1, 2]]")
 	CasAssertSame(t, es, "True", "MatchQ[Rational[1, 2], 1/2]")
 	CasAssertSame(t, es, "False", "Hold[Rational[1, 2]] === Hold[1/2]")
+
+	// Test NumberQ
+	CasAssertSame(t, es, "True", "NumberQ[2]")
+	CasAssertSame(t, es, "True", "NumberQ[2.2]")
+	CasAssertSame(t, es, "True", "NumberQ[Rational[5, 2]]")
+	CasAssertSame(t, es, "False", "NumberQ[Infinity]")
+	CasAssertSame(t, es, "False", "NumberQ[Sqrt[2]]")
+	CasAssertSame(t, es, "False", "NumberQ[randomvar]")
+	CasAssertSame(t, es, "False", "NumberQ[\"hello\"]")
 }

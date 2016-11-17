@@ -202,3 +202,22 @@ func (this *String) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy
 }
+
+func (this *Expression) EvalNumberQ(es *EvalState) Ex {
+	if len(this.Parts) != 2 {
+		return this
+	}
+	_, ok := this.Parts[1].(*Integer)
+	if ok {
+		return &Symbol{"True"}
+	}
+	_, ok = this.Parts[1].(*Flt)
+	if ok {
+		return &Symbol{"True"}
+	}
+	_, ok = this.Parts[1].(*Rational)
+	if ok {
+		return &Symbol{"True"}
+	}
+	return &Symbol{"False"}
+}
