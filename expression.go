@@ -117,8 +117,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				currEx = curr.EvalReplaceAll(es)
 			} else if headStr == "ReplaceRepeated" {
 				currEx = curr.EvalReplaceRepeated(es)
-			} else if headStr == "BasicSimplify" {
-				currEx = curr.EvalBasicSimplify(es)
 			} else if headStr == "SetLogging" {
 				currEx = curr.EvalSetLogging(es)
 			} else if headStr == "Definition" {

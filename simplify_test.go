@@ -58,7 +58,7 @@ func TestSimplify(t *testing.T) {
 	CasAssertSame(t, es, "3/2", "(((3 + (x^2 * 0)) * 2^-1)) /. (((amatch_ * 0)) -> (0))")
 	es.ClearAll()
 
-	// Test BasicSimplify
+	// Test basic simplifications
 	CasAssertSame(t, es, "d", "(a+b)-(a+b)+c-c+d")
 	CasAssertSame(t, es, "((5 * c^a) + (3 * d))", "(a+b)-(a+b)+c-c+2*c^a+2*d+5*d+d-5*d+3*c^a")
 	CasAssertSame(t, es, "87.5 + 3 * x", "((x + 80. + 3. + x) + 2. + x + 2.5)")
@@ -70,13 +70,12 @@ func TestSimplify(t *testing.T) {
 	CasAssertSame(t, es, "1", "m/m")
 	CasAssertSame(t, es, "1", "m^2/m^2")
 
-	// Exponent BasicSimplify
+	// Exponent simplifications
 	CasAssertSame(t, es, "m^4", "(m^2)^2")
 	CasAssertSame(t, es, "(m^2)^2.", "(m^2)^2.")
 	CasAssertSame(t, es, "(m^2.)^2.", "(m^2.)^2.")
 	CasAssertSame(t, es, "m^4.", "(m^2.)^2")
 
-	// Combination of Simplify and BasicSimplify
 	// Build up algebra system by feeding simplification problems
 	// Next up, solving and calculus
 	CasAssertSame(t, es, "-3 * m - 10 * n", "-9 * n - n - 3 * m")
