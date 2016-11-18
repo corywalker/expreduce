@@ -60,6 +60,7 @@ func InitCAS(es *EvalState) {
 	EvalInterp("Plus[-Infinity, _Real, rest___] := -Infinity + rest", es)
 	EvalInterp("Plus[Infinity, -Infinity, rest___] := Indeterminate + rest", es)
 
+	// Multiplication definitions
 	EvalInterp("Times[a_, a_, rest___] := a^2 * rest", es)
 	EvalInterp("Times[a_^n_, a_, rest___] := a^(n+1) * rest", es)
 	EvalInterp("Times[a_^n_, a_^m_, rest___] := a^(n+m) * rest", es)
@@ -69,10 +70,8 @@ func InitCAS(es *EvalState) {
 	//EvalInterp("Times[a_^b_, Power[a_^c_, -1], rest___] := a^(b-c) * rest", es)
 	//EvalInterp("Times[a_^b_, Power[a_, Power[c_, -1]], rest___] := a^(b-c) * rest", es)
 
-	// The first_ pattern appers to be necessary. This is probably a bug
-	// We should not be expanding if the expression is all symbols. Work on this
-	// later
-	//EvalInterp("Power[Times[first_, inner___], pow_] := Apply[Times, Map[Function[#^pow], {first, inner}]]", es)
+	EvalInterp("Power[Times[Except[_Symbol, first_], inner___], pow_] := first^pow*Power[Times[inner],pow]", es)
+	EvalInterp("Power[Times[first_, inner___], Except[_Symbol, pow_]] := first^pow*Power[Times[inner],pow]", es)
 
 	// System initialization
 	EvalInterp("SeedRandom[UnixTime[]]", es)
