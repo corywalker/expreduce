@@ -59,6 +59,7 @@ func InitCAS(es *EvalState) {
 	EvalInterp("Plus[-Infinity, _Integer, rest___] := -Infinity + rest", es)
 	EvalInterp("Plus[-Infinity, _Real, rest___] := -Infinity + rest", es)
 	EvalInterp("Plus[Infinity, -Infinity, rest___] := Indeterminate + rest", es)
+	EvalInterp("(1/Infinity) := 0", es)
 
 	// Multiplication definitions
 	EvalInterp("Times[a_, a_, rest___] := a^2 * rest", es)
@@ -70,8 +71,22 @@ func InitCAS(es *EvalState) {
 	//EvalInterp("Times[a_^b_, Power[a_^c_, -1], rest___] := a^(b-c) * rest", es)
 	//EvalInterp("Times[a_^b_, Power[a_, Power[c_, -1]], rest___] := a^(b-c) * rest", es)
 
+	// Addition definitions
+	//EvalInterp("(amatch_ - amatch_) := 0", es)
+	//EvalInterp("((c1match_Integer*matcha_) + (c2match_Integer*matcha_)) := (c1match+c2match)*matcha", es)
+	//EvalInterp("((c1match_Integer*matcha_) + matcha_) := (c1match+1)*matcha", es)
+	//EvalInterp("(matcha_ + matcha_) := 2*matcha", es)
+	//EvalInterp("((c1match_Integer*matcha_) + matcha_) := (c1match+1)*matcha", es)
+	//EvalInterp("((c1match_Real*matcha_) + (c2match_Integer*matcha_)) := (c1match+c2match)*matcha", es)
+
+	// Simplify nested exponents
+	//EvalInterp("((matcha_^matchb_Integer)^matchc_Integer) := matcha^(matchb*matchc)", es)
+	//EvalInterp("((matcha_^matchb_Real)^matchc_Integer) := matcha^(matchb*matchc)", es)
+
+	// Power definitions
 	EvalInterp("Power[Times[Except[_Symbol, first_], inner___], pow_] := first^pow*Power[Times[inner],pow]", es)
 	EvalInterp("Power[Times[first_, inner___], Except[_Symbol, pow_]] := first^pow*Power[Times[inner],pow]", es)
+	EvalInterp("(matcha_^matchb_ / matcha_^matchc_) := matcha^(matchb-matchc)", es)
 
 	// System initialization
 	EvalInterp("SeedRandom[UnixTime[]]", es)
