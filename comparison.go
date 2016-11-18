@@ -78,6 +78,27 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 			return false, pm
 		}
 	}
+	// Special case for PatternTest
+	patternTest, isPT := HeadAssertion(b, "PatternTest")
+	if isPT {
+		if len(patternTest.Parts) == 3 {
+			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), cl)
+			if matchq {
+				tmpEs := NewEvalStateNoLog()
+				res := (&Expression{[]Ex{
+					patternTest.Parts[2],
+					a,
+				}}).Eval(tmpEs)
+				resSymbol, resIsSymbol := res.(*Symbol)
+				if resIsSymbol {
+					if resSymbol.Name == "True" {
+						return true, newPD
+					}
+				}
+			}
+			return false, pm
+		}
+	}
 
 	// Continue normally
 	pm = CopyPD(pm)
