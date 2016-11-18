@@ -72,16 +72,20 @@ func InitCAS(es *EvalState) {
 	//EvalInterp("Times[a_^b_, Power[a_, Power[c_, -1]], rest___] := a^(b-c) * rest", es)
 
 	// Addition definitions
-	//EvalInterp("(amatch_ - amatch_) := 0", es)
-	//EvalInterp("((c1match_Integer*matcha_) + (c2match_Integer*matcha_)) := (c1match+c2match)*matcha", es)
-	//EvalInterp("((c1match_Integer*matcha_) + matcha_) := (c1match+1)*matcha", es)
-	//EvalInterp("(matcha_ + matcha_) := 2*matcha", es)
-	//EvalInterp("((c1match_Integer*matcha_) + matcha_) := (c1match+1)*matcha", es)
-	//EvalInterp("((c1match_Real*matcha_) + (c2match_Integer*matcha_)) := (c1match+c2match)*matcha", es)
+	EvalInterp("Plus[amatch_, -amatch_, rest___] := Plus[rest]", es)
+	EvalInterp("Plus[c1match_Integer*matcha_, c2match_Integer*matcha_, rest___] := ((c1match+c2match)*matcha + rest)", es)
+	// For some reason, this messes up the Infinity - Infinity rule
+	EvalInterp("Plus[c1match_Integer*matcha_, matcha_, rest___] := (c1match+1)*matcha+rest", es)
+	EvalInterp("Plus[matcha_, matcha_, rest___] := 2*matcha + rest", es)
+	////EvalInterp("((c1match_Integer*matcha_) + matcha_) := (c1match+1)*matcha", es)
+	EvalInterp("Plus[c1match_Real*matcha_, c2match_Integer*matcha_, rest___] := (c1match+c2match)*matcha + rest", es)
+	// I have a feeling that these can be combined into a more general
+	// definition. TODO
+	EvalInterp("Plus[cmatch_Real*matcha_, matcha_, rest___] := (cmatch+1)*matcha + rest", es)
 
 	// Simplify nested exponents
-	//EvalInterp("((matcha_^matchb_Integer)^matchc_Integer) := matcha^(matchb*matchc)", es)
-	//EvalInterp("((matcha_^matchb_Real)^matchc_Integer) := matcha^(matchb*matchc)", es)
+	EvalInterp("Power[Power[matcha_,matchb_Integer],matchc_Integer] := matcha^(matchb*matchc)", es)
+	EvalInterp("Power[Power[matcha_,matchb_Real],matchc_Integer] := matcha^(matchb*matchc)", es)
 
 	// Power definitions
 	EvalInterp("Power[Times[Except[_Symbol, first_], inner___], pow_] := first^pow*Power[Times[inner],pow]", es)

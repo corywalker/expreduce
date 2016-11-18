@@ -22,6 +22,8 @@ func TestSystem(t *testing.T) {
 	CasAssertSame(t, es, "Plus", "Head[Head[(a + b)[x]]]")
 
 	// Test speed of CommutativeIsMatchQ
-	CasAssertSame(t, es, "Null", "Plus[foo, -foo, rest___] := bar + rest")
-	CasAssertSame(t, es, "bar + 1 + a + b + c + d + e + f + g", "Plus[foo,1,-foo,a,b,c,d,e,f,g]")
+	// Make the foo variable extra long to override the built in cancellation
+	// rule
+	CasAssertSame(t, es, "Null", "Plus[foooooooooooooooooo, -foooooooooooooooooo, rest___] := bar + rest")
+	CasAssertSame(t, es, "bar + 1 + a + b + c + d + e + f + g", "Plus[foooooooooooooooooo,1,-foooooooooooooooooo,a,b,c,d,e,f,g]")
 }
