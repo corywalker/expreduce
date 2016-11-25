@@ -19,43 +19,28 @@ func (this *Expression) ToStringPattern() string {
 	return buffer.String()
 }
 
-func (this *Expression) ToStringBlank() string {
-	var buffer bytes.Buffer
-	if false {
-		buffer.WriteString("Blank[")
-		buffer.WriteString(this.Parts[1].String())
-		buffer.WriteString("]")
-	} else {
-		buffer.WriteString("_")
-		buffer.WriteString(this.Parts[1].String())
+func ToStringBlankType(repr string, parts []Ex) (bool, string) {
+	if len(parts) == 1 {
+		return true, repr
+	} else if len(parts) == 2 {
+		var buffer bytes.Buffer
+		buffer.WriteString(repr)
+		buffer.WriteString(parts[1].String())
+		return true, buffer.String()
 	}
-	return buffer.String()
+	return false, ""
 }
 
-func (this *Expression) ToStringBlankSequence() string {
-	var buffer bytes.Buffer
-	if false {
-		buffer.WriteString("BlankSequence[")
-		buffer.WriteString(this.Parts[1].String())
-		buffer.WriteString("]")
-	} else {
-		buffer.WriteString("__")
-		buffer.WriteString(this.Parts[1].String())
-	}
-	return buffer.String()
+func (this *Expression) ToStringBlank() (bool, string) {
+	return ToStringBlankType("_", this.Parts)
 }
 
-func (this *Expression) ToStringBlankNullSequence() string {
-	var buffer bytes.Buffer
-	if false {
-		buffer.WriteString("BlankNullSequence[")
-		buffer.WriteString(this.Parts[1].String())
-		buffer.WriteString("]")
-	} else {
-		buffer.WriteString("___")
-		buffer.WriteString(this.Parts[1].String())
-	}
-	return buffer.String()
+func (this *Expression) ToStringBlankSequence() (bool, string) {
+	return ToStringBlankType("__", this.Parts)
+}
+
+func (this *Expression) ToStringBlankNullSequence() (bool, string) {
+	return ToStringBlankType("___", this.Parts)
 }
 
 // -------------------------
@@ -115,43 +100,56 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 		asBS, bsOk := HeadAssertion(asPattern.Parts[2], "BlankSequence")
 		asBNS, bnsOk := HeadAssertion(asPattern.Parts[2], "BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
-			var asSymbol *Symbol
-			symbolOk := false
+			parts := []Ex{}
 			if blankOk {
-				asSymbol, symbolOk = asBlank.Parts[1].(*Symbol)
+				parts = asBlank.Parts
 			} else if bsOk {
-				asSymbol, symbolOk = asBS.Parts[1].(*Symbol)
+				parts = asBS.Parts
 			} else if bnsOk {
-				asSymbol, symbolOk = asBNS.Parts[1].(*Symbol)
+				parts = asBNS.Parts
 			}
-			if symbolOk {
-				if asSymbol.Name == t || asSymbol.Name == "" {
-					sAsSymbol, sAsSymbolOk := asPattern.Parts[1].(*Symbol)
-					if sAsSymbolOk {
-						// TODO: we should handle matches with BlankSequences
-						// differently here.
-						//_, isd := es.defined[sAsSymbol.Name]
-						toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
-						if !ispd {
-							toMatch = target
-							pm.patternDefined[sAsSymbol.Name] = target
-						}
-						if !IsSameQ(toMatch, target, cl) {
-							return false, pm
-						}
-
-						/*if !isd {
-							//es.defined[sAsSymbol.Name] = target
-							es.Define(sAsSymbol.Name, sAsSymbol, target)
-						} else {
-							//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
-							return true
-						}*/
+			//if len(parts) < 2 {
+				//return true, pm
+			//}
+			cl.Debugf("%v %v", parts, len(parts))
+			matchesHead := false
+			if len(parts) < 2 {
+				matchesHead = true
+			} else {
+				asSymbol, symbolOk := parts[1].(*Symbol)
+				if symbolOk {
+					if asSymbol.Name == t {
+						matchesHead = true
 					}
-					return true, pm
 				}
-				return false, pm
 			}
+			cl.Debugf("%v", matchesHead)
+			if matchesHead {
+				sAsSymbol, sAsSymbolOk := asPattern.Parts[1].(*Symbol)
+				if sAsSymbolOk {
+					// TODO: we should handle matches with BlankSequences
+					// differently here.
+					//_, isd := es.defined[sAsSymbol.Name]
+					toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
+					if !ispd {
+						toMatch = target
+						pm.patternDefined[sAsSymbol.Name] = target
+					}
+					if !IsSameQ(toMatch, target, cl) {
+						return false, pm
+					}
+
+					/*if !isd {
+						//es.defined[sAsSymbol.Name] = target
+						es.Define(sAsSymbol.Name, sAsSymbol, target)
+					} else {
+						//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
+						return true
+					}*/
+				}
+				return true, pm
+			}
+			return false, pm
 		}
 	}
 	asBlank, blankOk := HeadAssertion(e, "Blank")
@@ -159,26 +157,36 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 	asBNS, bnsOk := HeadAssertion(e, "BlankNullSequence")
 	if blankOk || bsOk || bnsOk {
 		var asSymbol *Symbol
-		symbolOk := false
+		parts := []Ex{}
 		if blankOk {
-			asSymbol, symbolOk = asBlank.Parts[1].(*Symbol)
+			parts = asBlank.Parts
 		} else if bsOk {
-			asSymbol, symbolOk = asBS.Parts[1].(*Symbol)
+			parts = asBS.Parts
 		} else if bnsOk {
-			asSymbol, symbolOk = asBNS.Parts[1].(*Symbol)
+			parts = asBNS.Parts
 		}
+		if len(parts) < 2 {
+			return true, pm
+		}
+		asSymbol, symbolOk := parts[1].(*Symbol)
 		if symbolOk {
-			return asSymbol.Name == t || asSymbol.Name == "", pm
+			return asSymbol.Name == t, pm
 		}
 	}
 	return false, pm
 }
 
 func BlankNullSequenceToBlank(bns *Expression) *Expression {
+	if len(bns.Parts) < 2 {
+		return &Expression{[]Ex{&Symbol{"Blank"}}}
+	}
 	return &Expression{[]Ex{&Symbol{"Blank"}, bns.Parts[1]}}
 }
 
 func BlankSequenceToBlank(bs *Expression) *Expression {
+	if len(bs.Parts) < 2 {
+		return &Expression{[]Ex{&Symbol{"Blank"}}}
+	}
 	return &Expression{[]Ex{&Symbol{"Blank"}, bs.Parts[1]}}
 }
 

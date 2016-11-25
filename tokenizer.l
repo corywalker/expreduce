@@ -113,6 +113,7 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 = return SETSYM
 := return SETDELAYEDSYM
 === return SAMESYM
+\/; return CONDITIONSYM
 == return EQUALSYM
 # return SLOTSYM
 \/\. return REPLACEALLSYM
@@ -125,39 +126,32 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
 
 {pattern}
     delim := "_"
+    blankType := &Symbol{"Blank"}
     if strings.Contains(string(y.buf), "___") {
         delim = "___"
+        blankType = &Symbol{"BlankNullSequence"}
     } else if strings.Contains(string(y.buf), "__") {
         delim = "__"
+        blankType = &Symbol{"BlankSequence"}
     }
     parts := strings.Split(string(y.buf), delim)
     if len(parts) == 1 {
-        if delim == "___" {
-            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankNullSequence"}}}}}
-        } else if delim == "__" {
-            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankSequence"}}}}}
-        } else {
-            lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"Blank"}}}}}
-        }
+        lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{blankType}}}}
         return PATTERN
     }
     if len(parts) == 2 {
         if parts[0] == "" {
-            if delim == "___" {
-                lval.val = &Expression{[]Ex{&Symbol{"BlankNullSequence"}, &Symbol{parts[1]}}}
-            } else if delim == "__" {
-                lval.val = &Expression{[]Ex{&Symbol{"BlankSequence"}, &Symbol{parts[1]}}}
+            if parts[1] == "" {
+                lval.val = &Expression{[]Ex{blankType}}
             } else {
-                lval.val = &Expression{[]Ex{&Symbol{"Blank"}, &Symbol{parts[1]}}}
+                lval.val = &Expression{[]Ex{blankType, &Symbol{parts[1]}}}
             }
             return PATTERN
         } else {
-            if delim == "___" {
-                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankNullSequence"}, &Symbol{parts[1]}}}}}
-            } else if delim == "__" {
-                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"BlankSequence"}, &Symbol{parts[1]}}}}}
+            if parts[1] == "" {
+                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{blankType}}}}
             } else {
-                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{&Symbol{"Blank"}, &Symbol{parts[1]}}}}}
+                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{blankType, &Symbol{parts[1]}}}}}
             }
             return PATTERN
         }

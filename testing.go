@@ -7,9 +7,13 @@ import (
 )
 
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {
-	inTree := EvalInterp(in, es)
-	outTree := EvalInterp(out, es)
-	theTestTree := &Expression{[]Ex{&Symbol{"SameQ"}, inTree, outTree}}
+	inTree := EvalInterp(in, es).Eval(es)
+	outTree := EvalInterp(out, es).Eval(es)
+	theTestTree := &Expression{[]Ex{
+		&Symbol{"SameQ"},
+		&Expression{[]Ex{&Symbol{"Hold"}, inTree}},
+		&Expression{[]Ex{&Symbol{"Hold"}, outTree}},
+	}}
 	theTest := theTestTree.Eval(es)
 
 	var buffer bytes.Buffer

@@ -246,7 +246,9 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {
 
 func (this *Expression) String() string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
-	if isHeadSym {
+	fullForm := false
+	if isHeadSym && !fullForm {
+		res, ok := "", false
 		headStr := headAsSym.Name
 		if headStr == "Times" {
 			return this.ToStringTimes()
@@ -265,11 +267,11 @@ func (this *Expression) String() string {
 		} else if headStr == "Pattern" {
 			return this.ToStringPattern()
 		} else if headStr == "Blank" {
-			return this.ToStringBlank()
+			ok, res = this.ToStringBlank()
 		} else if headStr == "BlankSequence" {
-			return this.ToStringBlankSequence()
+			ok, res = this.ToStringBlankSequence()
 		} else if headStr == "BlankNullSequence" {
-			return this.ToStringBlankNullSequence()
+			ok, res = this.ToStringBlankNullSequence()
 		} else if headStr == "Rule" {
 			return this.ToStringRule()
 		} else if headStr == "RuleDelayed" {
@@ -280,6 +282,9 @@ func (this *Expression) String() string {
 			return this.ToStringSetDelayed()
 		} else if headStr == "List" {
 			return this.ToStringList()
+		}
+		if ok {
+			return res
 		}
 	}
 

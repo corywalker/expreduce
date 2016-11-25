@@ -18,6 +18,9 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 }
 
 func (this *Symbol) String() string {
+	if len(this.Name) == 0 {
+		return "<EMPTYSYM>"
+	}
 	return fmt.Sprintf("%v", this.Name)
 }
 
