@@ -12,7 +12,6 @@ func TestReplacement(t *testing.T) {
 
 	es := NewEvalState()
 
-	CasAssertSame(t, es, "((1) == ((2 * 5^-1))) /. (((2) -> (3)) == (x))", "1 == 2/5 /. 2 -> 3 == x")
 	CasAssertSame(t, es, "2^(y+1)", "2^(x^2+1) /. x^2->y")
 	CasAssertSame(t, es, "b + c + d", "a + b + c + c^2 /. c^2 + a -> d")
 	CasAssertSame(t, es, "a * b * c", "a*b*c /. c + a -> d")

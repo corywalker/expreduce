@@ -136,4 +136,13 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "False", "MatchQ[1, 1.5?NumberQ]")
 	CasAssertSame(t, es, "True", "MatchQ[1.5, 1.5?NumberQ]")
 	CasAssertSame(t, es, "{5,2,4.5}", "Cases[{5, 2, a^b, x, y, 4.5}, _?NumberQ]")
+
+	// Test Condition
+	CasAssertSame(t, es, "True", "MatchQ[5, _ /; True]")
+	CasAssertSame(t, es, "False", "MatchQ[5, _ /; False]")
+	CasAssertSame(t, es, "True", "MatchQ[5, y_ /; True]")
+	CasAssertSame(t, es, "False", "MatchQ[5, y_Real /; True]")
+	CasAssertSame(t, es, "True", "MatchQ[5, y_Integer /; True]")
+	CasAssertSame(t, es, "False", "MatchQ[5, y_ /; y == 0]")
+	CasAssertSame(t, es, "True", "MatchQ[5, y_ /; y == 5]")
 }

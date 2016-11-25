@@ -47,9 +47,14 @@ func TestInterp(t *testing.T) {
 	CasAssertSame(t, es, "PatternTest[Pattern[a, Blank[Integer]], NumberQ]", "a_Integer?NumberQ")
 	CasAssertSame(t, es, "PatternTest[Pattern[a, Blank[Integer]], Function[Divisible[Slot[1], 7]]]", "a_Integer?(Function[Divisible[#, 7]])")
 
+	// Test precedence of equality, rules, and ReplaceAll
+	CasAssertSame(t, es, "Hold[ReplaceAll[Equal[1, 2], Rule[2, Equal[3, x]]]]", "Hold[1 == 2 /. 2 -> 3 == x]")
+
 	// Test Condition
 	CasAssertSame(t, es, "Condition[a,b]", "a/;b")
 	CasAssertSame(t, es, "Hold[Condition[a,b]]", "Hold[a/;b]")
 	//CasAssertSame(t, es, "Hold[CompoundExpression[Condition[a,b],Condition[a,b]]]", "Hold[a/;b ; a/;b]")
 	CasAssertSame(t, es, "Hold[Condition[List[Pattern[x, Blank[]], Pattern[x, Blank[]]], Equal[Plus[x, x], 2]]]", "Hold[{x_,x_}/;x+x==2]")
+	CasAssertSame(t, es, "Hold[SetDelayed[foo[Pattern[x, Blank[]]], Condition[bar[x], Equal[x, 0]]]]", "Hold[foo[x_] := bar[x] /; x == 0]")
+	CasAssertSame(t, es, "Hold[ReplaceAll[List[5, 0, -5], Rule[Condition[Pattern[y, Blank[]], Equal[y, 0]], z]]]", "Hold[{5, 0, -5} /. y_ /; y == 0 -> z]")
 }

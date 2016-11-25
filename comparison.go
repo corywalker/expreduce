@@ -99,6 +99,24 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 			return false, pm
 		}
 	}
+	// Special case for Condition
+	condition, isCond := HeadAssertion(b, "Condition")
+	if isCond {
+		if len(condition.Parts) == 3 {
+			matchq, newPD := IsMatchQ(a, condition.Parts[1], EmptyPD(), cl)
+			if matchq {
+				tmpEs := NewEvalStateNoLog()
+				res := condition.Parts[2].DeepCopy()
+				res = ReplacePD(res, cl, newPD).Eval(tmpEs)
+				resSymbol, resIsSymbol := res.(*Symbol)
+				if resIsSymbol {
+					if resSymbol.Name == "True" {
+						return true, newPD
+					}
+				}
+			}
+		}
+	}
 
 	// Continue normally
 	pm = CopyPD(pm)
