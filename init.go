@@ -23,6 +23,7 @@ func InitCAS(es *EvalState) {
 	EvalInterp("RandomReal[maxmatch_] := RandomReal[]*maxmatch", es)
 	EvalInterp("PowerExpand[expmatch_] := expmatch //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}", es)
 	EvalInterp("Multinomial[seqmatch___] := Factorial[Apply[Plus, {seqmatch}]] / Apply[Times, Map[Factorial, {seqmatch}]]", es)
+	EvalInterp("KroneckerDelta[xmatch_Integer] := If[xmatch == 0, 1, 0]", es)
 
 	// Calculus
 	EvalInterp("D[x_,x_]:=1", es)

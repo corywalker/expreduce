@@ -30,6 +30,7 @@ func TestList(t *testing.T) {
 	assert.Equal(t, "10", EasyRun("i", es))
 	CasAssertSame(t, es, "{1, 4, 9, 16, 25, 36, 49, 64, 81, 100}", "Table[n^2, {n, 1, 10}]")
 	CasAssertSame(t, es, "{{{0, 0}, {0, 1}, {0, 2}, {0, 3}}, {{1, 0}, {1, 1}, {1, 2}, {1, 3}}, {{2, 0}, {2, 1}, {2, 2}, {2, 3}}}", "Table[{a, b}, {a, 0, 2}, {b, 0, 3}]")
+	CasAssertSame(t, es, "{0,1,2}", "Table[x[99], {x[_], 0, 2}]")
 
 	// Test MemberQ
 	es.ClearAll()

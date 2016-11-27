@@ -49,7 +49,8 @@ func (this *Expression) EvalTable(es *EvalState) Ex {
 }
 
 type IterSpec struct {
-	i       *Symbol
+	i       Ex
+	iName   string
 	iMin    *Integer
 	iMax    *Integer
 	curr    int64
@@ -60,12 +61,27 @@ func IterSpecFromList(listEx Ex) (is IterSpec, isOk bool) {
 	list, isList := HeadAssertion(listEx, "List")
 	if isList {
 		iOk, iMinOk, iMaxOk := false, false, false
+		if len(list.Parts) > 2 {
+			iAsSymbol, iIsSymbol := list.Parts[1].(*Symbol)
+			if iIsSymbol {
+				iOk = true
+				is.i = iAsSymbol
+				is.iName = iAsSymbol.Name
+			}
+			iAsExpression, iIsExpression := list.Parts[1].(*Expression)
+			if iIsExpression {
+				headAsSymbol, headIsSymbol := iAsExpression.Parts[0].(*Symbol)
+				if headIsSymbol {
+					iOk = true
+					is.i = iAsExpression
+					is.iName = headAsSymbol.Name
+				}
+			}
+		}
 		if len(list.Parts) == 3 {
-			is.i, iOk = list.Parts[1].(*Symbol)
 			is.iMin, iMinOk = &Integer{big.NewInt(1)}, true
 			is.iMax, iMaxOk = list.Parts[2].(*Integer)
 		} else if len(list.Parts) == 4 {
-			is.i, iOk = list.Parts[1].(*Symbol)
 			is.iMin, iMinOk = list.Parts[2].(*Integer)
 			is.iMax, iMaxOk = list.Parts[3].(*Integer)
 		}
@@ -129,23 +145,23 @@ func (this *MultiIterSpec) TakeVarSnapshot(es *EvalState) {
 	this.origDefs = make([]Ex, len(this.iSpecs))
 	this.isOrigDefs = make([]bool, len(this.iSpecs))
 	for i := range(this.iSpecs) {
-		this.origDefs[i], this.isOrigDefs[i] = es.GetDef(this.iSpecs[i].i.Name, this.iSpecs[i].i)
+		this.origDefs[i], this.isOrigDefs[i] = es.GetDef(this.iSpecs[i].iName, this.iSpecs[i].i)
 	}
 }
 
 func (this *MultiIterSpec) RestoreVarSnapshot(es *EvalState) {
 	for i := range(this.iSpecs) {
 		if this.isOrigDefs[i] {
-			es.Define(this.iSpecs[i].i.Name, this.iSpecs[i].i, this.origDefs[i])
+			es.Define(this.iSpecs[i].iName, this.iSpecs[i].i, this.origDefs[i])
 		} else {
-			es.Clear(this.iSpecs[i].i.Name)
+			es.Clear(this.iSpecs[i].iName)
 		}
 	}
 }
 
 func (this *MultiIterSpec) DefineCurrent(es *EvalState) {
 	for i := range(this.iSpecs) {
-		es.Define(this.iSpecs[i].i.Name, this.iSpecs[i].i, &Integer{big.NewInt(this.iSpecs[i].curr)})
+		es.Define(this.iSpecs[i].iName, this.iSpecs[i].i, &Integer{big.NewInt(this.iSpecs[i].curr)})
 	}
 }
 

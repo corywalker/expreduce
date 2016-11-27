@@ -102,4 +102,8 @@ func TestPower(t *testing.T) {
 	CasAssertSame(t, es, "Integer", "Power[2, 2] // Head")
 	CasAssertSame(t, es, "Rational", "Power[-2, -1] // Head")
 	CasAssertSame(t, es, "Rational", "Power[2, -2] // Head")
+
+	// Text Expand
+	CasAssertSame(t, es, "Null", "f[n_, m_] := Sum[KroneckerDelta[m - Sum[r[i], {i, n}]] (Multinomial @@ Sequence@Array[r, n]) Product[x[i]^r[i], {i, n}], Evaluate@(Sequence @@ Table[{r[i], 0, m}, {i, 1, n}])]")
+	CasAssertSame(t, es, "x[1]^3 + 3 (x[1]^2)*x[2] + 3 x[1]*(x[2]^2) + x[2]^3", "f[2,3]")
 }
