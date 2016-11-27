@@ -29,31 +29,24 @@ func (this *Expression) EvalLength(es *EvalState) Ex {
 }
 
 func (this *Expression) EvalTable(es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-
-	list, isList := HeadAssertion(this.Parts[2], "List")
-	if isList {
-		if len(list.Parts) == 4 {
-			i, iOk := list.Parts[1].(*Symbol)
-			iMin, iMinOk := list.Parts[2].(*Integer)
-			iMax, iMaxOk := list.Parts[3].(*Integer)
-			if iOk && iMinOk && iMaxOk {
-				origDef, isOrigDef := es.GetDef(i.Name, i)
-				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-				iMaxInt := iMax.Val.Int64()
-				for curr := iMin.Val.Int64(); curr <= iMaxInt; curr++ {
-					es.Define(i.Name, i, &Integer{big.NewInt(curr)})
-					toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
-				}
-				if isOrigDef {
-					es.Define(i.Name, i, origDef)
-				} else {
-					es.Clear(i.Name)
-				}
-				return toReturn
+	if len(this.Parts) == 3 {
+		// Retrieve variables of iteration
+		is, isOk := IterSpecFromList(this.Parts[2])
+		if isOk {
+			// Simulate evaluation within Block[]
+			origDef, isOrigDef := es.GetDef(is.i.Name, is.i)
+			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+			for is.cont {
+				es.Define(is.i.Name, is.i, &Integer{big.NewInt(is.curr)})
+				toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
+				is.Next()
 			}
+			if isOrigDef {
+				es.Define(is.i.Name, is.i, origDef)
+			} else {
+				es.Clear(is.i.Name)
+			}
+			return toReturn
 		}
 	}
 	return this
