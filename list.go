@@ -59,42 +59,53 @@ func (this *Expression) EvalTable(es *EvalState) Ex {
 	return this
 }
 
+type IterSpec struct {
+	i    *Symbol
+	iMin *Integer
+	iMax *Integer
+}
+
+func IterSpecFromList(listEx Ex) (is IterSpec, isOk bool) {
+	list, isList := HeadAssertion(listEx, "List")
+	if isList {
+		iOk, iMinOk, iMaxOk := false, false, false
+		if len(list.Parts) == 3 {
+			is.i, iOk = list.Parts[1].(*Symbol)
+			is.iMin, iMinOk = &Integer{big.NewInt(1)}, true
+			is.iMax, iMaxOk = list.Parts[2].(*Integer)
+		} else if len(list.Parts) == 4 {
+			is.i, iOk = list.Parts[1].(*Symbol)
+			is.iMin, iMinOk = list.Parts[2].(*Integer)
+			is.iMax, iMaxOk = list.Parts[3].(*Integer)
+		}
+		if iOk && iMinOk && iMaxOk {
+			return is, true
+		}
+	}
+	return is, false
+}
+
 func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
 
-	list, isList := HeadAssertion(this.Parts[2], "List")
-	if isList {
-		// Retrieve variables of iteration
-		var i *Symbol
-		var iMin, iMax *Integer
-		iOk, iMinOk, iMaxOk := false, false, false
-		if len(list.Parts) == 3 {
-			i, iOk = list.Parts[1].(*Symbol)
-			iMin, iMinOk = &Integer{big.NewInt(1)}, true
-			iMax, iMaxOk = list.Parts[2].(*Integer)
-		} else if len(list.Parts) == 4 {
-			i, iOk = list.Parts[1].(*Symbol)
-			iMin, iMinOk = list.Parts[2].(*Integer)
-			iMax, iMaxOk = list.Parts[3].(*Integer)
+	// Retrieve variables of iteration
+	is, isOk := IterSpecFromList(this.Parts[2])
+	if isOk {
+		origDef, isOrigDef := es.GetDef(is.i.Name, is.i)
+		var toReturn Ex = init
+		iMaxInt := is.iMax.Val.Int64()
+		for curr := is.iMin.Val.Int64(); curr <= iMaxInt; curr++ {
+			es.Define(is.i.Name, is.i, &Integer{big.NewInt(curr)})
+			toReturn = (&Expression{[]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
 		}
-
-		if iOk && iMinOk && iMaxOk {
-			origDef, isOrigDef := es.GetDef(i.Name, i)
-			var toReturn Ex = init
-			iMaxInt := iMax.Val.Int64()
-			for curr := iMin.Val.Int64(); curr <= iMaxInt; curr++ {
-				es.Define(i.Name, i, &Integer{big.NewInt(curr)})
-				toReturn = (&Expression{[]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
-			}
-			if isOrigDef {
-				es.Define(i.Name, i, origDef)
-			} else {
-				es.Clear(i.Name)
-			}
-			return toReturn
+		if isOrigDef {
+			es.Define(is.i.Name, is.i, origDef)
+		} else {
+			es.Clear(is.i.Name)
 		}
+		return toReturn
 	}
 	return this
 }
