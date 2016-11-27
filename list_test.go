@@ -29,6 +29,7 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{5, 6, 7, 8, 9, 10}", "Table[i, {i, 5, 10}]")
 	assert.Equal(t, "10", EasyRun("i", es))
 	CasAssertSame(t, es, "{1, 4, 9, 16, 25, 36, 49, 64, 81, 100}", "Table[n^2, {n, 1, 10}]")
+	CasAssertSame(t, es, "{{{0, 0}, {0, 1}, {0, 2}, {0, 3}}, {{1, 0}, {1, 1}, {1, 2}, {1, 3}}, {{2, 0}, {2, 1}, {2, 2}, {2, 3}}}", "Table[{a, b}, {a, 0, 2}, {b, 0, 3}]")
 
 	// Test MemberQ
 	es.ClearAll()
@@ -66,11 +67,13 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "450015000", "Sum[i, {i, 0, 30000}]")
 	CasAssertSame(t, es, "1/2*n*(1 + n)", "Sum[i, {i, 0, n}]")
 	CasAssertSame(t, es, "1/2*n*(1 + n)", "Sum[i, {i, 1, n}]")
+	CasAssertSame(t, es, "30", "Sum[a + b, {a, 0, 2}, {b, 0, 3}]")
 
 	// Test Product
 	CasAssertSame(t, es, "120", "Product[a, {a, 1, 5}]")
 	CasAssertSame(t, es, "14400", "Product[a^2, {a, 1, 5}]")
 	CasAssertSame(t, es, "576", "Product[a^2, {a, 4}]")
+	CasAssertSame(t, es, "1440", "Product[a + b, {a, 1, 2}, {b, 1, 3}]")
 
 	// Test Map
 	CasAssertSame(t, es, "{foo[a], foo[b], foo[c]}", "Map[foo, {a, b, c}]")
