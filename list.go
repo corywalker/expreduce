@@ -60,9 +60,12 @@ func (this *Expression) EvalTable(es *EvalState) Ex {
 }
 
 type IterSpec struct {
-	i    *Symbol
-	iMin *Integer
-	iMax *Integer
+	i       *Symbol
+	iMin    *Integer
+	iMax    *Integer
+	curr    int64
+	iMaxInt int64
+	cont    bool
 }
 
 func IterSpecFromList(listEx Ex) (is IterSpec, isOk bool) {
@@ -79,33 +82,44 @@ func IterSpecFromList(listEx Ex) (is IterSpec, isOk bool) {
 			is.iMax, iMaxOk = list.Parts[3].(*Integer)
 		}
 		if iOk && iMinOk && iMaxOk {
+			is.Reset()
 			return is, true
 		}
 	}
 	return is, false
 }
 
-func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+func (this *IterSpec) Reset() {
+	this.curr = this.iMin.Val.Int64()
+	this.iMaxInt = this.iMax.Val.Int64()
+	this.cont = true
+}
 
-	// Retrieve variables of iteration
-	is, isOk := IterSpecFromList(this.Parts[2])
-	if isOk {
-		origDef, isOrigDef := es.GetDef(is.i.Name, is.i)
-		var toReturn Ex = init
-		iMaxInt := is.iMax.Val.Int64()
-		for curr := is.iMin.Val.Int64(); curr <= iMaxInt; curr++ {
-			es.Define(is.i.Name, is.i, &Integer{big.NewInt(curr)})
-			toReturn = (&Expression{[]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
+func (this *IterSpec) Next() {
+	this.curr++
+	this.cont = this.curr <= this.iMaxInt
+}
+
+func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex {
+	if len(this.Parts) == 3 {
+		// Retrieve variables of iteration
+		is, isOk := IterSpecFromList(this.Parts[2])
+		if isOk {
+			// Simulate evaluation within Block[]
+			origDef, isOrigDef := es.GetDef(is.i.Name, is.i)
+			var toReturn Ex = init
+			for is.cont {
+				es.Define(is.i.Name, is.i, &Integer{big.NewInt(is.curr)})
+				toReturn = (&Expression{[]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
+				is.Next()
+			}
+			if isOrigDef {
+				es.Define(is.i.Name, is.i, origDef)
+			} else {
+				es.Clear(is.i.Name)
+			}
+			return toReturn
 		}
-		if isOrigDef {
-			es.Define(is.i.Name, is.i, origDef)
-		} else {
-			es.Clear(is.i.Name)
-		}
-		return toReturn
 	}
 	return this
 }
