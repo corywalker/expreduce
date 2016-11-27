@@ -13,7 +13,7 @@ func TestComparison(t *testing.T) {
 	es := NewEvalState()
 
 	assert.Equal(t, "True", EvalInterp("9*x==x*9", es).String())
-	assert.Equal(t, "((9 * x)) == ((x * 10))", EvalInterp("9*x==x*10", es).String())
+	assert.Equal(t, "((9 * x)) == ((10 * x))", EvalInterp("9*x==x*10", es).String())
 	assert.Equal(t, "5", EvalInterp("tmp=5", es).String())
 	assert.Equal(t, "True", EvalInterp("tmp==5", es).String())
 	assert.Equal(t, "True", EvalInterp("5==tmp", es).String())
@@ -30,7 +30,7 @@ func TestComparison(t *testing.T) {
 	assert.Equal(t, "(2.) == (a)", EvalInterp("2.==a", es).String())
 	assert.Equal(t, "(2^k) == (a)", EvalInterp("2^k==a", es).String())
 	assert.Equal(t, "(2^k) == (2^a)", EvalInterp("2^k==2^a", es).String())
-	assert.Equal(t, "(2^k) == ((k + 2))", EvalInterp("2^k==k+2", es).String())
+	assert.Equal(t, "(2^k) == ((2 + k))", EvalInterp("2^k==k+2", es).String())
 	assert.Equal(t, "(k) == ((2 * k))", EvalInterp("k==2*k", es).String())
 	assert.Equal(t, "((2 * k)) == (k)", EvalInterp("2*k==k", es).String())
 	assert.Equal(t, "True", EvalInterp("tmp==5", es).String())
@@ -40,7 +40,7 @@ func TestComparison(t *testing.T) {
 	assert.Equal(t, "False", EvalInterp("tmp===5.", es).String())
 	assert.Equal(t, "True", EvalInterp("1+1==2", es).String())
 	assert.Equal(t, "True", EvalInterp("1+1===2", es).String())
-	assert.Equal(t, "(y) == (((m * x) + b))", EvalInterp("y==m*x+b", es).String())
+	assert.Equal(t, "(y) == ((b + (m * x)))", EvalInterp("y==m*x+b", es).String())
 	assert.Equal(t, "False", EvalInterp("y===m*x+b", es).String())
 
 	assert.Equal(t, "True", EvalInterp("1==1.", es).String())

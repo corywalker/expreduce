@@ -86,8 +86,7 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "2", "a + b /. (d_Symbol + c_Symbol) -> 2")
 	CasAssertSame(t, es, "2 + c", "a + b + c /. (d_Symbol + c_Symbol) -> 2")
 	CasAssertSame(t, es, "2 + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> 2")
-	//CasAssertSame(t, es, "99 + a + c + d", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch + 99")
-	CasAssertSame(t, es, "b+99+c+d", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch + 99")
+	CasAssertSame(t, es, "a+99+c+d", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch + 99")
 	// Causes stack overflow
 	//CasAssertSame(t, es, "99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d")
 	CasAssertSame(t, es, "a * b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c*d")

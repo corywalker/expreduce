@@ -47,7 +47,7 @@ func TestTimes(t *testing.T) {
 	assert.Equal(t, "-10", EasyRun("2^-2*-40", es))
 
 	// Test proper accumulation of Rationals
-	assert.Equal(t, "(sym * 2)", EasyRun("sym*Rational[1,2]*Rational[2,3]*6", es))
+	assert.Equal(t, "(2 * sym)", EasyRun("sym*Rational[1,2]*Rational[2,3]*6", es))
 	assert.Equal(t, "-2/3", EasyRun("Rational[1, -2]*Rational[-2, 3]*-2", es))
 	assert.Equal(t, "Rational", EasyRun("Rational[1, -2]*Rational[-2, 3]*-2 // Head", es))
 

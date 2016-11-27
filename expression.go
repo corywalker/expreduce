@@ -3,6 +3,7 @@ package cas
 import "bytes"
 import "fmt"
 import "math/big"
+import "sort"
 
 type Expression struct {
 	Parts []Ex
@@ -86,6 +87,11 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		curr.mergeSequences(es, "Evaluate", true)
 
 		headAsSym, isHeadSym := curr.Parts[0].(*Symbol)
+		if isHeadSym {
+			if IsOrderless(headAsSym) {
+				sort.Sort(curr)
+			}
+		}
 		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
 		if isHeadSym {
 			headStr := headAsSym.Name
@@ -391,6 +397,9 @@ func IsHoldAll(sym *Symbol) bool {
 		return true
 	}
 	if sym.Name == "CompoundExpression" {
+		return true
+	}
+	if sym.Name == "Condition" {
 		return true
 	}
 	return false

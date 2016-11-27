@@ -34,12 +34,12 @@ func TestPower(t *testing.T) {
 	assert.Equal(t, "EQUAL_UNK", t9.IsEqual(t11, &es.CASLogger))
 
 	// Test raising expressions to the first power
-	assert.Equal(t, "(x + 1)", EvalInterp("(x+1)^1", es).String())
+	assert.Equal(t, "(1 + x)", EvalInterp("(x+1)^1", es).String())
 	assert.Equal(t, "0", EvalInterp("0^1", es).String())
 	assert.Equal(t, "0.", EvalInterp("0.^1", es).String())
 	assert.Equal(t, "-5", EvalInterp("-5^1", es).String())
 	assert.Equal(t, "-5.5", EvalInterp("-5.5^1", es).String())
-	assert.Equal(t, "(x + 1)", EvalInterp("(x+1)^1.", es).String())
+	assert.Equal(t, "(1 + x)", EvalInterp("(x+1)^1.", es).String())
 	assert.Equal(t, "0", EvalInterp("0^1.", es).String())
 	assert.Equal(t, "0.", EvalInterp("0.^1.", es).String())
 	assert.Equal(t, "-5", EvalInterp("(-5)^1.", es).String())

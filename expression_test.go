@@ -99,8 +99,8 @@ func TestExpression(t *testing.T) {
 	CasAssertSame(t, es, "True", "MatchQ[foo[1, 2, 3, 4], foo[1, a__Integer, 3, b___Integer, 4]]")
 
 	// Test replacement
-	//CasAssertSame(t, es, "2 * a + 12 * b", "foo[1, 2, 3, 4] /. foo[1, amatch__Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]")
-	//CasAssertSame(t, es, "a + 24 * b", "foo[1, 2, 3, 4] /. foo[1, amatch___Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]")
+	CasAssertSame(t, es, "2 * a + 12 * b", "foo[1, 2, 3, 4] /. foo[1, amatch__Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]")
+	CasAssertSame(t, es, "a + 24 * b", "foo[1, 2, 3, 4] /. foo[1, amatch___Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]")
 
 	// Test sort.Interface
 	// Sort[foo[5., aa, 1.]] == foo[1., 5., aa]
