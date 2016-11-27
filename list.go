@@ -30,22 +30,19 @@ func (this *Expression) EvalLength(es *EvalState) Ex {
 
 func (this *Expression) EvalTable(es *EvalState) Ex {
 	if len(this.Parts) == 3 {
-		// Retrieve variables of iteration
-		is, isOk := IterSpecFromList(this.Parts[2])
+		mis, isOk := MultiIterSpecFromLists(this.Parts[2:])
+
 		if isOk {
 			// Simulate evaluation within Block[]
-			origDef, isOrigDef := es.GetDef(is.i.Name, is.i)
+			mis.TakeVarSnapshot(es)
+
 			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-			for is.cont {
-				es.Define(is.i.Name, is.i, &Integer{big.NewInt(is.curr)})
+			for mis.Cont() {
+				mis.DefineCurrent(es)
 				toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
-				is.Next()
+				mis.Next()
 			}
-			if isOrigDef {
-				es.Define(is.i.Name, is.i, origDef)
-			} else {
-				es.Clear(is.i.Name)
-			}
+			mis.RestoreVarSnapshot(es)
 			return toReturn
 		}
 	}
@@ -91,6 +88,60 @@ func (this *IterSpec) Reset() {
 func (this *IterSpec) Next() {
 	this.curr++
 	this.cont = this.curr <= this.iMaxInt
+}
+
+type MultiIterSpec struct {
+	iSpecs []IterSpec
+	origDefs []Ex
+	isOrigDefs []bool
+}
+
+func MultiIterSpecFromLists(lists []Ex) (mis MultiIterSpec, isOk bool) {
+	// Retrieve variables of iteration
+	for i := range(lists) {
+		is, isOk := IterSpecFromList(lists[i])
+		if !isOk {
+			return mis, false
+		}
+		mis.iSpecs = append(mis.iSpecs, is)
+	}
+	return mis, true
+}
+
+func (this *MultiIterSpec) Next() {
+	this.iSpecs[0].Next()
+}
+
+func (this *MultiIterSpec) Cont() bool {
+	cont := true
+	for i := range(this.iSpecs) {
+		cont = cont && this.iSpecs[i].cont
+	}
+	return cont
+}
+
+func (this *MultiIterSpec) TakeVarSnapshot(es *EvalState) {
+	this.origDefs = make([]Ex, len(this.iSpecs))
+	this.isOrigDefs = make([]bool, len(this.iSpecs))
+	for i := range(this.iSpecs) {
+		this.origDefs[i], this.isOrigDefs[i] = es.GetDef(this.iSpecs[i].i.Name, this.iSpecs[i].i)
+	}
+}
+
+func (this *MultiIterSpec) RestoreVarSnapshot(es *EvalState) {
+	for i := range(this.iSpecs) {
+		if this.isOrigDefs[i] {
+			es.Define(this.iSpecs[i].i.Name, this.iSpecs[i].i, this.origDefs[i])
+		} else {
+			es.Clear(this.iSpecs[i].i.Name)
+		}
+	}
+}
+
+func (this *MultiIterSpec) DefineCurrent(es *EvalState) {
+	for i := range(this.iSpecs) {
+		es.Define(this.iSpecs[i].i.Name, this.iSpecs[i].i, &Integer{big.NewInt(this.iSpecs[i].curr)})
+	}
 }
 
 func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex {
