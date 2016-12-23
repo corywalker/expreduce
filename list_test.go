@@ -99,4 +99,13 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{5, 2, 3.5, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, _]")
 	CasAssertSame(t, es, "{5,2,4}", "Cases[{5, 2, 3.5, x, y, 4}, _Integer]")
 	CasAssertSame(t, es, "{3.5}", "Cases[{5, 2, 3.5, x, y, 4}, _Real]")
+
+	// Test Pad functions
+	CasAssertSame(t, es, "{1, 2, 0, 0, 0}", "PadRight[{1, 2}, 5]")
+	CasAssertSame(t, es, "{1, 2, x, x, x}", "PadRight[{1, 2}, 5, x]")
+	CasAssertSame(t, es, "{1}", "PadRight[{1, 2}, 1, x]")
+	CasAssertSame(t, es, "{0, 0, 0, 1, 2}", "PadLeft[{1, 2}, 5]")
+	CasAssertSame(t, es, "{x, x, x, 1, 2}", "PadLeft[{1, 2}, 5, x]")
+	CasAssertSame(t, es, "{2}", "PadLeft[{1, 2}, 1, x]")
+	CasAssertSame(t, es, "a[x, x, x, x, x]", "PadLeft[a[], 5, x]")
 }

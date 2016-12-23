@@ -175,6 +175,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				currEx = curr.EvalCases(es)
 			} else if headStr == "NumberQ" {
 				currEx = curr.EvalNumberQ(es)
+			} else if headStr == "IntegerPartitions" {
+				currEx = curr.EvalIntegerPartitions(es)
+			} else if headStr == "PadLeft" {
+				currEx = curr.EvalPadLeft(es)
+			} else if headStr == "PadRight" {
+				currEx = curr.EvalPadRight(es)
 			}
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
@@ -414,6 +420,9 @@ func IsHoldAll(sym *Symbol) bool {
 		return true
 	}
 	if sym.Name == "Condition" {
+		return true
+	}
+	if sym.Name == "Function" {
 		return true
 	}
 	return false

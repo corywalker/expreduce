@@ -272,3 +272,60 @@ func (this *Expression) EvalCases(es *EvalState) Ex {
 	}
 	return this
 }
+
+func ValidatePadParams(this *Expression) (list *Expression, n int64, x Ex, valid bool) {
+	valid = false
+	x = &Integer{big.NewInt(0)}
+	if len(this.Parts) == 4 {
+		x = this.Parts[3]
+	} else if len(this.Parts) != 3 {
+		return
+	}
+
+	nInt, nIsInt := this.Parts[2].(*Integer)
+	if !nIsInt {
+		return
+	}
+	n = nInt.Val.Int64()
+
+	list, listIsExpr := this.Parts[1].(*Expression)
+	if !listIsExpr {
+		return
+	}
+
+	valid = true
+	return
+}
+
+func (this *Expression) EvalPadRight(es *EvalState) Ex {
+	list, n, x, valid := ValidatePadParams(this)
+	if !valid {
+		return this
+	}
+	toReturn := &Expression{[]Ex{list.Parts[0]}}
+	for i := int64(0); i < n; i++ {
+		if i >= int64(len(list.Parts) - 1) {
+			toReturn.Parts = append(toReturn.Parts, x)
+		} else {
+			toReturn.Parts = append(toReturn.Parts, list.Parts[i+1])
+		}
+	}
+	return toReturn
+}
+
+func (this *Expression) EvalPadLeft(es *EvalState) Ex {
+	list, n, x, valid := ValidatePadParams(this)
+	if !valid {
+		return this
+	}
+	toReturn := &Expression{[]Ex{list.Parts[0]}}
+	for i := int64(0); i < n; i++ {
+		if i < n - int64(len(list.Parts)) + 1 {
+			toReturn.Parts = append(toReturn.Parts, x)
+		} else {
+			listI := int64(len(list.Parts)) - (n-i)
+			toReturn.Parts = append(toReturn.Parts, list.Parts[listI])
+		}
+	}
+	return toReturn
+}
