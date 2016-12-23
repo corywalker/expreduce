@@ -10,33 +10,6 @@ func (this *Expression) EvalPlus(es *EvalState) Ex {
 	}
 
 	addends := this.Parts[1:len(this.Parts)]
-	// Start by evaluating each addend
-	for i := range addends {
-		addends[i] = addends[i].Eval(es)
-	}
-
-	// If any of the addends are also Plus's, merge them with a and remove them
-	origLen := len(addends)
-	offset := 0
-	for i := 0; i < origLen; i++ {
-		j := i + offset
-		e := addends[j]
-		subadd, isadd := HeadAssertion(e, "Plus")
-		if isadd {
-			subAddends := subadd.Parts[1:len(subadd.Parts)]
-			start := j
-			end := j + 1
-			if j == 0 {
-				addends = append(subAddends, addends[end:]...)
-			} else if j == len(addends)-1 {
-				addends = append(addends[:start], subAddends...)
-			} else {
-				addends = append(append(addends[:start], subAddends...), addends[end:]...)
-			}
-			offset += len(subAddends) - 1
-		}
-	}
-
 	// If this expression contains any floats, convert everything possible to
 	// a float
 	if ExArrayContainsFloat(addends) {

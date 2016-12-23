@@ -106,4 +106,6 @@ func TestPower(t *testing.T) {
 	// Text Expand
 	CasAssertSame(t, es, "Null", "f[n_, m_] := Sum[KroneckerDelta[m - Sum[r[i], {i, n}]] (Multinomial @@ Sequence@Array[r, n]) Product[x[i]^r[i], {i, n}], Evaluate@(Sequence @@ Table[{r[i], 0, m}, {i, 1, n}])]")
 	CasAssertSame(t, es, "x[1]^3 + 3 (x[1]^2)*x[2] + 3 x[1]*(x[2]^2) + x[2]^3", "f[2,3]")
+	//CasAssertSame(t, es, "Null", "myexpand[(Plus[addends__])^(mmatch_Integer)] := Sum[KroneckerDelta[mmatch - Sum[r[i], {i, Length[{addends}]}]]*Multinomial @@ Sequence[Array[r, Length[{addends}]]]*Product[x[i]^r[i], {i, Length[{addends}]}], Evaluate[Sequence @@ Table[{r[i], 0, mmatch}, {i, 1, Length[{addends}]}]]]")
+	//CasAssertSame(t, es, "x[1]^3 + 3 (x[1]^2)*x[2] + 3 x[1]*(x[2]^2) + x[2]^3", "myexpand[(y[1] + y[2])^3]")
 }

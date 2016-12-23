@@ -30,33 +30,6 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	}
 
 	multiplicands := this.Parts[1:len(this.Parts)]
-	// Start by evaluating each multiplicand
-	for i := range multiplicands {
-		multiplicands[i] = multiplicands[i].Eval(es)
-	}
-
-	// If any of the multiplicands are also Times, merge them with m and remove them
-	origLen := len(multiplicands)
-	offset := 0
-	for i := 0; i < origLen; i++ {
-		j := i + offset
-		e := multiplicands[j]
-		submul, ismul := HeadAssertion(e, "Times")
-		if ismul {
-			subMultiplicands := submul.Parts[1:len(submul.Parts)]
-			start := j
-			end := j + 1
-			if j == 0 {
-				multiplicands = append(subMultiplicands, multiplicands[end:]...)
-			} else if j == len(multiplicands)-1 {
-				multiplicands = append(multiplicands[:start], subMultiplicands...)
-			} else {
-				multiplicands = append(append(multiplicands[:start], subMultiplicands...), multiplicands[end:]...)
-			}
-			offset += len(subMultiplicands) - 1
-		}
-	}
-
 	// If this expression contains any floats, convert everything possible to
 	// a float
 	if ExArrayContainsFloat(multiplicands) {
@@ -97,8 +70,8 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 
 	// Geometrically accumulate floating point values towards the end of the expression
 	//es.Debugf("Before accumulating floats: %s", m)
-	origLen = len(multiplicands)
-	offset = 0
+	origLen := len(multiplicands)
+	offset := 0
 	var lastf *Flt = nil
 	var lastfj int = 0
 	for i := 0; i < origLen; i++ {

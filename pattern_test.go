@@ -146,4 +146,12 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "False", "MatchQ[5, y_ /; y == 0]")
 	CasAssertSame(t, es, "True", "MatchQ[5, y_ /; y == 5]")
 	//CasAssertSame(t, es, "{1,2,3,5}", "{3, 5, 2, 1} //. {x___, y_, z_, k___} /; (Order[y, z] == -1) -> {x, z, y, k}")
+
+	// Test special case of Orderless sequence matches
+	CasAssertSame(t, es, "Null", "fooPlus[Plus[addends__]] := Hold[addends]")
+	CasAssertSame(t, es, "Null", "fooList[List[addends__]] := Hold[addends]")
+	CasAssertSame(t, es, "Null", "fooBlank[_[addends__]] := Hold[addends]")
+	CasAssertSame(t, es, "Hold[Plus[a,b,c]]", "fooPlus[Plus[a, b, c]]")
+	CasAssertSame(t, es, "Hold[a, b, c]", "fooList[List[a, b, c]]")
+	CasAssertSame(t, es, "Hold[a, b, c]", "fooBlank[Plus[a, b, c]]")
 }

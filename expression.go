@@ -88,6 +88,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 		headAsSym, isHeadSym := curr.Parts[0].(*Symbol)
 		if isHeadSym {
+			if IsFlat(headAsSym) {
+				curr.mergeSequences(es, headAsSym.Name, false)
+			}
 			if IsOrderless(headAsSym) {
 				sort.Sort(curr)
 			}
@@ -98,6 +101,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 			theRes, isDefined := es.GetDef(headStr, curr)
 			if isDefined {
+				//fmt.Printf("%v, %v, %v\n", headStr, curr, theRes)
 				currEx = theRes
 			} else if headStr == "Power" {
 				currEx = curr.EvalPower(es)
@@ -351,6 +355,16 @@ func IsAttribute(sm *Symbol, attr string, es *EvalState) bool {
 
 // TODO: convert to a map
 func IsOrderless(sym *Symbol) bool {
+	if sym.Name == "Times" {
+		return true
+	} else if sym.Name == "Plus" {
+		return true
+	}
+	return false
+}
+
+// TODO: convert to a map
+func IsFlat(sym *Symbol) bool {
 	if sym.Name == "Times" {
 		return true
 	} else if sym.Name == "Plus" {
