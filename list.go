@@ -329,3 +329,20 @@ func (this *Expression) EvalPadLeft(es *EvalState) Ex {
 	}
 	return toReturn
 }
+
+func (this *Expression) EvalRange(es *EvalState) Ex {
+	// I should probably refactor the IterSpec system so that it does not
+	// require being passed a list and a variable of iteration. TODO
+	iterSpecList := &Expression{[]Ex{&Symbol{"List"}, &Symbol{"$DUMMY"}}}
+	iterSpecList.Parts = append(iterSpecList.Parts, this.Parts[1:]...)
+	is, isOk := IterSpecFromList(iterSpecList)
+	if !isOk {
+		return this
+	}
+	toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+	for is.Cont() {
+		toReturn.Parts = append(toReturn.Parts, &Integer{big.NewInt(is.curr)})
+		is.Next()
+	}
+	return toReturn
+}

@@ -181,6 +181,10 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				currEx = curr.EvalPadLeft(es)
 			} else if headStr == "PadRight" {
 				currEx = curr.EvalPadRight(es)
+			} else if headStr == "Permutations" {
+				currEx = curr.EvalPermutations(es)
+			} else if headStr == "Range" {
+				currEx = curr.EvalRange(es)
 			}
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])

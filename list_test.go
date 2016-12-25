@@ -108,4 +108,9 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{x, x, x, 1, 2}", "PadLeft[{1, 2}, 5, x]")
 	CasAssertSame(t, es, "{2}", "PadLeft[{1, 2}, 1, x]")
 	CasAssertSame(t, es, "a[x, x, x, x, x]", "PadLeft[a[], 5, x]")
+
+	// Test Range
+	CasAssertSame(t, es, "{1, 2, 3}", "Range[3]")
+	CasAssertSame(t, es, "{2, 3, 4, 5}", "Range[2, 5]")
+	//CasAssertSame(t, es, "{}", "Range[2, -5]")
 }
