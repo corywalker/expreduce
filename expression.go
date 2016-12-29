@@ -185,6 +185,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				currEx = curr.EvalPermutations(es)
 			} else if headStr == "Range" {
 				currEx = curr.EvalRange(es)
+			} else if headStr == "Depth" {
+				currEx = curr.EvalDepth(es)
 			}
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])

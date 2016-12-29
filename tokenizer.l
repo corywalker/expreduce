@@ -61,8 +61,9 @@ F  {D}"."{D}?|"."{D}|{D}
 S \"(\\.|[^"])*\"
 L [A-Za-z]
 ident {L}({L}|{D})*
+contextedIdent ({ident}"`")*{ident}
 blanks ___|__|_
-pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
+pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIdent}{blanks}{contextedIdent}
 
 %%
     y.buf = y.buf[:0]
@@ -159,7 +160,7 @@ pattern {blanks}|{ident}{blanks}|{blanks}{ident}|{ident}{blanks}{ident}
     lval.val = &Expression{[]Ex{&Symbol{"Error"}, &String{"Pattern parse error."}}}
     return PATTERN
 
-{ident}
+{contextedIdent}
     lval.val = &Symbol{string(y.buf)}
     return NAME
 

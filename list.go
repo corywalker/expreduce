@@ -346,3 +346,23 @@ func (this *Expression) EvalRange(es *EvalState) Ex {
 	}
 	return toReturn
 }
+
+func CalcDepth(ex Ex) int {
+	expr, isExpr := ex.(*Expression)
+	if !isExpr {
+		return 1
+	}
+	theMax := 1
+	// Find max depth of params. Heads are not counted.
+	for i := 1; i < len(expr.Parts); i++ {
+		theMax = Max(theMax, CalcDepth(expr.Parts[i]))
+	}
+	return theMax + 1
+}
+
+func (this *Expression) EvalDepth(es *EvalState) Ex {
+	if len(this.Parts) != 2 {
+		return this
+	}
+	return &Integer{big.NewInt(int64(CalcDepth(this.Parts[1])))}
+}

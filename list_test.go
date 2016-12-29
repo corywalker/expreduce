@@ -113,4 +113,14 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "{1, 2, 3}", "Range[3]")
 	CasAssertSame(t, es, "{2, 3, 4, 5}", "Range[2, 5]")
 	//CasAssertSame(t, es, "{}", "Range[2, -5]")
+
+	// Test Depth
+	CasAssertSame(t, es, "1", "Depth[foo]")
+	CasAssertSame(t, es, "2", "Depth[{foo}]")
+	CasAssertSame(t, es, "2", "Depth[bar[foo, bar]]")
+	CasAssertSame(t, es, "3", "Depth[foo[foo[]]]")
+	CasAssertSame(t, es, "1", "Depth[3]")
+	CasAssertSame(t, es, "1", "Depth[3.5]")
+	CasAssertSame(t, es, "1", "Depth[3/5]")
+	CasAssertSame(t, es, "2", "Depth[foo[{{{}}}][]]")
 }

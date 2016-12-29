@@ -4,29 +4,40 @@ import (
 	"math/big"
 )
 
-func GenIntegerPartitions(n int, startAt int) (parts [][]int) {
+func GenIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]int) {
+	if len(prefix) + 1 > k {
+		return
+	}
+	prefix = append(prefix, 0)
 	for i := startAt; i > 0; i-- {
+		prefix[len(prefix)-1] = i
 		if i == n {
-			parts = append(parts, []int{n})
+			*parts = append(*parts, make([]int, len(prefix)))
+			copy((*parts)[len(*parts)-1], prefix)
 		} else {
-			subparts := GenIntegerPartitions(n-i, Min(i, n-i))
-			for _, partition := range subparts {
-				parts = append(parts, append([]int{i}, partition...))
-			}
+			GenIntegerPartitions(n-i, k, Min(i, n-i), prefix, parts)
 		}
 	}
-	return
 }
 
 func (this *Expression) EvalIntegerPartitions(es *EvalState) Ex {
-	if len(this.Parts) != 2 {
+	if len(this.Parts) != 2 && len(this.Parts) != 3 {
 		return this
 	}
 
 	n, nIsInt := this.Parts[1].(*Integer)
-
 	if !nIsInt {
 		return this
+	}
+	nMachine := int(n.Val.Int64())
+
+	kMachine := nMachine
+	if len(this.Parts) == 3 {
+		k, kIsInt := this.Parts[2].(*Integer)
+		if !kIsInt {
+			return this
+		}
+		kMachine = int(k.Val.Int64())
 	}
 
 	cmpVal := n.Val.Cmp(big.NewInt(0))
@@ -36,8 +47,8 @@ func (this *Expression) EvalIntegerPartitions(es *EvalState) Ex {
 		return &Expression{[]Ex{&Symbol{"List"}, &Expression{[]Ex{&Symbol{"List"}}}}}
 	}
 
-	nMachine := int(n.Val.Int64())
-	parts := GenIntegerPartitions(nMachine, nMachine)
+	var parts [][]int
+	GenIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
 
 	exParts := &Expression{[]Ex{&Symbol{"List"}}}
 	for _, partition := range parts {
