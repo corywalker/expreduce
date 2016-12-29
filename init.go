@@ -16,8 +16,6 @@ func InitCAS(es *EvalState) {
 	EvalInterp("Attributes[_] = List[]", es)
 
 	// Define functions
-	EvalInterp("Total[lmatch__List] := Apply[Plus, lmatch]", es)
-	EvalInterp("Mean[lmatch__List] := Total[lmatch]/Length[lmatch]", es)
 	EvalInterp("Table[amatch_, bmatch_Integer] := Table[amatch, {i, 1, bmatch}]", es)
 	EvalInterp("RandomReal[{minmatch_, maxmatch_}] := RandomReal[]*(maxmatch - minmatch) + minmatch", es)
 	EvalInterp("RandomReal[maxmatch_] := RandomReal[]*maxmatch", es)

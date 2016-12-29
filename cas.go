@@ -50,12 +50,47 @@ type EvalState struct {
 	CASLogger
 
 	defined        map[string][]Expression
+	legacyEvalFns  map[string](func(*Expression, *EvalState) Ex)
 	NoInit		   bool
+}
+
+type Definition struct {
+	// The symbol name, like "Mean", and "Total"
+	name string
+	docstring string
+
+	// Regular rules to define
+	rules map[string]string
+	// Map symbol to Eval() function
+	legacyEvalFn (func(*Expression, *EvalState) Ex)
+
+	attributes []string
+}
+
+func (this *EvalState) Load(def Definition) {
+	for lhs, rhs := range def.rules {
+		(&Expression{[]Ex{
+			&Symbol{"SetDelayed"},
+			Interp(lhs),
+			Interp(rhs),
+		}}).Eval(this)
+	}
+
+	if def.legacyEvalFn != nil {
+		this.legacyEvalFns[def.name] = def.legacyEvalFn
+	}
+}
+
+func GetAllDefinitions() (defs map[string]([]Definition)) {
+	defs = make(map[string]([]Definition))
+	defs["list"] = GetListDefinitions()
+	return
 }
 
 func NewEvalState() *EvalState {
 	var es EvalState
 	es.defined = make(map[string][]Expression)
+	es.legacyEvalFns = make(map[string](func(*Expression, *EvalState) Ex))
 
 	// Set up logging
 	es.CASLogger._log = logging.MustGetLogger("example")
@@ -68,6 +103,12 @@ func NewEvalState() *EvalState {
 	es.NoInit = false
 	if !es.NoInit {
 		InitCAS(&es)
+		// Init modules
+		for _, defs := range GetAllDefinitions() {
+			for _, def := range defs {
+				es.Load(def)
+			}
+		}
 	}
 
 	return &es
@@ -76,6 +117,7 @@ func NewEvalState() *EvalState {
 func NewEvalStateNoLog() *EvalState {
 	var es EvalState
 	es.defined = make(map[string][]Expression)
+	es.legacyEvalFns = make(map[string](func(*Expression, *EvalState) Ex))
 	es.CASLogger.debugState = false
 	return &es
 }

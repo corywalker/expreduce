@@ -100,9 +100,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			headStr := headAsSym.Name
 
 			theRes, isDefined := es.GetDef(headStr, curr)
+			legacyEvalFn, hasLegacyEvalFn := es.legacyEvalFns[headStr]
 			if isDefined {
 				//fmt.Printf("%v, %v, %v\n", headStr, curr, theRes)
 				currEx = theRes
+			} else if hasLegacyEvalFn {
+				currEx = legacyEvalFn(curr, es)
 			} else if headStr == "Power" {
 				currEx = curr.EvalPower(es)
 			} else if headStr == "Equal" {
@@ -183,10 +186,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				currEx = curr.EvalPadRight(es)
 			} else if headStr == "Permutations" {
 				currEx = curr.EvalPermutations(es)
-			} else if headStr == "Range" {
-				currEx = curr.EvalRange(es)
-			} else if headStr == "Depth" {
-				currEx = curr.EvalDepth(es)
 			}
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])

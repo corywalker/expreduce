@@ -360,9 +360,34 @@ func CalcDepth(ex Ex) int {
 	return theMax + 1
 }
 
-func (this *Expression) EvalDepth(es *EvalState) Ex {
-	if len(this.Parts) != 2 {
-		return this
-	}
-	return &Integer{big.NewInt(int64(CalcDepth(this.Parts[1])))}
+func GetListDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Total",
+		docstring: "Sum all the values in the list.",
+		rules: map[string]string{
+			"Total[lmatch__List]": "Apply[Plus, lmatch]",
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Mean",
+		docstring: "Calculate the statistical mean of the list.",
+		rules: map[string]string{
+			"Mean[lmatch__List]": "Total[lmatch]/Length[lmatch]",
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Range",
+		legacyEvalFn: (*Expression).EvalRange,
+	})
+	defs = append(defs, Definition{
+		name: "Depth",
+		docstring: "Return the depth of an expression.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			return &Integer{big.NewInt(int64(CalcDepth(this.Parts[1])))}
+		},
+	})
+	return
 }
