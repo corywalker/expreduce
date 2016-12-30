@@ -109,7 +109,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 				parts = asBNS.Parts
 			}
 			//if len(parts) < 2 {
-				//return true, pm
+			//return true, pm
 			//}
 			cl.Debugf("%v %v", parts, len(parts))
 			matchesHead := false

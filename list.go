@@ -75,16 +75,16 @@ func (this *IterSpec) Cont() bool {
 }
 
 type MultiIterSpec struct {
-	iSpecs []IterSpec
-	origDefs []Ex
+	iSpecs     []IterSpec
+	origDefs   []Ex
 	isOrigDefs []bool
-	cont bool
+	cont       bool
 }
 
 func MultiIterSpecFromLists(lists []Ex) (mis MultiIterSpec, isOk bool) {
 	// Retrieve variables of iteration
 	mis.cont = true
-	for i := range(lists) {
+	for i := range lists {
 		is, isOk := IterSpecFromList(lists[i])
 		if !isOk {
 			return mis, false
@@ -95,7 +95,7 @@ func MultiIterSpecFromLists(lists []Ex) (mis MultiIterSpec, isOk bool) {
 }
 
 func (this *MultiIterSpec) Next() {
-	for i := len(this.iSpecs)-1; i >= 0; i-- {
+	for i := len(this.iSpecs) - 1; i >= 0; i-- {
 		this.iSpecs[i].Next()
 		if this.iSpecs[i].Cont() {
 			return
@@ -112,13 +112,13 @@ func (this *MultiIterSpec) Cont() bool {
 func (this *MultiIterSpec) TakeVarSnapshot(es *EvalState) {
 	this.origDefs = make([]Ex, len(this.iSpecs))
 	this.isOrigDefs = make([]bool, len(this.iSpecs))
-	for i := range(this.iSpecs) {
+	for i := range this.iSpecs {
 		this.origDefs[i], this.isOrigDefs[i] = es.GetDef(this.iSpecs[i].iName, this.iSpecs[i].i)
 	}
 }
 
 func (this *MultiIterSpec) RestoreVarSnapshot(es *EvalState) {
-	for i := range(this.iSpecs) {
+	for i := range this.iSpecs {
 		if this.isOrigDefs[i] {
 			es.Define(this.iSpecs[i].iName, this.iSpecs[i].i, this.origDefs[i])
 		} else {
@@ -128,7 +128,7 @@ func (this *MultiIterSpec) RestoreVarSnapshot(es *EvalState) {
 }
 
 func (this *MultiIterSpec) DefineCurrent(es *EvalState) {
-	for i := range(this.iSpecs) {
+	for i := range this.iSpecs {
 		es.Define(this.iSpecs[i].iName, this.iSpecs[i].i, &Integer{big.NewInt(this.iSpecs[i].curr)})
 	}
 }
@@ -200,21 +200,21 @@ func CalcDepth(ex Ex) int {
 
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Total",
+		name:      "Total",
 		docstring: "Sum all the values in the list.",
 		rules: map[string]string{
 			"Total[lmatch__List]": "Apply[Plus, lmatch]",
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Mean",
+		name:      "Mean",
 		docstring: "Calculate the statistical mean of the list.",
 		rules: map[string]string{
 			"Mean[lmatch__List]": "Total[lmatch]/Length[lmatch]",
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Depth",
+		name:      "Depth",
 		docstring: "Return the depth of an expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -226,185 +226,185 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Length",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 2 {
-		return this
-	}
+			if len(this.Parts) != 2 {
+				return this
+			}
 
-	list, isList := HeadAssertion(this.Parts[1], "List")
-	if isList {
-		return &Integer{big.NewInt(int64(len(list.Parts) - 1))}
-	}
-	return this
+			list, isList := HeadAssertion(this.Parts[1], "List")
+			if isList {
+				return &Integer{big.NewInt(int64(len(list.Parts) - 1))}
+			}
+			return this
 		},
 	})
 	defs = append(defs, Definition{
 		name: "Table",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) >= 3 {
-		mis, isOk := MultiIterSpecFromLists(this.Parts[2:])
-		if isOk {
-			// Simulate evaluation within Block[]
-			mis.TakeVarSnapshot(es)
-			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-			for mis.Cont() {
-				mis.DefineCurrent(es)
-				toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
-				es.Debugf("%v\n", toReturn)
-				mis.Next()
+			if len(this.Parts) >= 3 {
+				mis, isOk := MultiIterSpecFromLists(this.Parts[2:])
+				if isOk {
+					// Simulate evaluation within Block[]
+					mis.TakeVarSnapshot(es)
+					toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+					for mis.Cont() {
+						mis.DefineCurrent(es)
+						toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
+						es.Debugf("%v\n", toReturn)
+						mis.Next()
+					}
+					mis.RestoreVarSnapshot(es)
+					return toReturn
+				}
 			}
-			mis.RestoreVarSnapshot(es)
-			return toReturn
-		}
-	}
-	return this
+			return this
 		},
 	})
 	defs = append(defs, Definition{
 		name: "Sum",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
+			return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
 		},
 	})
 	defs = append(defs, Definition{
 		name: "Product",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
+			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
 		},
 	})
 	defs = append(defs, Definition{
 		name: "MemberQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-	list, isList := HeadAssertion(this.Parts[1], "List")
-	if isList {
-		if MemberQ(list.Parts, this.Parts[2], &es.CASLogger) {
-			return &Symbol{"True"}
-		}
-	}
-	return &Symbol{"False"}
+			if len(this.Parts) != 3 {
+				return this
+			}
+			list, isList := HeadAssertion(this.Parts[1], "List")
+			if isList {
+				if MemberQ(list.Parts, this.Parts[2], &es.CASLogger) {
+					return &Symbol{"True"}
+				}
+			}
+			return &Symbol{"False"}
 		},
 	})
 	defs = append(defs, Definition{
 		name: "Map",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	list, isList := HeadAssertion(this.Parts[2], "List")
-	if isList {
-		toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-		for i := 1; i < len(list.Parts); i++ {
-			toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
-				this.Parts[1].DeepCopy(),
-				list.Parts[i].DeepCopy(),
-			}})
-		}
-		return toReturn
-	}
-	return this.Parts[2]
+			list, isList := HeadAssertion(this.Parts[2], "List")
+			if isList {
+				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+				for i := 1; i < len(list.Parts); i++ {
+					toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
+						this.Parts[1].DeepCopy(),
+						list.Parts[i].DeepCopy(),
+					}})
+				}
+				return toReturn
+			}
+			return this.Parts[2]
 		},
 	})
 	defs = append(defs, Definition{
 		name: "Array",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	nInt, nOk := this.Parts[2].(*Integer)
-	if nOk {
-		n := nInt.Val.Int64()
-		toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-		for i := int64(1); i <= n; i++ {
-			toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
-				this.Parts[1].DeepCopy(),
-				&Integer{big.NewInt(i)},
-			}})
-		}
-		return toReturn
-	}
-	return this.Parts[2]
+			nInt, nOk := this.Parts[2].(*Integer)
+			if nOk {
+				n := nInt.Val.Int64()
+				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+				for i := int64(1); i <= n; i++ {
+					toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
+						this.Parts[1].DeepCopy(),
+						&Integer{big.NewInt(i)},
+					}})
+				}
+				return toReturn
+			}
+			return this.Parts[2]
 		},
 	})
 	defs = append(defs, Definition{
 		name: "Cases",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-
-	list, isList := HeadAssertion(this.Parts[1], "List")
-	if isList {
-		toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-
-		for i := 1; i < len(list.Parts); i++ {
-			if matchq, _ := IsMatchQ(list.Parts[i], this.Parts[2], EmptyPD(), &es.CASLogger); matchq {
-				toReturn.Parts = append(toReturn.Parts, list.Parts[i])
+			if len(this.Parts) != 3 {
+				return this
 			}
-		}
 
-		return toReturn
-	}
-	return this
+			list, isList := HeadAssertion(this.Parts[1], "List")
+			if isList {
+				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+
+				for i := 1; i < len(list.Parts); i++ {
+					if matchq, _ := IsMatchQ(list.Parts[i], this.Parts[2], EmptyPD(), &es.CASLogger); matchq {
+						toReturn.Parts = append(toReturn.Parts, list.Parts[i])
+					}
+				}
+
+				return toReturn
+			}
+			return this
 		},
 	})
 	defs = append(defs, Definition{
 		name: "PadRight",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	list, n, x, valid := ValidatePadParams(this)
-	if !valid {
-		return this
-	}
-	toReturn := &Expression{[]Ex{list.Parts[0]}}
-	for i := int64(0); i < n; i++ {
-		if i >= int64(len(list.Parts) - 1) {
-			toReturn.Parts = append(toReturn.Parts, x)
-		} else {
-			toReturn.Parts = append(toReturn.Parts, list.Parts[i+1])
-		}
-	}
-	return toReturn
+			list, n, x, valid := ValidatePadParams(this)
+			if !valid {
+				return this
+			}
+			toReturn := &Expression{[]Ex{list.Parts[0]}}
+			for i := int64(0); i < n; i++ {
+				if i >= int64(len(list.Parts)-1) {
+					toReturn.Parts = append(toReturn.Parts, x)
+				} else {
+					toReturn.Parts = append(toReturn.Parts, list.Parts[i+1])
+				}
+			}
+			return toReturn
 		},
 	})
 	defs = append(defs, Definition{
 		name: "PadLeft",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	list, n, x, valid := ValidatePadParams(this)
-	if !valid {
-		return this
-	}
-	toReturn := &Expression{[]Ex{list.Parts[0]}}
-	for i := int64(0); i < n; i++ {
-		if i < n - int64(len(list.Parts)) + 1 {
-			toReturn.Parts = append(toReturn.Parts, x)
-		} else {
-			listI := int64(len(list.Parts)) - (n-i)
-			toReturn.Parts = append(toReturn.Parts, list.Parts[listI])
-		}
-	}
-	return toReturn
+			list, n, x, valid := ValidatePadParams(this)
+			if !valid {
+				return this
+			}
+			toReturn := &Expression{[]Ex{list.Parts[0]}}
+			for i := int64(0); i < n; i++ {
+				if i < n-int64(len(list.Parts))+1 {
+					toReturn.Parts = append(toReturn.Parts, x)
+				} else {
+					listI := int64(len(list.Parts)) - (n - i)
+					toReturn.Parts = append(toReturn.Parts, list.Parts[listI])
+				}
+			}
+			return toReturn
 		},
 	})
 	defs = append(defs, Definition{
 		name: "Range",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	// I should probably refactor the IterSpec system so that it does not
-	// require being passed a list and a variable of iteration. TODO
-	iterSpecList := &Expression{[]Ex{&Symbol{"List"}, &Symbol{"$DUMMY"}}}
-	iterSpecList.Parts = append(iterSpecList.Parts, this.Parts[1:]...)
-	is, isOk := IterSpecFromList(iterSpecList)
-	if !isOk {
-		return this
-	}
-	toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-	for is.Cont() {
-		toReturn.Parts = append(toReturn.Parts, &Integer{big.NewInt(is.curr)})
-		is.Next()
-	}
-	return toReturn
+			// I should probably refactor the IterSpec system so that it does not
+			// require being passed a list and a variable of iteration. TODO
+			iterSpecList := &Expression{[]Ex{&Symbol{"List"}, &Symbol{"$DUMMY"}}}
+			iterSpecList.Parts = append(iterSpecList.Parts, this.Parts[1:]...)
+			is, isOk := IterSpecFromList(iterSpecList)
+			if !isOk {
+				return this
+			}
+			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+			for is.Cont() {
+				toReturn.Parts = append(toReturn.Parts, &Integer{big.NewInt(is.curr)})
+				is.Next()
+			}
+			return toReturn
 		},
 	})
 	return

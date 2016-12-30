@@ -85,63 +85,63 @@ func GetReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "ReplaceAll",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	rulesRule, ok := HeadAssertion(this.Parts[2], "Rule")
-	if !ok {
-		rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
-	}
-	if ok {
-		newEx := ReplaceAll(this.Parts[1], rulesRule, &es.CASLogger, EmptyPD())
-		return newEx.Eval(es)
-	}
-
-	// Also handle a list of Rules
-	asList, isList := HeadAssertion(this.Parts[2], "List")
-	if isList {
-		toReturn := this.Parts[1]
-		for i := 1; i < len(asList.Parts); i++ {
-			rulesRule, ok := HeadAssertion(asList.Parts[i], "Rule")
+			rulesRule, ok := HeadAssertion(this.Parts[2], "Rule")
 			if !ok {
-				rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
+				rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
 			}
 			if ok {
-				toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, &es.CASLogger, EmptyPD())
+				newEx := ReplaceAll(this.Parts[1], rulesRule, &es.CASLogger, EmptyPD())
+				return newEx.Eval(es)
 			}
-		}
-		return toReturn.Eval(es)
-	}
 
-	return this
+			// Also handle a list of Rules
+			asList, isList := HeadAssertion(this.Parts[2], "List")
+			if isList {
+				toReturn := this.Parts[1]
+				for i := 1; i < len(asList.Parts); i++ {
+					rulesRule, ok := HeadAssertion(asList.Parts[i], "Rule")
+					if !ok {
+						rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
+					}
+					if ok {
+						toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, &es.CASLogger, EmptyPD())
+					}
+				}
+				return toReturn.Eval(es)
+			}
+
+			return this
 		},
 	})
 	defs = append(defs, Definition{
 		name: "ReplaceRepeated",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-	es.Infof("Starting ReplaceRepeated.")
-	isSame := false
-	oldEx := this.Parts[1]
-	es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
-	for !isSame {
-		newEx := (&Expression{[]Ex{
-			&Symbol{"ReplaceAll"},
-			oldEx.DeepCopy(),
-			this.Parts[2],
-		}}).Eval(es)
-		//newEx = newEx.Eval(es)
-		es.Infof("In ReplaceRepeated. New expr: %v", newEx)
+			if len(this.Parts) != 3 {
+				return this
+			}
+			es.Infof("Starting ReplaceRepeated.")
+			isSame := false
+			oldEx := this.Parts[1]
+			es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
+			for !isSame {
+				newEx := (&Expression{[]Ex{
+					&Symbol{"ReplaceAll"},
+					oldEx.DeepCopy(),
+					this.Parts[2],
+				}}).Eval(es)
+				//newEx = newEx.Eval(es)
+				es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
-		if IsSameQ(oldEx, newEx, &es.CASLogger) {
-			isSame = true
-		}
-		oldEx = newEx
-	}
-	return oldEx
+				if IsSameQ(oldEx, newEx, &es.CASLogger) {
+					isSame = true
+				}
+				oldEx = newEx
+			}
+			return oldEx
 		},
 	})
 	return

@@ -119,8 +119,8 @@ func TestConstants(t *testing.T) {
 	CasAssertSame(t, es, "{2, 3}", "2/3 /. Rational[a_Integer, b_Integer] -> {a, b}")
 	CasAssertSame(t, es, "2/3", "2/3 /. a_Integer/b_Integer -> {a, b}")
 	CasAssertSame(t, es, "buzz[bar]", "foo[bar, 1/2] /. foo[base_, 1/2] -> buzz[base]")
-	CasAssertSame(t, es, "buzz[bar]", "foo[bar, 1/2] /. foo[base_, Rational[1, 2]] -> buzz[base]")//
-	CasAssertSame(t, es, "buzz[bar]", "foo[bar, Rational[1, 2]] /. foo[base_, 1/2] -> buzz[base]")//
+	CasAssertSame(t, es, "buzz[bar]", "foo[bar, 1/2] /. foo[base_, Rational[1, 2]] -> buzz[base]") //
+	CasAssertSame(t, es, "buzz[bar]", "foo[bar, Rational[1, 2]] /. foo[base_, 1/2] -> buzz[base]") //
 	CasAssertSame(t, es, "buzz[bar]", "foo[bar, Rational[1, 2]] /. foo[base_, Rational[1, 2]] -> buzz[base]")
 	CasAssertSame(t, es, "True", "MatchQ[1/2, Rational[1, 2]]")
 	CasAssertSame(t, es, "True", "MatchQ[Rational[1, 2], 1/2]")

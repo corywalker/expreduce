@@ -129,7 +129,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 					&Symbol{"Rule"},
 					&Expression{[]Ex{
 						&Symbol{"Slot"},
-						&Integer{big.NewInt(int64(i+1))},
+						&Integer{big.NewInt(int64(i + 1))},
 					}},
 					arg,
 				}}, &es.CASLogger, EmptyPD())
@@ -360,7 +360,7 @@ func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
 	//otherEx = otherEx.Eval(es)
 	//this, ok := thisEvaled.(*Expression)
 	//if !ok {
-		//return thisEvaled.IsEqual(otherEx, cl)
+	//return thisEvaled.IsEqual(otherEx, cl)
 	//}
 
 	other, ok := otherEx.(*Expression)

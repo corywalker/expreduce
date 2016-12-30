@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"flag"
+	"fmt"
 	"github.com/corywalker/cas"
 	"gopkg.in/readline.v1"
 )

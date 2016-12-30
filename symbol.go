@@ -70,51 +70,51 @@ func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Set",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	var evaluated Ex = this.Parts[2].Eval(es)
-	LhsSym, ok := this.Parts[1].(*Symbol)
-	if ok {
-		es.Define(LhsSym.Name, LhsSym, evaluated)
-		return evaluated
-	}
-	LhsF, ok := this.Parts[1].(*Expression)
-	if ok {
-		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
-		if headIsSym {
-			es.Define(headAsSym.Name, LhsF, evaluated)
-			return evaluated
-		}
-	}
+			var evaluated Ex = this.Parts[2].Eval(es)
+			LhsSym, ok := this.Parts[1].(*Symbol)
+			if ok {
+				es.Define(LhsSym.Name, LhsSym, evaluated)
+				return evaluated
+			}
+			LhsF, ok := this.Parts[1].(*Expression)
+			if ok {
+				headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
+				if headIsSym {
+					es.Define(headAsSym.Name, LhsF, evaluated)
+					return evaluated
+				}
+			}
 
-	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
+			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
 		},
 	})
 	defs = append(defs, Definition{
-		name: "SetDelayed",
+		name:      "SetDelayed",
 		bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	LhsSym, ok := this.Parts[1].(*Symbol)
-	if ok {
-		es.Define(LhsSym.Name, LhsSym, this.Parts[2])
-		return &Symbol{"Null"}
-	}
-	LhsF, ok := this.Parts[1].(*Expression)
-	if ok {
-		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
-		if headIsSym {
-			es.Define(headAsSym.Name, LhsF, this.Parts[2])
-			return &Symbol{"Null"}
-		}
-	}
+			LhsSym, ok := this.Parts[1].(*Symbol)
+			if ok {
+				es.Define(LhsSym.Name, LhsSym, this.Parts[2])
+				return &Symbol{"Null"}
+			}
+			LhsF, ok := this.Parts[1].(*Expression)
+			if ok {
+				headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
+				if headIsSym {
+					es.Define(headAsSym.Name, LhsF, this.Parts[2])
+					return &Symbol{"Null"}
+				}
+			}
 
-	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
+			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
 		},
 	})
 	return

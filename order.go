@@ -97,12 +97,12 @@ func GetOrderDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Order",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	toreturn := ExOrder(this.Parts[1], this.Parts[2])
-	return &Integer{big.NewInt(toreturn)}
+			toreturn := ExOrder(this.Parts[1], this.Parts[2])
+			return &Integer{big.NewInt(toreturn)}
 		},
 	})
 	return

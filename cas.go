@@ -18,9 +18,9 @@ var format = logging.MustStringFormatter(
 )
 
 type CASLogger struct {
-	_log           *logging.Logger
-	leveled        logging.LeveledBackend
-	debugState     bool
+	_log       *logging.Logger
+	leveled    logging.LeveledBackend
+	debugState bool
 }
 
 type PDManager struct {
@@ -49,14 +49,14 @@ type EvalState struct {
 	// Embedded type for logging
 	CASLogger
 
-	defined        map[string][]Expression
-	legacyEvalFns  map[string](func(*Expression, *EvalState) Ex)
-	NoInit		   bool
+	defined       map[string][]Expression
+	legacyEvalFns map[string](func(*Expression, *EvalState) Ex)
+	NoInit        bool
 }
 
 type Definition struct {
 	// The symbol name, like "Mean", and "Total"
-	name string
+	name      string
 	docstring string
 	bootstrap bool
 
@@ -375,7 +375,7 @@ func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) s
 }
 
 func ExtractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
-	for _, c := range(components) {
+	for _, c := range components {
 		pat, isPat := HeadAssertion(c, "Pattern")
 		_, isBns := HeadAssertion(c, "BlankNullSequence")
 		_, isBs := HeadAssertion(c, "BlankSequence")
@@ -748,14 +748,14 @@ func GetCASDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Clear",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	for _, arg := range this.Parts[1:] {
-		es.Debugf("arg: %v", arg)
-		sym, isSym := arg.(*Symbol)
-		if isSym {
-			es.Clear(sym.Name)
-		}
-	}
-	return &Symbol{"Null"}
+			for _, arg := range this.Parts[1:] {
+				es.Debugf("arg: %v", arg)
+				sym, isSym := arg.(*Symbol)
+				if isSym {
+					es.Clear(sym.Name)
+				}
+			}
+			return &Symbol{"Null"}
 		},
 	})
 	return

@@ -195,36 +195,36 @@ func GetConstantsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Rational",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-	nAsInt, nIsInt := this.Parts[1].(*Integer)
-	dAsInt, dIsInt := this.Parts[2].(*Integer)
-	if nIsInt && dIsInt {
-		return (&Rational{nAsInt.Val, dAsInt.Val}).Eval(es)
-	}
-	return this
+			if len(this.Parts) != 3 {
+				return this
+			}
+			nAsInt, nIsInt := this.Parts[1].(*Integer)
+			dAsInt, dIsInt := this.Parts[2].(*Integer)
+			if nIsInt && dIsInt {
+				return (&Rational{nAsInt.Val, dAsInt.Val}).Eval(es)
+			}
+			return this
 		},
 	})
 	defs = append(defs, Definition{
 		name: "NumberQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 2 {
-		return this
-	}
-	_, ok := this.Parts[1].(*Integer)
-	if ok {
-		return &Symbol{"True"}
-	}
-	_, ok = this.Parts[1].(*Flt)
-	if ok {
-		return &Symbol{"True"}
-	}
-	_, ok = this.Parts[1].(*Rational)
-	if ok {
-		return &Symbol{"True"}
-	}
-	return &Symbol{"False"}
+			if len(this.Parts) != 2 {
+				return this
+			}
+			_, ok := this.Parts[1].(*Integer)
+			if ok {
+				return &Symbol{"True"}
+			}
+			_, ok = this.Parts[1].(*Flt)
+			if ok {
+				return &Symbol{"True"}
+			}
+			_, ok = this.Parts[1].(*Rational)
+			if ok {
+				return &Symbol{"True"}
+			}
+			return &Symbol{"False"}
 		},
 	})
 	return

@@ -193,49 +193,49 @@ func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Equal",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
-	if isequal == "EQUAL_UNK" {
-		return this
-	} else if isequal == "EQUAL_TRUE" {
-		return &Symbol{"True"}
-	} else if isequal == "EQUAL_FALSE" {
-		return &Symbol{"False"}
-	}
+			var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
+			if isequal == "EQUAL_UNK" {
+				return this
+			} else if isequal == "EQUAL_TRUE" {
+				return &Symbol{"True"}
+			} else if isequal == "EQUAL_FALSE" {
+				return &Symbol{"False"}
+			}
 
-	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
+			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 		},
 	})
 	defs = append(defs, Definition{
 		name: "SameQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	var issame bool = IsSameQ(this.Parts[1], this.Parts[2], &es.CASLogger)
-	if issame {
-		return &Symbol{"True"}
-	} else {
-		return &Symbol{"False"}
-	}
+			var issame bool = IsSameQ(this.Parts[1], this.Parts[2], &es.CASLogger)
+			if issame {
+				return &Symbol{"True"}
+			} else {
+				return &Symbol{"False"}
+			}
 		},
 	})
 	defs = append(defs, Definition{
 		name: "MatchQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
+			if len(this.Parts) != 3 {
+				return this
+			}
 
-	if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger); res {
-		return &Symbol{"True"}
-	} else {
-		return &Symbol{"False"}
-	}
+			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger); res {
+				return &Symbol{"True"}
+			} else {
+				return &Symbol{"False"}
+			}
 		},
 	})
 	return
