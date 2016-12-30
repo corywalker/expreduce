@@ -106,86 +106,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				currEx = theRes
 			} else if hasLegacyEvalFn {
 				currEx = legacyEvalFn(curr, es)
-			} else if headStr == "Power" {
-				currEx = curr.EvalPower(es)
-			} else if headStr == "Equal" {
-				currEx = curr.EvalEqual(es)
-			} else if headStr == "SameQ" {
-				currEx = curr.EvalSameQ(es)
-			} else if headStr == "Plus" {
-				currEx = curr.EvalPlus(es)
-			} else if headStr == "Times" {
-				currEx = curr.EvalTimes(es)
-			} else if headStr == "Set" {
-				currEx = curr.EvalSet(es)
-			} else if headStr == "SetDelayed" {
-				currEx = curr.EvalSetDelayed(es)
-			} else if headStr == "If" {
-				currEx = curr.EvalIf(es)
-			} else if headStr == "While" {
-				currEx = curr.EvalWhile(es)
-			} else if headStr == "MatchQ" {
-				currEx = curr.EvalMatchQ(es)
-			} else if headStr == "ReplaceAll" {
-				currEx = curr.EvalReplaceAll(es)
-			} else if headStr == "ReplaceRepeated" {
-				currEx = curr.EvalReplaceRepeated(es)
-			} else if headStr == "SetLogging" {
-				currEx = curr.EvalSetLogging(es)
-			} else if headStr == "Definition" {
-				currEx = curr.EvalDefinition(es)
-			} else if headStr == "Order" {
-				currEx = curr.EvalOrder(es)
-			} else if headStr == "Sort" {
-				currEx = curr.EvalSort(es)
-			} else if headStr == "RandomReal" {
-				currEx = curr.EvalRandomReal(es)
-			} else if headStr == "SeedRandom" {
-				currEx = curr.EvalSeedRandom(es)
-			} else if headStr == "UnixTime" {
-				currEx = curr.EvalUnixTime(es)
 			} else if headStr == "Apply" {
 				currEx = curr.EvalApply(es)
-			} else if headStr == "Length" {
-				currEx = curr.EvalLength(es)
-			} else if headStr == "Table" {
-				currEx = curr.EvalTable(es)
-			} else if headStr == "Sum" {
-				currEx = curr.EvalSum(es)
-			} else if headStr == "Product" {
-				currEx = curr.EvalProduct(es)
-			} else if headStr == "Clear" {
-				currEx = curr.EvalClear(es)
-			} else if headStr == "Timing" {
-				currEx = curr.EvalTiming(es)
-			} else if headStr == "MemberQ" {
-				currEx = curr.EvalMemberQ(es)
-			} else if headStr == "Print" {
-				currEx = curr.EvalPrint(es)
-			} else if headStr == "CompoundExpression" {
-				currEx = curr.EvalCompoundExpression(es)
-			} else if headStr == "Map" {
-				currEx = curr.EvalMap(es)
-			} else if headStr == "Factorial" {
-				currEx = curr.EvalFactorial(es)
-			} else if headStr == "Head" {
-				currEx = curr.EvalHead(es)
-			} else if headStr == "Rational" {
-				currEx = curr.EvalRational(es)
-			} else if headStr == "Array" {
-				currEx = curr.EvalArray(es)
-			} else if headStr == "Cases" {
-				currEx = curr.EvalCases(es)
-			} else if headStr == "NumberQ" {
-				currEx = curr.EvalNumberQ(es)
-			} else if headStr == "IntegerPartitions" {
-				currEx = curr.EvalIntegerPartitions(es)
-			} else if headStr == "PadLeft" {
-				currEx = curr.EvalPadLeft(es)
-			} else if headStr == "PadRight" {
-				currEx = curr.EvalPadRight(es)
-			} else if headStr == "Permutations" {
-				currEx = curr.EvalPermutations(es)
 			}
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])

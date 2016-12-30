@@ -3,15 +3,20 @@ package cas
 import "math/big"
 import "math/rand"
 
-func (this *Expression) EvalRandomReal(es *EvalState) Ex {
+func GetRandomDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "RandomReal",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 1 {
 		return this
 	}
 
 	return &Flt{big.NewFloat(rand.Float64())}
-}
-
-func (this *Expression) EvalSeedRandom(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "SeedRandom",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
@@ -23,8 +28,7 @@ func (this *Expression) EvalSeedRandom(es *EvalState) Ex {
 	}
 
 	return this
-}
-
-func GetRandomDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

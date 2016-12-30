@@ -4,7 +4,10 @@ import "math/big"
 import "time"
 import "fmt"
 
-func (this *Expression) EvalSetLogging(es *EvalState) Ex {
+func GetSystemDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "SetLogging",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
@@ -20,18 +23,22 @@ func (this *Expression) EvalSetLogging(es *EvalState) Ex {
 		}
 	}
 	return this
-}
-
-func (this *Expression) EvalDefinition(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Definition",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
 
 	//sym, ok := this.Expr.(*Symbol)
 	return &Expression{[]Ex{&Symbol{"Error"}, &String{es.String()}}}
-}
-
-func (this *Expression) EvalTiming(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Timing",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
@@ -40,26 +47,32 @@ func (this *Expression) EvalTiming(es *EvalState) Ex {
 	res := this.Parts[1].Eval(es)
 	elapsed := time.Since(start).Seconds()
 	return &Expression{[]Ex{&Symbol{"List"}, &Flt{big.NewFloat(elapsed)}, res}}
-}
-
-func (this *Expression) EvalPrint(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Print",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
 
 	fmt.Printf("%s\n", this.Parts[1].String())
 	return &Symbol{"Null"}
-}
-
-func (this *Expression) EvalCompoundExpression(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "CompoundExpression",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	var toReturn Ex
 	for i := 1; i < len(this.Parts); i++ {
 		toReturn = this.Parts[i].Eval(es)
 	}
 	return toReturn
-}
-
-func (this *Expression) EvalHead(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Head",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
@@ -89,8 +102,7 @@ func (this *Expression) EvalHead(es *EvalState) Ex {
 		return asExpr.Parts[0].DeepCopy()
 	}
 	return this
-}
-
-func GetSystemDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

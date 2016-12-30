@@ -2,23 +2,6 @@ package cas
 
 import "bytes"
 
-func (this *Expression) EvalEqual(es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-
-	var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
-	if isequal == "EQUAL_UNK" {
-		return this
-	} else if isequal == "EQUAL_TRUE" {
-		return &Symbol{"True"}
-	} else if isequal == "EQUAL_FALSE" {
-		return &Symbol{"False"}
-	}
-
-	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
-}
-
 func (this *Expression) ToStringEqual() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
@@ -27,19 +10,6 @@ func (this *Expression) ToStringEqual() string {
 	buffer.WriteString(this.Parts[2].String())
 	buffer.WriteString(")")
 	return buffer.String()
-}
-
-func (this *Expression) EvalSameQ(es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-
-	var issame bool = IsSameQ(this.Parts[1], this.Parts[2], &es.CASLogger)
-	if issame {
-		return &Symbol{"True"}
-	} else {
-		return &Symbol{"False"}
-	}
 }
 
 func (this *Expression) ToStringSameQ() string {
@@ -219,7 +189,44 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 	return false
 }
 
-func (this *Expression) EvalMatchQ(es *EvalState) Ex {
+func GetComparisonDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Equal",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+
+	var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
+	if isequal == "EQUAL_UNK" {
+		return this
+	} else if isequal == "EQUAL_TRUE" {
+		return &Symbol{"True"}
+	} else if isequal == "EQUAL_FALSE" {
+		return &Symbol{"False"}
+	}
+
+	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
+		},
+	})
+	defs = append(defs, Definition{
+		name: "SameQ",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+
+	var issame bool = IsSameQ(this.Parts[1], this.Parts[2], &es.CASLogger)
+	if issame {
+		return &Symbol{"True"}
+	} else {
+		return &Symbol{"False"}
+	}
+		},
+	})
+	defs = append(defs, Definition{
+		name: "MatchQ",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
@@ -229,8 +236,7 @@ func (this *Expression) EvalMatchQ(es *EvalState) Ex {
 	} else {
 		return &Symbol{"False"}
 	}
-}
-
-func GetComparisonDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

@@ -163,18 +163,6 @@ func (this *Rational) DeepCopy() Ex {
 	return &Rational{tmpn, tmpd}
 }
 
-func (this *Expression) EvalRational(es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-	nAsInt, nIsInt := this.Parts[1].(*Integer)
-	dAsInt, dIsInt := this.Parts[2].(*Integer)
-	if nIsInt && dIsInt {
-		return (&Rational{nAsInt.Val, dAsInt.Val}).Eval(es)
-	}
-	return this
-}
-
 type String struct {
 	Val string
 }
@@ -203,7 +191,24 @@ func (this *String) DeepCopy() Ex {
 	return &thiscopy
 }
 
-func (this *Expression) EvalNumberQ(es *EvalState) Ex {
+func GetConstantsDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Rational",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+	if len(this.Parts) != 3 {
+		return this
+	}
+	nAsInt, nIsInt := this.Parts[1].(*Integer)
+	dAsInt, dIsInt := this.Parts[2].(*Integer)
+	if nIsInt && dIsInt {
+		return (&Rational{nAsInt.Val, dAsInt.Val}).Eval(es)
+	}
+	return this
+		},
+	})
+	defs = append(defs, Definition{
+		name: "NumberQ",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
@@ -220,8 +225,7 @@ func (this *Expression) EvalNumberQ(es *EvalState) Ex {
 		return &Symbol{"True"}
 	}
 	return &Symbol{"False"}
-}
-
-func GetConstantsDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

@@ -1,6 +1,9 @@
 package cas
 
-func (this *Expression) EvalIf(es *EvalState) Ex {
+func GetFlowControlDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "If",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 4 {
 		return this
 	}
@@ -15,9 +18,11 @@ func (this *Expression) EvalIf(es *EvalState) Ex {
 	}
 
 	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
-}
-
-func (this *Expression) EvalWhile(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "While",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
@@ -38,8 +43,7 @@ func (this *Expression) EvalWhile(es *EvalState) Ex {
 	}
 
 	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
-}
-
-func GetFlowControlDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

@@ -46,7 +46,30 @@ func (this *Symbol) DeepCopy() Ex {
 	return &thiscopy
 }
 
-func (this *Expression) EvalSet(es *EvalState) Ex {
+func (this *Expression) ToStringSet() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	buffer.WriteString(this.Parts[1].String())
+	buffer.WriteString(") = (")
+	buffer.WriteString(this.Parts[2].String())
+	buffer.WriteString(")")
+	return buffer.String()
+}
+
+func (this *Expression) ToStringSetDelayed() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	buffer.WriteString(this.Parts[1].String())
+	buffer.WriteString(") := (")
+	buffer.WriteString(this.Parts[2].String())
+	buffer.WriteString(")")
+	return buffer.String()
+}
+
+func GetSymbolDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Set",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
@@ -67,19 +90,12 @@ func (this *Expression) EvalSet(es *EvalState) Ex {
 	}
 
 	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
-}
-
-func (this *Expression) ToStringSet() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") = (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func (this *Expression) EvalSetDelayed(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "SetDelayed",
+		bootstrap: true,
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
@@ -99,18 +115,7 @@ func (this *Expression) EvalSetDelayed(es *EvalState) Ex {
 	}
 
 	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
-}
-
-func (this *Expression) ToStringSetDelayed() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") := (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func GetSymbolDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

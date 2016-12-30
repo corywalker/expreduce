@@ -20,48 +20,6 @@ func GenIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]in
 	}
 }
 
-func (this *Expression) EvalIntegerPartitions(es *EvalState) Ex {
-	if len(this.Parts) != 2 && len(this.Parts) != 3 {
-		return this
-	}
-
-	n, nIsInt := this.Parts[1].(*Integer)
-	if !nIsInt {
-		return this
-	}
-	nMachine := int(n.Val.Int64())
-
-	kMachine := nMachine
-	if len(this.Parts) == 3 {
-		k, kIsInt := this.Parts[2].(*Integer)
-		if !kIsInt {
-			return this
-		}
-		kMachine = int(k.Val.Int64())
-	}
-
-	cmpVal := n.Val.Cmp(big.NewInt(0))
-	if cmpVal == -1 {
-		return &Expression{[]Ex{&Symbol{"List"}}}
-	} else if cmpVal == 0 {
-		return &Expression{[]Ex{&Symbol{"List"}, &Expression{[]Ex{&Symbol{"List"}}}}}
-	}
-
-	var parts [][]int
-	GenIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
-
-	exParts := &Expression{[]Ex{&Symbol{"List"}}}
-	for _, partition := range parts {
-		toAppend := &Expression{[]Ex{&Symbol{"List"}}}
-		for _, integer := range partition {
-			toAppend.Parts = append(toAppend.Parts, &Integer{big.NewInt(int64(integer))})
-		}
-		exParts.Parts = append(exParts.Parts, toAppend)
-	}
-
-	return exParts
-}
-
 func permListContains(permList [][]Ex, perm []Ex, cl *CASLogger) bool {
 	for _, permInList := range permList {
 		if len(permInList) != len(perm) {
@@ -109,7 +67,54 @@ func GenPermutations(parts []Ex, cl *CASLogger) (perms [][]Ex) {
 	return toReturn
 }
 
-func (this *Expression) EvalPermutations(es *EvalState) Ex {
+func GetCombinatoricsDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "IntegerPartitions",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+	if len(this.Parts) != 2 && len(this.Parts) != 3 {
+		return this
+	}
+
+	n, nIsInt := this.Parts[1].(*Integer)
+	if !nIsInt {
+		return this
+	}
+	nMachine := int(n.Val.Int64())
+
+	kMachine := nMachine
+	if len(this.Parts) == 3 {
+		k, kIsInt := this.Parts[2].(*Integer)
+		if !kIsInt {
+			return this
+		}
+		kMachine = int(k.Val.Int64())
+	}
+
+	cmpVal := n.Val.Cmp(big.NewInt(0))
+	if cmpVal == -1 {
+		return &Expression{[]Ex{&Symbol{"List"}}}
+	} else if cmpVal == 0 {
+		return &Expression{[]Ex{&Symbol{"List"}, &Expression{[]Ex{&Symbol{"List"}}}}}
+	}
+
+	var parts [][]int
+	GenIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
+
+	exParts := &Expression{[]Ex{&Symbol{"List"}}}
+	for _, partition := range parts {
+		toAppend := &Expression{[]Ex{&Symbol{"List"}}}
+		for _, integer := range partition {
+			toAppend.Parts = append(toAppend.Parts, &Integer{big.NewInt(int64(integer))})
+		}
+		exParts.Parts = append(exParts.Parts, toAppend)
+	}
+
+	return exParts
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Permutations",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
@@ -131,8 +136,7 @@ func (this *Expression) EvalPermutations(es *EvalState) Ex {
 	}
 
 	return exPerms
-}
-
-func GetCombinatoricsDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

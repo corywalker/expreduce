@@ -4,7 +4,10 @@ import (
 	"sort"
 )
 
-func (this *Expression) EvalSort(es *EvalState) Ex {
+func GetSortDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Sort",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
@@ -15,8 +18,7 @@ func (this *Expression) EvalSort(es *EvalState) Ex {
 		return exp
 	}
 	return this
-}
-
-func GetSortDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

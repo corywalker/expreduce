@@ -61,7 +61,30 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 	return &Symbol{"ReplaceAllFailed"}
 }
 
-func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
+func (this *Expression) ToStringReplaceAll() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	buffer.WriteString(this.Parts[1].String())
+	buffer.WriteString(") /. (")
+	buffer.WriteString(this.Parts[2].String())
+	buffer.WriteString(")")
+	return buffer.String()
+}
+
+func (this *Expression) ToStringReplaceRepeated() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	buffer.WriteString(this.Parts[1].String())
+	buffer.WriteString(") //. (")
+	buffer.WriteString(this.Parts[2].String())
+	buffer.WriteString(")")
+	return buffer.String()
+}
+
+func GetReplacementDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "ReplaceAll",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
@@ -92,19 +115,11 @@ func (this *Expression) EvalReplaceAll(es *EvalState) Ex {
 	}
 
 	return this
-}
-
-func (this *Expression) ToStringReplaceAll() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") /. (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "ReplaceRepeated",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
@@ -127,18 +142,7 @@ func (this *Expression) EvalReplaceRepeated(es *EvalState) Ex {
 		oldEx = newEx
 	}
 	return oldEx
-}
-
-func (this *Expression) ToStringReplaceRepeated() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") //. (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func GetReplacementDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

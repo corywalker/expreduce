@@ -23,7 +23,39 @@ func RationalAssertion(num Ex, den Ex) (r *Rational, isR bool) {
 	return &Rational{numInt.Val, denInt.Val}, true
 }
 
-func (this *Expression) EvalTimes(es *EvalState) Ex {
+func (this *Expression) ToStringTimes() string {
+	multiplicands := this.Parts[1:len(this.Parts)]
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	for i, e := range multiplicands {
+		buffer.WriteString(e.String())
+		if i != len(multiplicands)-1 {
+			buffer.WriteString(" * ")
+		}
+	}
+	buffer.WriteString(")")
+	return buffer.String()
+}
+
+func factorial(n *big.Int) (result *big.Int) {
+	result = new(big.Int)
+
+	switch n.Cmp(&big.Int{}) {
+	case -1, 0:
+		result.SetInt64(1)
+	default:
+		result.Set(n)
+		var one big.Int
+		one.SetInt64(1)
+		result.Mul(result, factorial(n.Sub(n, &one)))
+	}
+	return
+}
+
+func GetTimesDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Times",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	// Calls without argument receive identity values
 	if len(this.Parts) == 1 {
 		return &Integer{big.NewInt(1)}
@@ -230,38 +262,11 @@ func (this *Expression) EvalTimes(es *EvalState) Ex {
 	this.Parts = this.Parts[0:1]
 	this.Parts = append(this.Parts, multiplicands...)
 	return this
-}
-
-func (this *Expression) ToStringTimes() string {
-	multiplicands := this.Parts[1:len(this.Parts)]
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	for i, e := range multiplicands {
-		buffer.WriteString(e.String())
-		if i != len(multiplicands)-1 {
-			buffer.WriteString(" * ")
-		}
-	}
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func factorial(n *big.Int) (result *big.Int) {
-	result = new(big.Int)
-
-	switch n.Cmp(&big.Int{}) {
-	case -1, 0:
-		result.SetInt64(1)
-	default:
-		result.Set(n)
-		var one big.Int
-		one.SetInt64(1)
-		result.Mul(result, factorial(n.Sub(n, &one)))
-	}
-	return
-}
-
-func (this *Expression) EvalFactorial(es *EvalState) Ex {
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Factorial",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 2 {
 		return this
 	}
@@ -273,8 +278,7 @@ func (this *Expression) EvalFactorial(es *EvalState) Ex {
 		return &Integer{factorial(asInt.Val)}
 	}
 	return this
-}
-
-func GetTimesDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

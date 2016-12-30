@@ -93,15 +93,17 @@ func ExOrder(a Ex, b Ex) int64 {
 	return -2
 }
 
-func (this *Expression) EvalOrder(es *EvalState) Ex {
+func GetOrderDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Order",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	if len(this.Parts) != 3 {
 		return this
 	}
 
 	toreturn := ExOrder(this.Parts[1], this.Parts[2])
 	return &Integer{big.NewInt(toreturn)}
-}
-
-func GetOrderDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

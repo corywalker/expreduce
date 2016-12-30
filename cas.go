@@ -58,6 +58,7 @@ type Definition struct {
 	// The symbol name, like "Mean", and "Total"
 	name string
 	docstring string
+	bootstrap bool
 
 	// Regular rules to define
 	rules map[string]string
@@ -104,10 +105,14 @@ func GetAllDefinitions() (defs map[string]([]Definition)) {
 	return
 }
 
-func NewEvalState() *EvalState {
-	var es EvalState
+func (es *EvalState) Init() {
 	es.defined = make(map[string][]Expression)
 	es.legacyEvalFns = make(map[string](func(*Expression, *EvalState) Ex))
+}
+
+func NewEvalState() *EvalState {
+	var es EvalState
+	es.Init()
 
 	// Set up logging
 	es.CASLogger._log = logging.MustGetLogger("example")
@@ -119,13 +124,22 @@ func NewEvalState() *EvalState {
 
 	es.NoInit = false
 	if !es.NoInit {
-		InitCAS(&es)
 		// Init modules
 		for _, defs := range GetAllDefinitions() {
 			for _, def := range defs {
-				es.Load(def)
+				if def.bootstrap {
+					es.Load(def)
+				}
 			}
 		}
+		for _, defs := range GetAllDefinitions() {
+			for _, def := range defs {
+				if !def.bootstrap {
+					es.Load(def)
+				}
+			}
+		}
+		InitCAS(&es)
 	}
 
 	return &es
@@ -133,8 +147,7 @@ func NewEvalState() *EvalState {
 
 func NewEvalStateNoLog() *EvalState {
 	var es EvalState
-	es.defined = make(map[string][]Expression)
-	es.legacyEvalFns = make(map[string](func(*Expression, *EvalState) Ex))
+	es.Init()
 	es.CASLogger.debugState = false
 	return &es
 }
@@ -727,7 +740,10 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLo
 	}
 }
 
-func (this *Expression) EvalClear(es *EvalState) Ex {
+func GetCASDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Clear",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	for _, arg := range this.Parts[1:] {
 		es.Debugf("arg: %v", arg)
 		sym, isSym := arg.(*Symbol)
@@ -736,8 +752,7 @@ func (this *Expression) EvalClear(es *EvalState) Ex {
 		}
 	}
 	return &Symbol{"Null"}
-}
-
-func GetCASDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }

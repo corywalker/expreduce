@@ -3,7 +3,24 @@ package cas
 import "bytes"
 import "math/big"
 
-func (this *Expression) EvalPlus(es *EvalState) Ex {
+func (this *Expression) ToStringPlus() string {
+	addends := this.Parts[1:len(this.Parts)]
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	for i, e := range addends {
+		buffer.WriteString(e.String())
+		if i != len(addends)-1 {
+			buffer.WriteString(" + ")
+		}
+	}
+	buffer.WriteString(")")
+	return buffer.String()
+}
+
+func GetPlusDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name: "Plus",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 	// Calls without argument receive identity values
 	if len(this.Parts) == 1 {
 		return &Integer{big.NewInt(0)}
@@ -136,22 +153,7 @@ func (this *Expression) EvalPlus(es *EvalState) Ex {
 	this.Parts = this.Parts[0:1]
 	this.Parts = append(this.Parts, addends...)
 	return this
-}
-
-func (this *Expression) ToStringPlus() string {
-	addends := this.Parts[1:len(this.Parts)]
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	for i, e := range addends {
-		buffer.WriteString(e.String())
-		if i != len(addends)-1 {
-			buffer.WriteString(" + ")
-		}
-	}
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func GetPlusDefinitions() (defs []Definition) {
+		},
+	})
 	return
 }
