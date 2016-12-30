@@ -31,18 +31,6 @@ func ToStringBlankType(repr string, parts []Ex) (bool, string) {
 	return false, ""
 }
 
-func (this *Expression) ToStringBlank() (bool, string) {
-	return ToStringBlankType("_", this.Parts)
-}
-
-func (this *Expression) ToStringBlankSequence() (bool, string) {
-	return ToStringBlankType("__", this.Parts)
-}
-
-func (this *Expression) ToStringBlankNullSequence() (bool, string) {
-	return ToStringBlankType("___", this.Parts)
-}
-
 // -------------------------
 
 func IsBlankTypeOnly(e Ex) bool {
@@ -199,4 +187,26 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 		toReturn = toReturn && isMatch
 	}
 	return toReturn
+}
+
+func GetPatternDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name:      "Blank",
+		toString: func(this *Expression) (bool, string) {
+			return ToStringBlankType("_", this.Parts)
+		},
+	})
+	defs = append(defs, Definition{
+		name:      "BlankSequence",
+		toString: func(this *Expression) (bool, string) {
+			return ToStringBlankType("__", this.Parts)
+		},
+	})
+	defs = append(defs, Definition{
+		name:      "BlankNullSequence",
+		toString: func(this *Expression) (bool, string) {
+			return ToStringBlankType("___", this.Parts)
+		},
+	})
+	return
 }

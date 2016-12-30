@@ -17,6 +17,8 @@ var format = logging.MustStringFormatter(
 	`%{color}%{time:15:04:05.000} %{callpath} ▶ %{id:03x}%{color:reset} %{message}`,
 )
 
+var toStringFns = make(map[string](func(*Expression) (bool, string)))
+
 type CASLogger struct {
 	_log       *logging.Logger
 	leveled    logging.LeveledBackend
@@ -58,12 +60,16 @@ type Definition struct {
 	// The symbol name, like "Mean", and "Total"
 	name      string
 	docstring string
+	// Currently used for SetDelayed, since other definitions depend on
+	// SetDelayed, we define it first.
 	bootstrap bool
 
 	// Regular rules to define
 	rules map[string]string
 	// Map symbol to Eval() function
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
+
+	toString (func(*Expression) (bool, string))
 
 	attributes []string
 }
@@ -79,6 +85,10 @@ func (this *EvalState) Load(def Definition) {
 
 	if def.legacyEvalFn != nil {
 		this.legacyEvalFns[def.name] = def.legacyEvalFn
+	}
+	if def.toString != nil {
+		// Global so that standard String() interface can access these
+		toStringFns[def.name] = def.toString
 	}
 }
 
@@ -102,6 +112,7 @@ func GetAllDefinitions() (defs map[string]([]Definition)) {
 	defs["system"] = GetSystemDefinitions()
 	defs["time"] = GetTimeDefinitions()
 	defs["times"] = GetTimesDefinitions()
+	defs["pattern"] = GetPatternDefinitions()
 	return
 }
 

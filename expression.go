@@ -193,7 +193,10 @@ func (this *Expression) String() string {
 	if isHeadSym && !fullForm {
 		res, ok := "", false
 		headStr := headAsSym.Name
-		if headStr == "Times" {
+		toStringFn, hasToStringFn := toStringFns[headStr]
+		if hasToStringFn {
+			ok, res = toStringFn(this)
+		} else if headStr == "Times" {
 			return this.ToStringTimes()
 		} else if headStr == "Plus" {
 			return this.ToStringPlus()
@@ -209,12 +212,6 @@ func (this *Expression) String() string {
 			return this.ToStringReplaceRepeated()
 		} else if headStr == "Pattern" {
 			return this.ToStringPattern()
-		} else if headStr == "Blank" {
-			ok, res = this.ToStringBlank()
-		} else if headStr == "BlankSequence" {
-			ok, res = this.ToStringBlankSequence()
-		} else if headStr == "BlankNullSequence" {
-			ok, res = this.ToStringBlankNullSequence()
 		} else if headStr == "Rule" {
 			return this.ToStringRule()
 		} else if headStr == "RuleDelayed" {
