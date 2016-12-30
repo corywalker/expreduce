@@ -84,6 +84,23 @@ func (this *EvalState) Load(def Definition) {
 func GetAllDefinitions() (defs map[string]([]Definition)) {
 	defs = make(map[string]([]Definition))
 	defs["list"] = GetListDefinitions()
+	defs["cas"] = GetCASDefinitions()
+	defs["combinatorics"] = GetCombinatoricsDefinitions()
+	defs["comparison"] = GetComparisonDefinitions()
+	defs["constants"] = GetConstantsDefinitions()
+	defs["expression"] = GetExpressionDefinitions()
+	defs["flowcontrol"] = GetFlowControlDefinitions()
+	defs["list"] = GetListDefinitions()
+	defs["order"] = GetOrderDefinitions()
+	defs["plus"] = GetPlusDefinitions()
+	defs["power"] = GetPowerDefinitions()
+	defs["random"] = GetRandomDefinitions()
+	defs["replacement"] = GetReplacementDefinitions()
+	defs["sort"] = GetSortDefinitions()
+	defs["symbol"] = GetSymbolDefinitions()
+	defs["system"] = GetSystemDefinitions()
+	defs["time"] = GetTimeDefinitions()
+	defs["times"] = GetTimesDefinitions()
 	return
 }
 
@@ -719,4 +736,8 @@ func (this *Expression) EvalClear(es *EvalState) Ex {
 		}
 	}
 	return &Symbol{"Null"}
+}
+
+func GetCASDefinitions() (defs []Definition) {
+	return
 }

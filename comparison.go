@@ -230,3 +230,7 @@ func (this *Expression) EvalMatchQ(es *EvalState) Ex {
 		return &Symbol{"False"}
 	}
 }
+
+func GetComparisonDefinitions() (defs []Definition) {
+	return
+}

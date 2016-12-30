@@ -132,3 +132,7 @@ func (this *Expression) EvalPermutations(es *EvalState) Ex {
 
 	return exPerms
 }
+
+func GetCombinatoricsDefinitions() (defs []Definition) {
+	return
+}

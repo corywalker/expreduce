@@ -274,3 +274,7 @@ func (this *Expression) EvalFactorial(es *EvalState) Ex {
 	}
 	return this
 }
+
+func GetTimesDefinitions() (defs []Definition) {
+	return
+}

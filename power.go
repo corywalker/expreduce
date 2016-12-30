@@ -114,3 +114,7 @@ func (this *Expression) ToStringPower() string {
 	buffer.WriteString(this.Parts[2].String())
 	return buffer.String()
 }
+
+func GetPowerDefinitions() (defs []Definition) {
+	return
+}

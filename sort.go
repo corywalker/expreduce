@@ -16,3 +16,7 @@ func (this *Expression) EvalSort(es *EvalState) Ex {
 	}
 	return this
 }
+
+func GetSortDefinitions() (defs []Definition) {
+	return
+}

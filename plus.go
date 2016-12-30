@@ -151,3 +151,7 @@ func (this *Expression) ToStringPlus() string {
 	buffer.WriteString(")")
 	return buffer.String()
 }
+
+func GetPlusDefinitions() (defs []Definition) {
+	return
+}

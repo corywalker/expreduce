@@ -39,3 +39,7 @@ func (this *Expression) EvalWhile(es *EvalState) Ex {
 
 	return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 }
+
+func GetFlowControlDefinitions() (defs []Definition) {
+	return
+}

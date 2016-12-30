@@ -495,3 +495,7 @@ func (this *Expression) EvalApply(es *EvalState) Ex {
 	}
 	return this.Parts[2]
 }
+
+func GetExpressionDefinitions() (defs []Definition) {
+	return
+}

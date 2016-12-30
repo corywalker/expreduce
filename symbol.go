@@ -110,3 +110,7 @@ func (this *Expression) ToStringSetDelayed() string {
 	buffer.WriteString(")")
 	return buffer.String()
 }
+
+func GetSymbolDefinitions() (defs []Definition) {
+	return
+}

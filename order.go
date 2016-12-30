@@ -101,3 +101,7 @@ func (this *Expression) EvalOrder(es *EvalState) Ex {
 	toreturn := ExOrder(this.Parts[1], this.Parts[2])
 	return &Integer{big.NewInt(toreturn)}
 }
+
+func GetOrderDefinitions() (defs []Definition) {
+	return
+}

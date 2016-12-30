@@ -221,3 +221,7 @@ func (this *Expression) EvalNumberQ(es *EvalState) Ex {
 	}
 	return &Symbol{"False"}
 }
+
+func GetConstantsDefinitions() (defs []Definition) {
+	return
+}

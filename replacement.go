@@ -138,3 +138,7 @@ func (this *Expression) ToStringReplaceRepeated() string {
 	buffer.WriteString(")")
 	return buffer.String()
 }
+
+func GetReplacementDefinitions() (defs []Definition) {
+	return
+}

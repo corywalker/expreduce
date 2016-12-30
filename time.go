@@ -10,3 +10,7 @@ func (this *Expression) EvalUnixTime(es *EvalState) Ex {
 
 	return &Integer{big.NewInt(time.Now().UTC().Unix())}
 }
+
+func GetTimeDefinitions() (defs []Definition) {
+	return
+}

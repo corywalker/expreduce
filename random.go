@@ -24,3 +24,7 @@ func (this *Expression) EvalSeedRandom(es *EvalState) Ex {
 
 	return this
 }
+
+func GetRandomDefinitions() (defs []Definition) {
+	return
+}

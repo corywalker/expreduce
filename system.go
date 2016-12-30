@@ -90,3 +90,7 @@ func (this *Expression) EvalHead(es *EvalState) Ex {
 	}
 	return this
 }
+
+func GetSystemDefinitions() (defs []Definition) {
+	return
+}
