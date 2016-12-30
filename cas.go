@@ -105,24 +105,11 @@ func GetAllDefinitions() (defs map[string]([]Definition)) {
 	return
 }
 
-func (es *EvalState) Init() {
+func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string][]Expression)
 	es.legacyEvalFns = make(map[string](func(*Expression, *EvalState) Ex))
-}
 
-func NewEvalState() *EvalState {
-	var es EvalState
-	es.Init()
-
-	// Set up logging
-	es.CASLogger._log = logging.MustGetLogger("example")
-	backend := logging.NewLogBackend(os.Stderr, "", 0)
-	formatter := logging.NewBackendFormatter(backend, format)
-	es.CASLogger.leveled = logging.AddModuleLevel(formatter)
-	logging.SetBackend(es.CASLogger.leveled)
-	es.DebugOff()
-
-	es.NoInit = false
+	es.NoInit = !loadAllDefs
 	if !es.NoInit {
 		// Init modules
 		for _, defs := range GetAllDefinitions() {
@@ -139,15 +126,28 @@ func NewEvalState() *EvalState {
 				}
 			}
 		}
-		InitCAS(&es)
+		InitCAS(es)
 	}
+}
+
+func NewEvalState() *EvalState {
+	var es EvalState
+	es.Init(true)
+
+	// Set up logging
+	es.CASLogger._log = logging.MustGetLogger("example")
+	backend := logging.NewLogBackend(os.Stderr, "", 0)
+	formatter := logging.NewBackendFormatter(backend, format)
+	es.CASLogger.leveled = logging.AddModuleLevel(formatter)
+	logging.SetBackend(es.CASLogger.leveled)
+	es.DebugOff()
 
 	return &es
 }
 
-func NewEvalStateNoLog() *EvalState {
+func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
 	var es EvalState
-	es.Init()
+	es.Init(loadAllDefs)
 	es.CASLogger.debugState = false
 	return &es
 }
@@ -174,6 +174,10 @@ func (this *CASLogger) DebugOn() {
 func (this *CASLogger) DebugOff() {
 	this.leveled.SetLevel(logging.ERROR, "")
 	this.debugState = false
+}
+
+func (this *CASLogger) DebugState() bool {
+	return this.debugState
 }
 
 func (this *CASLogger) Pre() string {

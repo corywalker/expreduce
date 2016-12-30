@@ -54,7 +54,7 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 		if len(patternTest.Parts) == 3 {
 			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), cl)
 			if matchq {
-				tmpEs := NewEvalStateNoLog()
+				tmpEs := NewEvalStateNoLog(true)
 				res := (&Expression{[]Ex{
 					patternTest.Parts[2],
 					a,
@@ -75,7 +75,7 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 		if len(condition.Parts) == 3 {
 			matchq, newPD := IsMatchQ(a, condition.Parts[1], EmptyPD(), cl)
 			if matchq {
-				tmpEs := NewEvalStateNoLog()
+				tmpEs := NewEvalStateNoLog(true)
 				res := condition.Parts[2].DeepCopy()
 				res = ReplacePD(res, cl, newPD).Eval(tmpEs)
 				resSymbol, resIsSymbol := res.(*Symbol)

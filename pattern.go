@@ -193,7 +193,7 @@ func BlankSequenceToBlank(bs *Expression) *Expression {
 func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) bool {
 	toReturn := true
 	for _, e := range array {
-		tmpEs := NewEvalStateNoLog()
+		tmpEs := NewEvalStateNoLog(false)
 		isMatch, _ := IsMatchQ(e, blank, EmptyPD(), &tmpEs.CASLogger)
 		cl.Debugf("%v %v %v", e, blank, isMatch)
 		toReturn = toReturn && isMatch
