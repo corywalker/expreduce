@@ -106,8 +106,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				currEx = theRes
 			} else if hasLegacyEvalFn {
 				currEx = legacyEvalFn(curr, es)
-			} else if headStr == "Apply" {
-				currEx = curr.EvalApply(es)
 			}
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
@@ -399,22 +397,23 @@ func (this *Expression) Swap(i, j int) {
 	this.Parts[j+1], this.Parts[i+1] = this.Parts[i+1], this.Parts[j+1]
 }
 
-// Apply
-func (this *Expression) EvalApply(es *EvalState) Ex {
-	if len(this.Parts) != 3 {
-		return this
-	}
-
-	sym, isSym := this.Parts[1].(*Symbol)
-	list, isList := HeadAssertion(this.Parts[2].DeepCopy(), "List")
-	if isSym && isList {
-		toReturn := &Expression{[]Ex{sym}}
-		toReturn.Parts = append(toReturn.Parts, list.Parts[1:]...)
-		return toReturn.Eval(es)
-	}
-	return this.Parts[2]
-}
-
 func GetExpressionDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name:      "Apply",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			sym, isSym := this.Parts[1].(*Symbol)
+			list, isList := HeadAssertion(this.Parts[2].DeepCopy(), "List")
+			if isSym && isList {
+				toReturn := &Expression{[]Ex{sym}}
+				toReturn.Parts = append(toReturn.Parts, list.Parts[1:]...)
+				return toReturn.Eval(es)
+			}
+			return this.Parts[2]
+		},
+	})
 	return
 }
