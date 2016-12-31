@@ -124,6 +124,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 @@ return APPLYSYM
 \/@ return MAPSYM
 \? return PATTESTSYM
+:: return MESSAGENAMESYM
 
 {pattern}
     delim := "_"

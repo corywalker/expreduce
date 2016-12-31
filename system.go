@@ -104,5 +104,27 @@ func GetSystemDefinitions() (defs []Definition) {
 			return this
 		},
 	})
+	defs = append(defs, Definition{
+		name: "MessageName",
+		rules: map[string]string{
+			"MessageName[symmatch_,tagmatch_Symbol]": "MessageName[symmatch,ToString[tagmatch,InputForm]]",
+		},
+	})
+	defs = append(defs, Definition{
+		name: "ToString",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			asSymbol, IsSymbol := this.Parts[2].(*Symbol)
+			if IsSymbol {
+				if asSymbol.Name == "InputForm" {
+					return &String{this.Parts[1].String()}
+				}
+			}
+			return this
+		},
+	})
 	return
 }

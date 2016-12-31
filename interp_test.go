@@ -57,4 +57,8 @@ func TestInterp(t *testing.T) {
 	CasAssertSame(t, es, "Hold[Condition[List[Pattern[x, Blank[]], Pattern[x, Blank[]]], Equal[Plus[x, x], 2]]]", "Hold[{x_,x_}/;x+x==2]")
 	CasAssertSame(t, es, "Hold[SetDelayed[foo[Pattern[x, Blank[]]], Condition[bar[x], Equal[x, 0]]]]", "Hold[foo[x_] := bar[x] /; x == 0]")
 	CasAssertSame(t, es, "Hold[ReplaceAll[List[5, 0, -5], Rule[Condition[Pattern[y, Blank[]], Equal[y, 0]], z]]]", "Hold[{5, 0, -5} /. y_ /; y == 0 -> z]")
+
+	// Test MessageName
+	CasAssertSame(t, es, "Hold[MessageName[a,b]]", "Hold[a::b]")
+	CasAssertSame(t, es, "MessageName[a,\"b\"]", "a::b")
 }
