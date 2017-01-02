@@ -1,25 +1,13 @@
 package cas
 
-import "bytes"
 import "math/big"
-
-func (this *Expression) ToStringPlus() string {
-	addends := this.Parts[1:len(this.Parts)]
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	for i, e := range addends {
-		buffer.WriteString(e.String())
-		if i != len(addends)-1 {
-			buffer.WriteString(" + ")
-		}
-	}
-	buffer.WriteString(")")
-	return buffer.String()
-}
 
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Plus",
+		rules: map[string]string{
+			"Format[Plus[args___], InputForm]": "Infix[{args}, \" + \"]",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values
 			if len(this.Parts) == 1 {

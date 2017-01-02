@@ -59,7 +59,7 @@ D  [0-9]+
 /*F  {D}"."{D}?{E}?|{D}{E}?|"."{D}{E}?*/
 F  {D}"."{D}?|"."{D}|{D}
 S \"(\\.|[^"])*\"
-L [A-Za-z]
+L [A-Za-z$]
 ident {L}({L}|{D})*
 contextedIdent ({ident}"`")*{ident}
 blanks ___|__|_
@@ -122,6 +122,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 \/\/ return POSTFIXSYM
 @ return FUNCAPPSYM
 @@ return APPLYSYM
+\<> return STRINGJOINSYM
 \/@ return MAPSYM
 \? return PATTESTSYM
 :: return MESSAGENAMESYM

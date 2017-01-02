@@ -1,27 +1,5 @@
 package cas
 
-import "bytes"
-
-func (this *Expression) ToStringRule() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") -> (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func (this *Expression) ToStringRuleDelayed() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") :> (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
 func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 	cl.Infof("In ReplacePD(%v, pm=%v)", this, pm)
 	toReturn := this.DeepCopy()
@@ -61,29 +39,12 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 	return &Symbol{"ReplaceAllFailed"}
 }
 
-func (this *Expression) ToStringReplaceAll() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") /. (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func (this *Expression) ToStringReplaceRepeated() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") //. (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
 func GetReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "ReplaceAll",
+		rules: map[string]string{
+			"Format[ReplaceAll[lhs_, rhs_], InputForm]": "InfixAdvanced[{lhs, rhs}, \" /. \", True, \"(\", \")\"]",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -119,6 +80,9 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "ReplaceRepeated",
+		rules: map[string]string{
+			"Format[ReplaceRepeated[lhs_, rhs_], InputForm]": "InfixAdvanced[{lhs, rhs}, \" //. \", True, \"(\", \")\"]",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -142,6 +106,18 @@ func GetReplacementDefinitions() (defs []Definition) {
 				oldEx = newEx
 			}
 			return oldEx
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Rule",
+		rules: map[string]string{
+			"Format[Rule[lhs_, rhs_], InputForm]": "InfixAdvanced[{lhs, rhs}, \" //. \", True, \"(\", \")\"]",
+		},
+	})
+	defs = append(defs, Definition{
+		name: "RuleDelayed",
+		rules: map[string]string{
+			"Format[RuleDelayed[lhs_, rhs_], InputForm]": "InfixAdvanced[{lhs, rhs}, \" //. \", True, \"(\", \")\"]",
 		},
 	})
 	return

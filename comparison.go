@@ -1,27 +1,5 @@
 package cas
 
-import "bytes"
-
-func (this *Expression) ToStringEqual() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") == (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func (this *Expression) ToStringSameQ() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") === (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
 func IsMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	return IsMatchQ(
 		&Expression{[]Ex{
@@ -192,6 +170,9 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Equal",
+		rules: map[string]string{
+			"Format[Equal[args___], InputForm]": "Infix[{args}, \" == \"]",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -211,6 +192,9 @@ func GetComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "SameQ",
+		rules: map[string]string{
+			"Format[SameQ[args___], InputForm]": "Infix[{args}, \" === \"]",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this

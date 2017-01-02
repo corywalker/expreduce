@@ -3,7 +3,7 @@ package cas
 import "bytes"
 import "math/big"
 
-func (this *Expression) ToStringList() string {
+func (this *Expression) ToStringList() (bool, string) {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range this.Parts[1:] {
@@ -13,7 +13,7 @@ func (this *Expression) ToStringList() string {
 		}
 	}
 	buffer.WriteString("}")
-	return buffer.String()
+	return true, buffer.String()
 }
 
 type IterSpec struct {
@@ -199,6 +199,10 @@ func CalcDepth(ex Ex) int {
 }
 
 func GetListDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name:      "List",
+		toString: (*Expression).ToStringList,
+	})
 	defs = append(defs, Definition{
 		name:      "Total",
 		docstring: "Sum all the values in the list.",

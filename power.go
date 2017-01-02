@@ -1,22 +1,16 @@
 package cas
 
 import (
-	"bytes"
 	"github.com/corywalker/mathbigext"
 	"math/big"
 )
 
-func (this *Expression) ToStringPower() string {
-	var buffer bytes.Buffer
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString("^")
-	buffer.WriteString(this.Parts[2].String())
-	return buffer.String()
-}
-
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Power",
+		rules: map[string]string{
+			"Format[Power[args___], InputForm]": "Infix[{args}, \"^\"]",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this

@@ -1,7 +1,6 @@
 package cas
 
 import "fmt"
-import "bytes"
 
 // Symbols are defined by a string-based name
 type Symbol struct {
@@ -46,29 +45,12 @@ func (this *Symbol) DeepCopy() Ex {
 	return &thiscopy
 }
 
-func (this *Expression) ToStringSet() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") = (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
-func (this *Expression) ToStringSetDelayed() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	buffer.WriteString(this.Parts[1].String())
-	buffer.WriteString(") := (")
-	buffer.WriteString(this.Parts[2].String())
-	buffer.WriteString(")")
-	return buffer.String()
-}
-
 func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Set",
+		rules: map[string]string{
+			"Format[Set[lhs_, rhs_], InputForm]": "InfixAdvanced[{lhs, rhs}, \" = \", True, \"(\", \")\"]",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -94,6 +76,9 @@ func GetSymbolDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name:      "SetDelayed",
+		rules: map[string]string{
+			"Format[SetDelayed[lhs_, rhs_], InputForm]": "InfixAdvanced[{lhs, rhs}, \" := \", True, \"(\", \")\"]",
+		},
 		bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

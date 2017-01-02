@@ -2,23 +2,6 @@ package cas
 
 import "bytes"
 
-func (this *Expression) ToStringPattern() string {
-	var buffer bytes.Buffer
-	if false {
-		buffer.WriteString("Pattern[")
-		buffer.WriteString(this.Parts[1].String())
-		buffer.WriteString(", ")
-		// Assuming Obj will always be a Blank[] Expression
-		buffer.WriteString(this.Parts[2].String())
-		buffer.WriteString("]")
-	} else {
-		buffer.WriteString(this.Parts[1].String())
-		// Assuming Obj will always be a Blank[] Expression
-		buffer.WriteString(this.Parts[2].String())
-	}
-	return buffer.String()
-}
-
 func ToStringBlankType(repr string, parts []Ex) (bool, string) {
 	if len(parts) == 1 {
 		return true, repr
@@ -190,6 +173,12 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 }
 
 func GetPatternDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		name:      "Pattern",
+		rules: map[string]string{
+			"Format[Pattern[amatch_, bmatch_], InputForm]": "ToString[amatch, InputForm] <> ToString[bmatch, InputForm]",
+		},
+	})
 	defs = append(defs, Definition{
 		name:      "Blank",
 		toString: func(this *Expression) (bool, string) {

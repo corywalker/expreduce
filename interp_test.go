@@ -61,4 +61,7 @@ func TestInterp(t *testing.T) {
 	// Test MessageName
 	CasAssertSame(t, es, "Hold[MessageName[a,b]]", "Hold[a::b]")
 	CasAssertSame(t, es, "MessageName[a,\"b\"]", "a::b")
+
+	// Test StringJoin
+	CasAssertSame(t, es, "StringJoin[\"a\", \" world\", \"hi\"]", "\"a\" <> \" world\" <> \"hi\"")
 }

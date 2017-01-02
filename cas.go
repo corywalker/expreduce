@@ -110,6 +110,7 @@ func GetAllDefinitions() (defs map[string]([]Definition)) {
 	defs["sort"] = GetSortDefinitions()
 	defs["symbol"] = GetSymbolDefinitions()
 	defs["system"] = GetSystemDefinitions()
+	defs["string"] = GetStringDefinitions()
 	defs["time"] = GetTimeDefinitions()
 	defs["times"] = GetTimesDefinitions()
 	defs["pattern"] = GetPatternDefinitions()

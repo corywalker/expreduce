@@ -194,32 +194,6 @@ func (this *Expression) String() string {
 		toStringFn, hasToStringFn := toStringFns[headStr]
 		if hasToStringFn {
 			ok, res = toStringFn(this)
-		} else if headStr == "Times" {
-			return this.ToStringTimes()
-		} else if headStr == "Plus" {
-			return this.ToStringPlus()
-		} else if headStr == "Power" {
-			return this.ToStringPower()
-		} else if headStr == "Equal" {
-			return this.ToStringEqual()
-		} else if headStr == "SameQ" {
-			return this.ToStringSameQ()
-		} else if headStr == "ReplaceAll" {
-			return this.ToStringReplaceAll()
-		} else if headStr == "ReplaceRepeated" {
-			return this.ToStringReplaceRepeated()
-		} else if headStr == "Pattern" {
-			return this.ToStringPattern()
-		} else if headStr == "Rule" {
-			return this.ToStringRule()
-		} else if headStr == "RuleDelayed" {
-			return this.ToStringRuleDelayed()
-		} else if headStr == "Set" {
-			return this.ToStringSet()
-		} else if headStr == "SetDelayed" {
-			return this.ToStringSetDelayed()
-		} else if headStr == "List" {
-			return this.ToStringList()
 		}
 		if ok {
 			return res
@@ -296,6 +270,8 @@ func IsFlat(sym *Symbol) bool {
 	if sym.Name == "Times" {
 		return true
 	} else if sym.Name == "Plus" {
+		return true
+	} else if sym.Name == "StringJoin" {
 		return true
 	}
 	return false
@@ -416,4 +392,46 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	return
+}
+
+func (this *Expression) Format(es *EvalState, form string) Ex {
+	// Similar to do_format() method in Mathics
+
+	res, isFormatDef := es.GetDef("Format", &Expression{[]Ex{
+		&Symbol{"Format"},
+		this,
+		&Symbol{form},
+	}})
+	if isFormatDef {
+		res = res.Eval(es)
+		resAsExpr, resIsExpr := res.(*Expression)
+		if resIsExpr {
+			return resAsExpr.Format(es, form)
+		}
+		return res
+	}
+
+	if len(this.Parts) > 1 {
+		headSym, headIsSym := this.Parts[0].(*Symbol)
+		if headIsSym {
+			if headSym.Name == "InputForm" || headSym.Name == "FullForm" {
+				asExpr, isExpr := this.Parts[1].(*Expression)
+				if !isExpr {
+					return this.Parts[1]
+				}
+				return asExpr.Format(es, headSym.Name)
+			}
+		}
+	}
+
+	newParts := []Ex{}
+	for i := range this.Parts {
+		asExpr, isExpr := this.Parts[i].(*Expression)
+		if !isExpr {
+			newParts = append(newParts, this.Parts[i])
+			continue
+		}
+		newParts = append(newParts, asExpr.Format(es, form))
+	}
+	return &Expression{newParts}
 }

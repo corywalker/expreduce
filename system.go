@@ -3,6 +3,91 @@ package cas
 import "math/big"
 import "time"
 import "fmt"
+import "bytes"
+
+func (this *Expression) ToStringInfix() (bool, string) {
+	if len(this.Parts) != 3 {
+		return false, ""
+	}
+	expr, isExpr := this.Parts[1].(*Expression)
+	delim, delimIsStr := this.Parts[2].(*String)
+	if !isExpr || !delimIsStr {
+		return false, ""
+	}
+	if len(expr.Parts) < 3 {
+		return false, ""
+	}
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	for i := 1; i < len(expr.Parts); i++ {
+		buffer.WriteString(expr.Parts[i].String())
+		if i != len(expr.Parts)-1 {
+			buffer.WriteString(delim.Val)
+		}
+	}
+	buffer.WriteString(")")
+	return true, buffer.String()
+}
+
+func TrueQ(ex Ex) bool {
+	asSym, isSym := ex.(*Symbol)
+	if !isSym {
+		return false
+	}
+	if !(asSym.Name == "True") {
+		return false
+	}
+	return true
+}
+
+func (this *Expression) ToStringInfixAdvanced() (bool, string) {
+	if len(this.Parts) != 6 {
+		return false, ""
+	}
+	expr, isExpr := this.Parts[1].(*Expression)
+	delim, delimIsStr := this.Parts[2].(*String)
+	start, startIsStr := this.Parts[4].(*String)
+	end, endIsStr := this.Parts[5].(*String)
+	if !isExpr || !delimIsStr || !startIsStr || !endIsStr {
+		return false, ""
+	}
+	if len(expr.Parts) < 3 {
+		return false, ""
+	}
+	surroundEachArg := TrueQ(this.Parts[3])
+	var buffer bytes.Buffer
+	if !surroundEachArg {
+		buffer.WriteString(start.Val)
+	}
+	for i := 1; i < len(expr.Parts); i++ {
+		if surroundEachArg {
+			buffer.WriteString("(")
+			buffer.WriteString(expr.Parts[i].String())
+			buffer.WriteString(")")
+		} else {
+			buffer.WriteString(expr.Parts[i].String())
+		}
+		if i != len(expr.Parts)-1 {
+			buffer.WriteString(delim.Val)
+		}
+	}
+	if !surroundEachArg {
+		buffer.WriteString(end.Val)
+	}
+	return true, buffer.String()
+}
+
+func GetString(ex Ex, form string, es *EvalState) string {
+	str, isStr := ((&Expression{[]Ex{
+		&Symbol{"ToString"},
+		ex,
+		&Symbol{form},
+	}}).Eval(es)).(*String)
+	if isStr {
+		return str.Val
+	}
+	return "ERROR: RESULT WAS NOT STRING!"
+}
 
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
@@ -111,20 +196,12 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "ToString",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
-				return this
-			}
-
-			asSymbol, IsSymbol := this.Parts[2].(*Symbol)
-			if IsSymbol {
-				if asSymbol.Name == "InputForm" {
-					return &String{this.Parts[1].String()}
-				}
-			}
-			return this
-		},
+		name: "Infix",
+		toString: (*Expression).ToStringInfix,
+	})
+	defs = append(defs, Definition{
+		name: "InfixAdvanced",
+		toString: (*Expression).ToStringInfixAdvanced,
 	})
 	return
 }

@@ -34,8 +34,10 @@ func main() {
 		}
 
 		exp := cas.Interp(line)
-		fmt.Printf("In:  %s\n", exp)
+		// TODO: this actually evaluates the input. Fix this.
+		//fmt.Printf("In:  %s\n", cas.GetString(exp, "InputForm", es))
+		fmt.Printf("In:  %s\n", exp.String())
 		res := exp.Eval(es)
-		fmt.Printf("Out: %s\n", res)
+		fmt.Printf("Out: %s\n", cas.GetString(res, "InputForm", es))
 	}
 }
