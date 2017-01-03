@@ -2,7 +2,10 @@ package cas
 
 import "bytes"
 
-func ToStringBlankType(repr string, parts []Ex) (bool, string) {
+func ToStringBlankType(repr string, parts []Ex, form string) (bool, string) {
+	if form == "FullForm" {
+		return false, ""
+	}
 	if len(parts) == 1 {
 		return true, repr
 	} else if len(parts) == 2 {
@@ -181,20 +184,20 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name:      "Blank",
-		toString: func(this *Expression) (bool, string) {
-			return ToStringBlankType("_", this.Parts)
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringBlankType("_", this.Parts, form)
 		},
 	})
 	defs = append(defs, Definition{
 		name:      "BlankSequence",
-		toString: func(this *Expression) (bool, string) {
-			return ToStringBlankType("__", this.Parts)
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringBlankType("__", this.Parts, form)
 		},
 	})
 	defs = append(defs, Definition{
 		name:      "BlankNullSequence",
-		toString: func(this *Expression) (bool, string) {
-			return ToStringBlankType("___", this.Parts)
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringBlankType("___", this.Parts, form)
 		},
 	})
 	return

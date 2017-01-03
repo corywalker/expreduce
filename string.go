@@ -1,5 +1,17 @@
 package cas
 
+func GetString(ex Ex, form string, es *EvalState) string {
+	str, isStr := ((&Expression{[]Ex{
+		&Symbol{"ToString"},
+		ex,
+		&Symbol{form},
+	}}).Eval(es)).(*String)
+	if isStr {
+		return str.Val
+	}
+	return "ERROR: RESULT WAS NOT STRING!"
+}
+
 func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "ToString",
@@ -24,11 +36,11 @@ func GetStringDefinitions() (defs []Definition) {
 			exAsExpr, exIsExpr := this.Parts[1].(*Expression)
 			var toStringify Ex
 			if exIsExpr {
-				toStringify = exAsExpr.Format(es, formAsSymbol.Name)
+				toStringify = exAsExpr.Format(es, formAsSymbol.Name, true)
 			} else {
 				toStringify = this.Parts[1]
 			}
-			return &String{toStringify.String()}
+			return &String{toStringify.StringForm(formAsSymbol.Name)}
 		},
 	})
 	defs = append(defs, Definition{

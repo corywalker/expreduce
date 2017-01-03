@@ -17,7 +17,8 @@ var format = logging.MustStringFormatter(
 	`%{color}%{time:15:04:05.000} %{callpath} ▶ %{id:03x}%{color:reset} %{message}`,
 )
 
-var toStringFns = make(map[string](func(*Expression) (bool, string)))
+type ToStringFnType (func(*Expression, string) (bool, string))
+var toStringFns = make(map[string]ToStringFnType)
 
 type CASLogger struct {
 	_log       *logging.Logger
@@ -69,7 +70,7 @@ type Definition struct {
 	// Map symbol to Eval() function
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
 
-	toString (func(*Expression) (bool, string))
+	toString ToStringFnType
 
 	attributes []string
 }
@@ -313,6 +314,7 @@ func (this *PDManager) String() string {
 type Ex interface {
 	Eval(es *EvalState) Ex
 	String() string
+	StringForm(form string) string
 	IsEqual(b Ex, cl *CASLogger) string
 	DeepCopy() Ex
 }

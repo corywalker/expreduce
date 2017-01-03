@@ -16,11 +16,15 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Symbol) String() string {
+func (this *Symbol) StringForm(form string) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
 	return fmt.Sprintf("%v", this.Name)
+}
+
+func (this *Symbol) String() string {
+	return this.StringForm("InputForm")
 }
 
 func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {

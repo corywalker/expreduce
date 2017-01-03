@@ -68,7 +68,7 @@ func TestConstants(t *testing.T) {
 	}}
 	var res Ex = a.Eval(es)
 	//assert.Equal(t, "(-1.0000000000000003e+360 * x)", res.String())
-	assert.Equal(t, "(-1e+360. * x)", res.String())
+	assert.Equal(t, "(-1e+360. * x)", GetString(res, "InputForm", es))
 
 	a = &Symbol{"True"}
 	assert.Equal(t, "True", a.String())
@@ -81,9 +81,9 @@ func TestConstants(t *testing.T) {
 	//fmt.Println(a.String())
 
 	a = &Expression{[]Ex{&Symbol{"Error"}, &String{"First error"}}}
-	assert.Equal(t, "Error[First error]", a.String())
+	assert.Equal(t, "Error[\"First error\"]", a.String())
 	b = &Expression{[]Ex{&Symbol{"Error"}, &String{"Second error"}}}
-	assert.Equal(t, "Error[Second error]", b.String())
+	assert.Equal(t, "Error[\"Second error\"]", b.String())
 	assert.Equal(t, "EQUAL_TRUE", a.IsEqual(a, &es.CASLogger))
 	assert.Equal(t, "EQUAL_TRUE", b.IsEqual(b, &es.CASLogger))
 	assert.Equal(t, "EQUAL_UNK", a.IsEqual(b, &es.CASLogger))

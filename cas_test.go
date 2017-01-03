@@ -30,9 +30,6 @@ func Test(t *testing.T) {
 		&Flt{big.NewFloat(2)},
 		&Flt{big.NewFloat(2.5)},
 	}}
-	assert.Equal(t, "((80. + 3.) + 2. + 2.5)", a.String())
-	//fmt.Println(a)
-	//fmt.Println(a.String())
 
 	// Test equality checking
 	assert.Equal(t, "EQUAL_TRUE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}, &es.CASLogger))

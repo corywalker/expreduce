@@ -185,7 +185,7 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {
 	return this
 }
 
-func (this *Expression) String() string {
+func (this *Expression) StringForm(form string) string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm {
@@ -193,7 +193,7 @@ func (this *Expression) String() string {
 		headStr := headAsSym.Name
 		toStringFn, hasToStringFn := toStringFns[headStr]
 		if hasToStringFn {
-			ok, res = toStringFn(this)
+			ok, res = toStringFn(this, form)
 		}
 		if ok {
 			return res
@@ -215,6 +215,10 @@ func (this *Expression) String() string {
 	}
 	buffer.WriteString("]")
 	return buffer.String()
+}
+
+func (this *Expression) String() string {
+	return this.StringForm("InputForm")
 }
 
 func IsAttribute(sm *Symbol, attr string, es *EvalState) bool {
@@ -394,7 +398,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 	return
 }
 
-func (this *Expression) Format(es *EvalState, form string) Ex {
+func (this *Expression) Format(es *EvalState, form string, root bool) Ex {
 	// Similar to do_format() method in Mathics
 
 	res, isFormatDef := es.GetDef("Format", &Expression{[]Ex{
@@ -406,12 +410,12 @@ func (this *Expression) Format(es *EvalState, form string) Ex {
 		res = res.Eval(es)
 		resAsExpr, resIsExpr := res.(*Expression)
 		if resIsExpr {
-			return resAsExpr.Format(es, form)
+			return resAsExpr.Format(es, form, false)
 		}
 		return res
 	}
 
-	if len(this.Parts) > 1 {
+	if len(this.Parts) > 1 && root {
 		headSym, headIsSym := this.Parts[0].(*Symbol)
 		if headIsSym {
 			if headSym.Name == "InputForm" || headSym.Name == "FullForm" {
@@ -419,7 +423,7 @@ func (this *Expression) Format(es *EvalState, form string) Ex {
 				if !isExpr {
 					return this.Parts[1]
 				}
-				return asExpr.Format(es, headSym.Name)
+				return asExpr.Format(es, headSym.Name, false)
 			}
 		}
 	}
@@ -431,7 +435,7 @@ func (this *Expression) Format(es *EvalState, form string) Ex {
 			newParts = append(newParts, this.Parts[i])
 			continue
 		}
-		newParts = append(newParts, asExpr.Format(es, form))
+		newParts = append(newParts, asExpr.Format(es, form, false))
 	}
 	return &Expression{newParts}
 }

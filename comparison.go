@@ -171,7 +171,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Equal",
 		rules: map[string]string{
-			"Format[Equal[args___], InputForm]": "Infix[{args}, \" == \"]",
+			"Format[Equal[args___], InputForm]": "InfixAdvanced[{args}, \" == \", True, \"(\", \")\"]",
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -193,7 +193,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "SameQ",
 		rules: map[string]string{
-			"Format[SameQ[args___], InputForm]": "Infix[{args}, \" === \"]",
+			"Format[SameQ[args___], InputForm]": "InfixAdvanced[{args}, \" === \", True, \"(\", \")\"]",
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

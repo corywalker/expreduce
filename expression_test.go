@@ -13,15 +13,8 @@ func TestExpression(t *testing.T) {
 
 	es := NewEvalState()
 
-	var t1 = &Expression{
-		[]Ex{
-			&Symbol{"Power"},
-			&Flt{big.NewFloat(5)},
-			&Flt{big.NewFloat(3)},
-		},
-	}
-	assert.Equal(t, "5.^3.", t1.String())
-	assert.Equal(t, "5^3", Interp("Power[ 5,3 ]").String())
+	assert.Equal(t, "Hold[5^3]", EasyRun("Hold[Power[5, 3]]", es))
+	assert.Equal(t, "Hold[5.^3.]", EasyRun("Hold[Power[5., 3.]]", es))
 	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").String())
 	assert.Equal(t, "my2func[]", Interp("my2func[  ]").String())
 
@@ -142,6 +135,7 @@ func TestExpression(t *testing.T) {
 	CasAssertSame(t, es, "a b", "Times @@ {a, b}")
 
 	// Test Evaluate
+	es.ClearAll()
 	assert.Equal(t, "Hold[4, (2 + 1)]", EasyRun("Hold[Evaluate[1 + 3], 2 + 1]", es))
 	assert.Equal(t, "Hold[foo[Evaluate[(1 + 1)]]]", EasyRun("Hold[foo[Evaluate[1 + 1]]]", es))
 	assert.Equal(t, "Hold[4, 7, (2 + 1)]", EasyRun("Hold[Evaluate[1 + 3, 5 + 2], 2 + 1]", es))

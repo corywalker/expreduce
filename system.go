@@ -5,7 +5,7 @@ import "time"
 import "fmt"
 import "bytes"
 
-func (this *Expression) ToStringInfix() (bool, string) {
+func (this *Expression) ToStringInfix(form string) (bool, string) {
 	if len(this.Parts) != 3 {
 		return false, ""
 	}
@@ -40,7 +40,7 @@ func TrueQ(ex Ex) bool {
 	return true
 }
 
-func (this *Expression) ToStringInfixAdvanced() (bool, string) {
+func (this *Expression) ToStringInfixAdvanced(form string) (bool, string) {
 	if len(this.Parts) != 6 {
 		return false, ""
 	}
@@ -75,18 +75,6 @@ func (this *Expression) ToStringInfixAdvanced() (bool, string) {
 		buffer.WriteString(end.Val)
 	}
 	return true, buffer.String()
-}
-
-func GetString(ex Ex, form string, es *EvalState) string {
-	str, isStr := ((&Expression{[]Ex{
-		&Symbol{"ToString"},
-		ex,
-		&Symbol{form},
-	}}).Eval(es)).(*String)
-	if isStr {
-		return str.Val
-	}
-	return "ERROR: RESULT WAS NOT STRING!"
 }
 
 func GetSystemDefinitions() (defs []Definition) {

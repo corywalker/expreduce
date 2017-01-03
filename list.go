@@ -3,7 +3,10 @@ package cas
 import "bytes"
 import "math/big"
 
-func (this *Expression) ToStringList() (bool, string) {
+func (this *Expression) ToStringList(form string) (bool, string) {
+	if form == "FullForm" {
+		return false, ""
+	}
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range this.Parts[1:] {

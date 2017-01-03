@@ -13,13 +13,17 @@ func (f *Flt) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (f *Flt) String() string {
+func (f *Flt) StringForm(form string) string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("%.6g", f.Val))
 	if bytes.IndexRune(buffer.Bytes(), '.') == -1 {
 		buffer.WriteString(".")
 	}
 	return buffer.String()
+}
+
+func (this *Flt) String() string {
+	return this.StringForm("InputForm")
 }
 
 func (this *Flt) IsEqual(other Ex, cl *CASLogger) string {
@@ -62,8 +66,12 @@ func (f *Integer) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (f *Integer) String() string {
+func (f *Integer) StringForm(form string) string {
 	return fmt.Sprintf("%d", f.Val)
+}
+
+func (this *Integer) String() string {
+	return this.StringForm("InputForm")
 }
 
 func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {
@@ -139,8 +147,12 @@ func (this *Rational) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Rational) String() string {
+func (this *Rational) StringForm(form string) string {
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)
+}
+
+func (this *Rational) String() string {
+	return this.StringForm("InputForm")
 }
 
 func (this *Rational) IsEqual(other Ex, cl *CASLogger) string {
@@ -171,8 +183,12 @@ func (this *String) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *String) String() string {
+func (this *String) StringForm(form string) string {
 	return fmt.Sprintf("\"%v\"", this.Val)
+}
+
+func (this *String) String() string {
+	return this.StringForm("InputForm")
 }
 
 func (this *String) IsEqual(other Ex, cl *CASLogger) string {
