@@ -125,6 +125,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 \<> return STRINGJOINSYM
 \/@ return MAPSYM
 \? return PATTESTSYM
+\| return ALTSYM
 :: return MESSAGENAMESYM
 
 {pattern}

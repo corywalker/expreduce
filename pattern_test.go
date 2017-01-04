@@ -154,4 +154,13 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "Hold[Plus[a,b,c]]", "fooPlus[Plus[a, b, c]]")
 	CasAssertSame(t, es, "Hold[a, b, c]", "fooList[List[a, b, c]]")
 	CasAssertSame(t, es, "Hold[a, b, c]", "fooBlank[Plus[a, b, c]]")
+
+	// Test Alternatives
+	CasAssertSame(t, es, "Alternatives[c,d]", "c | d")
+	CasAssertSame(t, es, "False", "MatchQ[b, c | d]")
+	CasAssertSame(t, es, "True", "MatchQ[c, c | d]")
+	CasAssertSame(t, es, "True", "MatchQ[d, c | d]")
+	CasAssertSame(t, es, "{c, 1, 2}", "Cases[{a, b, c, 1, 2}, c | _Integer]")
+	CasAssertSame(t, es, "(1 + List)[1 + a, 1 + b, 1 + c, 1., 3]", "{a, b, c, 1., 2} /. amatch_Symbol | amatch_Integer -> amatch + 1")
+	CasAssertSame(t, es, "{b, c, d, e}", "Cases[{a, b, c, d, e, f}, b | c | d | e]")
 }

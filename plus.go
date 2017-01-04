@@ -6,7 +6,7 @@ func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Plus",
 		rules: map[string]string{
-			"Format[Plus[args___], InputForm]": "Infix[{args}, \" + \"]",
+			"Format[Plus[args___], InputForm|OutputForm]": "Infix[{args}, \" + \"]",
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values

@@ -26,6 +26,17 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 			return false, pm
 		}
 	}
+	// Special case for Alternatives
+	alts, isAlts := HeadAssertion(b, "Alternatives")
+	if isAlts {
+		for _, alt := range alts.Parts[1:] {
+			matchq, newPD := IsMatchQ(a, alt, EmptyPD(), cl)
+			if matchq {
+				return matchq, newPD
+			}
+		}
+		return false, pm
+	}
 	// Special case for PatternTest
 	patternTest, isPT := HeadAssertion(b, "PatternTest")
 	if isPT {
@@ -171,7 +182,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Equal",
 		rules: map[string]string{
-			"Format[Equal[args___], InputForm]": "InfixAdvanced[{args}, \" == \", True, \"(\", \")\"]",
+			"Format[Equal[args___], InputForm|OutputForm]": "InfixAdvanced[{args}, \" == \", True, \"(\", \")\"]",
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -193,7 +204,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "SameQ",
 		rules: map[string]string{
-			"Format[SameQ[args___], InputForm]": "InfixAdvanced[{args}, \" === \", True, \"(\", \")\"]",
+			"Format[SameQ[args___], InputForm|OutputForm]": "InfixAdvanced[{args}, \" === \", True, \"(\", \")\"]",
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

@@ -179,7 +179,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name:      "Pattern",
 		rules: map[string]string{
-			"Format[Pattern[amatch_, bmatch_], InputForm]": "ToString[amatch, InputForm] <> ToString[bmatch, InputForm]",
+			"Format[Pattern[amatch_, bmatch_], InputForm|OutputForm]": "ToString[amatch, InputForm] <> ToString[bmatch, InputForm]",
 		},
 	})
 	defs = append(defs, Definition{

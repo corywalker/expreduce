@@ -9,7 +9,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Power",
 		rules: map[string]string{
-			"Format[Power[args___], InputForm]": "InfixAdvanced[{args}, \"^\", False, \"\", \"\"]",
+			"Format[Power[args___], InputForm|OutputForm]": "InfixAdvanced[{args}, \"^\", False, \"\", \"\"]",
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

@@ -41,7 +41,7 @@ func GetTimesDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Times",
 		rules: map[string]string{
-			"Format[Times[args___], InputForm]": "Infix[{args}, \" * \"]",
+			"Format[Times[args___], InputForm|OutputForm]": "Infix[{args}, \" * \"]",
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values

@@ -415,6 +415,7 @@ func (this *Expression) Format(es *EvalState, form string, root bool) Ex {
 		return res
 	}
 
+	/*
 	if len(this.Parts) > 1 && root {
 		headSym, headIsSym := this.Parts[0].(*Symbol)
 		if headIsSym {
@@ -426,7 +427,7 @@ func (this *Expression) Format(es *EvalState, form string, root bool) Ex {
 				return asExpr.Format(es, headSym.Name, false)
 			}
 		}
-	}
+	}*/
 
 	newParts := []Ex{}
 	for i := range this.Parts {

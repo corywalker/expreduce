@@ -184,6 +184,9 @@ func (this *String) Eval(es *EvalState) Ex {
 }
 
 func (this *String) StringForm(form string) string {
+	if form == "OutputForm" {
+		return fmt.Sprintf("%v", this.Val)
+	}
 	return fmt.Sprintf("\"%v\"", this.Val)
 }
 

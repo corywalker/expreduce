@@ -16,7 +16,7 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "ToString",
 		rules: map[string]string{
-			"ToString[amatch_]": "ToString[amatch, OuptutForm]",
+			"ToString[amatch_]": "ToString[amatch, OutputForm]",
 		},
 			// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -29,7 +29,8 @@ func GetStringDefinitions() (defs []Definition) {
 				return this
 			}
 
-			if formAsSymbol.Name != "InputForm" && formAsSymbol.Name != "FullForm" {
+			// Do not implement FullForm here. It is not officially supported
+			if formAsSymbol.Name != "InputForm" && formAsSymbol.Name != "OutputForm" {
 				return this
 			}
 
@@ -46,7 +47,7 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "StringJoin",
 		rules: map[string]string{
-			"Format[StringJoin[args___], InputForm]": "Infix[{args}, \" <> \"]",
+			"Format[StringJoin[args___], InputForm|OutputForm]": "Infix[{args}, \" <> \"]",
 			// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
 			// but slow for StringJoin[Table["x", {k,2000}]]
 			//"StringJoin[{args___}]": "StringJoin[args]",
