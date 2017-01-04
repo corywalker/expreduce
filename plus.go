@@ -5,6 +5,24 @@ import "math/big"
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Plus",
+		rules: map[string]string{
+			"Plus[amatch_, -amatch_, rest___]": "Plus[rest]",
+			"Plus[c1match_Integer*matcha_, c2match_Integer*matcha_, rest___]": "((c1match+c2match)*matcha + rest)",
+			// For some reason, this messes up the Infinity - Infinity rule
+			"Plus[c1match_Integer*matcha_, matcha_, rest___]": "(c1match+1)*matcha+rest",
+			"Plus[matcha_, matcha_, rest___]": "2*matcha + rest",
+			////"((c1match_Integer*matcha_) + matcha_)": "(c1match+1)*matcha",
+			"Plus[c1match_Real*matcha_, c2match_Integer*matcha_, rest___]": "(c1match+c2match)*matcha + rest",
+			// I have a feeling that these can be combined into a more general
+			// definition. TODO
+			"Plus[cmatch_Real*matcha_, matcha_, rest___]": "(cmatch+1)*matcha + rest",
+
+			"Plus[Infinity, _Integer, rest___]": "Infinity + rest",
+			"Plus[Infinity, _Real, rest___]": "Infinity + rest",
+			"Plus[-Infinity, _Integer, rest___]": "-Infinity + rest",
+			"Plus[-Infinity, _Real, rest___]": "-Infinity + rest",
+			"Plus[Infinity, -Infinity, rest___]": "Indeterminate + rest",
+		},
 		toString: func (this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", form)
 		},

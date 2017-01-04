@@ -40,6 +40,17 @@ func factorial(n *big.Int) (result *big.Int) {
 func GetTimesDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Times",
+		rules: map[string]string{
+			"Times[a_, a_, rest___]": "a^2 * rest",
+			"Times[a_^n_, a_, rest___]": "a^(n+1) * rest",
+			"Times[a_^n_, a_^m_, rest___]": "a^(n+m) * rest",
+			"Times[den_Integer^(-1), num_Integer, rest___]": "Rational[num,den] * rest",
+			"Times[a_, Power[a_, -1], rest___]": "rest",
+			"Times[a_^b_, Power[a_, -1], rest___]": "a^(b-1) * rest",
+			//"Times[a_^b_, Power[a_^c_, -1], rest___]": "a^(b-c) * rest",
+			//"Times[a_^b_, Power[a_, Power[c_, -1]], rest___]": "a^(b-c) * rest",
+			"(1/Infinity)": "0",
+		},
 		toString: func (this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " * ", form)
 		},

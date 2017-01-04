@@ -42,7 +42,6 @@ func TestList(t *testing.T) {
 	CasAssertSame(t, es, "False", "MemberQ[{1, 2, 3}, _Real]")
 	CasAssertSame(t, es, "True", "MemberQ[{1, 2, 3}, testmatch_Integer]")
 	assert.Equal(t, "testmatch", EasyRun("testmatch", es))
-	CasAssertSame(t, es, "{Protected}", "Attributes[MemberQ]")
 	CasAssertSame(t, es, "False", "MemberQ[a, a]")
 	CasAssertSame(t, es, "False", "MemberQ[a, _]")
 	// More tests to be used in CommutativeIsMatchQ

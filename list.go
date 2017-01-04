@@ -246,6 +246,9 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Table",
+		rules: map[string]string{
+			"Table[amatch_, bmatch_Integer]": "Table[amatch, {i, 1, bmatch}]",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) >= 3 {
 				mis, isOk := MultiIterSpecFromLists(this.Parts[2:])
@@ -268,6 +271,12 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Sum",
+		rules: map[string]string{
+			"Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Integer}]": "1/2*nmatch*(1 + nmatch)",
+			"Sum[imatch_Symbol, {imatch_Symbol, 1, nmatch_Integer}]": "1/2*nmatch*(1 + nmatch)",
+			"Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Symbol}]": "1/2*nmatch*(1 + nmatch)",
+			"Sum[imatch_Symbol, {imatch_Symbol, 1, nmatch_Symbol}]": "1/2*nmatch*(1 + nmatch)",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
 		},

@@ -45,5 +45,11 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 		},
 	})
+	defs = append(defs, Definition{
+		name: "KroneckerDelta",
+		rules: map[string]string{
+			"KroneckerDelta[xmatch_Integer]": "If[xmatch == 0, 1, 0]",
+		},
+	})
 	return
 }

@@ -98,6 +98,7 @@ func GetAllDefinitions() (defs map[string]([]Definition)) {
 	defs["list"] = GetListDefinitions()
 	defs["cas"] = GetCASDefinitions()
 	defs["combinatorics"] = GetCombinatoricsDefinitions()
+	defs["calculus"] = GetCalculusDefinitions()
 	defs["comparison"] = GetComparisonDefinitions()
 	defs["constants"] = GetConstantsDefinitions()
 	defs["expression"] = GetExpressionDefinitions()
@@ -251,10 +252,7 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 }
 
 func (this *EvalState) ClearAll() {
-	this.defined = make(map[string][]Expression)
-	if !this.NoInit {
-		InitCAS(this)
-	}
+	this.Init(!this.NoInit)
 }
 
 func (this *EvalState) Clear(name string) {
