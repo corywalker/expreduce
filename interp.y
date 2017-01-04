@@ -187,5 +187,5 @@ func EvalInterp(line string, es *EvalState) Ex {
 }
 
 func EasyRun(line string, es *EvalState) string {
-	return GetString(EvalInterp(line, es), "InputForm", es)
+	return EvalInterp(line, es).StringForm("InputForm")
 }

@@ -42,8 +42,11 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 func GetReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "ReplaceAll",
-		rules: map[string]string{
-			"Format[ReplaceAll[lhs_, rhs_], InputForm|OutputForm]": "InfixAdvanced[{lhs, rhs}, \" /. \", True, \"(\", \")\"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -80,8 +83,11 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "ReplaceRepeated",
-		rules: map[string]string{
-			"Format[ReplaceRepeated[lhs_, rhs_], InputForm|OutputForm]": "InfixAdvanced[{lhs, rhs}, \" //. \", True, \"(\", \")\"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -110,14 +116,20 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Rule",
-		rules: map[string]string{
-			"Format[Rule[lhs_, rhs_], InputForm|OutputForm]": "InfixAdvanced[{lhs, rhs}, \" //. \", True, \"(\", \")\"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", form)
 		},
 	})
 	defs = append(defs, Definition{
 		name: "RuleDelayed",
-		rules: map[string]string{
-			"Format[RuleDelayed[lhs_, rhs_], InputForm|OutputForm]": "InfixAdvanced[{lhs, rhs}, \" //. \", True, \"(\", \")\"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", form)
 		},
 	})
 	return

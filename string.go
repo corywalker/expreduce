@@ -1,17 +1,5 @@
 package cas
 
-func GetString(ex Ex, form string, es *EvalState) string {
-	str, isStr := ((&Expression{[]Ex{
-		&Symbol{"ToString"},
-		ex,
-		&Symbol{form},
-	}}).Eval(es)).(*String)
-	if isStr {
-		return str.Val
-	}
-	return "ERROR: RESULT WAS NOT STRING!"
-}
-
 func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "ToString",
@@ -30,18 +18,11 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			// Do not implement FullForm here. It is not officially supported
-			if formAsSymbol.Name != "InputForm" && formAsSymbol.Name != "OutputForm" {
+			if formAsSymbol.Name != "InputForm" && formAsSymbol.Name != "OutputForm" && formAsSymbol.Name != "FullForm" {
 				return this
 			}
 
-			exAsExpr, exIsExpr := this.Parts[1].(*Expression)
-			var toStringify Ex
-			if exIsExpr {
-				toStringify = exAsExpr.Format(es, formAsSymbol.Name, true)
-			} else {
-				toStringify = this.Parts[1]
-			}
-			return &String{toStringify.StringForm(formAsSymbol.Name)}
+			return &String{this.Parts[1].StringForm(formAsSymbol.Name)}
 		},
 	})
 	defs = append(defs, Definition{

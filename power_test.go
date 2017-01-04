@@ -27,9 +27,9 @@ func TestPower(t *testing.T) {
 		&Symbol{"x"},
 		&Flt{big.NewFloat(3)},
 	}}
-	assert.Equal(t, "x^2.", GetString(t9, "InputForm", es))
-	assert.Equal(t, "x^2.", GetString(t10, "InputForm", es))
-	assert.Equal(t, "x^3.", GetString(t11, "InputForm", es))
+	assert.Equal(t, "x^2.", t9.StringForm("InputForm"))
+	assert.Equal(t, "x^(-1. + 3.)", t10.StringForm("InputForm"))
+	assert.Equal(t, "x^3.", t11.StringForm("InputForm"))
 	assert.Equal(t, "EQUAL_TRUE", t9.IsEqual(t10.Eval(es), &es.CASLogger))
 	assert.Equal(t, "EQUAL_UNK", t9.IsEqual(t11, &es.CASLogger))
 

@@ -239,7 +239,7 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	// complexity. I define complexity as the length of the Lhs.String()
 	// because it is simple, and it works for most of the common cases. We wish
 	// to attempt f[x_Integer] before we attempt f[x_].
-	newLhsLen := len(lhs.String())
+	newLhsLen := len(lhs.StringForm("InputForm"))
 	for i := range this.defined[name] {
 		thisLhsLen := len(this.defined[name][i].Parts[1].String())
 		if thisLhsLen < newLhsLen {

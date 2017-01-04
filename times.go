@@ -40,8 +40,8 @@ func factorial(n *big.Int) (result *big.Int) {
 func GetTimesDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Times",
-		rules: map[string]string{
-			"Format[Times[args___], InputForm|OutputForm]": "Infix[{args}, \" * \"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " * ", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values

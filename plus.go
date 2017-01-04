@@ -5,8 +5,8 @@ import "math/big"
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Plus",
-		rules: map[string]string{
-			"Format[Plus[args___], InputForm|OutputForm]": "Infix[{args}, \" + \"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " + ", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values

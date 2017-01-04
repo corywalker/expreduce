@@ -5,6 +5,25 @@ import "time"
 import "fmt"
 import "bytes"
 
+func ToStringInfix(parts []Ex, delim string, form string) (bool, string) {
+	if form != "InputForm" && form != "OutputForm" {
+		return false, ""
+	}
+	if len(parts) < 2 {
+		return false, ""
+	}
+	var buffer bytes.Buffer
+	buffer.WriteString("(")
+	for i := 0; i < len(parts); i++ {
+		buffer.WriteString(parts[i].StringForm(form))
+		if i != len(parts)-1 {
+			buffer.WriteString(delim)
+		}
+	}
+	buffer.WriteString(")")
+	return true, buffer.String()
+}
+
 func (this *Expression) ToStringInfix(form string) (bool, string) {
 	if len(this.Parts) != 3 {
 		return false, ""
@@ -14,19 +33,7 @@ func (this *Expression) ToStringInfix(form string) (bool, string) {
 	if !isExpr || !delimIsStr {
 		return false, ""
 	}
-	if len(expr.Parts) < 3 {
-		return false, ""
-	}
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	for i := 1; i < len(expr.Parts); i++ {
-		buffer.WriteString(expr.Parts[i].String())
-		if i != len(expr.Parts)-1 {
-			buffer.WriteString(delim.Val)
-		}
-	}
-	buffer.WriteString(")")
-	return true, buffer.String()
+	return ToStringInfix(expr.Parts[1:], delim.Val, form)
 }
 
 func TrueQ(ex Ex) bool {
@@ -38,6 +45,35 @@ func TrueQ(ex Ex) bool {
 		return false
 	}
 	return true
+}
+
+func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start string, end string, form string) (bool, string) {
+	if form != "InputForm" && form != "OutputForm" {
+		return false, ""
+	}
+	if len(parts) < 2 {
+		return false, ""
+	}
+	var buffer bytes.Buffer
+	if !surroundEachArg {
+		buffer.WriteString(start)
+	}
+	for i := 0; i < len(parts); i++ {
+		if surroundEachArg {
+			buffer.WriteString("(")
+			buffer.WriteString(parts[i].String())
+			buffer.WriteString(")")
+		} else {
+			buffer.WriteString(parts[i].String())
+		}
+		if i != len(parts)-1 {
+			buffer.WriteString(delim)
+		}
+	}
+	if !surroundEachArg {
+		buffer.WriteString(end)
+	}
+	return true, buffer.String()
 }
 
 func (this *Expression) ToStringInfixAdvanced(form string) (bool, string) {
@@ -55,26 +91,7 @@ func (this *Expression) ToStringInfixAdvanced(form string) (bool, string) {
 		return false, ""
 	}
 	surroundEachArg := TrueQ(this.Parts[3])
-	var buffer bytes.Buffer
-	if !surroundEachArg {
-		buffer.WriteString(start.Val)
-	}
-	for i := 1; i < len(expr.Parts); i++ {
-		if surroundEachArg {
-			buffer.WriteString("(")
-			buffer.WriteString(expr.Parts[i].String())
-			buffer.WriteString(")")
-		} else {
-			buffer.WriteString(expr.Parts[i].String())
-		}
-		if i != len(expr.Parts)-1 {
-			buffer.WriteString(delim.Val)
-		}
-	}
-	if !surroundEachArg {
-		buffer.WriteString(end.Val)
-	}
-	return true, buffer.String()
+	return ToStringInfixAdvanced(expr.Parts[1:], delim.Val, surroundEachArg, start.Val, end.Val, form)
 }
 
 func GetSystemDefinitions() (defs []Definition) {

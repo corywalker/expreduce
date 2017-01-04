@@ -8,8 +8,8 @@ import (
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Power",
-		rules: map[string]string{
-			"Format[Power[args___], InputForm|OutputForm]": "InfixAdvanced[{args}, \"^\", False, \"\", \"\"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

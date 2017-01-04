@@ -34,10 +34,32 @@ func main() {
 		}
 
 		exp := cas.Interp(line)
-		// TODO: this actually evaluates the input. Fix this.
-		//fmt.Printf("In:  %s\n", cas.GetString(exp, "InputForm", es))
-		fmt.Printf("In:  %s\n", exp.String())
+		fmt.Printf("In:  %s\n", exp.StringForm("InputForm"))
 		res := exp.Eval(es)
-		fmt.Printf("Out: %s\n", cas.GetString(res, "InputForm", es))
+
+		// Print formatted result
+		specialForms := []string{
+			"FullForm",
+			"OutputForm",
+		}
+		wasSpecialForm := false
+		for _, specialForm := range specialForms {
+			asSpecialForm, isSpecialForm := cas.HeadAssertion(res, specialForm)
+			if !isSpecialForm {
+				continue
+			}
+			if len(asSpecialForm.Parts) != 2 {
+				continue
+			}
+			fmt.Printf(
+				"Out//%s: %s\n",
+				specialForm,
+				asSpecialForm.Parts[1].StringForm(specialForm),
+			)
+			wasSpecialForm = true
+		}
+		if !wasSpecialForm {
+			fmt.Printf("Out: %s\n", res.StringForm("InputForm"))
+		}
 	}
 }
