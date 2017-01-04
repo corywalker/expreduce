@@ -197,7 +197,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "MessageName",
 		rules: map[string]string{
-			"MessageName[symmatch_,tagmatch_Symbol]": "MessageName[symmatch,ToString[tagmatch,InputForm]]",
 		},
 	})
 	defs = append(defs, Definition{

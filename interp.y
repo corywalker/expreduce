@@ -25,7 +25,10 @@ import (
 // same for terminals
 %token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM PATTESTSYM ALTSYM SAMESYM EQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM
 
+/*Adding some of the tokens above to this precedence list can decrease the*/
+/*number of conflicts*/
 %left POSTFIXSYM APPLYSYM MAPSYM
+%left SETSYM SETDELAYEDSYM
 %left REPLACEREPSYM REPLACEALLSYM
 %left RULESYM RULEDELAYEDSYM
 %left CONDITIONSYM ALTSYM
@@ -33,6 +36,9 @@ import (
 %left PLUSSYM MINUSSYM
 %left MULTSYM DIVSYM
 %left EXPSYM
+%left STRINGJOINSYM
+%left MESSAGENAMESYM /* This might as well be part of the symbol. Use a very
+high precedence. */
 
 %right FUNCAPPSYM
 
@@ -137,7 +143,13 @@ expr	:    LPARSYM expr RPARSYM
 	|    SLOTSYM INTEGER
 		{ $$  =  &Expression{[]Ex{&Symbol{"Slot"}, $2}} }
 	|    expr MESSAGENAMESYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"MessageName"}, $1, $3}} }
+		{
+			if sym, isSym := $3.(*Symbol); isSym {
+				$$  =  &Expression{[]Ex{&Symbol{"MessageName"}, $1, &String{sym.Name}}}
+			} else {
+				$$  =  &Expression{[]Ex{&Symbol{"MessageName"}, $1, $3}}
+			}
+		}
 	|    expr STRINGJOINSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"StringJoin"}, $1, $3}} }
 	|    PATTERN
