@@ -28,13 +28,15 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "StringJoin",
 		rules: map[string]string{
-			"Format[StringJoin[args___], InputForm|OutputForm]": "Infix[{args}, \" <> \"]",
 			// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
 			// but slow for StringJoin[Table["x", {k,2000}]]
 			//"StringJoin[{args___}]": "StringJoin[args]",
 			// This rule runs much faster, probably because it avoids
 			// CommutativeIsMatchQ
 			"StringJoin[listmatch_List]": "StringJoin[listmatch /. List->Sequence]",
+		},
+		toString: func (this *Expression, form string) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " <> ", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			toReturn := ""

@@ -76,24 +76,6 @@ func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start
 	return true, buffer.String()
 }
 
-func (this *Expression) ToStringInfixAdvanced(form string) (bool, string) {
-	if len(this.Parts) != 6 {
-		return false, ""
-	}
-	expr, isExpr := this.Parts[1].(*Expression)
-	delim, delimIsStr := this.Parts[2].(*String)
-	start, startIsStr := this.Parts[4].(*String)
-	end, endIsStr := this.Parts[5].(*String)
-	if !isExpr || !delimIsStr || !startIsStr || !endIsStr {
-		return false, ""
-	}
-	if len(expr.Parts) < 3 {
-		return false, ""
-	}
-	surroundEachArg := TrueQ(this.Parts[3])
-	return ToStringInfixAdvanced(expr.Parts[1:], delim.Val, surroundEachArg, start.Val, end.Val, form)
-}
-
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "SetLogging",
@@ -162,6 +144,9 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Head",
+		rules: map[string]string{
+			"Head::usage": "\"Head[expr] returns the head of the expression.\"",
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -202,10 +187,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Infix",
 		toString: (*Expression).ToStringInfix,
-	})
-	defs = append(defs, Definition{
-		name: "InfixAdvanced",
-		toString: (*Expression).ToStringInfixAdvanced,
 	})
 	return
 }

@@ -52,8 +52,11 @@ func (this *Symbol) DeepCopy() Ex {
 func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Set",
-		rules: map[string]string{
-			"Format[Set[lhs_, rhs_], InputForm|OutputForm]": "InfixAdvanced[{lhs, rhs}, \" = \", True, \"(\", \")\"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], " = ", true, "(", ")", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -80,8 +83,11 @@ func GetSymbolDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name:      "SetDelayed",
-		rules: map[string]string{
-			"Format[SetDelayed[lhs_, rhs_], InputForm|OutputForm]": "InfixAdvanced[{lhs, rhs}, \" := \", True, \"(\", \")\"]",
+		toString: func (this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], " := ", true, "(", ")", form)
 		},
 		bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {

@@ -208,7 +208,7 @@ func (this *Expression) StringForm(form string) string {
 		if i == 0 {
 			continue
 		}
-		buffer.WriteString(e.String())
+		buffer.WriteString(e.StringForm(form))
 		if i != len(this.Parts)-1 {
 			buffer.WriteString(", ")
 		}

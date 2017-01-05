@@ -178,8 +178,17 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name:      "Pattern",
-		rules: map[string]string{
-			"Format[Pattern[amatch_, bmatch_], InputForm|OutputForm]": "ToString[amatch, InputForm] <> ToString[bmatch, InputForm]",
+		toString: func (this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			if form != "InputForm" && form != "OutputForm" {
+				return false, ""
+			}
+			var buffer bytes.Buffer
+			buffer.WriteString(this.Parts[1].StringForm(form))
+			buffer.WriteString(this.Parts[2].StringForm(form))
+			return true, buffer.String()
 		},
 	})
 	defs = append(defs, Definition{
