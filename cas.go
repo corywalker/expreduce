@@ -36,6 +36,7 @@ func EmptyPD() *PDManager {
 
 func CopyPD(orig *PDManager) (dest *PDManager) {
 	dest = EmptyPD()
+	// We do not care that this iterates in a random order.
 	for k, v := range (*orig).patternDefined {
 		(*dest).patternDefined[k] = v.DeepCopy()
 	}
@@ -43,6 +44,7 @@ func CopyPD(orig *PDManager) (dest *PDManager) {
 }
 
 func (this *PDManager) Update(toAdd *PDManager) {
+	// We do not care that this iterates in a random order.
 	for k, v := range (*toAdd).patternDefined {
 		(*this).patternDefined[k] = v
 	}
@@ -57,6 +59,11 @@ type EvalState struct {
 	NoInit        bool
 }
 
+type Rule struct {
+	lhs string
+	rhs string
+}
+
 type Definition struct {
 	// The symbol name, like "Mean", and "Total"
 	name      string
@@ -65,8 +72,9 @@ type Definition struct {
 	// SetDelayed, we define it first.
 	bootstrap bool
 
-	// Regular rules to define
-	rules map[string]string
+	// Regular rules to define. This should never include a map, as maps have
+	// indeterminate iteration.
+	rules []Rule
 	// Map symbol to Eval() function
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
 
@@ -76,11 +84,11 @@ type Definition struct {
 }
 
 func (this *EvalState) Load(def Definition) {
-	for lhs, rhs := range def.rules {
+	for _, rule := range def.rules {
 		(&Expression{[]Ex{
 			&Symbol{"SetDelayed"},
-			Interp(lhs),
-			Interp(rhs),
+			Interp(rule.lhs),
+			Interp(rule.rhs),
 		}}).Eval(this)
 	}
 
@@ -93,29 +101,32 @@ func (this *EvalState) Load(def Definition) {
 	}
 }
 
-func GetAllDefinitions() (defs map[string]([]Definition)) {
-	defs = make(map[string]([]Definition))
-	defs["list"] = GetListDefinitions()
-	defs["cas"] = GetCASDefinitions()
-	defs["combinatorics"] = GetCombinatoricsDefinitions()
-	defs["calculus"] = GetCalculusDefinitions()
-	defs["comparison"] = GetComparisonDefinitions()
-	defs["constants"] = GetConstantsDefinitions()
-	defs["expression"] = GetExpressionDefinitions()
-	defs["flowcontrol"] = GetFlowControlDefinitions()
-	defs["list"] = GetListDefinitions()
-	defs["order"] = GetOrderDefinitions()
-	defs["plus"] = GetPlusDefinitions()
-	defs["power"] = GetPowerDefinitions()
-	defs["random"] = GetRandomDefinitions()
-	defs["replacement"] = GetReplacementDefinitions()
-	defs["sort"] = GetSortDefinitions()
-	defs["symbol"] = GetSymbolDefinitions()
-	defs["system"] = GetSystemDefinitions()
-	defs["string"] = GetStringDefinitions()
-	defs["time"] = GetTimeDefinitions()
-	defs["times"] = GetTimesDefinitions()
-	defs["pattern"] = GetPatternDefinitions()
+type namedDefSet struct {
+	name string
+	defs []Definition
+}
+func GetAllDefinitions() (defs []namedDefSet) {
+	defs = append(defs, namedDefSet{"list", GetListDefinitions()})
+	defs = append(defs, namedDefSet{"cas", GetCASDefinitions()})
+	defs = append(defs, namedDefSet{"combinatorics", GetCombinatoricsDefinitions()})
+	defs = append(defs, namedDefSet{"calculus", GetCalculusDefinitions()})
+	defs = append(defs, namedDefSet{"comparison", GetComparisonDefinitions()})
+	defs = append(defs, namedDefSet{"constants", GetConstantsDefinitions()})
+	defs = append(defs, namedDefSet{"expression", GetExpressionDefinitions()})
+	defs = append(defs, namedDefSet{"flowcontrol", GetFlowControlDefinitions()})
+	defs = append(defs, namedDefSet{"list", GetListDefinitions()})
+	defs = append(defs, namedDefSet{"order", GetOrderDefinitions()})
+	defs = append(defs, namedDefSet{"plus", GetPlusDefinitions()})
+	defs = append(defs, namedDefSet{"power", GetPowerDefinitions()})
+	defs = append(defs, namedDefSet{"random", GetRandomDefinitions()})
+	defs = append(defs, namedDefSet{"replacement", GetReplacementDefinitions()})
+	defs = append(defs, namedDefSet{"sort", GetSortDefinitions()})
+	defs = append(defs, namedDefSet{"symbol", GetSymbolDefinitions()})
+	defs = append(defs, namedDefSet{"system", GetSystemDefinitions()})
+	defs = append(defs, namedDefSet{"string", GetStringDefinitions()})
+	defs = append(defs, namedDefSet{"time", GetTimeDefinitions()})
+	defs = append(defs, namedDefSet{"times", GetTimesDefinitions()})
+	defs = append(defs, namedDefSet{"pattern", GetPatternDefinitions()})
 	return
 }
 
@@ -126,15 +137,15 @@ func (es *EvalState) Init(loadAllDefs bool) {
 	es.NoInit = !loadAllDefs
 	if !es.NoInit {
 		// Init modules
-		for _, defs := range GetAllDefinitions() {
-			for _, def := range defs {
+		for _, defSet := range GetAllDefinitions() {
+			for _, def := range defSet.defs {
 				if def.bootstrap {
 					es.Load(def)
 				}
 			}
 		}
-		for _, defs := range GetAllDefinitions() {
-			for _, def := range defs {
+		for _, defSet := range GetAllDefinitions() {
+			for _, def := range defSet.defs {
 				if !def.bootstrap {
 					es.Load(def)
 				}
@@ -239,7 +250,9 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	// Insert into definitions for name. Maintain order of decreasing
 	// complexity. I define complexity as the length of the Lhs.String()
 	// because it is simple, and it works for most of the common cases. We wish
-	// to attempt f[x_Integer] before we attempt f[x_].
+	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
+	// "complexity" score, order then matters. TODO: Create better measure of
+	// complexity (or specificity)
 	newLhsLen := len(lhs.StringForm("InputForm"))
 	for i := range this.defined[name] {
 		thisLhsLen := len(this.defined[name][i].Parts[1].String())
@@ -279,7 +292,13 @@ func (this *EvalState) GetDefinedSnapshot() map[string][]Expression {
 func (this *EvalState) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
-	for k, v := range this.defined {
+	// We sort the keys here such that converting identical EvalStates always
+	// produces the same string.
+	keys := []string{}
+	for k, _ := range this.defined { keys = append(keys,k) }
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := this.defined[k]
 		buffer.WriteString(k)
 		buffer.WriteString(": ")
 		buffer.WriteString(ExpressionArrayToString(v))
@@ -295,7 +314,13 @@ func (this *EvalState) String() string {
 func (this *PDManager) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
-	for k, v := range this.patternDefined {
+	// We sort the keys here such that converting identical PDManagers always
+	// produces the same string.
+	keys := []string{}
+	for k, _ := range this.patternDefined { keys = append(keys,k) }
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := this.patternDefined[k]
 		buffer.WriteString(k)
 		buffer.WriteString("_: ")
 		buffer.WriteString(v.String())

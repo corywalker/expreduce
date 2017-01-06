@@ -8,14 +8,14 @@ import (
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Power",
-		rules: map[string]string{
+		rules: []Rule{
 			// Simplify nested exponents
-			"Power[Power[matcha_,matchb_Integer],matchc_Integer]": "matcha^(matchb*matchc)",
-			"Power[Power[matcha_,matchb_Real],matchc_Integer]": "matcha^(matchb*matchc)",
+			Rule{"Power[Power[matcha_,matchb_Integer],matchc_Integer]", "matcha^(matchb*matchc)"},
+			Rule{"Power[Power[matcha_,matchb_Real],matchc_Integer]", "matcha^(matchb*matchc)"},
 
 			// Power definitions
-			"Power[Times[Except[_Symbol, first_], inner___], pow_]": "first^pow*Power[Times[inner],pow]",
-			"Power[Times[first_, inner___], Except[_Symbol, pow_]]": "first^pow*Power[Times[inner],pow]",
+			Rule{"Power[Times[Except[_Symbol, first_], inner___], pow_]", "first^pow*Power[Times[inner],pow]"},
+			Rule{"Power[Times[first_, inner___], Except[_Symbol, pow_]]", "first^pow*Power[Times[inner],pow]"},
 		},
 		toString: func (this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form)
@@ -122,8 +122,8 @@ func GetPowerDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "PowerExpand",
-		rules: map[string]string{
-			"PowerExpand[expmatch_]": "expmatch //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}",
+		rules: []Rule{
+			Rule{"PowerExpand[expmatch_]", "expmatch //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
 		},
 	})
 	return

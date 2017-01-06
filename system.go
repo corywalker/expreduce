@@ -144,8 +144,8 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Head",
-		rules: map[string]string{
-			"Head::usage": "\"Head[expr] returns the head of the expression.\"",
+		rules: []Rule{
+			Rule{"Head::usage", "\"Head[expr] returns the head of the expression.\""},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -181,8 +181,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "MessageName",
-		rules: map[string]string{
-		},
 	})
 	defs = append(defs, Definition{
 		name: "Infix",
