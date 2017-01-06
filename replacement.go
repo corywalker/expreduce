@@ -1,9 +1,29 @@
 package cas
 
+import "sort"
+
 func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 	cl.Infof("In ReplacePD(%v, pm=%v)", this, pm)
 	toReturn := this.DeepCopy()
-	for nameStr, def := range pm.patternDefined {
+	// In Golang, map iterations present random order. In rare circumstances,
+	// this can lead to different return expressions for the same inputs
+	// causing inconsistency, and random issues with test cases. We want
+	// deteriministic return values from this function (and most all functions,
+	// for that matter), so we first sort the keys alphabetically.
+
+	// An expression which used to exhibit this indeterminate behavior can be
+	// found on line 68 of simplify_test.go at commit 1a7ca11. It would
+	// occasionally return 16 instead of m^2 given the input of m^2*m^2. My
+	// guess is that one of the simplify patterns has a match object named "m",
+	// but I could be wrong.
+
+	// Isolating this issue might help me debug the issue where patterns can
+	// interfere with existing variable names. TODO: Look into this.
+	keys := []string{}
+	for k, _ := range pm.patternDefined { keys = append(keys,k) }
+	sort.Strings(keys)
+	for _, nameStr := range keys {
+		def := pm.patternDefined[nameStr]
 		toReturn = ReplaceAll(toReturn,
 			&Expression{[]Ex{
 				&Symbol{"Rule"},
