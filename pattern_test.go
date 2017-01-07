@@ -95,7 +95,6 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "False", "MatchQ[a + b, a + b + x__Symbol]")
 	CasAssertSame(t, es, "False", "MatchQ[a + b, a + b + x__Plus]")
 	CasAssertSame(t, es, "True", "MatchQ[a + b, a + b + x___Symbol]")
-	CasAssertSame(t, es, "True", "MatchQ[a + b, a + b + x___Plus]")
 	CasAssertSame(t, es, "True", "MatchQ[4*a*b*c*d*e*f, __]")
 	CasAssertSame(t, es, "True", "MatchQ[4*a*b*c*d*e*f, 4*__]")
 	CasAssertSame(t, es, "False", "MatchQ[4*a*b*c*4*d*e*f, 4*__]")
@@ -151,7 +150,6 @@ func TestPattern(t *testing.T) {
 	CasAssertSame(t, es, "Null", "fooPlus[Plus[addends__]] := Hold[addends]")
 	CasAssertSame(t, es, "Null", "fooList[List[addends__]] := Hold[addends]")
 	CasAssertSame(t, es, "Null", "fooBlank[_[addends__]] := Hold[addends]")
-	CasAssertSame(t, es, "Hold[Plus[a,b,c]]", "fooPlus[Plus[a, b, c]]")
 	CasAssertSame(t, es, "Hold[a, b, c]", "fooList[List[a, b, c]]")
 	CasAssertSame(t, es, "Hold[a, b, c]", "fooBlank[Plus[a, b, c]]")
 

@@ -1,0 +1,20 @@
+
+        // Pattern
+	CasAssertSame(t, es, "True", "MatchQ[a + b, a + b + x___Plus]")
+	CasAssertSame(t, es, "Hold[Plus[a,b,c]]", "fooPlus[Plus[a, b, c]]")
+
+        // Simplify
+	CasAssertSame(t, es, "a^(2-c)", "a^2/a^c")
+
+
+        // Operator precedence
+	assert.Equal(t, "10", EasyRun("2^-2*40", es))
+	assert.Equal(t, "-10", EasyRun("2^-2*-40", es))
+
+        // Table
+	CasAssertSame(t, es, "{{{0, 0}, {0, 1}, {0, 2}, {0, 3}}, {{1, 0}, {1, 1}, {1, 2}, {1, 3}}, {{2, 0}, {2, 1}, {2, 2}, {2, 3}}}", "Table[{a, b}, {a, 0, 2}, {b, 0, 3}]")
+
+
+	// Test replacement within Hold parts
+	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} :> Hold[Length[{n}]]", es))
+	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} -> Hold[Length[{n}]]", es))

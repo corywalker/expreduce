@@ -58,7 +58,7 @@ func TestInterp(t *testing.T) {
 	CasAssertSame(t, es, "Hold[ReplaceAll[List[5, 0, -5], Rule[Condition[Pattern[y, Blank[]], Equal[y, 0]], z]]]", "Hold[{5, 0, -5} /. y_ /; y == 0 -> z]")
 
 	// Test MessageName
-	CasAssertSame(t, es, "Hold[MessageName[a,b]]", "Hold[a::b]")
+	CasAssertSame(t, es, "Hold[MessageName[a,\"b\"]]", "Hold[a::b]")
 	CasAssertSame(t, es, "MessageName[a,\"b\"]", "a::b")
 
 	// Test StringJoin
