@@ -223,6 +223,9 @@ func GetListDefinitions() (defs []Definition) {
 		rules: []Rule{
 			Rule{"Mean[l__List]", "Total[l]/Length[l]"},
 		},
+		tests: []TestInstruction{
+			&SameTest{"11/2", "Mean[{5,6}]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name:      "Depth",
@@ -232,6 +235,16 @@ func GetListDefinitions() (defs []Definition) {
 				return this
 			}
 			return &Integer{big.NewInt(int64(CalcDepth(this.Parts[1])))}
+		},
+		tests: []TestInstruction{
+			&SameTest{"1", "Depth[foo]"},
+			&SameTest{"2", "Depth[{foo}]"},
+			&SameTest{"2", "Depth[bar[foo, bar]]"},
+			&SameTest{"3", "Depth[foo[foo[]]]"},
+			&SameTest{"1", "Depth[3]"},
+			&SameTest{"1", "Depth[3.5]"},
+			&SameTest{"1", "Depth[3/5]"},
+			&SameTest{"2", "Depth[foo[{{{}}}][]]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -246,6 +259,11 @@ func GetListDefinitions() (defs []Definition) {
 				return &Integer{big.NewInt(int64(len(list.Parts) - 1))}
 			}
 			return this
+		},
+		tests: []TestInstruction{
+			&SameTest{"4", "Length[{1,2,3,4}]"},
+			&SameTest{"0", "Length[{}]"},
+			&SameTest{"1", "Length[{5}]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -272,6 +290,16 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return this
 		},
+		tests: []TestInstruction{
+			&SameTest{"{a, a, a, a, a}", "Table[a, 5]"},
+			&SameTest{"{5, 6, 7, 8, 9, 10}", "Table[i, {i, 5, 10}]"},
+			&StringTest{"i", "i"},
+			&SameTest{"10", "i = 10"},
+			&SameTest{"{5, 6, 7, 8, 9, 10}", "Table[i, {i, 5, 10}]"},
+			&StringTest{"10", "i"},
+			&SameTest{"{1, 4, 9, 16, 25, 36, 49, 64, 81, 100}", "Table[n^2, {n, 1, 10}]"},
+			&SameTest{"{0,1,2}", "Table[x[99], {x[_], 0, 2}]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "Sum",
@@ -284,11 +312,27 @@ func GetListDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
 		},
+		tests: []TestInstruction{
+			&SameTest{"45", "Sum[i, {i, 5, 10}]"},
+			&SameTest{"55", "Sum[i, {i, 1, 10}]"},
+			&SameTest{"55", "Sum[i, {i, 0, 10}]"},
+			&SameTest{"450015000", "Sum[i, {i, 1, 30000}]"},
+			&SameTest{"450015000", "Sum[i, {i, 0, 30000}]"},
+			&SameTest{"1/2*n*(1 + n)", "Sum[i, {i, 0, n}]"},
+			&SameTest{"1/2*n*(1 + n)", "Sum[i, {i, 1, n}]"},
+			&SameTest{"30", "Sum[a + b, {a, 0, 2}, {b, 0, 3}]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "Product",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
+		},
+		tests: []TestInstruction{
+			&SameTest{"120", "Product[a, {a, 1, 5}]"},
+			&SameTest{"14400", "Product[a^2, {a, 1, 5}]"},
+			&SameTest{"576", "Product[a^2, {a, 4}]"},
+			&SameTest{"1440", "Product[a + b, {a, 1, 2}, {b, 1, 3}]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -304,6 +348,29 @@ func GetListDefinitions() (defs []Definition) {
 				}
 			}
 			return &Symbol{"False"}
+		},
+		tests: []TestInstruction{
+			&SameTest{"False", "MemberQ[{1, 2, 3}, 0]"},
+			&SameTest{"True", "MemberQ[{1, 2, 3}, 1]"},
+			&SameTest{"False", "MemberQ[{1, 2, 3}, {1}]"},
+			&SameTest{"True", "MemberQ[{1, 2, 3}, _Integer]"},
+			&SameTest{"True", "MemberQ[{1, 2, 3}, _]"},
+			&SameTest{"False", "MemberQ[{1, 2, 3}, _Real]"},
+			&SameTest{"True", "MemberQ[{1, 2, 3}, testmatch_Integer]"},
+			&StringTest{"testmatch", "testmatch"},
+			&SameTest{"False", "MemberQ[a, a]"},
+			&SameTest{"False", "MemberQ[a, _]"},
+			// More tests to be used in CommutativeIsMatchQ
+			&SameTest{"False", "MemberQ[{a, b}, c]"},
+			&SameTest{"True", "MemberQ[{a, b}, a]"},
+			&SameTest{"True", "MemberQ[{a, b}, ___]"},
+			&SameTest{"True", "MemberQ[{a, b}, __]"},
+			&SameTest{"False", "MemberQ[{a, b}, __Integer]"},
+			&SameTest{"False", "MemberQ[{a, b}, ___Integer]"},
+			&SameTest{"True", "MemberQ[{a, b}, ___Symbol]"},
+			&SameTest{"True", "MemberQ[{a, b}, __Symbol]"},
+			&SameTest{"True", "MemberQ[{a, b, 1}, __Symbol]"},
+			&SameTest{"True", "MemberQ[{a, b, 1}, __Integer]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -325,6 +392,17 @@ func GetListDefinitions() (defs []Definition) {
 				return toReturn
 			}
 			return this.Parts[2]
+		},
+		tests: []TestInstruction{
+			&SameTest{"{foo[a], foo[b], foo[c]}", "Map[foo, {a, b, c}]"},
+			&SameTest{"{foo[a], foo[b], foo[c]}", "foo /@ {a, b, c}"},
+			&SameTest{"{2, 4, 9}", "Times /@ {2, 4, 9}"},
+			&SameTest{"{foo[{a, b}], foo[c]}", "Map[foo, {{a, b}, c}]"},
+			&SameTest{"Map[foo]", "Map[foo]"},
+			&SameTest{"foo", "Map[foo, foo]"},
+			&SameTest{"Map[foo, foo, foo]", "Map[foo, foo, foo]"},
+			&SameTest{"{4,16}", "Function[x, x^2] /@ {2,4}"},
+			&SameTest{"{4,16}", "Function[#^2] /@ {2,4}"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -348,6 +426,13 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return this.Parts[2]
 		},
+		tests: []TestInstruction{
+			&SameTest{"{f[1], f[2], f[3]}", "Array[f, 3]"},
+			&SameTest{"Null", "mytest[x_] := 5"},
+			&SameTest{"{5, 5, 5}", "Array[mytest, 3]"},
+			&SameTest{"{(a + b)[1], (a + b)[2], (a + b)[3]}", "Array[a + b, 3]"},
+			&SameTest{"Array[a, a]", "Array[a, a]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "Cases",
@@ -370,6 +455,11 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return this
 		},
+		tests: []TestInstruction{
+			&SameTest{"{5, 2, 3.5, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, _]"},
+			&SameTest{"{5,2,4}", "Cases[{5, 2, 3.5, x, y, 4}, _Integer]"},
+			&SameTest{"{3.5}", "Cases[{5, 2, 3.5, x, y, 4}, _Real]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "PadRight",
@@ -387,6 +477,11 @@ func GetListDefinitions() (defs []Definition) {
 				}
 			}
 			return toReturn
+		},
+		tests: []TestInstruction{
+			&SameTest{"{1, 2, 0, 0, 0}", "PadRight[{1, 2}, 5]"},
+			&SameTest{"{1, 2, x, x, x}", "PadRight[{1, 2}, 5, x]"},
+			&SameTest{"{1}", "PadRight[{1, 2}, 1, x]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -407,6 +502,12 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return toReturn
 		},
+		tests: []TestInstruction{
+			&SameTest{"{0, 0, 0, 1, 2}", "PadLeft[{1, 2}, 5]"},
+			&SameTest{"{x, x, x, 1, 2}", "PadLeft[{1, 2}, 5, x]"},
+			&SameTest{"{2}", "PadLeft[{1, 2}, 1, x]"},
+			&SameTest{"a[x, x, x, x, x]", "PadLeft[a[], 5, x]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "Range",
@@ -425,6 +526,11 @@ func GetListDefinitions() (defs []Definition) {
 				is.Next()
 			}
 			return toReturn
+		},
+		tests: []TestInstruction{
+			&SameTest{"{1, 2, 3}", "Range[3]"},
+			&SameTest{"{2, 3, 4, 5}", "Range[2, 5]"},
+			//&SameTest{"{}", "Range[2, -5]"},
 		},
 	})
 	return
