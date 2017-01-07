@@ -100,7 +100,13 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			headStr := headAsSym.Name
 
 			theRes, isDefined := es.GetDef(headStr, curr)
-			legacyEvalFn, hasLegacyEvalFn := es.legacyEvalFns[headStr]
+			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, *EvalState) Ex)(nil), false
+			if _, inDefined := es.defined[headStr]; inDefined {
+				if es.defined[headStr].legacyEvalFn != nil {
+					hasLegacyEvalFn = true
+					legacyEvalFn = es.defined[headStr].legacyEvalFn
+				}
+			}
 			if isDefined {
 				//fmt.Printf("%v, %v, %v\n", headStr, curr, theRes)
 				currEx = theRes

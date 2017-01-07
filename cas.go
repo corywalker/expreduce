@@ -51,12 +51,19 @@ func (this *PDManager) Update(toAdd *PDManager) {
 	}
 }
 
+type Def struct {
+	downvalues   []Expression
+	//attributes Attributes
+
+	// A function defined here will override downvalues.
+	legacyEvalFn (func(*Expression, *EvalState) Ex)
+}
+
 type EvalState struct {
 	// Embedded type for logging
 	CASLogger
 
-	defined       map[string][]Expression
-	legacyEvalFns map[string](func(*Expression, *EvalState) Ex)
+	defined       map[string]Def
 	NoInit        bool
 }
 
@@ -86,6 +93,9 @@ type Definition struct {
 }
 
 func (this *EvalState) Load(def Definition) {
+	// TODO: do we really need SetDelayed here, or should we just write to
+	// downvalues directly? If we did this, we could potentially remove the
+	// "bootstrap" attribute that SetDelayed has.
 	for _, rule := range def.rules {
 		(&Expression{[]Ex{
 			&Symbol{"SetDelayed"},
@@ -94,9 +104,14 @@ func (this *EvalState) Load(def Definition) {
 		}}).Eval(this)
 	}
 
-	if def.legacyEvalFn != nil {
-		this.legacyEvalFns[def.name] = def.legacyEvalFn
+	newDef, foundDef := this.defined[def.name]
+	if !foundDef {
+		newDef = Def{}
 	}
+	if def.legacyEvalFn != nil {
+		newDef.legacyEvalFn = def.legacyEvalFn
+	}
+	this.defined[def.name] = newDef
 	if def.toString != nil {
 		// Global so that standard String() interface can access these
 		toStringFns[def.name] = def.toString
@@ -138,8 +153,7 @@ func InitCAS(es *EvalState) {
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
-	es.defined = make(map[string][]Expression)
-	es.legacyEvalFns = make(map[string](func(*Expression, *EvalState) Ex))
+	es.defined = make(map[string]Def)
 
 	es.NoInit = !loadAllDefs
 	if !es.NoInit {
@@ -229,10 +243,10 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 		return nil, false
 	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
-	for i := range this.defined[name] {
-		ismatchq, _ := IsMatchQ(lhs, this.defined[name][i].Parts[1], EmptyPD(), &this.CASLogger)
+	for i := range this.defined[name].downvalues {
+		ismatchq, _ := IsMatchQ(lhs, this.defined[name].downvalues[i].Parts[1], EmptyPD(), &this.CASLogger)
 		if ismatchq {
-			res := ReplaceAll(lhs, &this.defined[name][i], &this.CASLogger, EmptyPD())
+			res := ReplaceAll(lhs, &this.defined[name].downvalues[i], &this.CASLogger, EmptyPD())
 			return res, true
 		}
 	}
@@ -243,13 +257,16 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
 	_, isd := this.defined[name]
 	if !isd {
-		this.defined[name] = []Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}}
+		newDef := Def{
+			downvalues: []Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}},
+		}
+		this.defined[name] = newDef
 		return
 	}
 
-	for i := range this.defined[name] {
-		if IsSameQ(this.defined[name][i].Parts[1], lhs, &this.CASLogger) {
-			this.defined[name][i].Parts[2] = rhs
+	for i := range this.defined[name].downvalues {
+		if IsSameQ(this.defined[name].downvalues[i].Parts[1], lhs, &this.CASLogger) {
+			this.defined[name].downvalues[i].Parts[2] = rhs
 			return
 		}
 	}
@@ -260,15 +277,18 @@ func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
 	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
 	// "complexity" score, order then matters. TODO: Create better measure of
 	// complexity (or specificity)
+	var tmp = this.defined[name]
 	newLhsLen := len(lhs.StringForm("InputForm"))
-	for i := range this.defined[name] {
-		thisLhsLen := len(this.defined[name][i].Parts[1].String())
+	for i := range this.defined[name].downvalues {
+		thisLhsLen := len(this.defined[name].downvalues[i].Parts[1].String())
 		if thisLhsLen < newLhsLen {
-			this.defined[name] = append(this.defined[name][:i], append([]Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}}, this.defined[name][i:]...)...)
+			tmp.downvalues = append(tmp.downvalues[:i], append([]Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}}, this.defined[name].downvalues[i:]...)...)
+			this.defined[name] = tmp
 			return
 		}
 	}
-	this.defined[name] = append(this.defined[name], Expression{[]Ex{&Symbol{"Rule"}, lhs, rhs}})
+	tmp.downvalues = append(tmp.downvalues, Expression{[]Ex{&Symbol{"Rule"}, lhs, rhs}})
+	this.defined[name] = tmp
 }
 
 func (this *EvalState) ClearAll() {
@@ -282,18 +302,20 @@ func (this *EvalState) Clear(name string) {
 	}
 }
 
-func CopyExpressionMap(in map[string][]Expression) map[string][]Expression {
-	out := make(map[string][]Expression)
+func CopyDefs(in map[string]Def) map[string]Def {
+	out := make(map[string]Def)
 	for k, v := range in {
-		for _, rule := range v {
-			out[k] = append(out[k], *rule.DeepCopy().(*Expression))
+		newDef := Def{}
+		for _, rule := range v.downvalues {
+			newDef.downvalues = append(newDef.downvalues, *rule.DeepCopy().(*Expression))
 		}
+		out[k] = newDef
 	}
 	return out
 }
 
-func (this *EvalState) GetDefinedSnapshot() map[string][]Expression {
-	return CopyExpressionMap(this.defined)
+func (this *EvalState) GetDefinedSnapshot() map[string]Def {
+	return CopyDefs(this.defined)
 }
 
 func (this *EvalState) String() string {
@@ -310,7 +332,7 @@ func (this *EvalState) String() string {
 		v := this.defined[k]
 		buffer.WriteString(k)
 		buffer.WriteString(": ")
-		buffer.WriteString(ExpressionArrayToString(v))
+		buffer.WriteString(v.String())
 		buffer.WriteString(", ")
 	}
 	if strings.HasSuffix(buffer.String(), ", ") {
@@ -368,12 +390,12 @@ func ExArrayToString(exArray []Ex) string {
 	return buffer.String()
 }
 
-func ExpressionArrayToString(exArray []Expression) string {
+func (this *Def) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
-	for i, e := range exArray {
+	for i, e := range this.downvalues {
 		buffer.WriteString(e.String())
-		if i != len(exArray)-1 {
+		if i != len(this.downvalues)-1 {
 			buffer.WriteString(", ")
 		}
 	}
