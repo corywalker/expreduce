@@ -123,4 +123,10 @@ func TestReplacement(t *testing.T) {
 	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} -> Hold[Length[{n}]]", es))
 
 	//CasAssertSame(t, es, "bar[m,n]", "foo[m, n] /. foo[a_, m_] -> bar[a, m]")
+
+	// Test pattern name conflicts.
+	CasAssertSame(t, es, "Null", "foo[k_, m_] := bar[k, m]")
+	CasAssertSame(t, es, "bar[m, 2]", "foo[m, 2]")
+	CasAssertSame(t, es, "Null", "fizz[m_, k_] := buzz[m, k]")
+	CasAssertSame(t, es, "buzz[m, 2]", "fizz[m, 2]")
 }

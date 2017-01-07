@@ -10,8 +10,8 @@ func GetPowerDefinitions() (defs []Definition) {
 		name: "Power",
 		rules: []Rule{
 			// Simplify nested exponents
-			Rule{"Power[Power[matcha_,matchb_Integer],matchc_Integer]", "matcha^(matchb*matchc)"},
-			Rule{"Power[Power[matcha_,matchb_Real],matchc_Integer]", "matcha^(matchb*matchc)"},
+			Rule{"Power[Power[a_,b_Integer],c_Integer]", "a^(b*c)"},
+			Rule{"Power[Power[a_,b_Real],c_Integer]", "a^(b*c)"},
 
 			// Power definitions
 			Rule{"Power[Times[Except[_Symbol, first_], inner___], pow_]", "first^pow*Power[Times[inner],pow]"},
@@ -123,7 +123,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "PowerExpand",
 		rules: []Rule{
-			Rule{"PowerExpand[expmatch_]", "expmatch //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
+			Rule{"PowerExpand[exp_]", "exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
 		},
 	})
 	return

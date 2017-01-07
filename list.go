@@ -210,14 +210,14 @@ func GetListDefinitions() (defs []Definition) {
 		name:      "Total",
 		docstring: "Sum all the values in the list.",
 		rules: []Rule{
-			Rule{"Total[lmatch__List]", "Apply[Plus, lmatch]"},
+			Rule{"Total[l__List]", "Apply[Plus, l]"},
 		},
 	})
 	defs = append(defs, Definition{
 		name:      "Mean",
 		docstring: "Calculate the statistical mean of the list.",
 		rules: []Rule{
-			Rule{"Mean[lmatch__List]", "Total[lmatch]/Length[lmatch]"},
+			Rule{"Mean[l__List]", "Total[l]/Length[l]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -247,7 +247,7 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Table",
 		rules: []Rule{
-			Rule{"Table[amatch_, bmatch_Integer]", "Table[amatch, {i, 1, bmatch}]"},
+			Rule{"Table[a_, b_Integer]", "Table[a, {i, 1, b}]"},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) >= 3 {
@@ -272,10 +272,10 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Sum",
 		rules: []Rule{
-			Rule{"Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Integer}]", "1/2*nmatch*(1 + nmatch)"},
-			Rule{"Sum[imatch_Symbol, {imatch_Symbol, 1, nmatch_Integer}]", "1/2*nmatch*(1 + nmatch)"},
-			Rule{"Sum[imatch_Symbol, {imatch_Symbol, 0, nmatch_Symbol}]", "1/2*nmatch*(1 + nmatch)"},
-			Rule{"Sum[imatch_Symbol, {imatch_Symbol, 1, nmatch_Symbol}]", "1/2*nmatch*(1 + nmatch)"},
+			Rule{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
+			Rule{"Sum[i_Symbol, {i_Symbol, 1, n_Integer}]", "1/2*n*(1 + n)"},
+			Rule{"Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]", "1/2*n*(1 + n)"},
+			Rule{"Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]", "1/2*n*(1 + n)"},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")

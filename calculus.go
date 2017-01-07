@@ -23,10 +23,7 @@ func GetCalculusDefinitions() (defs []Definition) {
 			//"Integrate[a_,{x_Symbol,start_Integer,end_Integer}]": "ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start]",
 			Rule{"Integrate[a_Integer,x_Symbol]", "a*x"},
 			Rule{"Integrate[a_Integer*b_,x_Symbol]", "a*Integrate[b,x]"},
-			// An outstanding bug is requiring me to write this as amatch and bmatch
-			// instead of a and b, because doing the latter causes issues with
-			// Integrate[a+b+c,x]
-			Rule{"Integrate[amatch_+bmatch__,x_Symbol]", "Integrate[amatch,x]+Integrate[Plus[bmatch],x]"},
+			Rule{"Integrate[a_+b__,x_Symbol]", "Integrate[a,x]+Integrate[Plus[b],x]"},
 			Rule{"Integrate[x_Symbol^n_Integer, x_Symbol]", "x^(n+1)/(n+1)"},
 			Rule{"Integrate[x_Symbol^n_Rational, x_Symbol]", "x^(n+1)/(n+1)"},
 		},

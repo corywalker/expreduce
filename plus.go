@@ -6,16 +6,16 @@ func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Plus",
 		rules: []Rule{
-			Rule{"Plus[amatch_, -amatch_, rest___]", "Plus[rest]"},
-			Rule{"Plus[c1match_Integer*matcha_, c2match_Integer*matcha_, rest___]", "((c1match+c2match)*matcha + rest)"},
+			Rule{"Plus[a_, -a_, rest___]", "Plus[rest]"},
+			Rule{"Plus[c1_Integer*a_, c2_Integer*a_, rest___]", "((c1+c2)*a + rest)"},
 			// For some reason, this messes up the Infinity - Infinity rule
-			Rule{"Plus[c1match_Integer*matcha_, matcha_, rest___]", "(c1match+1)*matcha+rest"},
-			Rule{"Plus[matcha_, matcha_, rest___]", "2*matcha + rest"},
-			////"((c1match_Integer*matcha_) + matcha_)": "(c1match+1)*matcha",
-			Rule{"Plus[c1match_Real*matcha_, c2match_Integer*matcha_, rest___]", "(c1match+c2match)*matcha + rest"},
+			Rule{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
+			Rule{"Plus[a_, a_, rest___]", "2*a + rest"},
+			////"((c1_Integer*a_) + a_)": "(c1+1)*a",
+			Rule{"Plus[c1_Real*a_, c2_Integer*a_, rest___]", "(c1+c2)*a + rest"},
 			// I have a feeling that these can be combined into a more general
 			// definition. TODO
-			Rule{"Plus[cmatch_Real*matcha_, matcha_, rest___]", "(cmatch+1)*matcha + rest"},
+			Rule{"Plus[c_Real*a_, a_, rest___]", "(c+1)*a + rest"},
 
 			Rule{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
 			Rule{"Plus[Infinity, _Real, rest___]", "Infinity + rest"},

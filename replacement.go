@@ -22,12 +22,24 @@ func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 	keys := []string{}
 	for k, _ := range pm.patternDefined { keys = append(keys,k) }
 	sort.Strings(keys)
+	// First add a "UniqueDefined`" prefix to each pattern name. This will avoid
+	// Any issues where the pattern name is also a variable in one of the
+	// pattern definitions. For example, foo[k_, m_] := bar[k, m] and calling
+	// foo[m, 2] might print bar[2, 2] without this change.
+	for _, nameStr := range keys {
+		toReturn = ReplaceAll(toReturn,
+			&Expression{[]Ex{
+				&Symbol{"Rule"},
+				&Symbol{nameStr},
+				&Symbol{"UniqueDefined`" + nameStr},
+			}}, cl, EmptyPD())
+	}
 	for _, nameStr := range keys {
 		def := pm.patternDefined[nameStr]
 		toReturn = ReplaceAll(toReturn,
 			&Expression{[]Ex{
 				&Symbol{"Rule"},
-				&Symbol{nameStr},
+				&Symbol{"UniqueDefined`" + nameStr},
 				def,
 			}}, cl, EmptyPD())
 	}

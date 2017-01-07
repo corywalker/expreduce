@@ -7,8 +7,8 @@ func GetRandomDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "RandomReal",
 		rules: []Rule{
-			Rule{"RandomReal[{minmatch_, maxmatch_}]", "RandomReal[]*(maxmatch - minmatch) + minmatch"},
-			Rule{"RandomReal[maxmatch_]", "RandomReal[]*maxmatch"},
+			Rule{"RandomReal[{min_, max_}]", "RandomReal[]*(max - min) + min"},
+			Rule{"RandomReal[max_]", "RandomReal[]*max"},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 1 {
