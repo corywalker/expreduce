@@ -309,6 +309,22 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"Null", "fooBlank[_[addends__]] := Hold[addends]"},
 			&SameTest{"Hold[a, b, c]", "fooList[List[a, b, c]]"},
 			&SameTest{"Hold[a, b, c]", "fooBlank[Plus[a, b, c]]"},
+
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[__Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[__]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[__Real]]"},
+			&SameTest{"True", "MatchQ[foo[1.], foo[__Real]]"},
+			&SameTest{"False", "MatchQ[foo[], foo[__Real]]"},
+			&SameTest{"True", "MatchQ[foo[1.], foo[__]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, __Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, 2, __Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, 2, 3, ___Integer]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[1, 2, 3, 4, ___Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, ___Integer, 3]]"},
+
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[1, 2, 3, a__Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, a__Integer, 3]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[1, a__Integer, 5]]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -328,6 +344,24 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[a + b + c, a + x___Symbol]"},
 			&SameTest{"False", "MatchQ[a + b + c, a + x___Plus]"},
 			&SameTest{"True", "MatchQ[a + b, a + b + x___Symbol]"},
+
+			&SameTest{"True", "MatchQ[foo[1.], foo[___]]"},
+			&SameTest{"True", "MatchQ[foo[1.], foo[___Real]]"},
+			&SameTest{"False", "MatchQ[foo[1.], foo[___Integer]]"},
+			&SameTest{"True", "MatchQ[foo[], foo[___Integer]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[1, 2]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2], foo[1, 2, 3]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[1, 2, 3, __Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, __Integer, 3]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[1, __Integer, 5]]"},
+
+			// Make sure some similar cases still work with Patterns, not just Blanks
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, 2, 3, a___Integer]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[1, 2, 3, 4, a___Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, a___Integer, 3]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, 3], foo[1, a__Integer, 3, b__Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[1, a__Integer, 3, b___Integer]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3, 4], foo[1, a__Integer, 3, b___Integer, 4]]"},
 		},
 	})
 	defs = append(defs, Definition{

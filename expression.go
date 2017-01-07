@@ -417,5 +417,45 @@ func GetExpressionDefinitions() (defs []Definition) {
 			//&SameTest{"True", "Sequence[2, 2] === Sequence[2]"},
 		},
 	})
+	defs = append(defs, Definition{
+		name: "Apply",
+		tests: []TestInstruction{
+			&SameTest{"foo[a,b,c]", "Apply[foo, {a,b,c}]"},
+			&SameTest{"foo[bar, buzz]", "Apply[foo, {bar, buzz}]"},
+			&SameTest{"foo[bar, buzz]", "foo @@ {bar, buzz}"},
+			&SameTest{"foo[1, 2]", "foo @@ {1, 2}"},
+			&SameTest{"1", "foo @@ 1"},
+			&SameTest{"bar", "foo @@ bar"},
+			&SameTest{"12", "Times @@ {2, 6}"},
+			&SameTest{"a b", "Times @@ {a, b}"},
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Evaluate",
+		tests: []TestInstruction{
+			&StringTest{"Hold[4, (2 + 1)]", "Hold[Evaluate[1 + 3], 2 + 1]"},
+			&StringTest{"Hold[foo[Evaluate[(1 + 1)]]]", "Hold[foo[Evaluate[1 + 1]]]"},
+			&StringTest{"Hold[4, 7, (2 + 1)]", "Hold[Evaluate[1 + 3, 5 + 2], 2 + 1]"},
+			&StringTest{"Hold[(1 + 3), (5 + 2), (2 + 1)]", "Hold[Sequence[1 + 3, 5 + 2], 2 + 1]"},
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Function",
+		tests: []TestInstruction{
+			&SameTest{"1 + x", "Function[1 + #][x]"},
+			&SameTest{"1 + x + 2y", "Function[1 + # + 2#2][x, y]"},
+			&SameTest{"a^2", "Function[x, x^2][a]"},
+			&SameTest{"a^2", "Function[x, x^2][a, b]"},
+			&SameTest{"x^2", "Function[x, x^2][x]"},
+			&SameTest{"4", "Function[x, x^2][-2]"},
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Hold",
+		tests: []TestInstruction{
+			&StringTest{"Hold[5^3]", "Hold[Power[5, 3]]"},
+			&StringTest{"Hold[5.^3.]", "Hold[Power[5., 3.]]"},
+		},
+	})
 	return
 }

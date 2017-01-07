@@ -243,6 +243,16 @@ func GetComparisonDefinitions() (defs []Definition) {
 			// Test Rationals
 			&StringTest{"False", "4/3==3/2"},
 			&StringTest{"True", "4/3==8/6"},
+
+			&SameTest{"True", "foo[x == 2, y, x] == foo[x == 2, y, x]"},
+			&SameTest{"True", "foo[x == 2, y, x] == foo[x == 2., y, x]"},
+			&SameTest{"foo[x == 2, y, x] == foo[x == 2., y, y]", "foo[x == 2, y, x] == foo[x == 2., y, y]"},
+			&SameTest{"foo[x == 2, y, x] == bar[x == 2, y, x]", "foo[x == 2, y, x] == bar[x == 2, y, x]"},
+
+			&StringTest{"(foo[x, y, z]) == (foo[x, y])", "foo[x, y, z] == foo[x, y]"},
+			&StringTest{"(foo[x, y, z]) == (foo[x, y, 1])", "foo[x, y, z] == foo[x, y, 1]"},
+			&SameTest{"True", "foo[x, y, 1] == foo[x, y, 1]"},
+			&SameTest{"True", "foo[x, y, 1.] == foo[x, y, 1]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -282,6 +292,16 @@ func GetComparisonDefinitions() (defs []Definition) {
 			&StringTest{"False", "If[xx == 3, yy, zz] === If[xx == 2, yy, zz]"},
 			&StringTest{"False", "(x == y) === (y == x)"},
 			&StringTest{"True", "(x == y) === (x == y)"},
+
+			&SameTest{"True", "foo[x == 2, y, x] === foo[x == 2, y, x]"},
+			&SameTest{"False", "foo[x == 2, y, x] === foo[x == 2., y, x]"},
+			&SameTest{"False", "foo[x == 2, y, x] === foo[x == 2., y, y]"},
+			&SameTest{"False", "foo[x == 2, y, x] === bar[x == 2, y, x]"},
+
+			&SameTest{"False", "foo[x, y, z] === foo[x, y]"},
+			&SameTest{"False", "foo[x, y, z] === foo[x, y, 1]"},
+			&SameTest{"True", "foo[x, y, 1] === foo[x, y, 1]"},
+			&SameTest{"False", "foo[x, y, 1.] === foo[x, y, 1]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -312,6 +332,11 @@ func GetComparisonDefinitions() (defs []Definition) {
 			// cancellation rule
 			&SameTest{"Null", "Plus[foooooooooooooooooo, -foooooooooooooooooo, rest___] := bar + rest"},
 			&SameTest{"bar + 1 + a + b + c + d + e + f + g", "Plus[foooooooooooooooooo,1,-foooooooooooooooooo,a,b,c,d,e,f,g]"},
+
+			&SameTest{"True", "MatchQ[foo[2*x, x], foo[matcha_Integer*matchx_, matchx_]]"},
+			&SameTest{"False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]"},
+			&SameTest{"False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]"},
+			&SameTest{"False", "MatchQ[foo[x, 2*y], foo[matcha_Integer*matchx_, matchx_]]"},
 		},
 	})
 	return

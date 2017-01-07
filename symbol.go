@@ -80,6 +80,24 @@ func GetSymbolDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
 		},
+		tests: []TestInstruction{
+			&StringTest{"3", "x=1+2"},
+			&StringTest{"3", "x"},
+			&StringTest{"4", "x+1"},
+			// To make sure the result does not change
+			&StringTest{"4", "x+1"},
+
+			&StringTest{"3", "x=1+2"},
+			&StringTest{"6", "x*2"},
+			// To make sure the result does not change
+			&StringTest{"6", "x=x*2"},
+			&StringTest{"36", "x=x*x"},
+
+			&StringTest{"a^2", "y=a*a"},
+			&StringTest{"a^4", "y=y*y"},
+			&StringTest{"2", "a=2"},
+			&StringTest{"16", "y"},
+		},
 	})
 	defs = append(defs, Definition{
 		name:      "SetDelayed",
@@ -110,6 +128,40 @@ func GetSymbolDefinitions() (defs []Definition) {
 			}
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
+		},
+		tests: []TestInstruction{
+			// Test function definitions
+			&SameTest{"Null", "testa[x_] := x*2"},
+			&SameTest{"Null", "testa[x_Integer] := x*3"},
+			&SameTest{"Null", "testa[x_Real] := x*4"},
+			&SameTest{"8.", "testa[2.]"},
+			&SameTest{"6", "testa[2]"},
+			&SameTest{"2 * k", "testa[k]"},
+			&SameTest{"Null", "testb[x_Real] := x*4"},
+			&SameTest{"Null", "testb[x_Integer] := x*3"},
+			&SameTest{"Null", "testb[x_] := x*2"},
+			&SameTest{"8.", "testb[2.]"},
+			&SameTest{"6", "testb[2]"},
+			&SameTest{"2 * k", "testb[k]"},
+			&SameTest{"testa", "testa"},
+			&SameTest{"testb", "testb"},
+			&SameTest{"Null", "testb[x_] := x*5"},
+			&SameTest{"5 * k", "testb[k]"},
+			&SameTest{"8.", "testb[2.]"},
+			&SameTest{"Null", "testb[x_Real + sym] := 5"},
+			&SameTest{"5", "testb[2.+sym]"},
+			&SameTest{"5", "testb[sym+2.]"},
+			&SameTest{"Null", "testb[x_Real + sym] := 6"},
+			&SameTest{"6", "testb[2.+sym]"},
+			&SameTest{"6", "testb[sym+2.]"},
+			&SameTest{"Null", "dist[x_, y_]:=(x^2 + y^2)^.5"},
+			&SameTest{"(j^2+k^2)^.5", "dist[j,k]"},
+
+			// Test pattern name conflicts.
+			&SameTest{"Null", "foo[k_, m_] := bar[k, m]"},
+			&SameTest{"bar[m, 2]", "foo[m, 2]"},
+			&SameTest{"Null", "fizz[m_, k_] := buzz[m, k]"},
+			&SameTest{"buzz[m, 2]", "fizz[m, 2]"},
 		},
 	})
 	return

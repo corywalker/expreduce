@@ -112,6 +112,128 @@ func GetReplacementDefinitions() (defs []Definition) {
 
 			return this
 		},
+		tests: []TestInstruction{
+			&SameTest{"2^(y+1)", "2^(x^2+1) /. x^2->y"},
+			&SameTest{"b + c + d", "a + b + c + c^2 /. c^2 + a -> d"},
+			&SameTest{"a * b * c", "a*b*c /. c + a -> d"},
+			&SameTest{"b * d", "a*b*c /. c*a -> d"},
+			&SameTest{"2 * a + b + c + c^2", "2 * a + b + c + c^2 /. c^2 + a -> d"},
+			&SameTest{"a^2 + b + c + d", "a^2 + a + b + c + c^2 /. c^2 + a -> d"},
+			&SameTest{"a * b * c + a * b^2 * c", "(a*b*c) + (a*b^2*c)"},
+			&SameTest{"b * d + b^2 * d", "(a*b*c) + (a*b^2*c) /. c*a -> d"},
+			&SameTest{"b * d + b^2 * d", "(a*b*c) + (a*b^2*c) /. a*c -> d"},
+			&SameTest{"a + b + c", "a + b + c /. c + a -> c + a"},
+			&SameTest{"d", "a*b*c /. c*a*b -> d"},
+			&SameTest{"a * b * c", "a*b*c /. c*a*b*d -> d"},
+			&SameTest{"a*b*c*d*e", "a*b*c*d*e /. a*b*f -> z"},
+			&SameTest{"z*d*e", "a*b*c*d*e /. a*b*c -> z"},
+			&SameTest{"z*a*b", "a*b*c*d*e /. e*d*c -> z"},
+			&SameTest{"z*a*b", "a*b*c*d*e /. c*e*d -> z"},
+
+			// Using named placeholders
+			&SameTest{"a^b", "a + b /. x_Symbol + y_Symbol -> x^y"},
+			&SameTest{"2", "x = 2"},
+			&SameTest{"2^b", "a + b /. x_Symbol + y_Symbol -> x^y"},
+			&SameTest{"2", "x"},
+			&SameTest{"a^b", "a == b /. j_Symbol == k_Symbol -> j^k"},
+			&SameTest{"2", "a == b /. j_Equal -> 2"},
+			&SameTest{"(a == b)^k", "a == b /. j_Equal -> j^k"},
+			&SameTest{"3^k", "2^k /. base_Integer -> base + 1"},
+			&SameTest{"3^k", "2^k /. base_Integer^exp_ -> (base + 1)^exp"},
+			&SameTest{"(2 + k)^k", "2^k /. base_Integer^exp_ -> (base + exp)^exp"},
+			&SameTest{"(2 + k)^k", "2^k /. base_Integer^exp_Symbol -> (base + exp)^exp"},
+			&SameTest{"1 + (2 + k)^k", "2^k + 1 /. base_Integer^exp_Symbol -> (base + exp)^exp"},
+			&SameTest{"a^c + b", "a^c + b /. test_Symbol^test_Symbol + test_Symbol -> test + 1"},
+			&SameTest{"1 + a", "a^a + a /. test_Symbol^test_Symbol + test_Symbol -> test + 1"},
+			&SameTest{"a^a", "a^a /. (test_Symbol^test) -> 2"},
+			&SameTest{"2", "a^a /. (test_Symbol^test_Symbol) -> 2"},
+			&SameTest{"a^a", "a^a /. (test^test_Symbol) -> 2"},
+			&SameTest{"2", "test^a /. (test^test_Symbol) -> 2"},
+			&SameTest{"2", "a^test /. (test_Symbol^test) -> 2"},
+
+			&ResetState{},
+			&SameTest{"testa*testb", "testa*testb /. a_Symbol*a_Symbol -> 5"},
+			&SameTest{"False", "MatchQ[testa*testb, a_Symbol*a_Symbol]"},
+			&SameTest{"testa+testb", "testa+testb /. a_Symbol+a_Symbol -> 5"},
+			&SameTest{"5", "testa*testb /. a_Symbol*b_Symbol -> 5"},
+			&SameTest{"a+b", "a + b /. (b_Symbol + b_Symbol) -> 2"},
+
+			// Test matching/replacement contexts
+			&ResetState{},
+			&SameTest{"99^k", "test = 99^k"},
+			&SameTest{"2", "99^k /. test -> 2"},
+			&SameTest{"2", "99^k /. test_ -> 2"},
+			&SameTest{"3", "test2 = 3"},
+			&SameTest{"3", "99 /. test2_Integer -> test2"},
+
+			&SameTest{"a^b", "a^b /. test3_Symbol^test3_Symbol -> k"},
+			&SameTest{"5", "test3 = 5"},
+			&SameTest{"a^b", "a^b /. test3_Symbol^test3_Symbol -> k"},
+
+			&ResetState{},
+			&SameTest{"a + 99 * b + 99 * c", "a + 2*b + 5*c /. (c1_Integer*a_Symbol) -> 99*a"},
+			&SameTest{"a + 99 * b + 5 * c", "a + 2*b + 5*c /. (2*a_Symbol) -> 99*a"},
+			&SameTest{"a + 99 * b + 99 * c", "a + 2*b + 2*c /. (2*a_Symbol) -> 99*a"},
+			&SameTest{"a + 99 * b + 99 * c + 99 * d", "a + 2*b + 3*c + 3*d /. (cl_Integer*a_Symbol) -> 99*a"},
+
+			// Work way up to combining like terms
+			&ResetState{},
+			&SameTest{"a + 99 * b + 99 * c", "a + 2*b + 5*c /. (c1_Integer*a_Symbol) -> 99*a"},
+			&SameTest{"a + 99 * b", "a + 2*b + 5*c /. (c1_Integer*matcha_Symbol) + (c2_Integer*matchb_Symbol) -> 99*matcha"},
+			&SameTest{"a + (2 * b) + (5 * c)", "a + 2*b + 5*c /. (c1_Integer*matcha_Symbol) + (c2_Integer*matcha_Symbol) -> (c1+c2)*matcha"},
+			&SameTest{"(a + (7 * b))", "a + 2*b + 5*b /. (c1_Integer*matcha_Symbol) + (c2_Integer*matcha_Symbol) -> (c1+c2)*matcha"},
+
+			&ResetState{},
+			&SameTest{"2", "a + b /. (d_Symbol + c_Symbol) -> 2"},
+			&SameTest{"2 + c", "a + b + c /. (d_Symbol + c_Symbol) -> 2"},
+			&SameTest{"2 + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> 2"},
+			&SameTest{"a+99+c+d", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch + 99"},
+			// Causes stack overflow
+			//&SameTest{"99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d"},
+			&SameTest{"a * b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c*d"},
+			&SameTest{"98", "d = 98"},
+			//&SameTest{"98 + 98 * a + c", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch"},
+			&SameTest{"c+98+(b*a)", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch"},
+
+			&ResetState{},
+			&SameTest{"2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. matcha_ - matchb_ -> 2"},
+			&SameTest{"3 * a^2 + 5 * b^2", "2 * a^2 - 2 * b^2 /. 2*matcha_ - 2*matchb_ -> 3*matcha + 5*matchb"},
+			&SameTest{"2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _Integer*matcha_ - _Integer*matchb_ -> 2"},
+			&SameTest{"2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _*matcha_ - _*matchb_ -> 2"},
+			&SameTest{"2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - _ -> 2"},
+			&SameTest{"2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - 2*_ -> 2"},
+
+			// Test replacing functions
+			&SameTest{"test[]", "kfdsfdsf[] /. _Symbol -> test"},
+			&SameTest{"11", "(x + 2)[5, 6] /. (2 + x) -> Plus"},
+			&SameTest{"2[2, 2, 2, 2]", "a*b*c*d /. _Symbol -> 2"},
+			&SameTest{"2", "foo[2*x, x] /. foo[matcha_Integer*matchx_, matchx_] -> matcha"},
+
+			// Test replacing with BlankSequence
+			&SameTest{"foo[]", "a + b /. a + b + amatch___ -> foo[amatch]"},
+			&SameTest{"foo[b, c, d]", "a + b + c + d /. a + amatch___ -> foo[amatch]"},
+			&SameTest{"foo[a + b + c + d]", "a + b + c + d /. amatch___ -> foo[amatch]"},
+			&SameTest{"a + b", "a + b /. a + b + amatch__ -> foo[amatch]"},
+			&SameTest{"foo[b, c, d]", "a + b + c + d /. a + amatch__ -> foo[amatch]"},
+			&SameTest{"foo[a + b + c + d]", "a + b + c + d /. amatch__ -> foo[amatch]"},
+
+			// Test replacement within Hold parts
+			&SameTest{"3", "{a, b, c} /. {n__} :> Length[{n}]"},
+			&SameTest{"1", "{a, b, c} /. {n__} -> Length[{n}]"},
+
+			&SameTest{"bar[m,n]", "foo[m, n] /. foo[a_, m_] -> bar[a, m]"},
+
+			// Test replacement of functions and arguments
+			&SameTest{"foo[False, y, 5]", "foo[x == 2, y, x] /. x -> 5"},
+			&SameTest{"foo[5, y, x]", "foo[x * 2, y, x] /. x * 2 -> 5"},
+			&SameTest{"k", "foo[k] /. foo[k] -> k"},
+			&SameTest{"foo[k]", "foo[foo[k]] /. foo[k] -> k"},
+			&SameTest{"k", "(foo[foo[k]] /. foo[k] -> k) /. foo[k] -> k"},
+			&SameTest{"foo[bla]", "foo[foo[k]] /. foo[k] -> bla"},
+
+			&SameTest{"2 * a + 12 * b", "foo[1, 2, 3, 4] /. foo[1, amatch__Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]"},
+			&SameTest{"a + 24 * b", "foo[1, 2, 3, 4] /. foo[1, amatch___Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "ReplaceRepeated",

@@ -19,6 +19,10 @@ func TestInterp(t *testing.T) {
 	assert.Equal(t, "6", EasyRun("1+2*3-1", es))
 	assert.Equal(t, "-6", EasyRun("1-2*3-1", es))
 
+	// Test function syntax parsing
+	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").String())
+	assert.Equal(t, "my2func[]", Interp("my2func[  ]").String())
+
 	// Test proper behavior of unary minus sign
 	assert.Equal(t, "-15", EasyRun("5*-3", es))
 	assert.Equal(t, "15", EasyRun("-5*-3", es))
@@ -31,7 +35,7 @@ func TestInterp(t *testing.T) {
 	CasAssertSame(t, es, "{x, x, g[x], g[x]}", "{f[f[x]], f[x], g[f[x]], f[g[f[x]]]} //. f[xmatch_] -> xmatch")
 	CasAssertSame(t, es, "foo[{x, x, g[x], g[x]}]", "{f[f[x]], f[x], g[f[x]], f[g[f[x]]]} //. f[xmatch_] -> xmatch // foo")
 	CasAssertSame(t, es, "3[P[1[2]]]", "P@1@2//3")
-	// Currently does not work:
+	// TODO: Currently does not work:
 	//CasAssertSame(t, es, "(x^2)*y", "x^2 y")
 
 	// Test Slots

@@ -37,6 +37,12 @@ func (this *StringTest) Run(t *testing.T, es *EvalState) {
 	assert.Equal(t, this.out, EasyRun(this.in, es))
 }
 
+type ResetState struct {}
+
+func (this *ResetState) Run(t *testing.T, es *EvalState) {
+	es.ClearAll()
+}
+
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {
 	inTree := EvalInterp(in, es).Eval(es)
 	outTree := EvalInterp(out, es).Eval(es)
