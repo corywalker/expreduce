@@ -187,6 +187,13 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"Integer", "Power[2, 2] // Head"},
 			&SameTest{"Rational", "Power[-2, -1] // Head"},
 			&SameTest{"Rational", "Power[2, -2] // Head"},
+
+			// Exponent simplifications
+			&SameTest{"m^4", "m^2*m^2"},
+			&SameTest{"m^4", "(m^2)^2"},
+			&SameTest{"(m^2)^2.", "(m^2)^2."},
+			&SameTest{"(m^2.)^2.", "(m^2.)^2."},
+			&SameTest{"m^4.", "(m^2.)^2"},
 		},
 	})
 	defs = append(defs, Definition{

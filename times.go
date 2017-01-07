@@ -262,6 +262,54 @@ func GetTimesDefinitions() (defs []Definition) {
 			this.Parts = append(this.Parts, multiplicands...)
 			return this
 		},
+		tests: []TestInstruction{
+			// Test that we do not delete all the multiplicands
+			&SameTest{"1", "1*1"},
+			&SameTest{"1", "5*1/5*1"},
+
+			// Test empty Times expressions
+			&SameTest{"1", "Times[]"},
+
+			// Test fraction simplification
+			&SameTest{"25", "50/2"},
+			&SameTest{"50", "100/2"},
+			&SameTest{"50", "1/2*100"},
+			//&SameTest{"1/4", "1/2*1/2"},
+			&SameTest{"5/4", "1/2*5/2"},
+			&SameTest{"a/(b*c*d)", "a/b/c/d"},
+
+			// Test Rational detection
+			&StringTest{"10", "40/2^2"},
+			&StringTest{"10", "40/4"},
+			&StringTest{"40/3", "40/3"},
+			&StringTest{"20/3", "40/6"},
+			&StringTest{"10", "1/4*40"},
+			&StringTest{"10", "1/(2^2)*40"},
+
+			// Test proper accumulation of Rationals
+			&StringTest{"(2 * sym)", "sym*Rational[1,2]*Rational[2,3]*6"},
+			&StringTest{"-2/3", "Rational[1, -2]*Rational[-2, 3]*-2"},
+			&StringTest{"Rational", "Rational[1, -2]*Rational[-2, 3]*-2 // Head"},
+
+			// Test multiplicative identity
+			&StringTest{"5", "5*1"},
+			&StringTest{"a", "1*a"},
+			&StringTest{"(1. * a)", "1.*a"},
+
+			// Test multiplicative inverse
+			&StringTest{"1", "8*1/8"},
+			&StringTest{"1", "a*1/a"},
+			&StringTest{"1", "1/a*a"},
+
+			// Test multiplicative property of zero
+			&SameTest{"3/2", "(3 + (x^2 * 0)) * 2^-1"},
+
+			// Simplifications with Power
+			&SameTest{"a^(2+c)", "a^2*a^c"},
+			&SameTest{"m^2", "m*m"},
+			&SameTest{"1", "m/m"},
+			&SameTest{"1", "m^2/m^2"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "Factorial",
@@ -277,6 +325,15 @@ func GetTimesDefinitions() (defs []Definition) {
 				return &Integer{factorial(asInt.Val)}
 			}
 			return this
+		},
+		tests: []TestInstruction{
+			&SameTest{"2432902008176640000", "Factorial[20]"},
+			&SameTest{"1", "Factorial[1]"},
+			&SameTest{"1", "Factorial[0]"},
+			&SameTest{"ComplexInfinity", "Factorial[-1]"},
+			&SameTest{"1", "Factorial[-0]"},
+			&SameTest{"ComplexInfinity", "Factorial[-10]"},
+			&SameTest{"120", "Factorial[5]"},
 		},
 	})
 	return

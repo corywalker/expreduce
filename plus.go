@@ -16,12 +16,6 @@ func GetPlusDefinitions() (defs []Definition) {
 			// I have a feeling that these can be combined into a more general
 			// definition. TODO
 			Rule{"Plus[c_Real*a_, a_, rest___]", "(c+1)*a + rest"},
-
-			Rule{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
-			Rule{"Plus[Infinity, _Real, rest___]", "Infinity + rest"},
-			Rule{"Plus[-Infinity, _Integer, rest___]", "-Infinity + rest"},
-			Rule{"Plus[-Infinity, _Real, rest___]", "-Infinity + rest"},
-			Rule{"Plus[Infinity, -Infinity, rest___]", "Indeterminate + rest"},
 		},
 		toString: func (this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", form)
@@ -160,6 +154,111 @@ func GetPlusDefinitions() (defs []Definition) {
 			this.Parts = append(this.Parts, addends...)
 			return this
 		},
+		tests: []TestInstruction{
+			// Test automatic expansion
+			&StringTest{"(a + b)", "1*(a + b)"},
+			&StringTest{"(1. * (a + b))", "1.*(a + b)"},
+			&StringTest{"(2. * (a + b))", "2.*(a + b)"},
+			&StringTest{"(a + b)", "(a + b)/1"},
+			&StringTest{"(1. * (a + b))", "(a + b)/1."},
+			&StringTest{"(2 * (a + b))", "2*(a + b)"},
+			&StringTest{"(a * (b + c))", "a*(b + c)"},
+			&StringTest{"((-1 * a) + (-1 * b))", "-1*(a + b)"},
+			&StringTest{"((-1 * a) + (-1 * b))", "-(a + b)"},
+			&StringTest{"(-1. * (a + b))", "-1.*(a + b)"},
+			&StringTest{"((-1 * a) + (-1 * b))", "(a + b)/-1"},
+			&StringTest{"(-1. * (a + b))", "(a + b)/-1."},
+
+			// Test that we do not delete all the addends
+			&SameTest{"0.", "(5.2 - .2) - 5"},
+			&SameTest{"0", "0 + 0"},
+
+			// Test empty Plus expressions
+			&SameTest{"0", "Plus[]"},
+
+			// Test proper accumulation of Rationals
+			&StringTest{"(47/6 + sym)", "Rational[5, 2] + Rational[7, 3] + 3 + sym"},
+			&StringTest{"(17/6 + sym)", "Rational[5, -2] + Rational[7, 3] + 3 + sym"},
+			&StringTest{"(-19/6 + sym)", "Rational[5, -2] + Rational[7, 3] - 3 + sym"},
+			&StringTest{"(-47/6 + sym)", "Rational[5, -2] + Rational[-7, 3] - 3 + sym"},
+
+			// Test combining monomials of degree 1
+			&SameTest{"a+7*b", "a + 2*b + 5*b"},
+
+			// Test a more general version
+			&SameTest{"a+7*b", "a + 2*b + 5*b"},
+			&DiffTest{"a+7*b", "a + 2*b^2 + 5*b^2"},
+			&SameTest{"a+7*b^2", "a + 2*b^2 + 5*b^2"},
+			&SameTest{"a+3*b^2", "a - 2*b^2 + 5*b^2"},
+
+			// Test using terms without a coefficient
+			&SameTest{"a+6*b^2", "a + b^2 + 5*b^2"},
+
+			// Test additive identity
+			&SameTest{"a", "a+0"},
+			&SameTest{"a+b", "(a+b)+0"},
+
+			// Test additive inverse
+			&SameTest{"0", "a-a"},
+			&SameTest{"0", "-a + a"},
+			&SameTest{"0", "(a+b)-(a+b)"},
+			&SameTest{"0", "-(a+b)+(a+b)"},
+			&SameTest{"0", "(a+b)-(a+b)"},
+			&SameTest{"0", "-(a+b)+(a+b)"},
+
+			// Test basic simplifications
+			&SameTest{"d", "(a+b)-(a+b)+c-c+d"},
+			&SameTest{"((5 * c^a) + (3 * d))", "(a+b)-(a+b)+c-c+2*c^a+2*d+5*d+d-5*d+3*c^a"},
+			&SameTest{"87.5 + 3 * x", "((x + 80. + 3. + x) + 2. + x + 2.5)"},
+			&SameTest{"87.5 + (7. * x)", "((x + 80. + 3. + x) + 2. + (x * 2. * 2.) + (0. * 3. * x) + x + 2.5)"},
+
+			// More complicated term combining
+			&SameTest{"-3 * m - 10 * n", "-9 * n - n - 3 * m"},
+			//&SameTest{"7*a * b - 2*a * c", "3*a*b - 2*a*c + 4*a*b"},
+			// For the next two, currently having trouble combining 3ab+4ab, etc
+			//&SameTest{"-3*a - 2*b + 3*a*b", "2*a - 4*b + 3*a*b - 5*a + 2*b"},
+			//&SameTest{"7*x - 11*y + x*y", "8*x - 9*y - 3*x*y - 2*y - x + 4*x*y"},
+			//&SameTest{"-3*a*b*c*d*e*f", "4*a*b*c*d*e*f + -7*a*b*c*d*e*f"},
+			//&SameTest{"-3*a*b*c*d*e*f", "a*b*c*4*d*e*f + -a*b*c*d*e*f*7"},
+			//&SameTest{"-3*a*b*c*d*e*f", "a*b*2*c*2*d*e*f + -a*b*c*d*e*f*7"},
+
+			//&SameTest{"2 r + 2 t", "2 r - 3 s - t + 3 t + 3 s"},
+			//&SameTest{"3 (x - 2 y) - 4 x y + 2 (-1 + x y)", "2 (x*y - 1) + 3 (x - 2 y) - 4 x*y"},
+			//&SameTest{"-2 + x (3 - 2 y) - 6 y", "2 (x*y - 1) + 3 (x - 2 y) - 4 x*y // BasicSimplify"},
+			//&SameTest{"-4 s + 4 r s - 3 (1 + r s)", "4 r*s - 2 s - 3 (r*s + 1) - 2 s"},
+			//&SameTest{"-3 + (-4 + r) s", "4 r*s - 2 s - 3 (r*s + 1) - 2 s // BasicSimplify"},
+			//&SameTest{"7 y - z + 3 y z", "8 y - 2 z - (y - z) + 3 y*z"},
+			//&SameTest{"-z + y (7 + 3 z)", "8 y - 2 z - (y - z) + 3 y*z // BasicSimplify"},
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Infinity",
+		rules: []Rule{
+			Rule{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
+			Rule{"Plus[Infinity, _Real, rest___]", "Infinity + rest"},
+			Rule{"Plus[-Infinity, _Integer, rest___]", "-Infinity + rest"},
+			Rule{"Plus[-Infinity, _Real, rest___]", "-Infinity + rest"},
+			Rule{"Plus[Infinity, -Infinity, rest___]", "Indeterminate + rest"},
+		},
+		tests: []TestInstruction{
+			&SameTest{"Infinity", "Infinity - 1"},
+			&SameTest{"Infinity", "Infinity - 990999999"},
+			&SameTest{"Infinity", "Infinity - 990999999."},
+			&SameTest{"Indeterminate", "Infinity - Infinity"},
+			// I can't simplify this type of infinity until I have ;/ rules
+			//&SameTest{"Infinity", "Infinity*2"},
+			&SameTest{"-Infinity", "Infinity*-1"},
+			&SameTest{"-Infinity", "-Infinity + 1"},
+			&SameTest{"-Infinity", "-Infinity + 999"},
+			&SameTest{"Infinity", "-Infinity*-1"},
+			&SameTest{"0", "1/Infinity"},
+		},
+	})
+	defs = append(defs, Definition{
+		name: "ComplexInfinity",
+	})
+	defs = append(defs, Definition{
+		name: "Indeterminate",
 	})
 	return
 }

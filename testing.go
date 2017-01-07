@@ -19,6 +19,15 @@ func (this *SameTest) Run(t *testing.T, es *EvalState) {
 	CasAssertSame(t, es, this.out, this.in)
 }
 
+type DiffTest struct {
+	out string
+	in string
+}
+
+func (this *DiffTest) Run(t *testing.T, es *EvalState) {
+	CasAssertDiff(t, es, this.out, this.in)
+}
+
 type StringTest struct {
 	out string
 	in string

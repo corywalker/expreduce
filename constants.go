@@ -224,6 +224,38 @@ func GetConstantsDefinitions() (defs []Definition) {
 			}
 			return this
 		},
+		tests: []TestInstruction{
+			&StringTest{"10/7", "Rational[10, 7]"},
+			&StringTest{"5/3", "Rational[10, 6]"},
+			&StringTest{"Rational[x, 10]", "Rational[x, 10]"},
+			&StringTest{"10", "Rational[100, 10]"},
+			&StringTest{"-10", "Rational[-100, 10]"},
+			&StringTest{"10", "Rational[-100, -10]"},
+			&StringTest{"-5/3", "Rational[-10, 6]"},
+			&StringTest{"5/3", "Rational[-10, -6]"},
+			&StringTest{"0", "Rational[0, 5]"},
+			&StringTest{"Rational[0, n]", "Rational[0, n]"},
+			&StringTest{"Indeterminate", "Rational[0, 0]"},
+			&StringTest{"ComplexInfinity", "Rational[1, 0]"},
+			&StringTest{"ComplexInfinity", "Rational[-1, 0]"},
+			&StringTest{"ComplexInfinity", "Rational[-1, -0]"},
+			&StringTest{"Indeterminate", "Rational[-0, -0]"},
+			&StringTest{"Indeterminate", "Rational[-0, 0]"},
+
+			// Rational matching and replacement
+			&SameTest{"2/3", "test = Rational[2, 3]"},
+			&SameTest{"True", "MatchQ[test, 2/3]"},
+			&SameTest{"True", "MatchQ[test, Rational[a_Integer, b_Integer]]"},
+			&SameTest{"{2, 3}", "2/3 /. Rational[a_Integer, b_Integer] -> {a, b}"},
+			&SameTest{"2/3", "2/3 /. a_Integer/b_Integer -> {a, b}"},
+			&SameTest{"buzz[bar]", "foo[bar, 1/2] /. foo[base_, 1/2] -> buzz[base]"},
+			&SameTest{"buzz[bar]", "foo[bar, 1/2] /. foo[base_, Rational[1, 2]] -> buzz[base]"},
+			&SameTest{"buzz[bar]", "foo[bar, Rational[1, 2]] /. foo[base_, 1/2] -> buzz[base]"},
+			&SameTest{"buzz[bar]", "foo[bar, Rational[1, 2]] /. foo[base_, Rational[1, 2]] -> buzz[base]"},
+			&SameTest{"True", "MatchQ[1/2, Rational[1, 2]]"},
+			&SameTest{"True", "MatchQ[Rational[1, 2], 1/2]"},
+			&SameTest{"False", "Hold[Rational[1, 2]] === Hold[1/2]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "NumberQ",
@@ -244,6 +276,23 @@ func GetConstantsDefinitions() (defs []Definition) {
 				return &Symbol{"True"}
 			}
 			return &Symbol{"False"}
+		},
+		tests: []TestInstruction{
+			&SameTest{"True", "NumberQ[2]"},
+			&SameTest{"True", "NumberQ[2.2]"},
+			&SameTest{"True", "NumberQ[Rational[5, 2]]"},
+			&SameTest{"False", "NumberQ[Infinity]"},
+			&SameTest{"False", "NumberQ[Sqrt[2]]"},
+			&SameTest{"False", "NumberQ[randomvar]"},
+			&SameTest{"False", "NumberQ[\"hello\"]"},
+		},
+	})
+	defs = append(defs, Definition{
+		name: "String",
+		tests: []TestInstruction{
+			&SameTest{"\"Hello\"", "\"Hello\""},
+			&SameTest{"True", "\"Hello\" == \"Hello\""},
+			&SameTest{"False", "\"Hello\" == \"Hello world\""},
 		},
 	})
 	return
