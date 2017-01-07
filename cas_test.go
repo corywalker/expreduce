@@ -20,9 +20,9 @@ func TestIncludedModules(t *testing.T) {
 	}
 }
 
-func Test(t *testing.T) {
+func TestLowLevel(t *testing.T) {
 
-	fmt.Println("Testing main CAS system")
+	fmt.Println("Testing low-level structs")
 
 	es := NewEvalState()
 
@@ -61,65 +61,16 @@ func Test(t *testing.T) {
 		&Flt{big.NewFloat(2.5)},
 	}}
 	assert.Equal(t, "EQUAL_TRUE", t1.IsEqual(t2, &es.CASLogger))
-	CasAssertSame(t, es, "False", "2.5 + (3. + 80.) + 2.5 == (80. + 3.) + 2. + 2.5")
 
 	// Test evaluation
 	newa := a.Eval(es)
 	assert.Equal(t, "87.5", newa.String())
-	//fmt.Println(a)
-	//fmt.Println(a.String())
 
 	// Test basic Symbol functionality
 	var v *Symbol = &Symbol{"x"}
 	assert.Equal(t, "x", v.String())
 	v.Eval(es)
 	assert.Equal(t, "x", v.String())
-
-	// Test nested addition functionality
-	var withVar = &Expression{[]Ex{
-		&Symbol{"Plus"},
-		&Expression{[]Ex{
-			&Symbol{"Plus"},
-			&Symbol{"x"},
-			&Flt{big.NewFloat(80)},
-			&Flt{big.NewFloat(3)},
-			&Symbol{"x"},
-		}},
-		&Flt{big.NewFloat(2)},
-		&Symbol{"x"},
-		&Flt{big.NewFloat(2.5)},
-	}}
-	withVar.Eval(es)
-
-	// Test nested addition and multiplication functionality
-	withVar = &Expression{[]Ex{
-		&Symbol{"Plus"},
-		&Expression{[]Ex{
-			&Symbol{"Plus"},
-			&Symbol{"x"},
-			&Flt{big.NewFloat(80)},
-			&Flt{big.NewFloat(3)},
-			&Symbol{"x"},
-		}},
-		&Flt{big.NewFloat(2)},
-		&Expression{[]Ex{
-			&Symbol{"Times"},
-			&Symbol{"x"},
-			&Flt{big.NewFloat(2)},
-			&Flt{big.NewFloat(2)},
-		}},
-		&Expression{[]Ex{
-			&Symbol{"Times"},
-			&Flt{big.NewFloat(0)},
-			&Flt{big.NewFloat(3)},
-			&Symbol{"x"},
-		}},
-		&Symbol{"x"},
-		&Flt{big.NewFloat(2.5)},
-	}}
-	//fmt.Println(withVar.String())
-	withVar.Eval(es)
-	//fmt.Println(withVar.String())
 
 	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
 	assert.Equal(t, "(a * b * c * d * e * f)", EasyRun("a * b * c *d *e *f", es))
@@ -130,16 +81,33 @@ func Test(t *testing.T) {
 	es.ClearAll()
 	_, containsTest = es.defined["test"]
 	assert.False(t, containsTest)
+}
 
-	// Test ability to clear definitions
-	es.ClearAll()
-	CasAssertSame(t, es, "a", "a")
-	CasAssertSame(t, es, "5", "a = 5")
-	CasAssertSame(t, es, "6", "b = 6")
-	CasAssertSame(t, es, "7", "c = 7")
-	CasAssertSame(t, es, "5", "a")
-	CasAssertSame(t, es, "Null", "Clear[a, 99, b]")
-	assert.Equal(t, "a", EasyRun("a", es))
-	assert.Equal(t, "b", EasyRun("b", es))
-	assert.Equal(t, "7", EasyRun("c", es))
+func TestDeepCopy(t *testing.T) {
+	fmt.Println("Testing deepcopy")
+
+	// Test deepcopy
+	var t1 = &Symbol{"x"}
+	t2 := *t1
+	t3 := t1.DeepCopy().(*Symbol)
+	assert.Equal(t, "x", t1.Name)
+	assert.Equal(t, "x", t2.Name)
+	assert.Equal(t, "x", t3.Name)
+	t2.Name = "y"
+	t3.Name = "z"
+	assert.Equal(t, "x", t1.Name)
+	assert.Equal(t, "y", t2.Name)
+	assert.Equal(t, "z", t3.Name)
+
+	var t4 = &Flt{big.NewFloat(2)}
+	t5 := *t4
+	t6 := t4.DeepCopy().(*Flt)
+	assert.Equal(t, "2.", t4.String())
+	assert.Equal(t, "2.", t5.String())
+	assert.Equal(t, "2.", t6.String())
+	t5.Val.Add(t5.Val, big.NewFloat(2))
+	t6.Val.Add(t6.Val, big.NewFloat(3))
+	assert.Equal(t, "4.", t4.String()) // Because we used the wrong copy method
+	assert.Equal(t, "4.", t5.String())
+	assert.Equal(t, "5.", t6.String())
 }

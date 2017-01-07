@@ -178,6 +178,18 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return this
 		},
+		tests: []TestInstruction{
+			&SameTest{"f", "Head[f[x]]"},
+			&SameTest{"Symbol", "Head[x]"},
+			&SameTest{"List", "Head[{x}]"},
+			&SameTest{"Plus", "Head[a + b]"},
+			&SameTest{"Integer", "Head[1]"},
+			&SameTest{"Real", "Head[1.]"},
+			&SameTest{"Rational", "Head[2/7]"},
+			//&SameTest{"Rational", "Head[1/7]"},
+			&SameTest{"String", "Head[\"1\"]"},
+			&SameTest{"Plus", "Head[Head[(a + b)[x]]]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "MessageName",

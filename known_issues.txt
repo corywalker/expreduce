@@ -18,3 +18,9 @@
 	// Test replacement within Hold parts
 	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} :> Hold[Length[{n}]]", es))
 	assert.Equal(t, "Hold[Length[{a, b, c}]]", EasyRun("{a, b, c} /. {n__} -> Hold[Length[{n}]]", es))
+
+	// Text Expand
+			&SameTest{"Null", "f[n_, m_] := Sum[KroneckerDelta[m - Sum[r[i], {i, n}]] (Multinomial @@ Sequence@Array[r, n]) Product[x[i]^r[i], {i, n}], Evaluate@(Sequence @@ Table[{r[i], 0, m}, {i, 1, n}])]"},
+			&SameTest{"x[1]^3 + 3 (x[1]^2)*x[2] + 3 x[1]*(x[2]^2) + x[2]^3", "f[2,3]"},
+	//		&SameTest{"Null", "myexpand[(Plus[addends__])^(mmatch_Integer)] := Sum[KroneckerDelta[mmatch - Sum[r[i], {i, Length[{addends}]}]]*Multinomial @@ Sequence[Array[r, Length[{addends}]]]*Product[x[i]^r[i], {i, Length[{addends}]}], Evaluate[Sequence @@ Table[{r[i], 0, mmatch}, {i, 1, Length[{addends}]}]]]"},
+	//		&SameTest{"x[1]^3 + 3 (x[1]^2)*x[2] + 3 x[1]*(x[2]^2) + x[2]^3", "myexpand[(y[1] + y[2])^3]"},

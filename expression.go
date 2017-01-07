@@ -343,6 +343,8 @@ func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
 		return "EQUAL_UNK"
 	}
 
+	// TODO: Should deprecate CommutativeIsEqual due to automatic sorting of
+	// Orderless expressions.
 	thisSym, thisSymOk := this.Parts[0].(*Symbol)
 	otherSym, otherSymOk := other.Parts[0].(*Symbol)
 	if thisSymOk && otherSymOk {
@@ -393,6 +395,26 @@ func GetExpressionDefinitions() (defs []Definition) {
 				return toReturn.Eval(es)
 			}
 			return this.Parts[2]
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Sequence",
+		tests: []TestInstruction{
+			&SameTest{"Sequence[2]", "Sequence[2]"},
+			&SameTest{"Sequence[2, 3]", "Sequence[2, 3]"},
+			&SameTest{"14", "Sequence[2, 3] + Sequence[5, 4]"},
+			&SameTest{"120", "Sequence[2, 3]*Sequence[5, 4]"},
+			&SameTest{"foo[2, 3]", "foo[Sequence[2, 3]]"},
+			&SameTest{"foo[2]", "foo[Sequence[2]]"},
+			&SameTest{"foo[]", "foo[Sequence[]]"},
+			&SameTest{"foo[14]", "foo[Sequence[2, 3] + Sequence[5, 4]]"},
+			&SameTest{"foo[2, 3, 5, 4]", "foo[Sequence[2, 3], Sequence[5, 4]]"},
+			// The following tests will fail until Equal and SameQ can handle
+			// multiple inputs:
+			//&SameTest{"False", "Sequence[2, 3] == Sequence[2, 3]"},
+			//&SameTest{"True", "Sequence[2, 2] == Sequence[2]"},
+			//&SameTest{"False", "Sequence[2, 3] === Sequence[2, 3]"},
+			//&SameTest{"True", "Sequence[2, 2] === Sequence[2]"},
 		},
 	})
 	return

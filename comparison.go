@@ -200,6 +200,50 @@ func GetComparisonDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 		},
+		tests: []TestInstruction{
+			&StringTest{"True", "9*x==x*9"},
+			&StringTest{"((9 * x)) == ((10 * x))", "9*x==x*10"},
+
+			&StringTest{"5", "tmp=5"},
+			&StringTest{"True", "tmp==5"},
+			&StringTest{"True", "5==tmp"},
+			&StringTest{"False", "tmp==6"},
+			&StringTest{"False", "6==tmp"},
+
+			&StringTest{"(a) == (b)", "a==b"},
+			&StringTest{"True", "a==a"},
+			&StringTest{"(a) == (2)", "a==2"},
+			&StringTest{"(2) == (a)", "2==a"},
+			&StringTest{"(2) == ((a + b))", "2==a+b"},
+			&StringTest{"(2.) == (a)", "2.==a"},
+			&StringTest{"(2^k) == (a)", "2^k==a"},
+			&StringTest{"(2^k) == (2^a)", "2^k==2^a"},
+			&StringTest{"(2^k) == ((2 + k))", "2^k==k+2"},
+			&StringTest{"(k) == ((2 * k))", "k==2*k"},
+			&StringTest{"((2 * k)) == (k)", "2*k==k"},
+			&StringTest{"True", "tmp==5"},
+			&StringTest{"True", "tmp==5."},
+			&StringTest{"True", "tmp==5.00000"},
+			&StringTest{"True", "1+1==2"},
+			&StringTest{"(y) == ((b + (m * x)))", "y==m*x+b"},
+
+			&StringTest{"True", "1==1."},
+			&StringTest{"True", "1.==1"},
+
+			&StringTest{"True", "(x==2)==(x==2)"},
+			&StringTest{"True", "(x==2.)==(x==2)"},
+			&StringTest{"True", "(x===2.)==(x===2)"},
+
+			&StringTest{"True", "If[xx == 2, yy, zz] == If[xx == 2, yy, zz]"},
+			&StringTest{"(If[(xx) == (3), yy, zz]) == (If[(xx) == (2), yy, zz])", "If[xx == 3, yy, zz] == If[xx == 2, yy, zz]"},
+
+			&StringTest{"True", "(1 == 2) == (2 == 3)"},
+			&StringTest{"False", "(1 == 2) == (2 == 2)"},
+
+			// Test Rationals
+			&StringTest{"False", "4/3==3/2"},
+			&StringTest{"True", "4/3==8/6"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "SameQ",
@@ -218,6 +262,27 @@ func GetComparisonDefinitions() (defs []Definition) {
 				return &Symbol{"False"}
 			}
 		},
+		tests: []TestInstruction{
+			&StringTest{"5", "tmp=5"},
+			&StringTest{"False", "a===b"},
+			&StringTest{"True", "a===a"},
+			&StringTest{"True", "tmp===5"},
+			&StringTest{"False", "tmp===5."},
+			&StringTest{"True", "1+1===2"},
+			&StringTest{"False", "y===m*x+b"},
+
+			&StringTest{"False", "1===1."},
+			&StringTest{"False", "1.===1"},
+
+			&StringTest{"True", "(x===2.)===(x===2)"},
+			&StringTest{"False", "(x==2.)===(x==2)"},
+
+			&StringTest{"True", "If[xx == 2, yy, zz] === If[xx == 2, yy, zz]"},
+			&StringTest{"False", "If[xx == 2, yy, zz] === If[xx == 2., yy, zz]"},
+			&StringTest{"False", "If[xx == 3, yy, zz] === If[xx == 2, yy, zz]"},
+			&StringTest{"False", "(x == y) === (y == x)"},
+			&StringTest{"True", "(x == y) === (x == y)"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "MatchQ",
@@ -231,6 +296,22 @@ func GetComparisonDefinitions() (defs []Definition) {
 			} else {
 				return &Symbol{"False"}
 			}
+		},
+		tests: []TestInstruction{
+			&SameTest{"True", "MatchQ[2*x, c1_Integer*a_Symbol]"},
+			&SameTest{"True", "MatchQ[2^x, base_Integer^pow_Symbol]"},
+			&SameTest{"True", "MatchQ[2+x, c1_Integer+a_Symbol]"},
+			&SameTest{"True", "MatchQ[a + b, x_Symbol + y_Symbol]"},
+			&SameTest{"False", "MatchQ[a + b, x_Symbol + x_Symbol]"},
+			&SameTest{"True", "MatchQ[{a,b}, {x_Symbol,y_Symbol}]"},
+			&SameTest{"False", "MatchQ[{a,b}, {x_Symbol,x_Symbol}]"},
+			&SameTest{"True", "MatchQ[{2^a, a}, {2^x_Symbol, x_Symbol}]"},
+			&SameTest{"False", "MatchQ[{2^a, b}, {2^x_Symbol, x_Symbol}]"},
+			// Test speed of CommutativeIsMatchQ
+			// Make the foo variable extra long to override the built in
+			// cancellation rule
+			&SameTest{"Null", "Plus[foooooooooooooooooo, -foooooooooooooooooo, rest___] := bar + rest"},
+			&SameTest{"bar + 1 + a + b + c + d + e + f + g", "Plus[foooooooooooooooooo,1,-foooooooooooooooooo,a,b,c,d,e,f,g]"},
 		},
 	})
 	return

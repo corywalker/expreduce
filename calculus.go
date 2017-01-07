@@ -14,6 +14,27 @@ func GetCalculusDefinitions() (defs []Definition) {
 			Rule{"D[Sin[a_], x_]", "D[a,x] Cos[a]"},
 			Rule{"D[Cos[a_], x_]", "-D[a,x] Sin[a]"},
 		},
+		tests: []TestInstruction{
+			&SameTest{"1", "D[x,x]"},
+			&SameTest{"1", "D[foo,foo]"},
+			&SameTest{"0", "D[foo,bar]"},
+			&SameTest{"2", "D[bar+foo+bar,bar]"},
+			&SameTest{"2x", "D[x^2,x]"},
+			&SameTest{"2x+3x^2", "D[x^2+x^3,x]"},
+			&SameTest{"-4x^3", "D[-x^4,x]"},
+			&SameTest{"-n x^(-1 - n) + n x^(-1 + n)", "D[x^n+x^(-n),x]"},
+			&SameTest{"4 x (1 + x^2)", "D[(x^2 + 1)^2, x]"},
+			&SameTest{"1 + x + x^2/2 + x^3/6", "D[1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4, x]"},
+			&SameTest{"-10*Power[x,-3] - 7*Power[x,-2]", "D[1 + 7/x + 5/(x^2), x]"},
+			&SameTest{"Sqrt[x] + x^(3/2)", "D[2/3*x^(3/2) + 2/5*x^(5/2), x]"},
+
+			&SameTest{"-2 Sin[2 x]", "D[Cos[2 x], x]"},
+			&SameTest{"Cos[x]/x - Sin[x]*Power[x,-2]", "D[(Sin[x]*x^-1), x]"},
+			&SameTest{"-((2 Cos[x])*Power[x,-2]) + (2 Sin[x])*Power[x,-3] - Sin[x]/x", "D[D[(Sin[x]*x^-1), x], x]"},
+			&SameTest{"-((2 Cos[x])*Power[x,-2]) + (2 Sin[x])*Power[x,-3] - Sin[x]/x", "D[D[(Sin[x]*x^-1+Sin[y]), x], x]"},
+			&SameTest{"2/x", "D[Log[5 x^2], x]"},
+			&SameTest{"-(Sin[Log[x]]/x)", "D[Cos[Log[x]], x]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "Integrate",

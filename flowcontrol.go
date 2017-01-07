@@ -19,6 +19,29 @@ func GetFlowControlDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 		},
+		tests: []TestInstruction{
+			&StringTest{"True", "t=True"},
+			&StringTest{"True", "t"},
+			&StringTest{"False", "f=False"},
+			&StringTest{"False", "f"},
+
+			// Basic functionality
+			&StringTest{"True", "If[t, True, False]"},
+			&StringTest{"False", "If[f, True, False]"},
+			&StringTest{"False", "If[t, False, True]"},
+			&StringTest{"True", "If[f, False, True]"},
+
+			// Test evaluation
+			&StringTest{"9", "x=9"},
+			&StringTest{"18", "If[x+3==12, x*2, x+3]"},
+			&StringTest{"12", "If[x+3==11, x*2, x+3]"},
+
+			// Test replacement
+			&SameTest{"itsfalse", "If[1 == 2, itstrue, itsfalse]"},
+			&SameTest{"itsfalse", "If[1 == 2, itstrue, itsfalse] /. (2 -> 1)"},
+			&SameTest{"itstrue", "If[1 == k, itstrue, itsfalse] /. (k -> 1)"},
+			&SameTest{"If[1 == k, itstrue, itsfalse]", "If[1 == k, itstrue, itsfalse]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name: "While",

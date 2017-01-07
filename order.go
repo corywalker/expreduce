@@ -104,6 +104,63 @@ func GetOrderDefinitions() (defs []Definition) {
 			toreturn := ExOrder(this.Parts[1], this.Parts[2])
 			return &Integer{big.NewInt(toreturn)}
 		},
+		tests: []TestInstruction{
+			// Symbol ordering
+			&SameTest{"0", "Order[a, a]"},
+			&SameTest{"1", "Order[a, b]"},
+			&SameTest{"-1", "Order[b, a]"},
+			&SameTest{"1", "Order[a, aa]"},
+			&SameTest{"1", "Order[aa, aab]"},
+			&SameTest{"-1", "Order[aab, aa]"},
+			&SameTest{"-1", "Order[aa, a]"},
+			&SameTest{"-1", "Order[ab, aa]"},
+
+			// Number ordering
+			&SameTest{"-1", "Order[2, 1.]"},
+			&SameTest{"1", "Order[1, 2]"},
+			&SameTest{"0", "Order[1, 1]"},
+			&SameTest{"0", "Order[1., 1.]"},
+			&SameTest{"1", "Order[1, 1.]"},
+			&SameTest{"-1", "Order[1., 1]"},
+
+			// Symbols vs numbers
+			&SameTest{"-1", "Order[ab, 1]"},
+			&SameTest{"1", "Order[1, ab]"},
+
+			// Sort expressions
+			&SameTest{"-1", "Order[foo[x, y], bar[x, y]]"},
+			&SameTest{"1", "Order[bar[x, y], foo[x, y]]"},
+			&SameTest{"0", "Order[bar[x, y], bar[x, y]]"},
+			&SameTest{"1", "Order[bar[x, y], bar[x, y, z]]"},
+			&SameTest{"1", "Order[bar[x, y], bar[x, y, a]]"},
+			&SameTest{"1", "Order[bar[x, y], bar[y, z]]"},
+			&SameTest{"-1", "Order[bar[x, y], bar[w, x]]"},
+			&SameTest{"-1", "Order[fizz[foo[x, y]], fizz[bar[x, y]]]"},
+			&SameTest{"1", "Order[fizz[bar[x, y]], fizz[foo[x, y]]]"},
+			&SameTest{"0", "Order[fizz[bar[x, y]], fizz[bar[x, y]]]"},
+			&SameTest{"1", "Order[fizz[bar[x, y]], fizz[bar[x, y, z]]]"},
+			&SameTest{"1", "Order[fizz[bar[x, y]], fizz[bar[x, y, a]]]"},
+			&SameTest{"1", "Order[fizz[bar[x, y]], fizz[bar[y, z]]]"},
+			&SameTest{"-1", "Order[fizz[bar[x, y]], fizz[bar[w, x]]]"},
+			&SameTest{"-1", "Order[fizz[foo[x, y]], fizz[bar[a, y]]]"},
+			&SameTest{"-1", "Order[fizz[foo[x, y]], fizz[bar[z, y]]]"},
+
+			&SameTest{"1", "Order[1, a[b]]"},
+			&SameTest{"1", "Order[1., a[b]]"},
+			&SameTest{"-1", "Order[a[b], 1]"},
+			&SameTest{"-1", "Order[a[b], 1.]"},
+			&SameTest{"1", "Order[x, y[a]]"},
+			&SameTest{"1", "Order[x, w[a]]"},
+			&SameTest{"-1", "Order[w[a], x]"},
+			&SameTest{"-1", "Order[y[a], x]"},
+			&SameTest{"-1", "Order[y[], x]"},
+			&SameTest{"-1", "Order[y, x]"},
+			&SameTest{"-1", "Order[w[], x]"},
+			&SameTest{"1", "Order[w, x]"},
+
+			//&SameTest{"{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]"},
+			//&SameTest{"{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]"},
+		},
 	})
 	return
 }

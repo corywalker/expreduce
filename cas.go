@@ -795,6 +795,17 @@ func GetCASDefinitions() (defs []Definition) {
 			}
 			return &Symbol{"Null"}
 		},
+		tests: []TestInstruction{
+			&SameTest{"a", "a"},
+			&SameTest{"5", "a = 5"},
+			&SameTest{"6", "b = 6"},
+			&SameTest{"7", "c = 7"},
+			&SameTest{"5", "a"},
+			&SameTest{"Null", "Clear[a, 99, b]"},
+			&StringTest{"a", "a"},
+			&StringTest{"b", "b"},
+			&StringTest{"7", "c"},
+		},
 	})
 	return
 }
