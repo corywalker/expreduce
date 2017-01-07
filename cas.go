@@ -131,6 +131,11 @@ func GetAllDefinitions() (defs []namedDefSet) {
 	return
 }
 
+func InitCAS(es *EvalState) {
+	// System initialization
+	EvalInterp("SeedRandom[UnixTime[]]", es)
+}
+
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string][]Expression)
 	es.legacyEvalFns = make(map[string](func(*Expression, *EvalState) Ex))

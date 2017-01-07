@@ -1,7 +1,0 @@
-In[435]:= foo[x == 2, y, x] /. x -> 5
-
-Out[435]= foo[False, y, 5]
-
-In[436]:= foo[x == 2, y, x] /. x == 2 -> 5
-
-Out[436]= foo[5, y, x]

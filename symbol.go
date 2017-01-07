@@ -63,18 +63,17 @@ func GetSymbolDefinitions() (defs []Definition) {
 				return this
 			}
 
-			var evaluated Ex = this.Parts[2].Eval(es)
 			LhsSym, ok := this.Parts[1].(*Symbol)
 			if ok {
-				es.Define(LhsSym.Name, LhsSym, evaluated)
-				return evaluated
+				es.Define(LhsSym.Name, LhsSym, this.Parts[2])
+				return this.Parts[2]
 			}
 			LhsF, ok := this.Parts[1].(*Expression)
 			if ok {
 				headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
 				if headIsSym {
-					es.Define(headAsSym.Name, LhsF, evaluated)
-					return evaluated
+					es.Define(headAsSym.Name, LhsF, this.Parts[2])
+					return this.Parts[2]
 				}
 			}
 

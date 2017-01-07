@@ -1,3 +1,66 @@
+4*a*b*c*d*e*f + -7*a*b*c*g*e*f /. c1match_Integer*matcha__ + c2match_Integer*matcha__ -> (c1match+c2match)*matcha
+will actually combine, even though the terms are not the same
+
+A lot of the function-specific eval functions start by evaluating their inputs. This is not needed because Expression now handles this by default.
+
+Need to implement SequenceHold
+
+Make sure all ToString methods are used and that they assert the number of parameters before accessing them. Must provide boolean as to if the operation succeeded? This could make debugging cumbersome.
+
+Adding Attribute definitions seems to drastically increase the amount of time it takes to run the test suites. My theory in this is because I often take backups of es.defined and restore them. Perhaps a delta based approach would be better. I need to read up on how contexts and scopes work.
+
+The reason Table[a, 5] doesn't currently work is because of HoldAll. In mathematica, you can still put pattern matches in HoldAll expressions and they will evaluate. Figure out why this is.
+
+Example:
+
+In[6]:= foo[amatch_, bmatch_Integer] := bar[amatch, {i, 1, bmatch}]
+
+In[7]:= foo[k, 5]
+
+Out[7]= bar[k, {i, 1, 5}]
+
+In[8]:= Attributes[bar] := {HoldAll}
+
+In[9]:= foo[k, 5]
+
+Out[9]= bar[k, {i, 1, 5}]
+
+This makes me think that the results of pattern matches are replaced at the end, not set in es.Defined. Evidence:
+
+In[11]:= Hold[test + 2]
+
+Out[11]= Hold[test + 2]
+
+In[12]:= Hold[test + 2] /. test -> bla
+
+Out[12]= Hold[bla + 2]
+
+This means that replacements can transcend holding expressions, but:
+
+In[13]:= test = bla
+
+Out[13]= bla
+
+In[14]:= Hold[test + 2]
+
+Out[14]= Hold[test + 2]
+
+but definitions do not. So perhaps I should rewrite the Replace function to use replace internally with matched values rather than temporarily adding them to the es.Defined set. After this change, I might no longer need to do GetDefinedSnapshot or ClearPD. We'll see. Could be much faster as well.
+
+Also, this is an issue with the evaluation:
+> 100/2
+In:  (100 * 2^-1)
+Out: (100 * 2^-1)
+> 1/2*100
+In:  ((1 * 2^-1) * 100)
+Out: (2^-1 * 100)
+> 1/2*1/2
+In:  (((1 * 2^-1) * 1) * 2^-1)
+Out: 2
+> 1/2*5/2
+In:  (((1 * 2^-1) * 5) * 2^-1)
+Out: 10
+>
 
         // Pattern
 	CasAssertSame(t, es, "True", "MatchQ[a + b, a + b + x___Plus]")
