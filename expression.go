@@ -381,7 +381,7 @@ func (this *Expression) Swap(i, j int) {
 
 func GetExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name:      "Apply",
+		name: "Apply",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this

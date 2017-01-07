@@ -4,9 +4,9 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "ToString",
 		rules: []Rule{
-			Rule{"ToString[a_]", "ToString[a, OutputForm]"},
+			{"ToString[a_]", "ToString[a, OutputForm]"},
 		},
-			// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
+		// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -33,9 +33,9 @@ func GetStringDefinitions() (defs []Definition) {
 			//"StringJoin[{args___}]": "StringJoin[args]",
 			// This rule runs much faster, probably because it avoids
 			// CommutativeIsMatchQ
-			Rule{"StringJoin[list_List]", "StringJoin[list /. List->Sequence]"},
+			{"StringJoin[list_List]", "StringJoin[list /. List->Sequence]"},
 		},
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " <> ", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {

@@ -6,18 +6,18 @@ func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Plus",
 		rules: []Rule{
-			Rule{"Plus[a_, -a_, rest___]", "Plus[rest]"},
-			Rule{"Plus[c1_Integer*a_, c2_Integer*a_, rest___]", "((c1+c2)*a + rest)"},
+			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
+			{"Plus[c1_Integer*a_, c2_Integer*a_, rest___]", "((c1+c2)*a + rest)"},
 			// For some reason, this messes up the Infinity - Infinity rule
-			Rule{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
-			Rule{"Plus[a_, a_, rest___]", "2*a + rest"},
+			{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
+			{"Plus[a_, a_, rest___]", "2*a + rest"},
 			////"((c1_Integer*a_) + a_)": "(c1+1)*a",
-			Rule{"Plus[c1_Real*a_, c2_Integer*a_, rest___]", "(c1+c2)*a + rest"},
+			{"Plus[c1_Real*a_, c2_Integer*a_, rest___]", "(c1+c2)*a + rest"},
 			// I have a feeling that these can be combined into a more general
 			// definition. TODO
-			Rule{"Plus[c_Real*a_, a_, rest___]", "(c+1)*a + rest"},
+			{"Plus[c_Real*a_, a_, rest___]", "(c+1)*a + rest"},
 		},
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -234,11 +234,11 @@ func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Infinity",
 		rules: []Rule{
-			Rule{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
-			Rule{"Plus[Infinity, _Real, rest___]", "Infinity + rest"},
-			Rule{"Plus[-Infinity, _Integer, rest___]", "-Infinity + rest"},
-			Rule{"Plus[-Infinity, _Real, rest___]", "-Infinity + rest"},
-			Rule{"Plus[Infinity, -Infinity, rest___]", "Indeterminate + rest"},
+			{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
+			{"Plus[Infinity, _Real, rest___]", "Infinity + rest"},
+			{"Plus[-Infinity, _Integer, rest___]", "-Infinity + rest"},
+			{"Plus[-Infinity, _Real, rest___]", "-Infinity + rest"},
+			{"Plus[Infinity, -Infinity, rest___]", "Indeterminate + rest"},
 		},
 		tests: []TestInstruction{
 			&SameTest{"Infinity", "Infinity - 1"},

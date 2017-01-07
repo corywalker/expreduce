@@ -181,7 +181,7 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Equal",
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " == ", true, "", "", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -257,7 +257,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "SameQ",
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " === ", true, "", "", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {

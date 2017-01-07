@@ -10,14 +10,14 @@ func GetPowerDefinitions() (defs []Definition) {
 		name: "Power",
 		rules: []Rule{
 			// Simplify nested exponents
-			Rule{"Power[Power[a_,b_Integer],c_Integer]", "a^(b*c)"},
-			Rule{"Power[Power[a_,b_Real],c_Integer]", "a^(b*c)"},
+			{"Power[Power[a_,b_Integer],c_Integer]", "a^(b*c)"},
+			{"Power[Power[a_,b_Real],c_Integer]", "a^(b*c)"},
 
 			// Power definitions
-			Rule{"Power[Times[Except[_Symbol, first_], inner___], pow_]", "first^pow*Power[Times[inner],pow]"},
-			Rule{"Power[Times[first_, inner___], Except[_Symbol, pow_]]", "first^pow*Power[Times[inner],pow]"},
+			{"Power[Times[Except[_Symbol, first_], inner___], pow_]", "first^pow*Power[Times[inner],pow]"},
+			{"Power[Times[first_, inner___], Except[_Symbol, pow_]]", "first^pow*Power[Times[inner],pow]"},
 		},
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -199,7 +199,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "PowerExpand",
 		rules: []Rule{
-			Rule{"PowerExpand[exp_]", "exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
+			{"PowerExpand[exp_]", "exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
 		},
 	})
 	return

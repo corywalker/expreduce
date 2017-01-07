@@ -12,7 +12,7 @@ type TestInstruction interface {
 
 type SameTest struct {
 	out string
-	in string
+	in  string
 }
 
 func (this *SameTest) Run(t *testing.T, es *EvalState) {
@@ -21,7 +21,7 @@ func (this *SameTest) Run(t *testing.T, es *EvalState) {
 
 type DiffTest struct {
 	out string
-	in string
+	in  string
 }
 
 func (this *DiffTest) Run(t *testing.T, es *EvalState) {
@@ -30,14 +30,14 @@ func (this *DiffTest) Run(t *testing.T, es *EvalState) {
 
 type StringTest struct {
 	out string
-	in string
+	in  string
 }
 
 func (this *StringTest) Run(t *testing.T, es *EvalState) {
 	assert.Equal(t, this.out, EasyRun(this.in, es))
 }
 
-type ResetState struct {}
+type ResetState struct{}
 
 func (this *ResetState) Run(t *testing.T, es *EvalState) {
 	es.ClearAll()

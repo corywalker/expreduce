@@ -20,7 +20,9 @@ func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 	// Isolating this issue might help me debug the issue where patterns can
 	// interfere with existing variable names. TODO: Look into this.
 	keys := []string{}
-	for k, _ := range pm.patternDefined { keys = append(keys,k) }
+	for k := range pm.patternDefined {
+		keys = append(keys, k)
+	}
 	sort.Strings(keys)
 	// First add a "UniqueDefined`" prefix to each pattern name. This will avoid
 	// Any issues where the pattern name is also a variable in one of the
@@ -74,7 +76,7 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 func GetReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "ReplaceAll",
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -237,7 +239,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "ReplaceRepeated",
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -270,7 +272,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Rule",
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -279,7 +281,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "RuleDelayed",
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}

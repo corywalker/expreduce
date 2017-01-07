@@ -18,6 +18,7 @@ var format = logging.MustStringFormatter(
 )
 
 type ToStringFnType (func(*Expression, string) (bool, string))
+
 var toStringFns = make(map[string]ToStringFnType)
 
 type CASLogger struct {
@@ -77,7 +78,7 @@ type Definition struct {
 	rules []Rule
 	// Map symbol to Eval() function
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
-	tests []TestInstruction
+	tests        []TestInstruction
 
 	toString ToStringFnType
 
@@ -301,7 +302,9 @@ func (this *EvalState) String() string {
 	// We sort the keys here such that converting identical EvalStates always
 	// produces the same string.
 	keys := []string{}
-	for k, _ := range this.defined { keys = append(keys,k) }
+	for k := range this.defined {
+		keys = append(keys, k)
+	}
 	sort.Strings(keys)
 	for _, k := range keys {
 		v := this.defined[k]
@@ -323,7 +326,9 @@ func (this *PDManager) String() string {
 	// We sort the keys here such that converting identical PDManagers always
 	// produces the same string.
 	keys := []string{}
-	for k, _ := range this.patternDefined { keys = append(keys,k) }
+	for k := range this.patternDefined {
+		keys = append(keys, k)
+	}
 	sort.Strings(keys)
 	for _, k := range keys {
 		v := this.patternDefined[k]

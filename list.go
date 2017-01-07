@@ -203,14 +203,14 @@ func CalcDepth(ex Ex) int {
 
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name:      "List",
+		name:     "List",
 		toString: (*Expression).ToStringList,
 	})
 	defs = append(defs, Definition{
 		name:      "Total",
 		docstring: "Sum all the values in the list.",
 		rules: []Rule{
-			Rule{"Total[l__List]", "Apply[Plus, l]"},
+			{"Total[l__List]", "Apply[Plus, l]"},
 		},
 		tests: []TestInstruction{
 			&SameTest{"10", "Total[{1,2,3,4}]"},
@@ -221,7 +221,7 @@ func GetListDefinitions() (defs []Definition) {
 		name:      "Mean",
 		docstring: "Calculate the statistical mean of the list.",
 		rules: []Rule{
-			Rule{"Mean[l__List]", "Total[l]/Length[l]"},
+			{"Mean[l__List]", "Total[l]/Length[l]"},
 		},
 		tests: []TestInstruction{
 			&SameTest{"11/2", "Mean[{5,6}]"},
@@ -269,7 +269,7 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Table",
 		rules: []Rule{
-			Rule{"Table[a_, b_Integer]", "Table[a, {i, 1, b}]"},
+			{"Table[a_, b_Integer]", "Table[a, {i, 1, b}]"},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) >= 3 {
@@ -304,10 +304,10 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Sum",
 		rules: []Rule{
-			Rule{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
-			Rule{"Sum[i_Symbol, {i_Symbol, 1, n_Integer}]", "1/2*n*(1 + n)"},
-			Rule{"Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]", "1/2*n*(1 + n)"},
-			Rule{"Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]", "1/2*n*(1 + n)"},
+			{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
+			{"Sum[i_Symbol, {i_Symbol, 1, n_Integer}]", "1/2*n*(1 + n)"},
+			{"Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]", "1/2*n*(1 + n)"},
+			{"Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]", "1/2*n*(1 + n)"},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")

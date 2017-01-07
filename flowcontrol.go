@@ -71,7 +71,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "KroneckerDelta",
 		rules: []Rule{
-			Rule{"KroneckerDelta[x_Integer]", "If[x == 0, 1, 0]"},
+			{"KroneckerDelta[x_Integer]", "If[x == 0, 1, 0]"},
 		},
 	})
 	return

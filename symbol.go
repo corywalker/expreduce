@@ -52,7 +52,7 @@ func (this *Symbol) DeepCopy() Ex {
 func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Set",
-		toString: func (this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -99,8 +99,8 @@ func GetSymbolDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name:      "SetDelayed",
-		toString: func (this *Expression, form string) (bool, string) {
+		name: "SetDelayed",
+		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
