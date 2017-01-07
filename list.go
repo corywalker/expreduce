@@ -212,6 +212,10 @@ func GetListDefinitions() (defs []Definition) {
 		rules: []Rule{
 			Rule{"Total[l__List]", "Apply[Plus, l]"},
 		},
+		tests: []TestInstruction{
+			&SameTest{"10", "Total[{1,2,3,4}]"},
+			&SameTest{"0", "Total[{}]"},
+		},
 	})
 	defs = append(defs, Definition{
 		name:      "Mean",

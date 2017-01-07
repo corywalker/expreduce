@@ -33,7 +33,7 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "2", "x = 2")
 	CasAssertSame(t, es, "2^b", "a + b /. x_Symbol + y_Symbol -> x^y")
 	CasAssertSame(t, es, "2", "x")
-	//CasAssertSame(t, es, "a^b", "a == b /. j_Symbol == k_Symbol -> j^k")
+	CasAssertSame(t, es, "a^b", "a == b /. j_Symbol == k_Symbol -> j^k")
 	CasAssertSame(t, es, "2", "a == b /. j_Equal -> 2")
 	CasAssertSame(t, es, "(a == b)^k", "a == b /. j_Equal -> j^k")
 	CasAssertSame(t, es, "3^k", "2^k /. base_Integer -> base + 1")
@@ -99,13 +99,13 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _Integer*matcha_ - _Integer*matchb_ -> 2")
 	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _*matcha_ - _*matchb_ -> 2")
 	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - _ -> 2")
-	//CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - 2*_ -> 2")
+	CasAssertSame(t, es, "2 * a^2 - 2 * b^2", "2 * a^2 - 2 * b^2 /. _ - 2*_ -> 2")
 
 	// Test replacing functions
 	CasAssertSame(t, es, "test[]", "kfdsfdsf[] /. _Symbol -> test")
 	CasAssertSame(t, es, "11", "(x + 2)[5, 6] /. (2 + x) -> Plus")
 	CasAssertSame(t, es, "2[2, 2, 2, 2]", "a*b*c*d /. _Symbol -> 2")
-	//CasAssertSame(t, es, "2", "foo[2*x, x] /. foo[matcha_Integer*matchx_, matchx_] -> matcha")
+	CasAssertSame(t, es, "2", "foo[2*x, x] /. foo[matcha_Integer*matchx_, matchx_] -> matcha")
 
 	// Test replacing with BlankSequence
 	CasAssertSame(t, es, "foo[]", "a + b /. a + b + amatch___ -> foo[amatch]")
@@ -119,7 +119,7 @@ func TestReplacement(t *testing.T) {
 	CasAssertSame(t, es, "3", "{a, b, c} /. {n__} :> Length[{n}]")
 	CasAssertSame(t, es, "1", "{a, b, c} /. {n__} -> Length[{n}]")
 
-	//CasAssertSame(t, es, "bar[m,n]", "foo[m, n] /. foo[a_, m_] -> bar[a, m]")
+	CasAssertSame(t, es, "bar[m,n]", "foo[m, n] /. foo[a_, m_] -> bar[a, m]")
 
 	// Test pattern name conflicts.
 	CasAssertSame(t, es, "Null", "foo[k_, m_] := bar[k, m]")

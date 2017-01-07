@@ -6,6 +6,28 @@ import (
 	"testing"
 )
 
+type TestInstruction interface {
+	Run(t *testing.T, es *EvalState)
+}
+
+type SameTest struct {
+	out string
+	in string
+}
+
+func (this *SameTest) Run(t *testing.T, es *EvalState) {
+	CasAssertSame(t, es, this.out, this.in)
+}
+
+type StringTest struct {
+	out string
+	in string
+}
+
+func (this *StringTest) Run(t *testing.T, es *EvalState) {
+	assert.Equal(t, this.out, EasyRun(this.in, es))
+}
+
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {
 	inTree := EvalInterp(in, es).Eval(es)
 	outTree := EvalInterp(out, es).Eval(es)

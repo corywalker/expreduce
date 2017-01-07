@@ -7,6 +7,19 @@ import (
 	"testing"
 )
 
+func TestIncludedModules(t *testing.T) {
+	defSets := GetAllDefinitions()
+	for _, defSet := range defSets {
+		fmt.Printf("Testing module %s\n", defSet.name)
+		for _, def := range defSet.defs {
+			es := NewEvalState()
+			for _, test := range def.tests {
+				test.Run(t, es)
+			}
+		}
+	}
+}
+
 func Test(t *testing.T) {
 
 	fmt.Println("Testing main CAS system")

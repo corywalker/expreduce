@@ -77,6 +77,7 @@ type Definition struct {
 	rules []Rule
 	// Map symbol to Eval() function
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
+	tests []TestInstruction
 
 	toString ToStringFnType
 
@@ -105,8 +106,8 @@ type namedDefSet struct {
 	name string
 	defs []Definition
 }
+
 func GetAllDefinitions() (defs []namedDefSet) {
-	defs = append(defs, namedDefSet{"list", GetListDefinitions()})
 	defs = append(defs, namedDefSet{"cas", GetCASDefinitions()})
 	defs = append(defs, namedDefSet{"combinatorics", GetCombinatoricsDefinitions()})
 	defs = append(defs, namedDefSet{"calculus", GetCalculusDefinitions()})
