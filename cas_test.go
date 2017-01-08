@@ -10,8 +10,8 @@ import (
 func TestIncludedModules(t *testing.T) {
 	defSets := GetAllDefinitions()
 	for _, defSet := range defSets {
-		fmt.Printf("Testing module %s\n", defSet.name)
-		for _, def := range defSet.defs {
+		fmt.Printf("Testing module %s\n", defSet.Name)
+		for _, def := range defSet.Defs {
 			es := NewEvalState()
 			for _, test := range def.tests {
 				test.Run(t, es)

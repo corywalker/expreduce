@@ -11,30 +11,30 @@ type TestInstruction interface {
 }
 
 type SameTest struct {
-	out string
-	in  string
+	Out string
+	In  string
 }
 
 func (this *SameTest) Run(t *testing.T, es *EvalState) {
-	CasAssertSame(t, es, this.out, this.in)
+	CasAssertSame(t, es, this.Out, this.In)
 }
 
 type DiffTest struct {
-	out string
-	in  string
+	Out string
+	In  string
 }
 
 func (this *DiffTest) Run(t *testing.T, es *EvalState) {
-	CasAssertDiff(t, es, this.out, this.in)
+	CasAssertDiff(t, es, this.Out, this.In)
 }
 
 type StringTest struct {
-	out string
-	in  string
+	Out string
+	In  string
 }
 
 func (this *StringTest) Run(t *testing.T, es *EvalState) {
-	assert.Equal(t, this.out, EasyRun(this.in, es))
+	assert.Equal(t, this.Out, EasyRun(this.In, es))
 }
 
 type ResetState struct{}

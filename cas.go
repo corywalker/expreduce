@@ -70,28 +70,28 @@ type EvalState struct {
 }
 
 type Rule struct {
-	lhs string
-	rhs string
+	Lhs string
+	Rhs string
 }
 
 type Definition struct {
 	// The symbol name, like "Mean", and "Total"
-	name      string
-	docstring string
+	Name      string
+	Docstring string
 	// Currently used for SetDelayed, since other definitions depend on
 	// SetDelayed, we define it first.
-	bootstrap bool
+	Bootstrap bool
 
 	// Regular rules to define. This should never include a map, as maps have
 	// indeterminate iteration.
-	rules []Rule
+	Rules []Rule
 	// Map symbol to Eval() function
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
-	tests        []TestInstruction
+	Tests        []TestInstruction
 
 	toString ToStringFnType
 
-	attributes []string
+	Attributes []string
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -123,31 +123,31 @@ func (this *EvalState) Load(def Definition) {
 	this.defined[def.name] = newDef
 }
 
-type namedDefSet struct {
-	name string
-	defs []Definition
+type NamedDefSet struct {
+	Name string
+	Defs []Definition
 }
 
-func GetAllDefinitions() (defs []namedDefSet) {
-	defs = append(defs, namedDefSet{"combinatorics", GetCombinatoricsDefinitions()})
-	defs = append(defs, namedDefSet{"calculus", GetCalculusDefinitions()})
-	defs = append(defs, namedDefSet{"comparison", GetComparisonDefinitions()})
-	defs = append(defs, namedDefSet{"constants", GetConstantsDefinitions()})
-	defs = append(defs, namedDefSet{"expression", GetExpressionDefinitions()})
-	defs = append(defs, namedDefSet{"flowcontrol", GetFlowControlDefinitions()})
-	defs = append(defs, namedDefSet{"list", GetListDefinitions()})
-	defs = append(defs, namedDefSet{"order", GetOrderDefinitions()})
-	defs = append(defs, namedDefSet{"plus", GetPlusDefinitions()})
-	defs = append(defs, namedDefSet{"power", GetPowerDefinitions()})
-	defs = append(defs, namedDefSet{"random", GetRandomDefinitions()})
-	defs = append(defs, namedDefSet{"replacement", GetReplacementDefinitions()})
-	defs = append(defs, namedDefSet{"sort", GetSortDefinitions()})
-	defs = append(defs, namedDefSet{"symbol", GetSymbolDefinitions()})
-	defs = append(defs, namedDefSet{"system", GetSystemDefinitions()})
-	defs = append(defs, namedDefSet{"string", GetStringDefinitions()})
-	defs = append(defs, namedDefSet{"time", GetTimeDefinitions()})
-	defs = append(defs, namedDefSet{"times", GetTimesDefinitions()})
-	defs = append(defs, namedDefSet{"pattern", GetPatternDefinitions()})
+func GetAllDefinitions() (defs []NamedDefSet) {
+	defs = append(defs, NamedDefSet{"combinatorics", GetCombinatoricsDefinitions()})
+	defs = append(defs, NamedDefSet{"calculus", GetCalculusDefinitions()})
+	defs = append(defs, NamedDefSet{"comparison", GetComparisonDefinitions()})
+	defs = append(defs, NamedDefSet{"constants", GetConstantsDefinitions()})
+	defs = append(defs, NamedDefSet{"expression", GetExpressionDefinitions()})
+	defs = append(defs, NamedDefSet{"flowcontrol", GetFlowControlDefinitions()})
+	defs = append(defs, NamedDefSet{"list", GetListDefinitions()})
+	defs = append(defs, NamedDefSet{"order", GetOrderDefinitions()})
+	defs = append(defs, NamedDefSet{"plus", GetPlusDefinitions()})
+	defs = append(defs, NamedDefSet{"power", GetPowerDefinitions()})
+	defs = append(defs, NamedDefSet{"random", GetRandomDefinitions()})
+	defs = append(defs, NamedDefSet{"replacement", GetReplacementDefinitions()})
+	defs = append(defs, NamedDefSet{"sort", GetSortDefinitions()})
+	defs = append(defs, NamedDefSet{"symbol", GetSymbolDefinitions()})
+	defs = append(defs, NamedDefSet{"system", GetSystemDefinitions()})
+	defs = append(defs, NamedDefSet{"string", GetStringDefinitions()})
+	defs = append(defs, NamedDefSet{"time", GetTimeDefinitions()})
+	defs = append(defs, NamedDefSet{"times", GetTimesDefinitions()})
+	defs = append(defs, NamedDefSet{"pattern", GetPatternDefinitions()})
 	return
 }
 
@@ -163,14 +163,14 @@ func (es *EvalState) Init(loadAllDefs bool) {
 	if !es.NoInit {
 		// Init modules
 		for _, defSet := range GetAllDefinitions() {
-			for _, def := range defSet.defs {
+			for _, def := range defSet.Defs {
 				if def.bootstrap {
 					es.Load(def)
 				}
 			}
 		}
 		for _, defSet := range GetAllDefinitions() {
-			for _, def := range defSet.defs {
+			for _, def := range defSet.Defs {
 				if !def.bootstrap {
 					es.Load(def)
 				}
