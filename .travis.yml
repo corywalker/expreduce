@@ -1,4 +1,6 @@
 language: go
 
+go_import_path: github.com/corywalker/expreduce
+
 go:
   - 1.6
