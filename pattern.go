@@ -177,8 +177,8 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 
 func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Pattern",
-		attributes: []string{"HoldFirst"},
+		Name: "Pattern",
+		Attributes: []string{"HoldFirst"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -193,11 +193,11 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Blank",
+		Name: "Blank",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("_", this.Parts, form)
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			// Matching patterns
 			&SameTest{"True", "MatchQ[1, _Integer]"},
 			&SameTest{"False", "MatchQ[s, _Integer]"},
@@ -252,11 +252,11 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "BlankSequence",
+		Name: "BlankSequence",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("__", this.Parts, form)
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			// Be wary of the false matches - the default is usually false.
 			&SameTest{"True", "MatchQ[a, __]"},
 			&SameTest{"True", "MatchQ[a + b, __]"},
@@ -329,11 +329,11 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "BlankNullSequence",
+		Name: "BlankNullSequence",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("___", this.Parts, form)
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[a*b, ___]"},
 			&SameTest{"False", "MatchQ[a, a*___]"},
 			&SameTest{"False", "MatchQ[a, a + ___]"},
@@ -366,17 +366,17 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Except",
-		tests: []TestInstruction{
+		Name: "Except",
+		Tests: []TestInstruction{
 			&SameTest{"{5, 2, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, Except[_Real]]"},
 			&SameTest{"{5, 2, x, y, 4}", "Cases[{5, 2, a^b, x, y, 4}, Except[_Symbol^_Symbol]]"},
 			&SameTest{"{a, b, 0, foo[1], foo[2], x, y}", "{a, b, 0, 1, 2, x, y} /. Except[0, a_Integer] -> foo[a]"},
 		},
 	})
 	defs = append(defs, Definition{
-		name: "PatternTest",
-		attributes: []string{"HoldRest"},
-		tests: []TestInstruction{
+		Name: "PatternTest",
+		Attributes: []string{"HoldRest"},
+		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[1, _?NumberQ]"},
 			&SameTest{"False", "MatchQ[a, _?NumberQ]"},
 			&SameTest{"True", "MatchQ[1, 1?NumberQ]"},
@@ -386,9 +386,9 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Condition",
-		attributes: []string{"HoldAll"},
-		tests: []TestInstruction{
+		Name: "Condition",
+		Attributes: []string{"HoldAll"},
+		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[5, _ /; True]"},
 			&SameTest{"False", "MatchQ[5, _ /; False]"},
 			&SameTest{"True", "MatchQ[5, y_ /; True]"},
@@ -400,8 +400,8 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Alternatives",
-		tests: []TestInstruction{
+		Name: "Alternatives",
+		Tests: []TestInstruction{
 			&SameTest{"Alternatives[c,d]", "c | d"},
 			&SameTest{"False", "MatchQ[b, c | d]"},
 			&SameTest{"True", "MatchQ[c, c | d]"},

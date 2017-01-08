@@ -212,7 +212,7 @@ func (this *String) DeepCopy() Ex {
 
 func GetConstantsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Rational",
+		Name: "Rational",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -224,7 +224,7 @@ func GetConstantsDefinitions() (defs []Definition) {
 			}
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&StringTest{"10/7", "Rational[10, 7]"},
 			&StringTest{"5/3", "Rational[10, 6]"},
 			&StringTest{"Rational[x, 10]", "Rational[x, 10]"},
@@ -258,7 +258,7 @@ func GetConstantsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "NumberQ",
+		Name: "NumberQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -277,7 +277,7 @@ func GetConstantsDefinitions() (defs []Definition) {
 			}
 			return &Symbol{"False"}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"True", "NumberQ[2]"},
 			&SameTest{"True", "NumberQ[2.2]"},
 			&SameTest{"True", "NumberQ[Rational[5, 2]]"},
@@ -288,8 +288,8 @@ func GetConstantsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "String",
-		tests: []TestInstruction{
+		Name: "String",
+		Tests: []TestInstruction{
 			&SameTest{"\"Hello\"", "\"Hello\""},
 			&SameTest{"True", "\"Hello\" == \"Hello\""},
 			&SameTest{"False", "\"Hello\" == \"Hello world\""},

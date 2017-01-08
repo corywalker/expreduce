@@ -2,8 +2,8 @@ package expreduce
 
 func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "ToString",
-		rules: []Rule{
+		Name: "ToString",
+		Rules: []Rule{
 			{"ToString[a_]", "ToString[a, OutputForm]"},
 		},
 		// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
@@ -26,9 +26,9 @@ func GetStringDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "StringJoin",
-		attributes: []string{"Flat", "OneIdentity"},
-		rules: []Rule{
+		Name: "StringJoin",
+		Attributes: []string{"Flat", "OneIdentity"},
+		Rules: []Rule{
 			// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
 			// but slow for StringJoin[Table["x", {k,2000}]]
 			//"StringJoin[{args___}]": "StringJoin[args]",

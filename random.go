@@ -5,8 +5,8 @@ import "math/rand"
 
 func GetRandomDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "RandomReal",
-		rules: []Rule{
+		Name: "RandomReal",
+		Rules: []Rule{
 			{"RandomReal[{min_, max_}]", "RandomReal[]*(max - min) + min"},
 			{"RandomReal[max_]", "RandomReal[]*max"},
 		},
@@ -19,7 +19,7 @@ func GetRandomDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "SeedRandom",
+		Name: "SeedRandom",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

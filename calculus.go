@@ -2,9 +2,9 @@ package expreduce
 
 func GetCalculusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "D",
-		attributes: []string{"ReadProtected"},
-		rules: []Rule{
+		Name: "D",
+		Attributes: []string{"ReadProtected"},
+		Rules: []Rule{
 			{"D[x_,x_]", "1"},
 			{"D[a_,x_]", "0"},
 			{"D[a_+b__,x_]", "D[a,x]+D[Plus[b],x]"},
@@ -15,7 +15,7 @@ func GetCalculusDefinitions() (defs []Definition) {
 			{"D[Sin[a_], x_]", "D[a,x] Cos[a]"},
 			{"D[Cos[a_], x_]", "-D[a,x] Sin[a]"},
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"1", "D[x,x]"},
 			&SameTest{"1", "D[foo,foo]"},
 			&SameTest{"0", "D[foo,bar]"},
@@ -38,9 +38,9 @@ func GetCalculusDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Integrate",
-		attributes: []string{"ReadProtected"},
-		rules: []Rule{
+		Name: "Integrate",
+		Attributes: []string{"ReadProtected"},
+		Rules: []Rule{
 			// Might need to be implemented in code. Try running Integrate[-10x, {x, 1, 5}]
 			// with this
 			//"Integrate[a_,{x_Symbol,start_Integer,end_Integer}]": "ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start]",

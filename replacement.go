@@ -75,7 +75,7 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 
 func GetReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "ReplaceAll",
+		Name: "ReplaceAll",
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -114,7 +114,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"2^(y+1)", "2^(x^2+1) /. x^2->y"},
 			&SameTest{"b + c + d", "a + b + c + c^2 /. c^2 + a -> d"},
 			&SameTest{"a * b * c", "a*b*c /. c + a -> d"},
@@ -238,7 +238,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "ReplaceRepeated",
+		Name: "ReplaceRepeated",
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -271,8 +271,8 @@ func GetReplacementDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Rule",
-		attributes: []string{"SequenceHold"},
+		Name: "Rule",
+		Attributes: []string{"SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -281,8 +281,8 @@ func GetReplacementDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "RuleDelayed",
-		attributes: []string{"HoldRest", "SequenceHold"},
+		Name: "RuleDelayed",
+		Attributes: []string{"HoldRest", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""

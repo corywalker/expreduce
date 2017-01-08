@@ -78,7 +78,7 @@ func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start
 
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "SetLogging",
+		Name: "SetLogging",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -98,8 +98,8 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Definition",
-		attributes: []string{"HoldAll"},
+		Name: "Definition",
+		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -110,8 +110,8 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Timing",
-		attributes: []string{"HoldAll", "SequenceHold"},
+		Name: "Timing",
+		Attributes: []string{"HoldAll", "SequenceHold"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -124,7 +124,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Print",
+		Name: "Print",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -135,8 +135,8 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "CompoundExpression",
-		attributes: []string{"HoldAll", "ReadProtected"},
+		Name: "CompoundExpression",
+		Attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			var toReturn Ex
 			for i := 1; i < len(this.Parts); i++ {
@@ -146,8 +146,8 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Head",
-		rules: []Rule{
+		Name: "Head",
+		Rules: []Rule{
 			{"Head::usage", "\"Head[expr] returns the head of the expression.\""},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -181,7 +181,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"f", "Head[f[x]]"},
 			&SameTest{"Symbol", "Head[x]"},
 			&SameTest{"List", "Head[{x}]"},
@@ -195,11 +195,11 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "MessageName",
-		attributes: []string{"HoldFirst", "ReadProtected"},
+		Name: "MessageName",
+		Attributes: []string{"HoldFirst", "ReadProtected"},
 	})
 	defs = append(defs, Definition{
-		name:     "Infix",
+		Name:     "Infix",
 		toString: (*Expression).ToStringInfix,
 	})
 	return

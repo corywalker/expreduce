@@ -210,8 +210,8 @@ func (this *Attributes) toStrings() []string {
 
 func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Set",
-		attributes: []string{"HoldFirst", "SequenceHold"},
+		Name: "Set",
+		Attributes: []string{"HoldFirst", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -239,7 +239,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&StringTest{"3", "x=1+2"},
 			&StringTest{"3", "x"},
 			&StringTest{"4", "x+1"},
@@ -259,15 +259,15 @@ func GetSymbolDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "SetDelayed",
-		attributes: []string{"HoldAll", "SequenceHold"},
+		Name: "SetDelayed",
+		Attributes: []string{"HoldAll", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
 			return ToStringInfixAdvanced(this.Parts[1:], " := ", true, "(", ")", form)
 		},
-		bootstrap: true,
+		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -289,7 +289,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			// Test function definitions
 			&SameTest{"Null", "testa[x_] := x*2"},
 			&SameTest{"Null", "testa[x_Integer] := x*3"},
@@ -325,8 +325,8 @@ func GetSymbolDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Attributes",
-		attributes: []string{"HoldAll", "Listable"},
+		Name: "Attributes",
+		Attributes: []string{"HoldAll", "Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -346,15 +346,15 @@ func GetSymbolDefinitions() (defs []Definition) {
 			}
 			return toReturn
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{Protected, ReadProtected}", "Attributes[Infinity]"},
 			&SameTest{"{HoldAll, Listable, Protected}", "Attributes[Attributes]"},
 			&SameTest{"{Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}", "Attributes[Plus]"},
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Clear",
-		attributes: []string{"HoldAll"},
+		Name: "Clear",
+		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			for _, arg := range this.Parts[1:] {
 				es.Debugf("arg: %v", arg)
@@ -365,7 +365,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 			}
 			return &Symbol{"Null"}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"a", "a"},
 			&SameTest{"5", "a = 5"},
 			&SameTest{"6", "b = 6"},

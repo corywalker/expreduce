@@ -69,7 +69,7 @@ func GenPermutations(parts []Ex, cl *CASLogger) (perms [][]Ex) {
 
 func GetCombinatoricsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "IntegerPartitions",
+		Name: "IntegerPartitions",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 && len(this.Parts) != 3 {
 				return this
@@ -111,7 +111,7 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 
 			return exParts
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{{5}, {4, 1}, {3, 2}, {3, 1, 1}, {2, 2, 1}, {2, 1, 1, 1}, {1, 1, 1, 1, 1}}", "IntegerPartitions[5]"},
 			&SameTest{"{{1}}", "IntegerPartitions[1]"},
 			&SameTest{"{{}}", "IntegerPartitions[0]"},
@@ -125,7 +125,7 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Permutations",
+		Name: "Permutations",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -149,16 +149,16 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 
 			return exPerms
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{{1, 2, 3}, {1, 3, 2}, {2, 1, 3}, {2, 3, 1}, {3, 1, 2}, {3, 2, 1}}", "Permutations[Range[3]]"},
 			// Make sure to ignore duplicates.
 			&SameTest{"{{1, 2, 2}, {2, 1, 2}, {2, 2, 1}}", "Permutations[{1, 2, 2}]"},
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Multinomial",
-		attributes: []string{"Listable", "NumericFunction", "Orderless", "ReadProtected"},
-		rules: []Rule{
+		Name: "Multinomial",
+		Attributes: []string{"Listable", "NumericFunction", "Orderless", "ReadProtected"},
+		Rules: []Rule{
 			{"Multinomial[seq___]", "Factorial[Apply[Plus, {seq}]] / Apply[Times, Map[Factorial, {seq}]]"},
 		},
 	})

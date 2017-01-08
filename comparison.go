@@ -167,7 +167,7 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 
 func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Equal",
+		Name: "Equal",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " == ", true, "", "", form)
 		},
@@ -187,7 +187,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&StringTest{"True", "9*x==x*9"},
 			&StringTest{"((9 * x)) == ((10 * x))", "9*x==x*10"},
 
@@ -243,7 +243,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "SameQ",
+		Name: "SameQ",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " === ", true, "", "", form)
 		},
@@ -259,7 +259,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 				return &Symbol{"False"}
 			}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&StringTest{"5", "tmp=5"},
 			&StringTest{"False", "a===b"},
 			&StringTest{"True", "a===a"},
@@ -292,7 +292,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "MatchQ",
+		Name: "MatchQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -304,7 +304,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 				return &Symbol{"False"}
 			}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[2*x, c1_Integer*a_Symbol]"},
 			&SameTest{"True", "MatchQ[2^x, base_Integer^pow_Symbol]"},
 			&SameTest{"True", "MatchQ[2+x, c1_Integer+a_Symbol]"},

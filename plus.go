@@ -4,9 +4,9 @@ import "math/big"
 
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Plus",
-		attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
-		rules: []Rule{
+		Name: "Plus",
+		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
+		Rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
 			{"Plus[c1_Integer*a_, c2_Integer*a_, rest___]", "((c1+c2)*a + rest)"},
 			// For some reason, this messes up the Infinity - Infinity rule
@@ -155,7 +155,7 @@ func GetPlusDefinitions() (defs []Definition) {
 			this.Parts = append(this.Parts, addends...)
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			// Test automatic expansion
 			&StringTest{"(a + b)", "1*(a + b)"},
 			&StringTest{"(1. * (a + b))", "1.*(a + b)"},
@@ -233,16 +233,16 @@ func GetPlusDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Infinity",
-		attributes: []string{"ReadProtected"},
-		rules: []Rule{
+		Name: "Infinity",
+		Attributes: []string{"ReadProtected"},
+		Rules: []Rule{
 			{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
 			{"Plus[Infinity, _Real, rest___]", "Infinity + rest"},
 			{"Plus[-Infinity, _Integer, rest___]", "-Infinity + rest"},
 			{"Plus[-Infinity, _Real, rest___]", "-Infinity + rest"},
 			{"Plus[Infinity, -Infinity, rest___]", "Indeterminate + rest"},
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"Infinity", "Infinity - 1"},
 			&SameTest{"Infinity", "Infinity - 990999999"},
 			&SameTest{"Infinity", "Infinity - 990999999."},
@@ -257,10 +257,10 @@ func GetPlusDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "ComplexInfinity",
+		Name: "ComplexInfinity",
 	})
 	defs = append(defs, Definition{
-		name: "Indeterminate",
+		Name: "Indeterminate",
 	})
 	return
 }

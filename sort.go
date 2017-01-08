@@ -6,7 +6,7 @@ import (
 
 func GetSortDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Sort",
+		Name: "Sort",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

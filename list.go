@@ -203,41 +203,41 @@ func CalcDepth(ex Ex) int {
 
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name:     "List",
-		attributes: []string{"Locked"},
+		Name:     "List",
+		Attributes: []string{"Locked"},
 		toString: (*Expression).ToStringList,
 	})
 	defs = append(defs, Definition{
-		name:      "Total",
-		docstring: "Sum all the values in the list.",
-		rules: []Rule{
+		Name:      "Total",
+		Docstring: "Sum all the values in the list.",
+		Rules: []Rule{
 			{"Total[l__List]", "Apply[Plus, l]"},
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"10", "Total[{1,2,3,4}]"},
 			&SameTest{"0", "Total[{}]"},
 		},
 	})
 	defs = append(defs, Definition{
-		name:      "Mean",
-		docstring: "Calculate the statistical mean of the list.",
-		rules: []Rule{
+		Name:      "Mean",
+		Docstring: "Calculate the statistical mean of the list.",
+		Rules: []Rule{
 			{"Mean[l__List]", "Total[l]/Length[l]"},
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"11/2", "Mean[{5,6}]"},
 		},
 	})
 	defs = append(defs, Definition{
-		name:      "Depth",
-		docstring: "Return the depth of an expression.",
+		Name:      "Depth",
+		Docstring: "Return the depth of an expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
 			return &Integer{big.NewInt(int64(CalcDepth(this.Parts[1])))}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"1", "Depth[foo]"},
 			&SameTest{"2", "Depth[{foo}]"},
 			&SameTest{"2", "Depth[bar[foo, bar]]"},
@@ -249,7 +249,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Length",
+		Name: "Length",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -261,16 +261,16 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"4", "Length[{1,2,3,4}]"},
 			&SameTest{"0", "Length[{}]"},
 			&SameTest{"1", "Length[{5}]"},
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Table",
-		attributes: []string{"HoldAll"},
-		rules: []Rule{
+		Name: "Table",
+		Attributes: []string{"HoldAll"},
+		Rules: []Rule{
 			{"Table[a_, b_Integer]", "Table[a, {i, 1, b}]"},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -292,7 +292,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{a, a, a, a, a}", "Table[a, 5]"},
 			&SameTest{"{5, 6, 7, 8, 9, 10}", "Table[i, {i, 5, 10}]"},
 			&StringTest{"i", "i"},
@@ -304,9 +304,9 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Sum",
-		attributes: []string{"HoldAll", "ReadProtected"},
-		rules: []Rule{
+		Name: "Sum",
+		Attributes: []string{"HoldAll", "ReadProtected"},
+		Rules: []Rule{
 			{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
 			{"Sum[i_Symbol, {i_Symbol, 1, n_Integer}]", "1/2*n*(1 + n)"},
 			{"Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]", "1/2*n*(1 + n)"},
@@ -315,7 +315,7 @@ func GetListDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"45", "Sum[i, {i, 5, 10}]"},
 			&SameTest{"55", "Sum[i, {i, 1, 10}]"},
 			&SameTest{"55", "Sum[i, {i, 0, 10}]"},
@@ -327,12 +327,12 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Product",
-		attributes: []string{"HoldAll", "ReadProtected"},
+		Name: "Product",
+		Attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"120", "Product[a, {a, 1, 5}]"},
 			&SameTest{"14400", "Product[a^2, {a, 1, 5}]"},
 			&SameTest{"576", "Product[a^2, {a, 4}]"},
@@ -340,7 +340,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "MemberQ",
+		Name: "MemberQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -353,7 +353,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return &Symbol{"False"}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"False", "MemberQ[{1, 2, 3}, 0]"},
 			&SameTest{"True", "MemberQ[{1, 2, 3}, 1]"},
 			&SameTest{"False", "MemberQ[{1, 2, 3}, {1}]"},
@@ -378,7 +378,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Map",
+		Name: "Map",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -397,7 +397,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return this.Parts[2]
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{foo[a], foo[b], foo[c]}", "Map[foo, {a, b, c}]"},
 			&SameTest{"{foo[a], foo[b], foo[c]}", "foo /@ {a, b, c}"},
 			&SameTest{"{2, 4, 9}", "Times /@ {2, 4, 9}"},
@@ -410,7 +410,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Array",
+		Name: "Array",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -430,7 +430,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return this.Parts[2]
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{f[1], f[2], f[3]}", "Array[f, 3]"},
 			&SameTest{"Null", "mytest[x_] := 5"},
 			&SameTest{"{5, 5, 5}", "Array[mytest, 3]"},
@@ -439,7 +439,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Cases",
+		Name: "Cases",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -459,14 +459,14 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{5, 2, 3.5, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, _]"},
 			&SameTest{"{5,2,4}", "Cases[{5, 2, 3.5, x, y, 4}, _Integer]"},
 			&SameTest{"{3.5}", "Cases[{5, 2, 3.5, x, y, 4}, _Real]"},
 		},
 	})
 	defs = append(defs, Definition{
-		name: "PadRight",
+		Name: "PadRight",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			list, n, x, valid := ValidatePadParams(this)
 			if !valid {
@@ -482,14 +482,14 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return toReturn
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{1, 2, 0, 0, 0}", "PadRight[{1, 2}, 5]"},
 			&SameTest{"{1, 2, x, x, x}", "PadRight[{1, 2}, 5, x]"},
 			&SameTest{"{1}", "PadRight[{1, 2}, 1, x]"},
 		},
 	})
 	defs = append(defs, Definition{
-		name: "PadLeft",
+		Name: "PadLeft",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			list, n, x, valid := ValidatePadParams(this)
 			if !valid {
@@ -506,7 +506,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return toReturn
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{0, 0, 0, 1, 2}", "PadLeft[{1, 2}, 5]"},
 			&SameTest{"{x, x, x, 1, 2}", "PadLeft[{1, 2}, 5, x]"},
 			&SameTest{"{2}", "PadLeft[{1, 2}, 1, x]"},
@@ -514,8 +514,8 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Range",
-		attributes: []string{"Listable"},
+		Name: "Range",
+		Attributes: []string{"Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// I should probably refactor the IterSpec system so that it does not
 			// require being passed a list and a variable of iteration. TODO
@@ -532,7 +532,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			return toReturn
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"{1, 2, 3}", "Range[3]"},
 			&SameTest{"{2, 3, 4, 5}", "Range[2, 5]"},
 			//&SameTest{"{}", "Range[2, -5]"},

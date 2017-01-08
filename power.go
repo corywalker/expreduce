@@ -7,9 +7,9 @@ import (
 
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Power",
-		attributes: []string{"Listable", "NumericFunction", "OneIdentity"},
-		rules: []Rule{
+		Name: "Power",
+		Attributes: []string{"Listable", "NumericFunction", "OneIdentity"},
+		Rules: []Rule{
 			// Simplify nested exponents
 			{"Power[Power[a_,b_Integer],c_Integer]", "a^(b*c)"},
 			{"Power[Power[a_,b_Real],c_Integer]", "a^(b*c)"},
@@ -120,7 +120,7 @@ func GetPowerDefinitions() (defs []Definition) {
 
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			// Test raising expressions to the first power
 			&StringTest{"(1 + x)", "(x+1)^1"},
 			&StringTest{"0", "0^1"},
@@ -198,8 +198,8 @@ func GetPowerDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "PowerExpand",
-		rules: []Rule{
+		Name: "PowerExpand",
+		Rules: []Rule{
 			{"PowerExpand[exp_]", "exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
 		},
 	})

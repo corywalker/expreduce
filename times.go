@@ -39,9 +39,9 @@ func factorial(n *big.Int) (result *big.Int) {
 
 func GetTimesDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Times",
-		attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
-		rules: []Rule{
+		Name: "Times",
+		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
+		Rules: []Rule{
 			{"Times[a_, a_, rest___]", "a^2 * rest"},
 			{"Times[a_^n_, a_, rest___]", "a^(n+1) * rest"},
 			{"Times[a_^n_, a_^m_, rest___]", "a^(n+m) * rest"},
@@ -263,7 +263,7 @@ func GetTimesDefinitions() (defs []Definition) {
 			this.Parts = append(this.Parts, multiplicands...)
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			// Test that we do not delete all the multiplicands
 			&SameTest{"1", "1*1"},
 			&SameTest{"1", "5*1/5*1"},
@@ -313,8 +313,8 @@ func GetTimesDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Factorial",
-		attributes: []string{"Listable", "NumericFunction", "ReadProtected"},
+		Name: "Factorial",
+		Attributes: []string{"Listable", "NumericFunction", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -328,7 +328,7 @@ func GetTimesDefinitions() (defs []Definition) {
 			}
 			return this
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"2432902008176640000", "Factorial[20]"},
 			&SameTest{"1", "Factorial[1]"},
 			&SameTest{"1", "Factorial[0]"},

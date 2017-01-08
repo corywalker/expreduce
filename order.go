@@ -95,7 +95,7 @@ func ExOrder(a Ex, b Ex) int64 {
 
 func GetOrderDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Order",
+		Name: "Order",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -104,7 +104,7 @@ func GetOrderDefinitions() (defs []Definition) {
 			toreturn := ExOrder(this.Parts[1], this.Parts[2])
 			return &Integer{big.NewInt(toreturn)}
 		},
-		tests: []TestInstruction{
+		Tests: []TestInstruction{
 			// Symbol ordering
 			&SameTest{"0", "Order[a, a]"},
 			&SameTest{"1", "Order[a, b]"},

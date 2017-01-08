@@ -98,15 +98,15 @@ func (this *EvalState) Load(def Definition) {
 	// TODO: do we really need SetDelayed here, or should we just write to
 	// downvalues directly? If we did this, we could potentially remove the
 	// "bootstrap" attribute that SetDelayed has.
-	for _, rule := range def.rules {
+	for _, rule := range def.Rules {
 		(&Expression{[]Ex{
 			&Symbol{"SetDelayed"},
-			Interp(rule.lhs),
-			Interp(rule.rhs),
+			Interp(rule.Lhs),
+			Interp(rule.Rhs),
 		}}).Eval(this)
 	}
 
-	newDef, foundDef := this.defined[def.name]
+	newDef, foundDef := this.defined[def.Name]
 	if !foundDef {
 		newDef = Def{}
 	}
@@ -114,13 +114,13 @@ func (this *EvalState) Load(def Definition) {
 	if def.legacyEvalFn != nil {
 		newDef.legacyEvalFn = def.legacyEvalFn
 	}
-	protectedAttrs := append(def.attributes, "Protected")
+	protectedAttrs := append(def.Attributes, "Protected")
 	newDef.attributes = stringsToAttributes(protectedAttrs)
 	if def.toString != nil {
 		// Global so that standard String() interface can access these
-		toStringFns[def.name] = def.toString
+		toStringFns[def.Name] = def.toString
 	}
-	this.defined[def.name] = newDef
+	this.defined[def.Name] = newDef
 }
 
 type NamedDefSet struct {
@@ -164,14 +164,14 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		// Init modules
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
-				if def.bootstrap {
+				if def.Bootstrap {
 					es.Load(def)
 				}
 			}
 		}
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
-				if !def.bootstrap {
+				if !def.Bootstrap {
 					es.Load(def)
 				}
 			}

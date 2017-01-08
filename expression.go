@@ -281,7 +281,7 @@ func (this *Expression) Swap(i, j int) {
 
 func GetExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		name: "Apply",
+		Name: "Apply",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -298,8 +298,8 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Sequence",
-		tests: []TestInstruction{
+		Name: "Sequence",
+		Tests: []TestInstruction{
 			&SameTest{"Sequence[2]", "Sequence[2]"},
 			&SameTest{"Sequence[2, 3]", "Sequence[2, 3]"},
 			&SameTest{"14", "Sequence[2, 3] + Sequence[5, 4]"},
@@ -318,8 +318,8 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Apply",
-		tests: []TestInstruction{
+		Name: "Apply",
+		Tests: []TestInstruction{
 			&SameTest{"foo[a,b,c]", "Apply[foo, {a,b,c}]"},
 			&SameTest{"foo[bar, buzz]", "Apply[foo, {bar, buzz}]"},
 			&SameTest{"foo[bar, buzz]", "foo @@ {bar, buzz}"},
@@ -331,8 +331,8 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Evaluate",
-		tests: []TestInstruction{
+		Name: "Evaluate",
+		Tests: []TestInstruction{
 			&StringTest{"Hold[4, (2 + 1)]", "Hold[Evaluate[1 + 3], 2 + 1]"},
 			&StringTest{"Hold[foo[Evaluate[(1 + 1)]]]", "Hold[foo[Evaluate[1 + 1]]]"},
 			&StringTest{"Hold[4, 7, (2 + 1)]", "Hold[Evaluate[1 + 3, 5 + 2], 2 + 1]"},
@@ -340,9 +340,9 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Function",
-		attributes: []string{"HoldAll"},
-		tests: []TestInstruction{
+		Name: "Function",
+		Attributes: []string{"HoldAll"},
+		Tests: []TestInstruction{
 			&SameTest{"1 + x", "Function[1 + #][x]"},
 			&SameTest{"1 + x + 2y", "Function[1 + # + 2#2][x, y]"},
 			&SameTest{"a^2", "Function[x, x^2][a]"},
@@ -352,9 +352,9 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		name: "Hold",
-		attributes: []string{"HoldAll"},
-		tests: []TestInstruction{
+		Name: "Hold",
+		Attributes: []string{"HoldAll"},
+		Tests: []TestInstruction{
 			&StringTest{"Hold[5^3]", "Hold[Power[5, 3]]"},
 			&StringTest{"Hold[5.^3.]", "Hold[Power[5., 3.]]"},
 		},
