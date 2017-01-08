@@ -13,6 +13,12 @@ func TestIncludedModules(t *testing.T) {
 		fmt.Printf("Testing module %s\n", defSet.Name)
 		for _, def := range defSet.Defs {
 			es := NewEvalState()
+			for _, test := range def.SimpleExamples {
+				test.Run(t, es)
+			}
+			for _, test := range def.FurtherExamples {
+				test.Run(t, es)
+			}
 			for _, test := range def.Tests {
 				test.Run(t, es)
 			}

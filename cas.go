@@ -77,7 +77,7 @@ type Rule struct {
 type Definition struct {
 	// The symbol name, like "Mean", and "Total"
 	Name      string
-	Docstring string
+	Usage string
 	// Currently used for SetDelayed, since other definitions depend on
 	// SetDelayed, we define it first.
 	Bootstrap bool
@@ -87,6 +87,8 @@ type Definition struct {
 	Rules []Rule
 	// Map symbol to Eval() function
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
+	SimpleExamples []TestInstruction
+	FurtherExamples []TestInstruction
 	Tests        []TestInstruction
 
 	toString ToStringFnType
@@ -103,6 +105,18 @@ func (this *EvalState) Load(def Definition) {
 			&Symbol{"SetDelayed"},
 			Interp(rule.Lhs),
 			Interp(rule.Rhs),
+		}}).Eval(this)
+	}
+
+	if len(def.Usage) > 0 {
+		(&Expression{[]Ex{
+			&Symbol{"SetDelayed"},
+			&Expression{[]Ex{
+				&Symbol{"MessageName"},
+				&Symbol{def.Name},
+				&String{"usage"},
+			}},
+			&String{def.Usage},
 		}}).Eval(this)
 	}
 

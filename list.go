@@ -209,18 +209,21 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:      "Total",
-		Docstring: "Sum all the values in the list.",
+		Usage: "`Total[list]` sums all the values in `list`.",
 		Rules: []Rule{
 			{"Total[l__List]", "Apply[Plus, l]"},
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
 			&SameTest{"10", "Total[{1,2,3,4}]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"The total of an empty list is zero:"},
 			&SameTest{"0", "Total[{}]"},
 		},
 	})
 	defs = append(defs, Definition{
 		Name:      "Mean",
-		Docstring: "Calculate the statistical mean of the list.",
+		Usage: "Calculate the statistical mean of the list.",
 		Rules: []Rule{
 			{"Mean[l__List]", "Total[l]/Length[l]"},
 		},
@@ -230,7 +233,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:      "Depth",
-		Docstring: "Return the depth of an expression.",
+		Usage: "Return the depth of an expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

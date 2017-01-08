@@ -43,6 +43,13 @@ func (this *ResetState) Run(t *testing.T, es *EvalState) {
 	es.ClearAll()
 }
 
+type TestComment struct {
+	Comment string
+}
+
+func (this *TestComment) Run(t *testing.T, es *EvalState) {
+}
+
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {
 	inTree := EvalInterp(in, es).Eval(es)
 	outTree := EvalInterp(out, es).Eval(es)
