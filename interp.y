@@ -1,6 +1,6 @@
 %{
 
-package cas
+package expreduce
 
 import (
 	"math/big"

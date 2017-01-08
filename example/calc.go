@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/corywalker/cas"
+	"github.com/corywalker/expreduce"
 	"gopkg.in/readline.v1"
 )
 
@@ -20,7 +20,7 @@ func main() {
 	}
 	defer rl.Close()
 
-	es := cas.NewEvalState()
+	es := expreduce.NewEvalState()
 	if *debug {
 		es.NoInit = true
 		es.ClearAll()
@@ -33,7 +33,7 @@ func main() {
 			break
 		}
 
-		exp := cas.Interp(line)
+		exp := expreduce.Interp(line)
 		fmt.Printf("In:  %s\n", exp.StringForm("InputForm"))
 		res := exp.Eval(es)
 
@@ -44,7 +44,7 @@ func main() {
 		}
 		wasSpecialForm := false
 		for _, specialForm := range specialForms {
-			asSpecialForm, isSpecialForm := cas.HeadAssertion(res, specialForm)
+			asSpecialForm, isSpecialForm := expreduce.HeadAssertion(res, specialForm)
 			if !isSpecialForm {
 				continue
 			}

@@ -1,4 +1,4 @@
-package cas
+package expreduce
 
 // A Simple, Efficient P(n,k) Algorithm by Alistair Israel
 // http://alistairisrael.wordpress.com/2009/09/22/simple-efficient-pnk-algorithm/

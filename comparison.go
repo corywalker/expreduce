@@ -1,4 +1,4 @@
-package cas
+package expreduce
 
 func IsMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	return IsMatchQ(

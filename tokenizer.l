@@ -1,5 +1,5 @@
 %{
-package cas
+package expreduce
 
 import (
     "log"

@@ -1,7 +1,7 @@
 //go:generate go tool yacc -p Calc -o interp.go interp.y
 //go:generate golex -o tokenizer.go tokenizer.l
 
-package cas
+package expreduce
 
 import (
 	"bytes"

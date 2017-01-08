@@ -1,4 +1,4 @@
-package cas
+package expreduce
 
 func GetCalculusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{

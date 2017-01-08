@@ -1,4 +1,4 @@
-package cas
+package expreduce
 
 func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
