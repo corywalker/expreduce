@@ -53,7 +53,7 @@ func (this *PDManager) Update(toAdd *PDManager) {
 
 type Def struct {
 	downvalues   []Expression
-	//attributes Attributes
+	attributes   Attributes
 
 	// A function defined here will override downvalues.
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
@@ -62,6 +62,8 @@ type Def struct {
 type EvalState struct {
 	// Embedded type for logging
 	CASLogger
+	// So that we can give some functions read-only access to the EvalState
+	//ReadOnlyState
 
 	defined       map[string]Def
 	NoInit        bool
@@ -108,14 +110,17 @@ func (this *EvalState) Load(def Definition) {
 	if !foundDef {
 		newDef = Def{}
 	}
+
 	if def.legacyEvalFn != nil {
 		newDef.legacyEvalFn = def.legacyEvalFn
 	}
-	this.defined[def.name] = newDef
+	protectedAttrs := append(def.attributes, "Protected")
+	newDef.attributes = stringsToAttributes(protectedAttrs)
 	if def.toString != nil {
 		// Global so that standard String() interface can access these
 		toStringFns[def.name] = def.toString
 	}
+	this.defined[def.name] = newDef
 }
 
 type namedDefSet struct {
@@ -124,7 +129,6 @@ type namedDefSet struct {
 }
 
 func GetAllDefinitions() (defs []namedDefSet) {
-	defs = append(defs, namedDefSet{"cas", GetCASDefinitions()})
 	defs = append(defs, namedDefSet{"combinatorics", GetCombinatoricsDefinitions()})
 	defs = append(defs, namedDefSet{"calculus", GetCalculusDefinitions()})
 	defs = append(defs, namedDefSet{"comparison", GetComparisonDefinitions()})
@@ -812,32 +816,4 @@ func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLo
 		}
 		//cl.Debugf("After clear. Context: %v\n", es)
 	}
-}
-
-func GetCASDefinitions() (defs []Definition) {
-	defs = append(defs, Definition{
-		name: "Clear",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			for _, arg := range this.Parts[1:] {
-				es.Debugf("arg: %v", arg)
-				sym, isSym := arg.(*Symbol)
-				if isSym {
-					es.Clear(sym.Name)
-				}
-			}
-			return &Symbol{"Null"}
-		},
-		tests: []TestInstruction{
-			&SameTest{"a", "a"},
-			&SameTest{"5", "a = 5"},
-			&SameTest{"6", "b = 6"},
-			&SameTest{"7", "c = 7"},
-			&SameTest{"5", "a"},
-			&SameTest{"Null", "Clear[a, 99, b]"},
-			&StringTest{"a", "a"},
-			&StringTest{"b", "b"},
-			&StringTest{"7", "c"},
-		},
-	})
-	return
 }

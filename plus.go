@@ -5,6 +5,7 @@ import "math/big"
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Plus",
+		attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
 			{"Plus[c1_Integer*a_, c2_Integer*a_, rest___]", "((c1+c2)*a + rest)"},
@@ -233,6 +234,7 @@ func GetPlusDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Infinity",
+		attributes: []string{"ReadProtected"},
 		rules: []Rule{
 			{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
 			{"Plus[Infinity, _Real, rest___]", "Infinity + rest"},

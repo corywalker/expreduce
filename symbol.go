@@ -1,6 +1,7 @@
 package cas
 
 import "fmt"
+import "sort"
 
 // Symbols are defined by a string-based name
 type Symbol struct {
@@ -47,6 +48,156 @@ func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {
 func (this *Symbol) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy
+}
+
+type Attributes struct {
+	Orderless bool
+	Flat bool
+	OneIdentity bool
+	Listable bool
+	Constant bool
+	NumericFunction bool
+	Protected bool
+	Locked bool
+	ReadProtected bool
+	HoldFirst bool
+	HoldRest bool
+	HoldAll bool
+	HoldAllComplete bool
+	NHoldFirst bool
+	NHoldRest bool
+	NHoldAll bool
+	SequenceHold bool
+	Temporary bool
+	Stub bool
+}
+
+func stringsToAttributes(strings []string) Attributes {
+	attrs := Attributes{}
+	for _, s := range strings {
+		if s == "Orderless" {
+			attrs.Orderless = true
+		}
+		if s == "Flat" {
+			attrs.Flat = true
+		}
+		if s == "OneIdentity" {
+			attrs.OneIdentity = true
+		}
+		if s == "Listable" {
+			attrs.Listable = true
+		}
+		if s == "Constant" {
+			attrs.Constant = true
+		}
+		if s == "NumericFunction" {
+			attrs.NumericFunction = true
+		}
+		if s == "Protected" {
+			attrs.Protected = true
+		}
+		if s == "Locked" {
+			attrs.Locked = true
+		}
+		if s == "ReadProtected" {
+			attrs.ReadProtected = true
+		}
+		if s == "HoldFirst" {
+			attrs.HoldFirst = true
+		}
+		if s == "HoldRest" {
+			attrs.HoldRest = true
+		}
+		if s == "HoldAll" {
+			attrs.HoldAll = true
+		}
+		if s == "HoldAllComplete" {
+			attrs.HoldAllComplete = true
+		}
+		if s == "NHoldFirst" {
+			attrs.NHoldFirst = true
+		}
+		if s == "NHoldRest" {
+			attrs.NHoldRest = true
+		}
+		if s == "NHoldAll" {
+			attrs.NHoldAll = true
+		}
+		if s == "SequenceHold" {
+			attrs.SequenceHold = true
+		}
+		if s == "Temporary" {
+			attrs.Temporary = true
+		}
+		if s == "Stub" {
+			attrs.Stub = true
+		}
+	}
+	return attrs
+}
+
+func (this *Attributes) toStrings() []string {
+	var strings []string
+	if this.Orderless {
+		strings = append(strings, "Orderless")
+	}
+	if this.Flat {
+		strings = append(strings, "Flat")
+	}
+	if this.OneIdentity {
+		strings = append(strings, "OneIdentity")
+	}
+	if this.Listable {
+		strings = append(strings, "Listable")
+	}
+	if this.Constant {
+		strings = append(strings, "Constant")
+	}
+	if this.NumericFunction {
+		strings = append(strings, "NumericFunction")
+	}
+	if this.Protected {
+		strings = append(strings, "Protected")
+	}
+	if this.Locked {
+		strings = append(strings, "Locked")
+	}
+	if this.ReadProtected {
+		strings = append(strings, "ReadProtected")
+	}
+	if this.HoldFirst {
+		strings = append(strings, "HoldFirst")
+	}
+	if this.HoldRest {
+		strings = append(strings, "HoldRest")
+	}
+	if this.HoldAll {
+		strings = append(strings, "HoldAll")
+	}
+	if this.HoldAllComplete {
+		strings = append(strings, "HoldAllComplete")
+	}
+	if this.NHoldFirst {
+		strings = append(strings, "NHoldFirst")
+	}
+	if this.NHoldRest {
+		strings = append(strings, "NHoldRest")
+	}
+	if this.NHoldAll {
+		strings = append(strings, "NHoldAll")
+	}
+	if this.SequenceHold {
+		strings = append(strings, "SequenceHold")
+	}
+	if this.Temporary {
+		strings = append(strings, "Temporary")
+	}
+	if this.Stub {
+		strings = append(strings, "Stub")
+	}
+
+	sort.Strings(strings)
+	return strings
 }
 
 func GetSymbolDefinitions() (defs []Definition) {
@@ -161,6 +312,58 @@ func GetSymbolDefinitions() (defs []Definition) {
 			&SameTest{"bar[m, 2]", "foo[m, 2]"},
 			&SameTest{"Null", "fizz[m_, k_] := buzz[m, k]"},
 			&SameTest{"buzz[m, 2]", "fizz[m, 2]"},
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Attributes",
+		attributes: []string{"HoldAll", "Listable"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			sym, isSym := this.Parts[1].(*Symbol)
+			if !isSym {
+				return this
+			}
+
+			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+			def, isDef := es.defined[sym.Name]
+			if isDef {
+				for _, s := range def.attributes.toStrings() {
+					toReturn.Parts = append(toReturn.Parts, &Symbol{s})
+				}
+			}
+			return toReturn
+		},
+		tests: []TestInstruction{
+			&SameTest{"{Protected, ReadProtected}", "Attributes[Infinity]"},
+			&SameTest{"{HoldAll, Listable, Protected}", "Attributes[Attributes]"},
+			&SameTest{"{Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}", "Attributes[Plus]"},
+		},
+	})
+	defs = append(defs, Definition{
+		name: "Clear",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			for _, arg := range this.Parts[1:] {
+				es.Debugf("arg: %v", arg)
+				sym, isSym := arg.(*Symbol)
+				if isSym {
+					es.Clear(sym.Name)
+				}
+			}
+			return &Symbol{"Null"}
+		},
+		tests: []TestInstruction{
+			&SameTest{"a", "a"},
+			&SameTest{"5", "a = 5"},
+			&SameTest{"6", "b = 6"},
+			&SameTest{"7", "c = 7"},
+			&SameTest{"5", "a"},
+			&SameTest{"Null", "Clear[a, 99, b]"},
+			&StringTest{"a", "a"},
+			&StringTest{"b", "b"},
+			&StringTest{"7", "c"},
 		},
 	})
 	return
