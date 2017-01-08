@@ -5,7 +5,7 @@ import "time"
 
 func GetTimeDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "UnixTime",
+		Name:       "UnixTime",
 		Attributes: []string{"ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 1 {

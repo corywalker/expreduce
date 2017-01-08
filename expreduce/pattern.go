@@ -177,7 +177,7 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 
 func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Pattern",
+		Name:       "Pattern",
 		Attributes: []string{"HoldFirst"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -374,7 +374,7 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "PatternTest",
+		Name:       "PatternTest",
 		Attributes: []string{"HoldRest"},
 		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[1, _?NumberQ]"},
@@ -386,7 +386,7 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Condition",
+		Name:       "Condition",
 		Attributes: []string{"HoldAll"},
 		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[5, _ /; True]"},

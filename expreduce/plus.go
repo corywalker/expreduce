@@ -4,7 +4,7 @@ import "math/big"
 
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Plus",
+		Name:       "Plus",
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
@@ -233,7 +233,7 @@ func GetPlusDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Infinity",
+		Name:       "Infinity",
 		Attributes: []string{"ReadProtected"},
 		Rules: []Rule{
 			{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},

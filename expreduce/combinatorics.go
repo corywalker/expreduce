@@ -70,6 +70,8 @@ func GenPermutations(parts []Ex, cl *CASLogger) (perms [][]Ex) {
 func GetCombinatoricsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "IntegerPartitions",
+		Usage: "`IntegerPartitions[n]` lists the possible ways to partition `n` into smaller integers.\n\n" +
+			"`IntegerPartitions[n, k]` lists the possible ways to partition `n` into smaller integers, using up to `k` elements.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 && len(this.Parts) != 3 {
 				return this
@@ -111,21 +113,29 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 
 			return exParts
 		},
-		Tests: []TestInstruction{
-			&SameTest{"{{5}, {4, 1}, {3, 2}, {3, 1, 1}, {2, 2, 1}, {2, 1, 1, 1}, {1, 1, 1, 1, 1}}", "IntegerPartitions[5]"},
-			&SameTest{"{{1}}", "IntegerPartitions[1]"},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Find the partitions of 4:"},
+			&SameTest{"{{4}, {3, 1}, {2, 2}, {2, 1, 1}, {1, 1, 1, 1}}", "IntegerPartitions[4]"},
+			&TestComment{"Find the partitions of 10, using a maximum of k = 2 integers:"},
+			&SameTest{"{{10}, {9, 1}, {8, 2}, {7, 3}, {6, 4}, {5, 5}}", "IntegerPartitions[10, 2]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"The partitions of zero is a nested empty List:"},
 			&SameTest{"{{}}", "IntegerPartitions[0]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{{1}}", "IntegerPartitions[1]"},
 			&SameTest{"{}", "IntegerPartitions[-1]"},
 			&SameTest{"{}", "IntegerPartitions[-5]"},
 			&SameTest{"IntegerPartitions[.5]", "IntegerPartitions[.5]"},
 			// With k
-			&SameTest{"{{10}, {9, 1}, {8, 2}, {7, 3}, {6, 4}, {5, 5}}", "IntegerPartitions[10, 2]"},
 			&SameTest{"{{10}}", "IntegerPartitions[10, 1]"},
 			&SameTest{"{}", "IntegerPartitions[10, 0]"},
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Permutations",
+		Name:  "Permutations",
+		Usage: "`Permutations[list]` lists the possible permutations for a given list.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -149,17 +159,25 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 
 			return exPerms
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Find the permutations of `{1, 2, 3}`:"},
 			&SameTest{"{{1, 2, 3}, {1, 3, 2}, {2, 1, 3}, {2, 3, 1}, {3, 1, 2}, {3, 2, 1}}", "Permutations[Range[3]]"},
-			// Make sure to ignore duplicates.
+			&TestComment{"`Permutations` ignores duplicates:"},
 			&SameTest{"{{1, 2, 2}, {2, 1, 2}, {2, 2, 1}}", "Permutations[{1, 2, 2}]"},
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Multinomial",
+		Name:       "Multinomial",
+		Usage:      "`Multinomial[n1, n2, ...]` gives the multinomial coefficient for the given term.",
 		Attributes: []string{"Listable", "NumericFunction", "Orderless", "ReadProtected"},
 		Rules: []Rule{
 			{"Multinomial[seq___]", "Factorial[Apply[Plus, {seq}]] / Apply[Times, Map[Factorial, {seq}]]"},
+		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Find the multinomial coefficient for the 1, 3, 1 term:"},
+			&SameTest{"20", "Multinomial[1, 3, 1]"},
+			&TestComment{"`Multinomial` handles symbolic arguments:"},
+			&SameTest{"Factorial[k+2] / Factorial[k]", "Multinomial[1,k,1]"},
 		},
 	})
 	return

@@ -2,7 +2,7 @@ package expreduce
 
 func GetCalculusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "D",
+		Name:       "D",
 		Attributes: []string{"ReadProtected"},
 		Rules: []Rule{
 			{"D[x_,x_]", "1"},
@@ -38,7 +38,7 @@ func GetCalculusDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Integrate",
+		Name:       "Integrate",
 		Attributes: []string{"ReadProtected"},
 		Rules: []Rule{
 			// Might need to be implemented in code. Try running Integrate[-10x, {x, 1, 5}]

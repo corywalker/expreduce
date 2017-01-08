@@ -2,7 +2,7 @@ package expreduce
 
 func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "If",
+		Name:       "If",
 		Attributes: []string{"HoldRest"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 4 {
@@ -45,7 +45,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "While",
+		Name:       "While",
 		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -71,7 +71,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "KroneckerDelta",
+		Name:       "KroneckerDelta",
 		Attributes: []string{"NumericFunction", "Orderless", "ReadProtected"},
 		Rules: []Rule{
 			{"KroneckerDelta[x_Integer]", "If[x == 0, 1, 0]"},

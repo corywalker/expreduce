@@ -203,12 +203,12 @@ func CalcDepth(ex Ex) int {
 
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:     "List",
+		Name:       "List",
 		Attributes: []string{"Locked"},
-		toString: (*Expression).ToStringList,
+		toString:   (*Expression).ToStringList,
 	})
 	defs = append(defs, Definition{
-		Name:      "Total",
+		Name:  "Total",
 		Usage: "`Total[list]` sums all the values in `list`.",
 		Rules: []Rule{
 			{"Total[l__List]", "Apply[Plus, l]"},
@@ -222,7 +222,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:      "Mean",
+		Name:  "Mean",
 		Usage: "Calculate the statistical mean of the list.",
 		Rules: []Rule{
 			{"Mean[l__List]", "Total[l]/Length[l]"},
@@ -232,7 +232,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:      "Depth",
+		Name:  "Depth",
 		Usage: "Return the depth of an expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -271,7 +271,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Table",
+		Name:       "Table",
 		Attributes: []string{"HoldAll"},
 		Rules: []Rule{
 			{"Table[a_, b_Integer]", "Table[a, {i, 1, b}]"},
@@ -307,7 +307,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Sum",
+		Name:       "Sum",
 		Attributes: []string{"HoldAll", "ReadProtected"},
 		Rules: []Rule{
 			{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
@@ -330,7 +330,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Product",
+		Name:       "Product",
 		Attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
@@ -517,7 +517,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Range",
+		Name:       "Range",
 		Attributes: []string{"Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// I should probably refactor the IterSpec system so that it does not

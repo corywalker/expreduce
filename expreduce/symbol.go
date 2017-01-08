@@ -51,25 +51,25 @@ func (this *Symbol) DeepCopy() Ex {
 }
 
 type Attributes struct {
-	Orderless bool
-	Flat bool
-	OneIdentity bool
-	Listable bool
-	Constant bool
+	Orderless       bool
+	Flat            bool
+	OneIdentity     bool
+	Listable        bool
+	Constant        bool
 	NumericFunction bool
-	Protected bool
-	Locked bool
-	ReadProtected bool
-	HoldFirst bool
-	HoldRest bool
-	HoldAll bool
+	Protected       bool
+	Locked          bool
+	ReadProtected   bool
+	HoldFirst       bool
+	HoldRest        bool
+	HoldAll         bool
 	HoldAllComplete bool
-	NHoldFirst bool
-	NHoldRest bool
-	NHoldAll bool
-	SequenceHold bool
-	Temporary bool
-	Stub bool
+	NHoldFirst      bool
+	NHoldRest       bool
+	NHoldAll        bool
+	SequenceHold    bool
+	Temporary       bool
+	Stub            bool
 }
 
 func (this *Symbol) Attrs(es *EvalState) Attributes {
@@ -210,7 +210,7 @@ func (this *Attributes) toStrings() []string {
 
 func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Set",
+		Name:       "Set",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -259,7 +259,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "SetDelayed",
+		Name:       "SetDelayed",
 		Attributes: []string{"HoldAll", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -325,7 +325,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Attributes",
+		Name:       "Attributes",
 		Attributes: []string{"HoldAll", "Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -353,7 +353,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Clear",
+		Name:       "Clear",
 		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			for _, arg := range this.Parts[1:] {

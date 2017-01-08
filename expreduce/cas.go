@@ -52,8 +52,8 @@ func (this *PDManager) Update(toAdd *PDManager) {
 }
 
 type Def struct {
-	downvalues   []Expression
-	attributes   Attributes
+	downvalues []Expression
+	attributes Attributes
 
 	// A function defined here will override downvalues.
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
@@ -65,8 +65,8 @@ type EvalState struct {
 	// So that we can give some functions read-only access to the EvalState
 	//ReadOnlyState
 
-	defined       map[string]Def
-	NoInit        bool
+	defined map[string]Def
+	NoInit  bool
 }
 
 type Rule struct {
@@ -76,7 +76,7 @@ type Rule struct {
 
 type Definition struct {
 	// The symbol name, like "Mean", and "Total"
-	Name      string
+	Name  string
 	Usage string
 	// Currently used for SetDelayed, since other definitions depend on
 	// SetDelayed, we define it first.
@@ -86,10 +86,10 @@ type Definition struct {
 	// indeterminate iteration.
 	Rules []Rule
 	// Map symbol to Eval() function
-	legacyEvalFn (func(*Expression, *EvalState) Ex)
-	SimpleExamples []TestInstruction
+	legacyEvalFn    (func(*Expression, *EvalState) Ex)
+	SimpleExamples  []TestInstruction
 	FurtherExamples []TestInstruction
-	Tests        []TestInstruction
+	Tests           []TestInstruction
 
 	toString ToStringFnType
 

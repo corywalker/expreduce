@@ -271,7 +271,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Rule",
+		Name:       "Rule",
 		Attributes: []string{"SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -281,7 +281,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "RuleDelayed",
+		Name:       "RuleDelayed",
 		Attributes: []string{"HoldRest", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {

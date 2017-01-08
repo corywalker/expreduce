@@ -340,7 +340,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Function",
+		Name:       "Function",
 		Attributes: []string{"HoldAll"},
 		Tests: []TestInstruction{
 			&SameTest{"1 + x", "Function[1 + #][x]"},
@@ -352,7 +352,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Hold",
+		Name:       "Hold",
 		Attributes: []string{"HoldAll"},
 		Tests: []TestInstruction{
 			&StringTest{"Hold[5^3]", "Hold[Power[5, 3]]"},

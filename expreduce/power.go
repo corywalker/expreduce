@@ -7,7 +7,7 @@ import (
 
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Power",
+		Name:       "Power",
 		Attributes: []string{"Listable", "NumericFunction", "OneIdentity"},
 		Rules: []Rule{
 			// Simplify nested exponents
