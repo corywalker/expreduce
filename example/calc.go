@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/corywalker/expreduce"
+	"github.com/corywalker/expreduce/expreduce"
 	"gopkg.in/readline.v1"
 )
 

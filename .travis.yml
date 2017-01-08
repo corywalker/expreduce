@@ -8,5 +8,5 @@ go:
 go_import_path: github.com/corywalker/expreduce
 
 script:
-  - go generate
-  - go test -v ./...
+  - go generate ./expreduce
+  - go test -v ./expreduce
