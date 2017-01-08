@@ -9,6 +9,7 @@ go_import_path: github.com/corywalker/expreduce
 
 install:
   - go get -d ./...
+  - go get github.com/cznic/golex
   - go generate ./expreduce
   - go get ./...
 
