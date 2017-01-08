@@ -32,7 +32,7 @@ func GetStringDefinitions() (defs []Definition) {
 			// but slow for StringJoin[Table["x", {k,2000}]]
 			//"StringJoin[{args___}]": "StringJoin[args]",
 			// This rule runs much faster, probably because it avoids
-			// CommutativeIsMatchQ
+			// OrderlessIsMatchQ
 			{"StringJoin[list_List]", "StringJoin[list /. List->Sequence]"},
 		},
 		toString: func(this *Expression, form string) (bool, string) {

@@ -24,7 +24,7 @@ func GetCalculusDefinitions() (defs []Definition) {
 			&SameTest{"-4x^3", "D[-x^4,x]"},
 			&SameTest{"-n x^(-1 - n) + n x^(-1 + n)", "D[x^n+x^(-n),x]"},
 			&SameTest{"4 x (1 + x^2)", "D[(x^2 + 1)^2, x]"},
-			&SameTest{"1 + x + x^2/2 + x^3/6", "D[1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4, x]"},
+			&SameTest{"((1 + x + (1/6 * x^3) + (1/2 * x^2)))", "D[1 + x + 1/2*x^2 + 1/6*x^3 + 1/24*x^4, x]"},
 			&SameTest{"-10*Power[x,-3] - 7*Power[x,-2]", "D[1 + 7/x + 5/(x^2), x]"},
 			&SameTest{"Sqrt[x] + x^(3/2)", "D[2/3*x^(3/2) + 2/5*x^(5/2), x]"},
 

@@ -360,7 +360,7 @@ func GetListDefinitions() (defs []Definition) {
 			&StringTest{"testmatch", "testmatch"},
 			&SameTest{"False", "MemberQ[a, a]"},
 			&SameTest{"False", "MemberQ[a, _]"},
-			// More tests to be used in CommutativeIsMatchQ
+			// More tests to be used in OrderlessIsMatchQ
 			&SameTest{"False", "MemberQ[{a, b}, c]"},
 			&SameTest{"True", "MemberQ[{a, b}, a]"},
 			&SameTest{"True", "MemberQ[{a, b}, ___]"},

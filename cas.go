@@ -416,38 +416,6 @@ func ExArrayContainsFloat(a []Ex) bool {
 	return res
 }
 
-func CommutativeIsEqual(components []Ex, other_components []Ex, cl *CASLogger) string {
-	cl.Infof("Entering CommutativeIsEqual(components: %s, other_components: %s)", ExArrayToString(components), ExArrayToString(other_components))
-	if len(components) != len(other_components) {
-		return "EQUAL_FALSE"
-	}
-	matched := make(map[int]struct{})
-	for _, e1 := range components {
-		foundmatch := false
-		for j, e2 := range other_components {
-			_, taken := matched[j]
-			if taken {
-				continue
-			}
-			res := e1.IsEqual(e2, cl)
-			switch res {
-			case "EQUAL_FALSE":
-			case "EQUAL_TRUE":
-				matched[j] = struct{}{}
-				foundmatch = true
-			case "EQUAL_UNK":
-			}
-			if foundmatch {
-				break
-			}
-		}
-		if !foundmatch {
-			return "EQUAL_UNK"
-		}
-	}
-	return "EQUAL_TRUE"
-}
-
 func ExtractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
 	for _, c := range components {
 		pat, isPat := HeadAssertion(c, "Pattern")
@@ -473,19 +441,19 @@ func ExtractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
 // 3. Return a pm with fields to add <- would be most efficient, but complicated
 //    and could easily be incorrectly used.
 // See IsBlankCapturing for a good example of good use.
-func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	pm = CopyPD(pm)
 	if cl.debugState {
-		cl.Infof("Entering CommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+		cl.Infof("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	}
 	nonBS, bs := ExtractBlankSequences(lhs_components)
 	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
 	// though because MatchQ[a + b + c, c + __] == True.
 	if len(bs) == 0 && len(components) != len(lhs_components) {
-		cl.Debugf("len(components) != len(lhs_components). CommutativeMatchQ failed")
+		cl.Debugf("len(components) != len(lhs_components). OrderlessMatchQ failed")
 		return false, pm
 	} else if len(nonBS) > len(components) {
-		cl.Debugf("len(nonBS) > len(components). CommutativeMatchQ failed")
+		cl.Debugf("len(nonBS) > len(components). OrderlessMatchQ failed")
 		return false, pm
 	}
 
@@ -531,16 +499,16 @@ func CommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl
 		if cl.debugState {
 			cl.Infof("%s", ExArrayToString(orderedComponents))
 		}
-		ncIsMatchQ, newPm := NonCommutativeIsMatchQ(orderedComponents, ordered_lhs_components, pm, cl)
+		ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, ordered_lhs_components, pm, cl)
 		if ncIsMatchQ {
-			cl.Debugf("CommutativeIsMatchQ succeeded. Context: %s", pm)
+			cl.Debugf("OrderlessIsMatchQ succeeded. Context: %s", pm)
 			return true, newPm
 		}
 
 		// Generate next permutation, if any
 		cont = nextKPermutation(perm, len(components), kConstant)
 	}
-	cl.Debugf("CommutativeIsMatchQ failed. Context: %s", pm)
+	cl.Debugf("OrderlessIsMatchQ failed. Context: %s", pm)
 	return false, pm
 }
 
@@ -558,11 +526,11 @@ func Min(x, y int) int {
 	return y
 }
 
-func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	pm = CopyPD(pm)
 	// This function is now recursive because of the existence of BlankSequence.
 	if cl.debugState {
-		cl.Infof("Entering NonCommutativeIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+		cl.Infof("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	}
 	// A base case for the recursion
 	if len(components) == 0 && len(lhs_components) == 0 {
@@ -624,7 +592,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager,
 				if cl.debugState {
 					cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				}
-				matchq, newPDs := NonCommutativeIsMatchQ(remainingComps, remainingLhs, pm, cl)
+				matchq, newPDs := NonOrderlessIsMatchQ(remainingComps, remainingLhs, pm, cl)
 				if seqMatches && matchq {
 					pm.Update(newPDs)
 					if isPat {
@@ -655,7 +623,7 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager,
 			cl.Debugf("Returned True!\n")
 			pm.Update(toAdd)
 		} else {
-			cl.Debugf("NonCommutativeIsMatchQ failed. Context: %s", pm)
+			cl.Debugf("NonOrderlessIsMatchQ failed. Context: %s", pm)
 			return false, pm
 		}
 	}
@@ -664,23 +632,6 @@ func NonCommutativeIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager,
 	} else {
 		return false, pm
 	}
-}
-
-func FunctionIsEqual(components []Ex, other_components []Ex, cl *CASLogger) string {
-	if len(components) != len(other_components) {
-		return "EQUAL_UNK"
-	}
-	for i := range components {
-		res := components[i].IsEqual(other_components[i], cl)
-		switch res {
-		case "EQUAL_FALSE":
-			return "EQUAL_UNK"
-		case "EQUAL_TRUE":
-		case "EQUAL_UNK":
-			return "EQUAL_UNK"
-		}
-	}
-	return "EQUAL_TRUE"
 }
 
 func FunctionIsSameQ(components []Ex, other_components []Ex, cl *CASLogger) bool {
@@ -771,9 +722,9 @@ func permutations(iterable []int, r int) [][]int {
 
 }
 
-func CommutativeReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
+func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	cl.Infof("Entering CommutativeReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
+	cl.Infof("Entering OrderlessReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(*components))

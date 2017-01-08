@@ -50,17 +50,6 @@ func TestLowLevel(t *testing.T) {
 	assert.Equal(t, "EQUAL_TRUE", (&Symbol{"x"}).IsEqual(&Symbol{"x"}, &es.CASLogger))
 	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"X"}, &es.CASLogger))
 	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"y"}, &es.CASLogger))
-	var t1 = &Expression{[]Ex{
-		&Symbol{"Plus"},
-		&Flt{big.NewFloat(2.5)},
-		&Flt{big.NewFloat(5)},
-	}}
-	var t2 = &Expression{[]Ex{
-		&Symbol{"Plus"},
-		&Flt{big.NewFloat(5)},
-		&Flt{big.NewFloat(2.5)},
-	}}
-	assert.Equal(t, "EQUAL_TRUE", t1.IsEqual(t2, &es.CASLogger))
 
 	// Test evaluation
 	newa := a.Eval(es)

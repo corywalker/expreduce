@@ -131,12 +131,12 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
 			if IsOrderless(aExpressionSym) {
-				return CommutativeIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
+				return OrderlessIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
 			}
 		}
 	}
 
-	return NonCommutativeIsMatchQ(aExpression.Parts, bExpression.Parts, pm, cl)
+	return NonOrderlessIsMatchQ(aExpression.Parts, bExpression.Parts, pm, cl)
 }
 
 func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
@@ -154,23 +154,10 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 	bExpression, bIsExpression := b.(*Expression)
 
 	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) || (aIsRational && bIsRational) {
-
 		// a and b are identical raw types
 		return a.IsEqual(b, cl) == "EQUAL_TRUE"
-
 	} else if aIsExpression && bIsExpression {
-
 		// a and b are both expressions
-		aSym, aSymOk := aExpression.Parts[0].(*Symbol)
-		otherSym, otherSymOk := bExpression.Parts[0].(*Symbol)
-		if aSymOk && otherSymOk {
-			if aSym.Name == otherSym.Name {
-				if IsOrderless(aSym) {
-					return a.IsEqual(b, cl) == "EQUAL_TRUE"
-				}
-			}
-		}
-
 		return FunctionIsSameQ(aExpression.Parts, bExpression.Parts, cl)
 	}
 
@@ -327,7 +314,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 			&SameTest{"False", "MatchQ[{a,b}, {x_Symbol,x_Symbol}]"},
 			&SameTest{"True", "MatchQ[{2^a, a}, {2^x_Symbol, x_Symbol}]"},
 			&SameTest{"False", "MatchQ[{2^a, b}, {2^x_Symbol, x_Symbol}]"},
-			// Test speed of CommutativeIsMatchQ
+			// Test speed of OrderlessIsMatchQ
 			// Make the foo variable extra long to override the built in
 			// cancellation rule
 			&SameTest{"Null", "Plus[foooooooooooooooooo, -foooooooooooooooooo, rest___] := bar + rest"},

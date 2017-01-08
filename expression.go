@@ -173,9 +173,9 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
 				if IsOrderless(thisSym) {
-					cl.Debugf("r.Parts[1] is Orderless. Now running CommutativeReplace")
+					cl.Debugf("r.Parts[1] is Orderless. Now running OrderlessReplace")
 					replaced := this.Parts[1:len(this.Parts)]
-					CommutativeReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], cl)
+					OrderlessReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], cl)
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
 				}
@@ -297,31 +297,25 @@ func IsHoldAll(sym *Symbol) bool {
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
-	//thisEvaled := this.Eval(es)
-	//otherEx = otherEx.Eval(es)
-	//this, ok := thisEvaled.(*Expression)
-	//if !ok {
-	//return thisEvaled.IsEqual(otherEx, cl)
-	//}
-
 	other, ok := otherEx.(*Expression)
 	if !ok {
 		return "EQUAL_UNK"
 	}
 
-	// TODO: Should deprecate CommutativeIsEqual due to automatic sorting of
-	// Orderless expressions.
-	thisSym, thisSymOk := this.Parts[0].(*Symbol)
-	otherSym, otherSymOk := other.Parts[0].(*Symbol)
-	if thisSymOk && otherSymOk {
-		if thisSym.Name == otherSym.Name {
-			if IsOrderless(thisSym) {
-				return CommutativeIsEqual(this.Parts[1:len(this.Parts)], other.Parts[1:len(other.Parts)], cl)
-			}
+	if len(this.Parts) != len(other.Parts) {
+		return "EQUAL_UNK"
+	}
+	for i := range this.Parts {
+		res := this.Parts[i].IsEqual(other.Parts[i], cl)
+		switch res {
+		case "EQUAL_FALSE":
+			return "EQUAL_UNK"
+		case "EQUAL_TRUE":
+		case "EQUAL_UNK":
+			return "EQUAL_UNK"
 		}
 	}
-
-	return FunctionIsEqual(this.Parts, other.Parts, cl)
+	return "EQUAL_TRUE"
 }
 
 func (this *Expression) DeepCopy() Ex {
