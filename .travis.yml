@@ -1,7 +1,11 @@
+language: go
+
 go:
   - 1.6
   - 1.7
   - master
+
+go_import_path: github.com/corywalker/expreduce
 
 script:
   - go generate
