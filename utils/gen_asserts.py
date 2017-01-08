@@ -15,7 +15,7 @@ test_str = sys.stdin.read()
 if args.assert_str:
     format_str = 'assert.Equal(t, "{}", EasyRun("{}", es))'
 else:
-    format_str = 'CasAssertSame(t, es, "{}", "{}")'
+    format_str = '&SameTest{{"{}", "{}"}},'
 for num, instr, outstr in re.findall(p, test_str):
     if outstr == '':
         outstr = 'Null'

@@ -137,7 +137,15 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr EQUALSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Equal"}, $1, $3}} }
 	|    MINUSSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $2, &Integer{big.NewInt(-1)}}} }
+		{
+			if integer, isInteger := $2.(*Integer); isInteger {
+				$$  =  &Integer{integer.Val.Neg(integer.Val)}
+			} else if flt, isFlt := $2.(*Flt); isFlt {
+				$$  =  &Flt{flt.Val.Neg(flt.Val)}
+			} else {
+				$$  =  &Expression{[]Ex{&Symbol{"Times"}, $2, &Integer{big.NewInt(-1)}}}
+			}
+		}
 	|    SLOTSYM
 		{ $$  =  &Expression{[]Ex{&Symbol{"Slot"}, &Integer{big.NewInt(1)}}} }
 	|    SLOTSYM INTEGER

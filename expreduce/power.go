@@ -17,6 +17,9 @@ func GetPowerDefinitions() (defs []Definition) {
 			// Power definitions
 			{"Power[Times[Except[_Symbol, first_], inner___], pow_]", "first^pow*Power[Times[inner],pow]"},
 			{"Power[Times[first_, inner___], Except[_Symbol, pow_]]", "first^pow*Power[Times[inner],pow]"},
+
+			// Rational simplifications
+			{"Power[Rational[a_,b_], -1]", "Rational[b,a]"},
 		},
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form)

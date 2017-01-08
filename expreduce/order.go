@@ -20,10 +20,9 @@ func compareStrings(a string, b string) int64 {
 }
 
 func ExOrder(a Ex, b Ex) int64 {
-	// Support Flt, Integer, Expression, Symbol
-	// Merge Integer into Flt
-	// Need to support the following combinations
-	// ff,fs,fe,sf,ss,se,ef,es,ee
+	// Support Flt, Integer, Rational, Expression, Symbol
+	// Merge Integer and Rational into Flt
+	// TODO: possible precision, round off issue here.
 
 	aAsSymbol, aIsSymbol := a.(*Symbol)
 	bAsSymbol, bIsSymbol := b.(*Symbol)
@@ -32,11 +31,19 @@ func ExOrder(a Ex, b Ex) int64 {
 	bAsFlt, bIsFlt := b.(*Flt)
 	aAsInteger, aIsInteger := a.(*Integer)
 	bAsInteger, bIsInteger := b.(*Integer)
+	aAsRational, aIsRational := a.(*Rational)
+	bAsRational, bIsRational := b.(*Rational)
 	if aIsInteger {
 		aAsFlt, aIsFlt = IntegerToFlt(aAsInteger)
 	}
 	if bIsInteger {
 		bAsFlt, bIsFlt = IntegerToFlt(bAsInteger)
+	}
+	if aIsRational {
+		aAsFlt, aIsFlt = RationalToFlt(aAsRational)
+	}
+	if bIsRational {
+		bAsFlt, bIsFlt = RationalToFlt(bAsRational)
 	}
 
 	if aIsFlt && bIsFlt {
@@ -160,6 +167,22 @@ func GetOrderDefinitions() (defs []Definition) {
 
 			//&SameTest{"{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]"},
 			//&SameTest{"{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]"},
+
+			// Test Rational ordering
+			&SameTest{"0", "Order[Rational[4, 6], Rational[2, 3]]"},
+			&SameTest{"1", "Order[Rational[4, 6], Rational[5, 3]]"},
+			&SameTest{"-1", "Order[Rational[5, 3], Rational[4, 6]]"},
+			&SameTest{"1", "Order[Rational[-5, 3], Rational[-4, 6]]"},
+			&SameTest{"-1", "Order[Rational[4, 6], .6]"},
+			&SameTest{"1", "Order[.6, Rational[4, 6]]"},
+			&SameTest{"1", "Order[Rational[4, 6], .7]"},
+			&SameTest{"-1", "Order[.7, Rational[4, 6]]"},
+			&SameTest{"-1", "Order[Rational[4, 6], 0]"},
+			&SameTest{"1", "Order[Rational[4, 6], 1]"},
+			&SameTest{"1", "Order[0, Rational[4, 6]]"},
+			&SameTest{"-1", "Order[1, Rational[4, 6]]"},
+			&SameTest{"1", "Order[Rational[4, 6], a]"},
+			&SameTest{"-1", "Order[a, Rational[4, 6]]"},
 		},
 	})
 	return

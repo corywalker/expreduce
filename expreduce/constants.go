@@ -57,6 +57,12 @@ func IntegerToFlt(i *Integer) (*Flt, bool) {
 	return &Flt{newfloat}, true
 }
 
+func RationalToFlt(r *Rational) (*Flt, bool) {
+	newfloat := big.NewFloat(0)
+	newfloat.SetRat(r.AsBigRat())
+	return &Flt{newfloat}, true
+}
+
 // Integer numbers represented by big.Int
 type Integer struct {
 	Val *big.Int
@@ -173,6 +179,10 @@ func (this *Rational) DeepCopy() Ex {
 	tmpd := big.NewInt(0)
 	tmpd.Set(this.Den)
 	return &Rational{tmpn, tmpd}
+}
+
+func (this *Rational) AsBigRat() *big.Rat {
+	return big.NewRat(this.Num.Int64(), this.Den.Int64())
 }
 
 type String struct {
