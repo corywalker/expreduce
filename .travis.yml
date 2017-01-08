@@ -3,16 +3,14 @@ language: go
 go:
   - 1.6
   - 1.7
-  - master
 
 go_import_path: github.com/corywalker/expreduce
 
 install:
   - go get -d ./...
   - go get github.com/cznic/golex
-  - go generate ./expreduce
+  - go generate ./...
   - go get ./...
 
 script:
-  - go generate ./expreduce
-  - go test -v ./expreduce
+  - go test -v ./...
