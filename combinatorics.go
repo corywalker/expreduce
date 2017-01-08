@@ -157,6 +157,7 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Multinomial",
+		attributes: []string{"Listable", "NumericFunction", "Orderless", "ReadProtected"},
 		rules: []Rule{
 			{"Multinomial[seq___]", "Factorial[Apply[Plus, {seq}]] / Apply[Times, Map[Factorial, {seq}]]"},
 		},

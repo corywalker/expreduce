@@ -72,6 +72,14 @@ type Attributes struct {
 	Stub bool
 }
 
+func (this *Symbol) Attrs(es *EvalState) Attributes {
+	def, isDef := es.defined[this.Name]
+	if !isDef {
+		return Attributes{}
+	}
+	return def.attributes
+}
+
 func stringsToAttributes(strings []string) Attributes {
 	attrs := Attributes{}
 	for _, s := range strings {
@@ -203,6 +211,7 @@ func (this *Attributes) toStrings() []string {
 func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Set",
+		attributes: []string{"HoldFirst", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -251,6 +260,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "SetDelayed",
+		attributes: []string{"HoldAll", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -344,6 +354,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Clear",
+		attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			for _, arg := range this.Parts[1:] {
 				es.Debugf("arg: %v", arg)

@@ -204,6 +204,7 @@ func CalcDepth(ex Ex) int {
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name:     "List",
+		attributes: []string{"Locked"},
 		toString: (*Expression).ToStringList,
 	})
 	defs = append(defs, Definition{
@@ -268,6 +269,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Table",
+		attributes: []string{"HoldAll"},
 		rules: []Rule{
 			{"Table[a_, b_Integer]", "Table[a, {i, 1, b}]"},
 		},
@@ -303,6 +305,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Sum",
+		attributes: []string{"HoldAll", "ReadProtected"},
 		rules: []Rule{
 			{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
 			{"Sum[i_Symbol, {i_Symbol, 1, n_Integer}]", "1/2*n*(1 + n)"},
@@ -325,6 +328,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Product",
+		attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
 		},
@@ -511,6 +515,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Range",
+		attributes: []string{"Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// I should probably refactor the IterSpec system so that it does not
 			// require being passed a list and a variable of iteration. TODO

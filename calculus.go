@@ -3,6 +3,7 @@ package cas
 func GetCalculusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "D",
+		attributes: []string{"ReadProtected"},
 		rules: []Rule{
 			{"D[x_,x_]", "1"},
 			{"D[a_,x_]", "0"},
@@ -38,6 +39,7 @@ func GetCalculusDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Integrate",
+		attributes: []string{"ReadProtected"},
 		rules: []Rule{
 			// Might need to be implemented in code. Try running Integrate[-10x, {x, 1, 5}]
 			// with this

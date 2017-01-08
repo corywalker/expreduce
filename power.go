@@ -8,6 +8,7 @@ import (
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Power",
+		attributes: []string{"Listable", "NumericFunction", "OneIdentity"},
 		rules: []Rule{
 			// Simplify nested exponents
 			{"Power[Power[a_,b_Integer],c_Integer]", "a^(b*c)"},

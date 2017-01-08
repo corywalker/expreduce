@@ -99,6 +99,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Definition",
+		attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -110,6 +111,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Timing",
+		attributes: []string{"HoldAll", "SequenceHold"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -134,6 +136,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "CompoundExpression",
+		attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			var toReturn Ex
 			for i := 1; i < len(this.Parts); i++ {
@@ -193,6 +196,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "MessageName",
+		attributes: []string{"HoldFirst", "ReadProtected"},
 	})
 	defs = append(defs, Definition{
 		name:     "Infix",

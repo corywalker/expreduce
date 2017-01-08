@@ -40,6 +40,7 @@ func factorial(n *big.Int) (result *big.Int) {
 func GetTimesDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "Times",
+		attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		rules: []Rule{
 			{"Times[a_, a_, rest___]", "a^2 * rest"},
 			{"Times[a_^n_, a_, rest___]", "a^(n+1) * rest"},
@@ -313,6 +314,7 @@ func GetTimesDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Factorial",
+		attributes: []string{"Listable", "NumericFunction", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

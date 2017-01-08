@@ -64,17 +64,21 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 		// Start by evaluating each argument
 		headSym, headIsSym := &Symbol{}, false
+		attrs := Attributes{}
 		if len(curr.Parts) > 0 {
 			headSym, headIsSym = curr.Parts[0].(*Symbol)
 		}
+		if headIsSym {
+			attrs = headSym.Attrs(es)
+		}
 		for i := range curr.Parts {
-			if headIsSym && i == 1 && IsHoldFirst(headSym) {
+			if headIsSym && i == 1 && attrs.HoldFirst {
 				continue
 			}
-			if headIsSym && i > 1 && IsHoldRest(headSym) {
+			if headIsSym && i > 1 && attrs.HoldRest {
 				continue
 			}
-			if headIsSym && IsHoldAll(headSym) {
+			if headIsSym && attrs.HoldAll {
 				continue
 			}
 			curr.Parts[i] = curr.Parts[i].Eval(es)
@@ -84,18 +88,15 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		curr.mergeSequences(es, "Sequence", false)
 		curr.mergeSequences(es, "Evaluate", true)
 
-		headAsSym, isHeadSym := curr.Parts[0].(*Symbol)
-		if isHeadSym {
-			if IsFlat(headAsSym) {
-				curr.mergeSequences(es, headAsSym.Name, false)
+		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
+		if headIsSym {
+			if attrs.Flat {
+				curr.mergeSequences(es, headSym.Name, false)
 			}
-			if IsOrderless(headAsSym) {
+			if attrs.Orderless {
 				sort.Sort(curr)
 			}
-		}
-		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
-		if isHeadSym {
-			headStr := headAsSym.Name
+			headStr := headSym.Name
 
 			theRes, isDefined := es.GetDef(headStr, curr)
 			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, *EvalState) Ex)(nil), false
@@ -235,67 +236,6 @@ func IsOrderless(sym *Symbol) bool {
 	return false
 }
 
-// TODO: convert to a map
-func IsFlat(sym *Symbol) bool {
-	if sym.Name == "Times" {
-		return true
-	} else if sym.Name == "Plus" {
-		return true
-	} else if sym.Name == "StringJoin" {
-		return true
-	}
-	return false
-}
-
-// TODO: convert to a map
-func IsHoldFirst(sym *Symbol) bool {
-	if sym.Name == "Set" {
-		return true
-	} else if sym.Name == "Pattern" {
-		return true
-	}
-	return false
-}
-
-// TODO: convert to a map
-func IsHoldRest(sym *Symbol) bool {
-	if sym.Name == "If" {
-		return true
-	} else if sym.Name == "RuleDelayed" {
-		return true
-	}
-	return false
-}
-
-// TODO: convert to a map
-func IsHoldAll(sym *Symbol) bool {
-	if sym.Name == "SetDelayed" {
-		return true
-	}
-	if sym.Name == "Table" {
-		return true
-	}
-	if sym.Name == "Clear" {
-		return true
-	}
-	if sym.Name == "Timing" {
-		return true
-	}
-	if sym.Name == "Hold" {
-		return true
-	}
-	if sym.Name == "CompoundExpression" {
-		return true
-	}
-	if sym.Name == "Condition" {
-		return true
-	}
-	if sym.Name == "Function" {
-		return true
-	}
-	return false
-}
-
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
 	other, ok := otherEx.(*Expression)
 	if !ok {
@@ -401,6 +341,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Function",
+		attributes: []string{"HoldAll"},
 		tests: []TestInstruction{
 			&SameTest{"1 + x", "Function[1 + #][x]"},
 			&SameTest{"1 + x + 2y", "Function[1 + # + 2#2][x, y]"},
@@ -412,6 +353,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "Hold",
+		attributes: []string{"HoldAll"},
 		tests: []TestInstruction{
 			&StringTest{"Hold[5^3]", "Hold[Power[5, 3]]"},
 			&StringTest{"Hold[5.^3.]", "Hold[Power[5., 3.]]"},

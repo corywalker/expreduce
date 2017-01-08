@@ -27,6 +27,7 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "StringJoin",
+		attributes: []string{"Flat", "OneIdentity"},
 		rules: []Rule{
 			// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
 			// but slow for StringJoin[Table["x", {k,2000}]]

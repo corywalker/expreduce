@@ -3,6 +3,7 @@ package cas
 func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		name: "If",
+		attributes: []string{"HoldRest"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 4 {
 				return this
@@ -45,6 +46,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "While",
+		attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -70,6 +72,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		name: "KroneckerDelta",
+		attributes: []string{"NumericFunction", "Orderless", "ReadProtected"},
 		rules: []Rule{
 			{"KroneckerDelta[x_Integer]", "If[x == 0, 1, 0]"},
 		},
