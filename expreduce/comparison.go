@@ -168,6 +168,7 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Equal",
+		Usage: "`lhs == rhs` evaluates to True or False if equality or inequality is known.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " == ", true, "", "", form)
 		},
@@ -187,9 +188,30 @@ func GetComparisonDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Expressions known to be equal will evaluate to True:"},
 			&StringTest{"True", "9*x==x*9"},
+			&TestComment{"Sometimes expressions may or may not be equal, or Expreduce does not know how to test for equality. In these cases, the statement will remain unevaluated:"},
 			&StringTest{"((9 * x)) == ((10 * x))", "9*x==x*10"},
+
+			&TestComment{"Equal considers Integers and Reals that are close enough to be equal:"},
+			&StringTest{"5", "tmp=5"},
+			&StringTest{"True", "tmp==5"},
+			&StringTest{"True", "tmp==5."},
+			&StringTest{"True", "tmp==5.00000"},
+
+			&TestComment{"Equal can test for Rational equality:"},
+			&StringTest{"False", "4/3==3/2"},
+			&StringTest{"True", "4/3==8/6"},
+		},
+		FurtherExamples: []TestInstruction{
+			&StringTest{"True", "If[xx == 2, yy, zz] == If[xx == 2, yy, zz]"},
+			&TestComment{"Equal does not match patterns:"},
+			&SameTest{"{1, 2, 3} == _List", "{1, 2, 3} == _List"},
+			&TestComment{"This functionality is reserved for MatchQ:"},
+			&SameTest{"True", "MatchQ[{1, 2, 3}, _List]"},
+		},
+		Tests: []TestInstruction{
 
 			&StringTest{"5", "tmp=5"},
 			&StringTest{"True", "tmp==5"},
@@ -208,9 +230,6 @@ func GetComparisonDefinitions() (defs []Definition) {
 			&StringTest{"(2^k) == ((2 + k))", "2^k==k+2"},
 			&StringTest{"(k) == ((2 * k))", "k==2*k"},
 			&StringTest{"((2 * k)) == (k)", "2*k==k"},
-			&StringTest{"True", "tmp==5"},
-			&StringTest{"True", "tmp==5."},
-			&StringTest{"True", "tmp==5.00000"},
 			&StringTest{"True", "1+1==2"},
 			&StringTest{"(y) == ((b + (m * x)))", "y==m*x+b"},
 
@@ -221,15 +240,10 @@ func GetComparisonDefinitions() (defs []Definition) {
 			&StringTest{"True", "(x==2.)==(x==2)"},
 			&StringTest{"True", "(x===2.)==(x===2)"},
 
-			&StringTest{"True", "If[xx == 2, yy, zz] == If[xx == 2, yy, zz]"},
 			&StringTest{"(If[(xx) == (3), yy, zz]) == (If[(xx) == (2), yy, zz])", "If[xx == 3, yy, zz] == If[xx == 2, yy, zz]"},
 
 			&StringTest{"True", "(1 == 2) == (2 == 3)"},
 			&StringTest{"False", "(1 == 2) == (2 == 2)"},
-
-			// Test Rationals
-			&StringTest{"False", "4/3==3/2"},
-			&StringTest{"True", "4/3==8/6"},
 
 			&SameTest{"True", "foo[x == 2, y, x] == foo[x == 2, y, x]"},
 			&SameTest{"True", "foo[x == 2, y, x] == foo[x == 2., y, x]"},
@@ -244,6 +258,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "SameQ",
+		Usage: "`lhs === rhs` evaluates to True if `lhs` and `rhs` are identical after evaluation, False otherwise.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " === ", true, "", "", form)
 		},
@@ -259,10 +274,24 @@ func GetComparisonDefinitions() (defs []Definition) {
 				return &Symbol{"False"}
 			}
 		},
+		SimpleExamples: []TestInstruction{
+			&StringTest{"True", "a===a"},
+			&StringTest{"True", "5 === 5"},
+			&TestComment{"Unlike Equal, SameQ does not forgive differences between Integers and Reals:"},
+			&StringTest{"False", "5 === 5."},
+			&TestComment{"SameQ considers the arguments of all expressions and subexpressions:"},
+			&SameTest{"True", "foo[x == 2, y, x] === foo[x == 2, y, x]"},
+			&SameTest{"False", "foo[x == 2, y, x] === foo[x == 2., y, x]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"SameQ does not match patterns:"},
+			&SameTest{"False", "{1, 2, 3} === _List"},
+			&TestComment{"This functionality is reserved for MatchQ:"},
+			&SameTest{"True", "MatchQ[{1, 2, 3}, _List]"},
+		},
 		Tests: []TestInstruction{
 			&StringTest{"5", "tmp=5"},
 			&StringTest{"False", "a===b"},
-			&StringTest{"True", "a===a"},
 			&StringTest{"True", "tmp===5"},
 			&StringTest{"False", "tmp===5."},
 			&StringTest{"True", "1+1===2"},
@@ -280,8 +309,6 @@ func GetComparisonDefinitions() (defs []Definition) {
 			&StringTest{"False", "(x == y) === (y == x)"},
 			&StringTest{"True", "(x == y) === (x == y)"},
 
-			&SameTest{"True", "foo[x == 2, y, x] === foo[x == 2, y, x]"},
-			&SameTest{"False", "foo[x == 2, y, x] === foo[x == 2., y, x]"},
 			&SameTest{"False", "foo[x == 2, y, x] === foo[x == 2., y, y]"},
 			&SameTest{"False", "foo[x == 2, y, x] === bar[x == 2, y, x]"},
 
@@ -293,6 +320,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "MatchQ",
+		Usage: "`MatchQ[expr, form]` returns True if `expr` matches `form`, False otherwise.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -304,21 +332,37 @@ func GetComparisonDefinitions() (defs []Definition) {
 				return &Symbol{"False"}
 			}
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
+			&TestComment{"A `Blank[]` expression matches everything:"},
+			&SameTest{"True", "MatchQ[2*x, _]"},
+			&TestComment{"Although a more specific pattern would have matched as well:"},
 			&SameTest{"True", "MatchQ[2*x, c1_Integer*a_Symbol]"},
+			&TestComment{"Since `Times` is `Orderless`, this would work as well:"},
+			&SameTest{"True", "MatchQ[x*2, c1_Integer*a_Symbol]"},
+			&TestComment{"As would the `FullForm`:"},
+			&SameTest{"True", "MatchQ[Times[x, 2], c1_Integer*a_Symbol]"},
+
+			&TestComment{"Named patterns must match the same expression, or the match will fail:"},
+			&SameTest{"False", "MatchQ[a + b, x_Symbol + x_Symbol]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&SameTest{"True", "MatchQ[{2^a, a}, {2^x_Symbol, x_Symbol}]"},
+			&SameTest{"False", "MatchQ[{2^a, b}, {2^x_Symbol, x_Symbol}]"},
+			&TestComment{"`Blank` sequences allow for the matching of multiple objects. `BlankSequence` (__) matches one or more parts of the expression:"},
+			&SameTest{"True", "MatchQ[{a, b}, {a, __}]"},
+			&SameTest{"False", "MatchQ[{a}, {a, __}]"},
+			&TestComment{"`BlankNullSequence` (___) allows for zero or more matches:"},
+			&SameTest{"True", "MatchQ[{a}, {a, ___}]"},
+		},
+		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[2^x, base_Integer^pow_Symbol]"},
 			&SameTest{"True", "MatchQ[2+x, c1_Integer+a_Symbol]"},
 			&SameTest{"True", "MatchQ[a + b, x_Symbol + y_Symbol]"},
-			&SameTest{"False", "MatchQ[a + b, x_Symbol + x_Symbol]"},
 			&SameTest{"True", "MatchQ[{a,b}, {x_Symbol,y_Symbol}]"},
 			&SameTest{"False", "MatchQ[{a,b}, {x_Symbol,x_Symbol}]"},
-			&SameTest{"True", "MatchQ[{2^a, a}, {2^x_Symbol, x_Symbol}]"},
-			&SameTest{"False", "MatchQ[{2^a, b}, {2^x_Symbol, x_Symbol}]"},
 			// Test speed of OrderlessIsMatchQ
-			// Make the foo variable extra long to override the built in
-			// cancellation rule
-			&SameTest{"Null", "Plus[foooooooooooooooooo, -foooooooooooooooooo, rest___] := bar + rest"},
-			&SameTest{"bar + 1 + a + b + c + d + e + f + g", "Plus[foooooooooooooooooo,1,-foooooooooooooooooo,a,b,c,d,e,f,g]"},
+			&SameTest{"Null", "Plus[testa, testb, rest___] := bar + rest"},
+			&SameTest{"bar + 1 + a + b + c + d + e + f + g", "Plus[testa,1,testb,a,b,c,d,e,f,g]"},
 
 			&SameTest{"True", "MatchQ[foo[2*x, x], foo[matcha_Integer*matchx_, matchx_]]"},
 			&SameTest{"False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]"},

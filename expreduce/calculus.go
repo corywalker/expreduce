@@ -61,15 +61,19 @@ func GetCalculusDefinitions() (defs []Definition) {
 
 			{"Integrate[1/x_Symbol,x_Symbol]", "Log[Abs[x]]"},
 			{"Integrate[Log[x_Symbol],x_Symbol]", "-x + x Log[x]"},
+			{"Integrate[x_Symbol*Log[x_Symbol],x_Symbol]", "-((x^2)/4) + (1/2)*(x^2)*Log[x]"},
 
 			// Trig functions
 			{"Integrate[Sin[x_Symbol],x_Symbol]", "-Cos[x]"},
-			{"Integrate[Cos[x_Symbol],x_Symbol]", "-Sin[x]"},
+			{"Integrate[Cos[x_Symbol],x_Symbol]", "Sin[x]"},
 			{"Integrate[Tan[x_Symbol],x_Symbol]", "-Log[Cos[x]]"},
+
+			// Integrate by parts
+			//{"Integrate[u_*v_, x_Symbol]", "u*Integrate[v, x] - Integrate[D[u, x]*Integrate[v, x], x]"},
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"2 x + (3 x^(5/3))/5 + (3 x^2)/2", "Integrate[x^(2/3) + 3 x + 2, x]"},
-			//&SameTest{"-((3 x^2)/4) + 1/2 x^2 Log[x] - Sin[x]", "Integrate[Integrate[Sin[x] + Log[x], x], x]"},
+			&SameTest{"-((3 x^2)/4) + (1/2) (x^2) Log[x] - Sin[x]", "Integrate[Integrate[Sin[x] + Log[x], x], x]"},
 			//&SameTest{"Log[x] - 1/2 Log[1 + 2 x^2]", "Integrate[1/(2 x^3 + x), x]"},
 		},
 	})

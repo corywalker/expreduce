@@ -9,6 +9,7 @@ func GetPlusDefinitions() (defs []Definition) {
 		Rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
 			{"Plus[c1_Integer*a_, c2_Integer*a_, rest___]", "((c1+c2)*a + rest)"},
+			{"Plus[c1_Rational*a_, c2_Rational*a_, rest___]", "((c1+c2)*a + rest)"},
 			// For some reason, this messes up the Infinity - Infinity rule
 			{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
 			{"Plus[a_, a_, rest___]", "2*a + rest"},
