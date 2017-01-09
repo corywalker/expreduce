@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"github.com/op/go-logging"
 	"os"
+	"log"
 	"runtime/debug"
 	"sort"
 	"strings"
@@ -162,6 +163,18 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"time", GetTimeDefinitions()})
 	defs = append(defs, NamedDefSet{"times", GetTimesDefinitions()})
 	defs = append(defs, NamedDefSet{"pattern", GetPatternDefinitions()})
+
+	// Check for duplicate definitions
+	definedNames := make(map[string]bool)
+	for _, defSet := range defs {
+		for _, def := range defSet.Defs {
+			_, alreadyDefined := definedNames[def.Name]
+			if alreadyDefined {
+				log.Fatalf("Found duplicate definition: %v\n", def.Name)
+			}
+			definedNames[def.Name] = true
+		}
+	}
 	return
 }
 
