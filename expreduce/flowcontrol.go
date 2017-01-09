@@ -3,6 +3,7 @@ package expreduce
 func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "If",
+		Usage: "`If[cond, iftrue, iffalse]` returns `iftrue` if `cond` is True, and `iffalse` if `cond` is False.",
 		Attributes: []string{"HoldRest"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 4 {
@@ -20,6 +21,15 @@ func GetFlowControlDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 		},
+		SimpleExamples: []TestInstruction{
+			&StringTest{"9", "x=9"},
+			&StringTest{"18", "If[x+3==12, x*2, x+3]"},
+			&StringTest{"12", "If[x+3==11, x*2, x+3]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"Undefined conditions leave the statement unevaluated."},
+			&StringTest{"If[undefined, a, b]", "If[undefined, a, b]"},
+		},
 		Tests: []TestInstruction{
 			&StringTest{"True", "t=True"},
 			&StringTest{"True", "t"},
@@ -32,11 +42,6 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			&StringTest{"False", "If[t, False, True]"},
 			&StringTest{"True", "If[f, False, True]"},
 
-			// Test evaluation
-			&StringTest{"9", "x=9"},
-			&StringTest{"18", "If[x+3==12, x*2, x+3]"},
-			&StringTest{"12", "If[x+3==11, x*2, x+3]"},
-
 			// Test replacement
 			&SameTest{"itsfalse", "If[1 == 2, itstrue, itsfalse]"},
 			&SameTest{"itsfalse", "If[1 == 2, itstrue, itsfalse] /. (2 -> 1)"},
@@ -46,16 +51,17 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "While",
+		Usage: "`While[cond, body]` evaluates `cond`, and if it returns True, evaluates `body`. This happens repeatedly.",
 		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			isequal := this.Parts[1].IsEqual(&Symbol{"True"}, &es.CASLogger)
+			isequal := this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 			cont := isequal == "EQUAL_TRUE"
 			for cont {
-
-				isequal = this.Parts[1].IsEqual(&Symbol{"True"}, &es.CASLogger)
+				this.Parts[2].Eval(es)
+				isequal = this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 				cont = isequal == "EQUAL_TRUE"
 			}
 
@@ -69,12 +75,10 @@ func GetFlowControlDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
 		},
-	})
-	defs = append(defs, Definition{
-		Name:       "KroneckerDelta",
-		Attributes: []string{"NumericFunction", "Orderless", "ReadProtected"},
-		Rules: []Rule{
-			{"KroneckerDelta[x_Integer]", "If[x == 0, 1, 0]"},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"1", "a=1"},
+			&SameTest{"Null", "While[a != 5, a = a + 1]"},
+			&SameTest{"5", "a"},
 		},
 	})
 	return

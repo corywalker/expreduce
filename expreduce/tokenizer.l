@@ -115,6 +115,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 === return SAMESYM
 \/; return CONDITIONSYM
 == return EQUALSYM
+!= return UNEQUALSYM
 # return SLOTSYM
 \/\. return REPLACEALLSYM
 \/\/\. return REPLACEREPSYM

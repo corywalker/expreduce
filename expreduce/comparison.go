@@ -257,6 +257,45 @@ func GetComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name: "Unequal",
+		Usage: "`lhs != rhs` evaluates to True if inequality is known or False if equality is known.",
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " != ", true, "", "", form)
+		},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
+			if isequal == "EQUAL_UNK" {
+				return this
+			} else if isequal == "EQUAL_TRUE" {
+				return &Symbol{"False"}
+			} else if isequal == "EQUAL_FALSE" {
+				return &Symbol{"True"}
+			}
+
+			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
+		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Expressions known to be unequal will evaluate to True:"},
+			&StringTest{"True", "9 != 8"},
+			&TestComment{"Sometimes expressions may or may not be unequal, or Expreduce does not know how to test for inequality. In these cases, the statement will remain unevaluated:"},
+			&StringTest{"((9 * x)) != ((10 * x))", "9*x != x*10"},
+
+			&TestComment{"Unequal considers Integers and Reals that are close enough to be equal:"},
+			&StringTest{"5", "tmp=5"},
+			&StringTest{"False", "tmp != 5"},
+			&StringTest{"False", "tmp != 5."},
+			&StringTest{"False", "tmp != 5.00000"},
+
+			&TestComment{"Unequal can test for Rational inequality:"},
+			&StringTest{"True", "4/3 != 3/2"},
+			&StringTest{"False", "4/3 != 8/6"},
+		},
+	})
+	defs = append(defs, Definition{
 		Name: "SameQ",
 		Usage: "`lhs === rhs` evaluates to True if `lhs` and `rhs` are identical after evaluation, False otherwise.",
 		toString: func(this *Expression, form string) (bool, string) {
