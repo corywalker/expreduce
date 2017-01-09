@@ -3,7 +3,6 @@ package expreduce
 
 import (
     "log"
-    "strconv"
     "math/big"
     "strings"
 )
@@ -44,7 +43,7 @@ func (y Calclexer) Error(e string) {
 }
 
 func (y *Calclexer) Lex(lval *CalcSymType) int {
-    var err error
+    /*var err error*/
     c := y.current
     if y.empty {
         c, y.empty = y.getc(), false
@@ -71,23 +70,23 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 [ \t\r]+
 
 {D}
-    var tmpi int64
     var base int = 10
-    tmpi, err = strconv.ParseInt(string(y.buf), base, 64)
-    if err != nil {
-        log.Fatal(err)
+    tmpi := big.NewInt(0)
+    _, ok := tmpi.SetString(string(y.buf), base)
+    if !ok {
+        log.Fatal("Failed in integer parsing.")
     }
-    lval.val = &Integer{big.NewInt(tmpi)}
+    lval.val = &Integer{tmpi}
 
     return INTEGER
 
 {F}
-    var tmpf float64
-    tmpf, err = strconv.ParseFloat(string(y.buf), 64)
-    if err != nil {
-        log.Fatal(err)
+    tmpf := big.NewFloat(0)
+    _, ok := tmpf.SetString(string(y.buf))
+    if !ok {
+        log.Fatal("Failed in float parsing.")
     }
-    lval.val = &Flt{big.NewFloat(tmpf)}
+    lval.val = &Flt{tmpf}
 
     return FLOAT
 
