@@ -281,9 +281,14 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Table",
+		Usage: "`Table[expr, n]` returns a list with `n` copies of `expr`.\n\n" +
+		"`Table[expr, {sym, n}]` returns a list with `expr` evaluated with `sym` = 1 to `n`.\n\n" +
+		"`Table[expr, {sym, m, n}]` returns a list with `expr` evaluated with `sym` = `m` to `n`.",
 		Attributes: []string{"HoldAll"},
 		Rules: []Rule{
-			{"Table[a_, b_Integer]", "Table[a, {i, 1, b}]"},
+			// Use a UniqueDefined` prefix, or else Table[i, 5] will return
+			// incorrect results.
+			{"Table[a_, b_Integer]", "Table[a, {UniqueDefined`i, 1, b}]"},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) >= 3 {
@@ -321,6 +326,9 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Sum",
+		Usage: "`Sum[expr, n]` returns the sum of `n` copies of `expr`.\n\n" +
+		"`Sum[expr, {sym, n}]` returns the sum of `expr` evaluated with `sym` = 1 to `n`.\n\n" +
+		"`Sum[expr, {sym, m, n}]` returns the sum of `expr` evaluated with `sym` = `m` to `n`.",
 		Attributes: []string{"HoldAll", "ReadProtected"},
 		Rules: []Rule{
 			{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
@@ -344,6 +352,9 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Product",
+		Usage: "`Product[expr, n]` returns the product of `n` copies of `expr`.\n\n" +
+		"`Product[expr, {sym, n}]` returns the product of `expr` evaluated with `sym` = 1 to `n`.\n\n" +
+		"`Product[expr, {sym, m, n}]` returns the product of `expr` evaluated with `sym` = `m` to `n`.",
 		Attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
@@ -357,13 +368,14 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "MemberQ",
+		Usage: "`MemberQ[expr, pat]` returns True if any of the elements in `expr` match `pat`, otherwise returns False.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			list, isList := HeadAssertion(this.Parts[1], "List")
-			if isList {
-				if MemberQ(list.Parts, this.Parts[2], &es.CASLogger) {
+			expr, isExpr := this.Parts[1].(*Expression)
+			if isExpr {
+				if MemberQ(expr.Parts[1:], this.Parts[2], &es.CASLogger) {
 					return &Symbol{"True"}
 				}
 			}
@@ -395,22 +407,26 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"True", "MemberQ[{a, b}, __Symbol]"},
 			&SameTest{"True", "MemberQ[{a, b, 1}, __Symbol]"},
 			&SameTest{"True", "MemberQ[{a, b, 1}, __Integer]"},
+			&TestComment{"`expr` need not be a List:"},
+			&SameTest{"True", "MemberQ[bar[a, b, c], a]"},
+			&SameTest{"False", "MemberQ[bar[a, b, c], bar]"},
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Map",
+		Usage: "`Map[f, expr]` returns a new expression with the same head as `expr`, but with `f` mapped to each of the arguments.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
 
-			list, isList := HeadAssertion(this.Parts[2], "List")
-			if isList {
-				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-				for i := 1; i < len(list.Parts); i++ {
+			expr, isExpr := this.Parts[2].(*Expression)
+			if isExpr {
+				toReturn := &Expression{[]Ex{expr.Parts[0]}}
+				for i := 1; i < len(expr.Parts); i++ {
 					toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
 						this.Parts[1].DeepCopy(),
-						list.Parts[i].DeepCopy(),
+						expr.Parts[i].DeepCopy(),
 					}})
 				}
 				return toReturn
@@ -432,6 +448,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Array",
+		Usage: "`Array[f, n]` creates a list of `f[i]`, with `i` = 1 to `n`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -461,18 +478,19 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Cases",
+		Usage: "`Cases[expr, pat]` returns a new `List` of all elements in `expr` that match `pat`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
 
-			list, isList := HeadAssertion(this.Parts[1], "List")
-			if isList {
+			expr, isExpr := this.Parts[1].(*Expression)
+			if isExpr {
 				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
 
-				for i := 1; i < len(list.Parts); i++ {
-					if matchq, _ := IsMatchQ(list.Parts[i], this.Parts[2], EmptyPD(), &es.CASLogger); matchq {
-						toReturn.Parts = append(toReturn.Parts, list.Parts[i])
+				for i := 1; i < len(expr.Parts); i++ {
+					if matchq, _ := IsMatchQ(expr.Parts[i], this.Parts[2], EmptyPD(), &es.CASLogger); matchq {
+						toReturn.Parts = append(toReturn.Parts, expr.Parts[i])
 					}
 				}
 
@@ -484,6 +502,10 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"{5, 2, 3.5, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, _]"},
 			&SameTest{"{5,2,4}", "Cases[{5, 2, 3.5, x, y, 4}, _Integer]"},
 			&SameTest{"{3.5}", "Cases[{5, 2, 3.5, x, y, 4}, _Real]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"`expr` need not be a list:"},
+			&SameTest{"{a}", "Cases[bar[a, b, c], a]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -536,6 +558,8 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Range",
+		Usage: "`Range[n]` returns a `List` of integers from 1 to `n`.\n\n" +
+		"`Range[m, n]` returns a `List` of integers from `m` to `n`.",
 		Attributes: []string{"Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// I should probably refactor the IterSpec system so that it does not
