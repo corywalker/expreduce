@@ -103,6 +103,7 @@ func ExOrder(a Ex, b Ex) int64 {
 func GetOrderDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Order",
+		Usage: "`Order[e1, e2]` returns 1 if `e1` should come before `e2` in canonical ordering, -1 if it should come after, and 0 if the two expressions are equal.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -110,6 +111,28 @@ func GetOrderDefinitions() (defs []Definition) {
 
 			toreturn := ExOrder(this.Parts[1], this.Parts[2])
 			return &Integer{big.NewInt(toreturn)}
+		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Find the relative order of symbols:"},
+			&SameTest{"1", "Order[a, b]"},
+			&SameTest{"-1", "Order[b, a]"},
+			&SameTest{"1", "Order[a, aa]"},
+			&TestComment{"Find the relative order of numbers:"},
+			&SameTest{"-1", "Order[2, 1.]"},
+			&SameTest{"1", "Order[1, 2]"},
+			&SameTest{"0", "Order[1, 1]"},
+			&TestComment{"Find the relative order of heterogenous types:"},
+			&SameTest{"-1", "Order[ab, 1]"},
+			&SameTest{"1", "Order[1, ab]"},
+			&SameTest{"-1", "Order[y[a], x]"},
+			&TestComment{"Find the relative order of rationals:"},
+			&SameTest{"1", "Order[Rational[-5, 3], Rational[-4, 6]]"},
+			&SameTest{"-1", "Order[Rational[4, 6], .6]"},
+			&SameTest{"1", "Order[.6, Rational[4, 6]]"},
+			&SameTest{"1", "Order[Rational[4, 6], .7]"},
+			&TestComment{"Find the relative order of expressions:"},
+			&SameTest{"0", "Order[bar[x, y], bar[x, y]]"},
+			&SameTest{"1", "Order[fizz[bar[x, y]], fizz[bar[x, y, a]]]"},
 		},
 		Tests: []TestInstruction{
 			// Symbol ordering
