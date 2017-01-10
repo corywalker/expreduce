@@ -84,17 +84,29 @@ func GetTimesDefinitions() (defs []Definition) {
 				}
 			}
 
-			// If there is a zero in the expression, return zero
+			// If there is a zero in the expression, return zero, except under
+			// special circumstances.
+			containsInfinity := MemberQ(multiplicands, &Expression{[]Ex{
+				&Symbol{"Alternatives"},
+				&Symbol{"Infinity"},
+				&Symbol{"ComplexInfinity"},
+			}}, &es.CASLogger)
 			for _, e := range multiplicands {
 				float, isFlt := e.(*Flt)
 				if isFlt {
 					if float.Val.Cmp(big.NewFloat(0)) == 0 {
+						if containsInfinity {
+							return &Symbol{"Indeterminate"}
+						}
 						return &Flt{big.NewFloat(0)}
 					}
 				}
 				integer, isInteger := e.(*Integer)
 				if isInteger {
 					if integer.Val.Cmp(big.NewInt(0)) == 0 {
+						if containsInfinity {
+							return &Symbol{"Indeterminate"}
+						}
 						return &Integer{big.NewInt(0)}
 					}
 				}
@@ -336,6 +348,9 @@ func GetTimesDefinitions() (defs []Definition) {
 			&SameTest{"1", "Factorial[-0]"},
 			&SameTest{"ComplexInfinity", "Factorial[-10]"},
 			&SameTest{"120", "Factorial[5]"},
+
+			&SameTest{"Indeterminate", "0 * Infinity"},
+			&SameTest{"Indeterminate", "0 * ComplexInfinity"},
 		},
 	})
 	return

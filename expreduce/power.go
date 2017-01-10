@@ -198,6 +198,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"(m^2)^2.", "(m^2)^2."},
 			&SameTest{"(m^2.)^2.", "(m^2.)^2."},
 			&SameTest{"m^4.", "(m^2.)^2"},
+
+			&SameTest{"ComplexInfinity", "0^(-1)"},
 		},
 	})
 	defs = append(defs, Definition{

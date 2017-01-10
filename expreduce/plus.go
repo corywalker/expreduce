@@ -5,6 +5,7 @@ import "math/big"
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Plus",
+		Usage: "`(e1 + e2 + ...)` computes the sum of all expressions in the function.",
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
@@ -156,6 +157,14 @@ func GetPlusDefinitions() (defs []Definition) {
 			this.Parts = append(this.Parts, addends...)
 			return this
 		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2", "1 + 1"},
+			&TestComment{"If Reals are present, other Integers are demoted to Reals:"},
+			&SameTest{"0.", "(5.2 - .2) - 5"},
+			&TestComment{"Plus automatically combines like terms:"},
+			&SameTest{"a+6*b^2", "a + b^2 + 5*b^2"},
+			&SameTest{"((5 * c^a) + (3 * d))", "(a+b)-(a+b)+c-c+2*c^a+2*d+5*d+d-5*d+3*c^a"},
+		},
 		Tests: []TestInstruction{
 			// Test automatic expansion
 			&StringTest{"(a + b)", "1*(a + b)"},
@@ -235,6 +244,7 @@ func GetPlusDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Infinity",
+		Usage: "`Infinity` represents the mathematical concept of infinity.",
 		Attributes: []string{"ReadProtected"},
 		Rules: []Rule{
 			{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
@@ -243,7 +253,7 @@ func GetPlusDefinitions() (defs []Definition) {
 			{"Plus[-Infinity, _Real, rest___]", "-Infinity + rest"},
 			{"Plus[Infinity, -Infinity, rest___]", "Indeterminate + rest"},
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
 			&SameTest{"Infinity", "Infinity - 1"},
 			&SameTest{"Infinity", "Infinity - 990999999"},
 			&SameTest{"Infinity", "Infinity - 990999999."},
@@ -259,9 +269,22 @@ func GetPlusDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ComplexInfinity",
+		Usage: "`ComplexInfinity` represents an an infinite quantity that extends in an unknown direction in the complex plane.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"ComplexInfinity", "0^(-1)"},
+			&SameTest{"ComplexInfinity", "Factorial[-1]"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name: "Indeterminate",
+		Usage: "`Indeterminate` represents an indeterminate form.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"Indeterminate", "0/0"},
+			&SameTest{"Indeterminate", "Infinity - Infinity"},
+			&SameTest{"Indeterminate", "0 * Infinity"},
+			&SameTest{"Indeterminate", "0 * ComplexInfinity"},
+			&SameTest{"Indeterminate", "0^0"},
+		},
 	})
 	return
 }
