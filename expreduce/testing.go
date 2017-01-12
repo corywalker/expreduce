@@ -37,6 +37,13 @@ func (this *StringTest) Run(t *testing.T, es *EvalState) {
 	assert.Equal(t, this.Out, EasyRun(this.In, es))
 }
 
+type ExampleOnlyInstruction struct {
+	Out string
+	In  string
+}
+
+func (this *ExampleOnlyInstruction) Run(t *testing.T, es *EvalState) {}
+
 type ResetState struct{}
 
 func (this *ResetState) Run(t *testing.T, es *EvalState) {

@@ -123,6 +123,19 @@ func GetPowerDefinitions() (defs []Definition) {
 
 			return this
 		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Exponents of integers are computed exactly:"},
+			&StringTest{"-1/125", "(-5)^-3"},
+			&TestComment{"Floating point exponents are handled with floating point precision:"},
+			&StringTest{"1.99506e+3010", ".5^-10000."},
+			&TestComment{"Automatically apply some basic simplification rules:"},
+			&SameTest{"m^4.", "(m^2.)^2"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"Expreduce handles problematic exponents accordingly:"},
+			&StringTest{"Indeterminate", "0^0"},
+			&SameTest{"ComplexInfinity", "0^(-1)"},
+		},
 		Tests: []TestInstruction{
 			// Test raising expressions to the first power
 			&StringTest{"(1 + x)", "(x+1)^1"},
@@ -204,6 +217,15 @@ func GetPowerDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "PowerExpand",
+		// This function is not implemented to a satisfiable extent. Do not
+		// document it yet.
+		OmitDocumentation: true,
+		SimpleExamples: []TestInstruction{
+			&TestComment{"`PowerExpand` can expand nested log expressions:"},
+			// This test currently fails, probably due to Orderless pattern
+			// matching issues.
+			//&SameTest{"Log[a] + e (Log[b] + d Log[c])", "PowerExpand[Log[a (b c^d)^e]]"},
+		},
 		Rules: []Rule{
 			{"PowerExpand[exp_]", "exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
 		},

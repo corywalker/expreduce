@@ -82,6 +82,8 @@ type Definition struct {
 	// Currently used for SetDelayed, since other definitions depend on
 	// SetDelayed, we define it first.
 	Bootstrap bool
+	OmitDocumentation bool
+	Details string
 
 	// Regular rules to define. This should never include a map, as maps have
 	// indeterminate iteration.
