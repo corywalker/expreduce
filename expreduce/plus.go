@@ -272,6 +272,8 @@ func GetPlusDefinitions() (defs []Definition) {
 		Usage: "`ComplexInfinity` represents an an infinite quantity that extends in an unknown direction in the complex plane.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"ComplexInfinity", "0^(-1)"},
+			&SameTest{"ComplexInfinity", "a/0"},
+			&SameTest{"ComplexInfinity", "ComplexInfinity * foo[x]"},
 			&SameTest{"ComplexInfinity", "Factorial[-1]"},
 		},
 	})

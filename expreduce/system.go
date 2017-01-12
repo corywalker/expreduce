@@ -147,7 +147,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Head",
-		Usage: "Head[expr] returns the head of the expression.",
+		Usage: "`Head[expr]` returns the head of the expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

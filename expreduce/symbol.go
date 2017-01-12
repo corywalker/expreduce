@@ -377,5 +377,27 @@ func GetSymbolDefinitions() (defs []Definition) {
 			&StringTest{"7", "c"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "AtomQ",
+		Usage: "`AtomQ[expr]` returns True if `expr` is an atomic type, and False if `expr` is a full expression.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			_, IsExpr := this.Parts[1].(*Expression)
+			if IsExpr {
+				return &Symbol{"False"}
+			}
+			return &Symbol{"True"}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"True", "AtomQ[\"hello\"]"},
+			&SameTest{"True", "AtomQ[5/3]"},
+			&SameTest{"True", "AtomQ[hello]"},
+			&SameTest{"False", "AtomQ[a/b]"},
+			&SameTest{"False", "AtomQ[bar[x]]"},
+		},
+	})
 	return
 }
