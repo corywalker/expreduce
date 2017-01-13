@@ -21,11 +21,13 @@ func compareStrings(a string, b string) int64 {
 
 func ExOrder(a Ex, b Ex) int64 {
 	// Support Flt, Integer, Rational, Expression, Symbol
-	// Merge Integer and Rational into Flt
-	// TODO: possible precision, round off issue here.
 
 	aAsSymbol, aIsSymbol := a.(*Symbol)
 	bAsSymbol, bIsSymbol := b.(*Symbol)
+	aAsString, aIsString := a.(*String)
+	bAsString, bIsString := b.(*String)
+	aAsExp, aIsExp := a.(*Expression)
+	bAsExp, bIsExp := b.(*Expression)
 
 	aAsFlt, aIsFlt := a.(*Flt)
 	bAsFlt, bIsFlt := b.(*Flt)
@@ -33,6 +35,10 @@ func ExOrder(a Ex, b Ex) int64 {
 	bAsInteger, bIsInteger := b.(*Integer)
 	aAsRational, aIsRational := a.(*Rational)
 	bAsRational, bIsRational := b.(*Rational)
+
+	// Handle number comparisons
+	// Merge Integer and Rational into Flt
+	// TODO: possible precision, round off issue here.
 	if aIsInteger {
 		aAsFlt, aIsFlt = IntegerToFlt(aAsInteger)
 	}
@@ -57,18 +63,7 @@ func ExOrder(a Ex, b Ex) int64 {
 		return initCmp
 	}
 
-	if aIsFlt && bIsSymbol {
-		return 1
-	} else if aIsSymbol && bIsFlt {
-		return -1
-	}
-
-	if aIsSymbol && bIsSymbol {
-		return compareStrings(aAsSymbol.Name, bAsSymbol.Name)
-	}
-
-	aAsExp, aIsExp := a.(*Expression)
-	bAsExp, bIsExp := b.(*Expression)
+	// Handle expression comparisons
 	if aIsExp && bIsExp {
 		for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
 			o := ExOrder(aAsExp.Parts[i], bAsExp.Parts[i])
@@ -85,18 +80,56 @@ func ExOrder(a Ex, b Ex) int64 {
 		}
 	}
 
+	// Symbol and string comparisons work in a similar way:
+	if aIsSymbol && bIsSymbol {
+		return compareStrings(aAsSymbol.Name, bAsSymbol.Name)
+	}
+	if aIsString && bIsString {
+		return compareStrings(aAsString.Val, bAsString.Val)
+	}
+
+	// The remaining type combinations simply return -1 or 1:
+	// Precedence order: numbers (flt), strings, symbols, expressions
+	if aIsFlt && bIsString {
+		return 1
+	}
+	if aIsFlt && bIsSymbol {
+		return 1
+	}
 	if aIsFlt && bIsExp {
 		return 1
-	} else if aIsExp && bIsFlt {
+	}
+
+	if aIsString && bIsFlt {
+		return -1
+	}
+	if aIsString && bIsSymbol {
+		return 1
+	}
+	if aIsString && bIsExp {
+		return 1
+	}
+
+	if aIsSymbol && bIsFlt {
+		return -1
+	}
+	if aIsSymbol && bIsString {
 		return -1
 	}
 	if aIsSymbol && bIsExp {
 		return 1
-	} else if aIsExp && bIsSymbol {
+	}
+
+	if aIsExp && bIsFlt {
+		return -1
+	}
+	if aIsExp && bIsString {
+		return -1
+	}
+	if aIsExp && bIsSymbol {
 		return -1
 	}
 
-	// Do not support strings. Any comparison with these will go here.
 	return -2
 }
 
@@ -121,6 +154,9 @@ func GetOrderDefinitions() (defs []Definition) {
 			&SameTest{"-1", "Order[2, 1.]"},
 			&SameTest{"1", "Order[1, 2]"},
 			&SameTest{"0", "Order[1, 1]"},
+			&TestComment{"Find the relative order of strings:"},
+			&SameTest{"1", "Order[\"a\", \"b\"]"},
+			&SameTest{"-1", "Order[\"b\", \"a\"]"},
 			&TestComment{"Find the relative order of heterogenous types:"},
 			&SameTest{"-1", "Order[ab, 1]"},
 			&SameTest{"1", "Order[1, ab]"},
@@ -206,6 +242,17 @@ func GetOrderDefinitions() (defs []Definition) {
 			&SameTest{"-1", "Order[1, Rational[4, 6]]"},
 			&SameTest{"1", "Order[Rational[4, 6], a]"},
 			&SameTest{"-1", "Order[a, Rational[4, 6]]"},
+
+			// Test String ordering
+			&SameTest{"-1", "Order[\"a\", 5]"},
+			&SameTest{"-1", "Order[\"a\", 5.5]"},
+			&SameTest{"-1", "Order[\"a\", 5/2]"},
+			&SameTest{"1", "Order[\"a\", x]"},
+			&SameTest{"1", "Order[\"a\", x^2]"},
+			&SameTest{"1", "Order[\"a\", x^2]"},
+			&SameTest{"-1", "Order[\"b\", \"a\"]"},
+			&SameTest{"1", "Order[\"a\", \"b\"]"},
+			&SameTest{"1", "Order[\"a\", \"aa\"]"},
 		},
 	})
 	return

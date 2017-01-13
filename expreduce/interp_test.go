@@ -2,7 +2,6 @@ package expreduce
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
@@ -11,21 +10,6 @@ func TestInterp(t *testing.T) {
 
 	es := NewEvalState()
 
-	assert.Equal(t, "3", Interp("  1  + 2 ").Eval(es).String())
-	assert.Equal(t, "3", EasyRun("  1  + 2 ", es))
-	assert.Equal(t, "4", EasyRun("1+2-3+4", es))
-	// Test that multiplication takes precedence to addition
-	assert.Equal(t, "8", EasyRun("1+2*3+1", es))
-	assert.Equal(t, "6", EasyRun("1+2*3-1", es))
-	assert.Equal(t, "-6", EasyRun("1-2*3-1", es))
-
-	// Test function syntax parsing
-	assert.Equal(t, "myfunc[]", Interp("myfunc[  ]").String())
-	assert.Equal(t, "my2func[]", Interp("my2func[  ]").String())
-
-	// Test proper behavior of unary minus sign
-	assert.Equal(t, "-15", EasyRun("5*-3", es))
-	assert.Equal(t, "15", EasyRun("-5*-3", es))
 	CasAssertSame(t, es, "2*x", "2x")
 	CasAssertSame(t, es, "2*x+5*y", "2x+5y")
 	CasAssertSame(t, es, "2*x+5*y", "2 x+5 y")
