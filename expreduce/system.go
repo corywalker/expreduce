@@ -78,7 +78,10 @@ func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start
 
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "SetLogging",
+		Name: "ExpreduceSetLogging",
+		Usage: "`ExpreduceSetLogging[bool]` sets the logging state to `bool`.",
+		Details: "Logging output prints to the console. There can be a lot of logging output, especially for more complicated pattern matches.",
+		ExpreduceSpecific: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -100,6 +103,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Definition",
 		Attributes: []string{"HoldAll"},
+		OmitDocumentation: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -111,6 +115,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Timing",
+		Usage: "`Timing[expr]` returns a `List` with the first element being the time in seconds for the evaluation of `expr`, and the second element being the result.",
 		Attributes: []string{"HoldAll", "SequenceHold"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -122,9 +127,13 @@ func GetSystemDefinitions() (defs []Definition) {
 			elapsed := time.Since(start).Seconds()
 			return &Expression{[]Ex{&Symbol{"List"}, &Flt{big.NewFloat(elapsed)}, res}}
 		},
+		SimpleExamples: []TestInstruction{
+			&ExampleOnlyInstruction{"{0.00167509, 5000000050000000}", "Timing[Sum[a, {a, 100000000}]]"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name: "Print",
+		Usage: "`Print[expr]` prints the string representation of `expr` to the console and returns `Null`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -136,6 +145,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "CompoundExpression",
+		Usage: "`CompoundExpression[e1, e2, ...]` evaluates each expression in order and returns the result of the last one.",
 		Attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			var toReturn Ex
@@ -194,11 +204,16 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "MessageName",
+		Usage: "`sym::msg` references a particular message for `sym`.",
 		Attributes: []string{"HoldFirst", "ReadProtected"},
 	})
 	defs = append(defs, Definition{
 		Name:     "Infix",
+		Usage: "`Infix[expr, sep]` represents `expr` in infix form with separator `sep` when converted to a string.",
 		toString: (*Expression).ToStringInfix,
+		SimpleExamples: []TestInstruction{
+			&SameTest{"\"(bar|fuzz|zip)\"", "Infix[foo[bar, fuzz, zip], \"|\"] // ToString"},
+		},
 	})
 	return
 }

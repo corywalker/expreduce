@@ -83,6 +83,7 @@ type Definition struct {
 	// SetDelayed, we define it first.
 	Bootstrap bool
 	OmitDocumentation bool
+	ExpreduceSpecific bool
 	Details string
 
 	// Regular rules to define. This should never include a map, as maps have

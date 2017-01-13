@@ -333,6 +333,7 @@ func GetListDefinitions() (defs []Definition) {
 		Rules: []Rule{
 			{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
 			{"Sum[i_Symbol, {i_Symbol, 1, n_Integer}]", "1/2*n*(1 + n)"},
+			{"Sum[i_Symbol, {i_Symbol, n_Integer}]", "1/2*n*(1 + n)"},
 			{"Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]", "1/2*n*(1 + n)"},
 			{"Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]", "1/2*n*(1 + n)"},
 		},
