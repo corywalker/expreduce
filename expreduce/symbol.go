@@ -211,6 +211,7 @@ func (this *Attributes) toStrings() []string {
 func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Set",
+		Usage: "`lhs = rhs` sets `lhs` to stand for `rhs`.",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -239,7 +240,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
 			&StringTest{"3", "x=1+2"},
 			&StringTest{"3", "x"},
 			&StringTest{"4", "x+1"},
@@ -257,9 +258,16 @@ func GetSymbolDefinitions() (defs []Definition) {
 			&StringTest{"2", "a=2"},
 			&StringTest{"16", "y"},
 		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:"},
+			&SameTest{"{HoldFirst, Protected, SequenceHold}", "Attributes[Set]"},
+			&TestComment{"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:"},
+			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name:       "SetDelayed",
+		Usage: "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
 		Attributes: []string{"HoldAll", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -288,6 +296,23 @@ func GetSymbolDefinitions() (defs []Definition) {
 			}
 
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
+		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"`SetDelayed` can be used to define functions:"},
+			&SameTest{"Null", "testa[x_] := x*2"},
+			&SameTest{"Null", "testa[x_Integer] := x*3"},
+			&SameTest{"Null", "testa[x_Real] := x*4"},
+			&TestComment{"The more \"specific\" definitions match first:"},
+			&SameTest{"8.", "testa[2.]"},
+			&SameTest{"6", "testa[2]"},
+			&TestComment{"There is no specific match for `testa[k]`, so the general case matches:"},
+			&SameTest{"2 * k", "testa[k]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:"},
+			&SameTest{"{HoldFirst, Protected, SequenceHold}", "Attributes[Set]"},
+			&TestComment{"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:"},
+			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
 		},
 		Tests: []TestInstruction{
 			// Test function definitions
@@ -326,6 +351,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Attributes",
+		Usage: "`Attributes[sym]` returns a `List` of attributes for `sym`.",
 		Attributes: []string{"HoldAll", "Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -346,14 +372,22 @@ func GetSymbolDefinitions() (defs []Definition) {
 			}
 			return toReturn
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
 			&SameTest{"{Protected, ReadProtected}", "Attributes[Infinity]"},
 			&SameTest{"{HoldAll, Listable, Protected}", "Attributes[Attributes]"},
 			&SameTest{"{Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}", "Attributes[Plus]"},
+			&TestComment{"The default set of attributes is the empty list:"},
+			&SameTest{"{}", "Attributes[undefinedSym]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"Only symbols can have attributes:"},
+			&SameTest{"Attributes[2]", "Attributes[2]"},
+			&SameTest{"Attributes[a^2]", "Attributes[a^2]"},
 		},
 	})
 	defs = append(defs, Definition{
 		Name:       "Clear",
+		Usage: "`Clear[sym1, sym2, ...]` clears the symbol definitions from the evaluation context.",
 		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			for _, arg := range this.Parts[1:] {
@@ -365,7 +399,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 			}
 			return &Symbol{"Null"}
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
 			&SameTest{"a", "a"},
 			&SameTest{"5", "a = 5"},
 			&SameTest{"6", "b = 6"},
