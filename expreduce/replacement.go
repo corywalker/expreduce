@@ -70,12 +70,14 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 		cl.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
 		return asExpression.ReplaceAll(r, cl)
 	}
-	return &Symbol{"ReplaceAllFailed"}
+	return &Symbol{"$ReplaceAllFailed"}
 }
 
 func GetReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceAll",
+		Usage: "`expr /. rule` replaces all occurences of the LHS of `rule` with the RHS of `rule` in `expr`.\n\n" +
+		"`expr /. {r1, r2, ...}` performes the same operation as `expr /. rule`, but evaluating each `r_n` in sequence.",
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -114,9 +116,24 @@ func GetReplacementDefinitions() (defs []Definition) {
 
 			return this
 		},
-		Tests: []TestInstruction{
-			&SameTest{"2^(y+1)", "2^(x^2+1) /. x^2->y"},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2^(y+1) + y", "2^(x^2+1) + x^2 /. x^2->y"},
+			&TestComment{"If no match is found, `ReplaceAll` evaluates to an unchanged `expr`:"},
+			&SameTest{"2^(x^2+1) + x^2", "2^(x^2+1) + x^2 /. z^2->y"},
+			&TestComment{"`ReplaceAll` works within Orderless expressions as well (such as `Plus`):"},
 			&SameTest{"b + c + d", "a + b + c + c^2 /. c^2 + a -> d"},
+			&TestComment{"`ReplaceAll` can use named patterns:"},
+			&SameTest{"a^b + c + d", "a + b + c + d/. x_Symbol + y_Symbol -> x^y"},
+			&SameTest{"a + 99 * b + 99 * c", "a + 2*b + 5*c /. (c1_Integer*a_Symbol) -> 99*a"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"`ReplaceAll` can be used to replace sequences of expressions:"},
+			&SameTest{"foo[b, c, d]", "a + b + c + d /. a + amatch___ -> foo[amatch]"},
+			&TestComment{"The `Head` of functions can be replaced just as the subexpressions:"},
+			&SameTest{"11", "(x + 2)[5, 6] /. (2 + x) -> Plus"},
+			&SameTest{"2[2, 2, 2, 2]", "a*b*c*d /. _Symbol -> 2"},
+		},
+		Tests: []TestInstruction{
 			&SameTest{"a * b * c", "a*b*c /. c + a -> d"},
 			&SameTest{"b * d", "a*b*c /. c*a -> d"},
 			&SameTest{"2 * a + b + c + c^2", "2 * a + b + c + c^2 /. c^2 + a -> d"},
@@ -239,6 +256,8 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReplaceRepeated",
+		Usage: "`expr //. rule` replaces all occurences of the LHS of `rule` with the RHS of `rule` in `expr` repeatedly until the expression stabilizes.\n\n" +
+		"`expr //. {r1, r2, ...}` performes the same operation as `expr //. rule`, but evaluating each `r_n` in sequence.",
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -269,9 +288,15 @@ func GetReplacementDefinitions() (defs []Definition) {
 			}
 			return oldEx
 		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"`ReplaceRepeated` can be used to implement logarithm expansion:"},
+			&SameTest{"Null", "logRules := {Log[x_ y_] :> Log[x] + Log[y], Log[x_^k_] :> k Log[x]}"},
+			&SameTest{"b Log[a] + (c^d) Log[b]", "Log[a^b*b^(c^d)] //. logRules"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name:       "Rule",
+		Usage: "`lhs -> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`.",
 		Attributes: []string{"SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -279,15 +304,28 @@ func GetReplacementDefinitions() (defs []Definition) {
 			}
 			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", form)
 		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2^(y+1) + y", "2^(x^2+1) + x^2 /. x^2 -> y"},
+			&TestComment{"To demonstrate the difference between `Rule` and `RuleDelayed`:"},
+			&SameTest{"True", "Equal @@ ({1, 1} /. 1 -> RandomReal[])"},
+			&SameTest{"False", "Equal @@ ({1, 1} /. 1 :> RandomReal[])"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name:       "RuleDelayed",
+		Usage: "`lhs :> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`, evaluating `rhs` only after replacement.",
 		Attributes: []string{"HoldRest", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
 			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", form)
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2^(y+1) + y", "2^(x^2+1) + x^2 /. x^2 :> y"},
+			&TestComment{"To demonstrate the difference between `Rule` and `RuleDelayed`:"},
+			&SameTest{"True", "Equal @@ ({1, 1} /. 1 -> RandomReal[])"},
+			&SameTest{"False", "Equal @@ ({1, 1} /. 1 :> RandomReal[])"},
 		},
 	})
 	return
