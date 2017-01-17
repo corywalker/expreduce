@@ -27,6 +27,7 @@ import (
 
 /*Adding some of the tokens above to this precedence list can decrease the*/
 /*number of conflicts*/
+/*What about FLOAT, INTEGER, STRING, NAME, PATTERN?*/
 %left POSTFIXSYM APPLYSYM MAPSYM
 %left SETSYM SETDELAYEDSYM
 %left REPLACEREPSYM REPLACEALLSYM
@@ -37,6 +38,7 @@ import (
 %left MULTSYM DIVSYM
 %left EXPSYM
 %left STRINGJOINSYM
+%left PATTESTSYM
 %left MESSAGENAMESYM /* This might as well be part of the symbol. Use a very
 high precedence. */
 

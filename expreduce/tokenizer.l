@@ -95,38 +95,38 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
     lval.val = &String{tmps[1:len(tmps)-1]}
     return STRING
 
-\( return LPARSYM
-\) return RPARSYM
-, return COMMASYM
-; return SEMISYM
-\[ return LBRACKETSYM
-\] return RBRACKETSYM
-\{ return LCURLYSYM
-\} return RCURLYSYM
--> return RULESYM
-:> return RULEDELAYEDSYM
-\+ return PLUSSYM
-\- return MINUSSYM
-\* return MULTSYM
-\/ return DIVSYM
-\^  return EXPSYM
-= return SETSYM
-:= return SETDELAYEDSYM
-=== return SAMESYM
-\/; return CONDITIONSYM
-== return EQUALSYM
-!= return UNEQUALSYM
-# return SLOTSYM
-\/\. return REPLACEALLSYM
-\/\/\. return REPLACEREPSYM
-\/\/ return POSTFIXSYM
-@ return FUNCAPPSYM
-@@ return APPLYSYM
-\<> return STRINGJOINSYM
-\/@ return MAPSYM
-\? return PATTESTSYM
-\| return ALTSYM
-:: return MESSAGENAMESYM
+\( return LPARSYM /* skipped */
+\) return RPARSYM /* skipped */
+, return COMMASYM /* skipped */
+; return SEMISYM /* CompoundExpression */
+\[ return LBRACKETSYM /* skipped */
+\] return RBRACKETSYM /* skipped */
+\{ return LCURLYSYM /* skipped */
+\} return RCURLYSYM /* skipped */
+-> return RULESYM /* Rule */
+:> return RULEDELAYEDSYM /* RuleDelayed */
+\+ return PLUSSYM /* Plus */
+\- return MINUSSYM /* */
+\* return MULTSYM /* */
+\/ return DIVSYM /* */
+\^  return EXPSYM /* */
+= return SETSYM /* set */
+:= return SETDELAYEDSYM /* setdelayed */
+=== return SAMESYM /* SameQ */
+\/; return CONDITIONSYM /* Condition */
+== return EQUALSYM /* Equal */
+!= return UNEQUALSYM /* Unequal */
+# return SLOTSYM /* Slot */
+\/\. return REPLACEALLSYM /* ReplaceAll */
+\/\/\. return REPLACEREPSYM /* ReplaceRepeated */
+\/\/ return POSTFIXSYM /* */
+@ return FUNCAPPSYM /* */
+@@ return APPLYSYM /* */
+\<> return STRINGJOINSYM /* StringJoin */
+\/@ return MAPSYM /* Map */
+\? return PATTESTSYM /* PatternTest */
+\| return ALTSYM /* Alternatives */
+:: return MESSAGENAMESYM /* MessageName */
 
 {pattern}
     delim := "_"
