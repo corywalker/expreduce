@@ -27,32 +27,32 @@ import (
 
 /*Adding some of the tokens above to this precedence list can decrease the*/
 /*number of conflicts*/
-%left SEMISYM
-%left SETDELAYEDSYM
-%left SETSYM
+%left SEMISYM /* TODO: fully associative, handles a Null at the end */
+%right SETDELAYEDSYM
+%right SETSYM
 %left POSTFIXSYM
 %left REPLACEREPSYM
 %left REPLACEALLSYM
-%left RULEDELAYEDSYM
-%left RULESYM
+%right RULEDELAYEDSYM
+%right RULESYM
 %left CONDITIONSYM
-%left ALTSYM
-%left SAMESYM
-%left UNEQUALSYM
-%left EQUALSYM
-%left PLUSSYM /* Plus and minus seem to be reversed according to the table. Investigate this. */
-%left MINUSSYM
-%left MULTSYM
-%left DIVSYM
-%left EXPSYM
-%left STRINGJOINSYM
-%left APPLYSYM
-%left MAPSYN
+%left ALTSYM /* TODO: fully associative */
+%left SAMESYM /* TODO: fully associative */
+%left UNEQUALSYM /* TODO: fully associative */
+%left EQUALSYM /* TODO: fully associative */
+%left PLUSSYM /* TODO: fully associative */ /* Plus and minus seem to be reversed according to the table. Investigate this. */
+%left MINUSSYM /* TODO: fully associative */
+%left MULTSYM /* TODO: fully associative */
+%left DIVSYM /* does not need to be fully associative */
+%right EXPSYM
+%left STRINGJOINSYM /* TODO: fully associative */
+%right APPLYSYM
+%right MAPSYN
 %right FUNCAPPSYM
-%left PATTESTSYM
+%nonassoc PATTESTSYM
 %nonassoc PATTERN
 %nonassoc SLOTSYM
-%left MESSAGENAMESYM /* This might as well be part of the symbol. Use a very
+%left MESSAGENAMESYM /* TODO: fully associative */ /* This might as well be part of the symbol. Use a very
 high precedence. */
 %nonassoc STRING
 %nonassoc NAME
