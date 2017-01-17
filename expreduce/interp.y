@@ -28,16 +28,22 @@ import (
 /*Adding some of the tokens above to this precedence list can decrease the*/
 /*number of conflicts*/
 /*What about FLOAT, INTEGER, STRING, NAME, PATTERN?*/
-%left POSTFIXSYM APPLYSYM MAPSYM
+%left POSTFIXSYM
 %left SETSYM SETDELAYEDSYM
 %left REPLACEREPSYM REPLACEALLSYM
 %left RULESYM RULEDELAYEDSYM
 %left CONDITIONSYM ALTSYM
-%left SAMESYM EQUALSYM UNEQUALSYM
-%left PLUSSYM MINUSSYM
-%left MULTSYM DIVSYM
+%left SAMESYM
+%left UNEQUALSYM
+%left EQUALSYM
+%left PLUSSYM /* Plus and minus seem to be reversed according to the table. Investigate this. */
+%left MINUSSYM
+%left MULTSYM
+%left DIVSYM
 %left EXPSYM
 %left STRINGJOINSYM
+%left APPLYSYM
+%left MAPSYN
 %left PATTESTSYM
 %left MESSAGENAMESYM /* This might as well be part of the symbol. Use a very
 high precedence. */
