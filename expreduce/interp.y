@@ -27,12 +27,16 @@ import (
 
 /*Adding some of the tokens above to this precedence list can decrease the*/
 /*number of conflicts*/
-/*What about FLOAT, INTEGER, STRING, NAME, PATTERN?*/
+%left SEMISYM
+%left SETDELAYEDSYM
+%left SETSYM
 %left POSTFIXSYM
-%left SETSYM SETDELAYEDSYM
-%left REPLACEREPSYM REPLACEALLSYM
-%left RULESYM RULEDELAYEDSYM
-%left CONDITIONSYM ALTSYM
+%left REPLACEREPSYM
+%left REPLACEALLSYM
+%left RULEDELAYEDSYM
+%left RULESYM
+%left CONDITIONSYM
+%left ALTSYM
 %left SAMESYM
 %left UNEQUALSYM
 %left EQUALSYM
@@ -44,11 +48,23 @@ import (
 %left STRINGJOINSYM
 %left APPLYSYM
 %left MAPSYN
+%right FUNCAPPSYM
 %left PATTESTSYM
+%nonassoc PATTERN
+%nonassoc SLOTSYM
 %left MESSAGENAMESYM /* This might as well be part of the symbol. Use a very
 high precedence. */
+%nonassoc STRING
+%nonassoc NAME
+%nonassoc FLOAT
+%nonassoc INTEGER
 
-%right FUNCAPPSYM
+%nonassoc LBRACKETSYM RBRACKETSYM
+%nonassoc LCURLYSYM RCURLYSYM
+%nonassoc LPARSYM RPARSYM
+
+%nonassoc COMMASYM
+
 
 %%
 
