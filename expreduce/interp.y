@@ -41,18 +41,18 @@ import (
 %left UNEQUALSYM
 %left EQUALSYM
 %left PLUSSYM /* Plus and minus seem to be reversed according to the table. Investigate this. */
-%left MINUSSYM /* TODO: fully associative */
-%left MULTSYM /* TODO: fully associative */
+%left MINUSSYM
+%left MULTSYM
 %left DIVSYM /* does not need to be fully associative */
 %right EXPSYM
-%left STRINGJOINSYM /* TODO: fully associative */
+%left STRINGJOINSYM
 %right APPLYSYM
 %right MAPSYN
 %right FUNCAPPSYM
 %nonassoc PATTESTSYM
 %nonassoc PATTERN
 %nonassoc SLOTSYM
-%left MESSAGENAMESYM /* TODO: fully associative */ /* This might as well be part of the symbol. Use a very
+%left MESSAGENAMESYM /* This might as well be part of the symbol. Use a very
 high precedence. */
 %nonassoc STRING
 %nonassoc NAME
@@ -79,7 +79,9 @@ stat	:    expr
 	;
 
 expr	:    LPARSYM expr RPARSYM
-		{ $$  =  $2 }
+		/*This sentinel expression could be removed by attaching metadata to*/
+		/*either the val object or the Expression object.*/
+		{ $$  =  &Expression{[]Ex{&Symbol{"Internal`Parens"}, $2}} }
 	|    LPARSYM compexpr RPARSYM
 		{
 			ex := &Expression{}
@@ -107,9 +109,9 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr PLUSSYM expr
 		{ $$  =  FullyAssoc("Plus", $1, $3) }
 	|    expr MINUSSYM expr
-		{ $$  =  &Expression{ []Ex{&Symbol{"Plus"}, $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}} } } }
+		{ $$  =  FullyAssoc("Plus", $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}}) }
 	|    expr MULTSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $3}} }
+		{ $$  =  FullyAssoc("Times", $1, $3) }
 	|    expr expr %prec MULTSYM
 		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }
 	|    expr DIVSYM expr
@@ -179,13 +181,13 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr MESSAGENAMESYM expr
 		{
 			if sym, isSym := $3.(*Symbol); isSym {
-				$$  =  &Expression{[]Ex{&Symbol{"MessageName"}, $1, &String{sym.Name}}}
+				$$  =  FullyAssoc("MessageName", $1, &String{sym.Name})
 			} else {
-				$$  =  &Expression{[]Ex{&Symbol{"MessageName"}, $1, $3}}
+				$$  =  FullyAssoc("MessageName", $1, $3)
 			}
 		}
 	|    expr STRINGJOINSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"StringJoin"}, $1, $3}} }
+		{ $$  =  FullyAssoc("StringJoin", $1, $3) }
 	|    PATTERN
 		{ $$  =  $1 }
 	|    NAME
@@ -220,12 +222,36 @@ compexpr:
 
 %%      /*  start  of  programs  */
 
+func removeParens(ex Ex) {
+	expr, isExpr := ex.(*Expression)
+	if isExpr {
+		for i := range expr.Parts {
+			parens, isParens := HeadAssertion(expr.Parts[i], "Internal`Parens")
+			if isParens {
+				expr.Parts[i] = parens.Parts[1]
+			}
+			removeParens(expr.Parts[i])
+		}
+	}
+	return
+}
+
 func Interp(line string) Ex {
 	lex := newLexer(line + "\n")
 	var parser CalcParser = CalcNewParser()
 	parser.Parse(lex)
 
-	return parser.(*CalcParserImpl).lval.val
+	parsed := parser.(*CalcParserImpl).lval.val
+	// Remove outer parens
+	parens, isParens := &Expression{}, true
+	for isParens {
+		parens, isParens = HeadAssertion(parsed, "Internal`Parens")
+		if isParens {
+			parsed = parens.Parts[1]
+		}
+	}
+	removeParens(parsed)
+	return parsed
 }
 
 func EvalInterp(line string, es *EvalState) Ex {
