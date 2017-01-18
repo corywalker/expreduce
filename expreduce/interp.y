@@ -36,11 +36,11 @@ import (
 %right RULEDELAYEDSYM
 %right RULESYM
 %left CONDITIONSYM
-%left ALTSYM /* TODO: fully associative */
-%left SAMESYM /* TODO: fully associative */
-%left UNEQUALSYM /* TODO: fully associative */
-%left EQUALSYM /* TODO: fully associative */
-%left PLUSSYM /* TODO: fully associative */ /* Plus and minus seem to be reversed according to the table. Investigate this. */
+%left ALTSYM
+%left SAMESYM
+%left UNEQUALSYM
+%left EQUALSYM
+%left PLUSSYM /* Plus and minus seem to be reversed according to the table. Investigate this. */
 %left MINUSSYM /* TODO: fully associative */
 %left MULTSYM /* TODO: fully associative */
 %left DIVSYM /* does not need to be fully associative */
@@ -105,7 +105,7 @@ expr	:    LPARSYM expr RPARSYM
 			$$ = ex
 		}
 	|    expr PLUSSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Plus"}, $1, $3}} }
+		{ $$  =  FullyAssoc("Plus", $1, $3) }
 	|    expr MINUSSYM expr
 		{ $$  =  &Expression{ []Ex{&Symbol{"Plus"}, $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}} } } }
 	|    expr MULTSYM expr
@@ -137,7 +137,7 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr PATTESTSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"PatternTest"}, $1, $3}} }
 	|    expr ALTSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Alternatives"}, $1, $3}} }
+		{ $$  =  FullyAssoc("Alternatives", $1, $3) }
 	|    expr APPLYSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Apply"}, $1, $3}} }
 	|    expr MAPSYM expr
@@ -157,11 +157,11 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr SETDELAYEDSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"SetDelayed"}, $1, $3}} }
 	|    expr SAMESYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"SameQ"}, $1, $3}} }
+		{ $$  =  FullyAssoc("SameQ", $1, $3) }
 	|    expr EQUALSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Equal"}, $1, $3}} }
+		{ $$  =  FullyAssoc("Equal", $1, $3) }
 	|    expr UNEQUALSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Unequal"}, $1, $3}} }
+		{ $$  =  FullyAssoc("Unequal", $1, $3) }
 	|    MINUSSYM expr
 		{
 			if integer, isInteger := $2.(*Integer); isInteger {
@@ -234,4 +234,13 @@ func EvalInterp(line string, es *EvalState) Ex {
 
 func EasyRun(line string, es *EvalState) string {
 	return EvalInterp(line, es).StringForm("InputForm")
+}
+
+func FullyAssoc(op string, lhs Ex, rhs Ex) Ex {
+	opExpr, isOp := HeadAssertion(lhs, op)
+	if isOp {
+		opExpr.Parts = append(opExpr.Parts, rhs)
+		return opExpr
+	}
+	return &Expression{[]Ex{&Symbol{op}, lhs, rhs}}
 }

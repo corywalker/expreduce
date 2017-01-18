@@ -6,8 +6,14 @@ import (
 	"testing"
 )
 
+type TestDesc struct {
+	module string
+	def    Definition
+	desc   string
+}
+
 type TestInstruction interface {
-	Run(t *testing.T, es *EvalState)
+	Run(t *testing.T, es *EvalState, td TestDesc)
 }
 
 type SameTest struct {
@@ -15,7 +21,7 @@ type SameTest struct {
 	In  string
 }
 
-func (this *SameTest) Run(t *testing.T, es *EvalState) {
+func (this *SameTest) Run(t *testing.T, es *EvalState, td TestDesc) {
 	CasAssertSame(t, es, this.Out, this.In)
 }
 
@@ -24,7 +30,7 @@ type DiffTest struct {
 	In  string
 }
 
-func (this *DiffTest) Run(t *testing.T, es *EvalState) {
+func (this *DiffTest) Run(t *testing.T, es *EvalState, td TestDesc) {
 	CasAssertDiff(t, es, this.Out, this.In)
 }
 
@@ -33,8 +39,8 @@ type StringTest struct {
 	In  string
 }
 
-func (this *StringTest) Run(t *testing.T, es *EvalState) {
-	assert.Equal(t, this.Out, EasyRun(this.In, es))
+func (this *StringTest) Run(t *testing.T, es *EvalState, td TestDesc) {
+	assert.Equal(t, this.Out, EasyRun(this.In, es), td.desc)
 }
 
 type ExampleOnlyInstruction struct {
@@ -42,11 +48,11 @@ type ExampleOnlyInstruction struct {
 	In  string
 }
 
-func (this *ExampleOnlyInstruction) Run(t *testing.T, es *EvalState) {}
+func (this *ExampleOnlyInstruction) Run(t *testing.T, es *EvalState, td TestDesc) {}
 
 type ResetState struct{}
 
-func (this *ResetState) Run(t *testing.T, es *EvalState) {
+func (this *ResetState) Run(t *testing.T, es *EvalState, td TestDesc) {
 	es.ClearAll()
 }
 
@@ -54,7 +60,7 @@ type TestComment struct {
 	Comment string
 }
 
-func (this *TestComment) Run(t *testing.T, es *EvalState) {
+func (this *TestComment) Run(t *testing.T, es *EvalState, td TestDesc) {
 }
 
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {
