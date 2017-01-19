@@ -12,8 +12,8 @@ func main() {
 	flag.Parse()
 
 	rl, err := readline.NewEx(&readline.Config{
-		Prompt:      "In[]:= ",
 		HistoryFile: "/tmp/readline.tmp",
+		ForceUseInteractive: true,
 	})
 	if err != nil {
 		panic(err)

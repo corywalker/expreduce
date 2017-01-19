@@ -20,29 +20,31 @@ go run calc.go
 ```
 # go run calc.go
 
-> D[Sin[x]/x,x]
-In:  D[(Sin[x] * x^-1), x]
-Out: ((Cos[x] * x^-1) + (Sin[x] * -1 * x^-2))
+Welcome to Expreduce!
 
-> Table[a^2,{a,1,10}]
-In:  Table[a^2, {a, 1, 10}]
-Out: {1, 4, 9, 16, 25, 36, 49, 64, 81, 100}
+In[1]:= D[Sin[x]/x,x]
 
-> Sum[i, {i, 1, n}]
-In:  Sum[i, {i, 1, n}]
-Out: (2^-1 * n * (1 + n))
+Out[1]= ((-1 * x^-2 * Sin[x]) + (Cos[x] * x^-1))
 
-> (2^(-1) * n * (1 + n)) /. n->5
-In:  (((2^(1 * -1) * n) * (1 + n))) /. ((n) -> (5))
-Out: 15
+In[2]:= Table[a^2,{a,1,10}]
 
-> Total[Table[i,{i,1,5}]]
-In:  Total[Table[i, {i, 1, 5}]]
-Out: 15
+Out[2]= {1, 4, 9, 16, 25, 36, 49, 64, 81, 100}
 
-> bar[1, foo[a, b]] + bar[2, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]] -> bar[amatch + bmatch, foo[cmatch]]
-In:  ((bar[1, foo[a, b]] + bar[2, foo[a, b]])) /. (((bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]])) -> (bar[(amatch + bmatch), foo[cmatch]]))
-Out: bar[3, foo[a, b]]
+In[3]:= Sum[i, {i, 1, n}]
+
+Out[3]= (1/2 * (1 + n) * n)
+
+In[4]:= (2^(-1) * n * (1 + n)) /. n->5
+
+Out[4]= 15
+
+In[5]:= Total[Table[i,{i,1,5}]]
+
+Out[5]= 15
+
+In[6]:= bar[1, foo[a, b]] + bar[2, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]] -> bar[amatch + bmatch, foo[cmatch]]
+
+Out[6]= bar[3, foo[a, b]]
 ```
 
 ## Development
