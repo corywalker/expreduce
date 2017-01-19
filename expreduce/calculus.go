@@ -41,8 +41,8 @@ func GetCalculusDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Integrate",
-		Usage:      "`Integrate[f, x]` finds the indefinite integral of `f` with respect to `x`.\n\n" +
+		Name: "Integrate",
+		Usage: "`Integrate[f, x]` finds the indefinite integral of `f` with respect to `x`.\n\n" +
 			"!!! warning \"Under development\"\n" +
 			"	This function is under development, and as such will be incomplete and inaccurate.",
 		Attributes: []string{"ReadProtected"},

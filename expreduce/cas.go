@@ -6,8 +6,8 @@ package expreduce
 import (
 	"bytes"
 	"github.com/op/go-logging"
-	"os"
 	"log"
+	"os"
 	"runtime/debug"
 	"sort"
 	"strings"
@@ -81,10 +81,10 @@ type Definition struct {
 	Usage string
 	// Currently used for SetDelayed, since other definitions depend on
 	// SetDelayed, we define it first.
-	Bootstrap bool
+	Bootstrap         bool
 	OmitDocumentation bool
 	ExpreduceSpecific bool
-	Details string
+	Details           string
 
 	// Regular rules to define. This should never include a map, as maps have
 	// indeterminate iteration.

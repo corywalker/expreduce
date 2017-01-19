@@ -135,7 +135,7 @@ func ExOrder(a Ex, b Ex) int64 {
 
 func GetOrderDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Order",
+		Name:  "Order",
 		Usage: "`Order[e1, e2]` returns 1 if `e1` should come before `e2` in canonical ordering, -1 if it should come after, and 0 if the two expressions are equal.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

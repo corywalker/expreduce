@@ -204,7 +204,7 @@ func CalcDepth(ex Ex) int {
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "List",
-		Usage: "`{e1, e2, ...}` groups expressions together.",
+		Usage:      "`{e1, e2, ...}` groups expressions together.",
 		Attributes: []string{"Locked"},
 		toString:   (*Expression).ToStringList,
 		SimpleExamples: []TestInstruction{
@@ -256,7 +256,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Length",
+		Name:  "Length",
 		Usage: "`Length[expr]` returns the length of `expr`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -280,10 +280,10 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Table",
+		Name: "Table",
 		Usage: "`Table[expr, n]` returns a list with `n` copies of `expr`.\n\n" +
-		"`Table[expr, {sym, n}]` returns a list with `expr` evaluated with `sym` = 1 to `n`.\n\n" +
-		"`Table[expr, {sym, m, n}]` returns a list with `expr` evaluated with `sym` = `m` to `n`.",
+			"`Table[expr, {sym, n}]` returns a list with `expr` evaluated with `sym` = 1 to `n`.\n\n" +
+			"`Table[expr, {sym, m, n}]` returns a list with `expr` evaluated with `sym` = `m` to `n`.",
 		Attributes: []string{"HoldAll"},
 		Rules: []Rule{
 			// Use a UniqueDefined` prefix, or else Table[i, 5] will return
@@ -325,10 +325,10 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Sum",
+		Name: "Sum",
 		Usage: "`Sum[expr, n]` returns the sum of `n` copies of `expr`.\n\n" +
-		"`Sum[expr, {sym, n}]` returns the sum of `expr` evaluated with `sym` = 1 to `n`.\n\n" +
-		"`Sum[expr, {sym, m, n}]` returns the sum of `expr` evaluated with `sym` = `m` to `n`.",
+			"`Sum[expr, {sym, n}]` returns the sum of `expr` evaluated with `sym` = 1 to `n`.\n\n" +
+			"`Sum[expr, {sym, m, n}]` returns the sum of `expr` evaluated with `sym` = `m` to `n`.",
 		Attributes: []string{"HoldAll", "ReadProtected"},
 		Rules: []Rule{
 			{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
@@ -352,10 +352,10 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Product",
+		Name: "Product",
 		Usage: "`Product[expr, n]` returns the product of `n` copies of `expr`.\n\n" +
-		"`Product[expr, {sym, n}]` returns the product of `expr` evaluated with `sym` = 1 to `n`.\n\n" +
-		"`Product[expr, {sym, m, n}]` returns the product of `expr` evaluated with `sym` = `m` to `n`.",
+			"`Product[expr, {sym, n}]` returns the product of `expr` evaluated with `sym` = 1 to `n`.\n\n" +
+			"`Product[expr, {sym, m, n}]` returns the product of `expr` evaluated with `sym` = `m` to `n`.",
 		Attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
@@ -368,7 +368,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "MemberQ",
+		Name:  "MemberQ",
 		Usage: "`MemberQ[expr, pat]` returns True if any of the elements in `expr` match `pat`, otherwise returns False.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -414,7 +414,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Map",
+		Name:  "Map",
 		Usage: "`Map[f, expr]` returns a new expression with the same head as `expr`, but with `f` mapped to each of the arguments.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -448,7 +448,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Array",
+		Name:  "Array",
 		Usage: "`Array[f, n]` creates a list of `f[i]`, with `i` = 1 to `n`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -478,7 +478,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Cases",
+		Name:  "Cases",
 		Usage: "`Cases[expr, pat]` returns a new `List` of all elements in `expr` that match `pat`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -558,9 +558,9 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Range",
+		Name: "Range",
 		Usage: "`Range[n]` returns a `List` of integers from 1 to `n`.\n\n" +
-		"`Range[m, n]` returns a `List` of integers from `m` to `n`.",
+			"`Range[m, n]` returns a `List` of integers from `m` to `n`.",
 		Attributes: []string{"Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// I should probably refactor the IterSpec system so that it does not

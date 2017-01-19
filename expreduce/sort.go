@@ -6,7 +6,7 @@ import (
 
 func GetSortDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Sort",
+		Name:  "Sort",
 		Usage: "`Sort[list]` sorts the elements in list according to `Order`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {

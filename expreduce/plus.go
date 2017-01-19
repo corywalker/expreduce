@@ -5,7 +5,7 @@ import "math/big"
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Plus",
-		Usage: "`(e1 + e2 + ...)` computes the sum of all expressions in the function.",
+		Usage:      "`(e1 + e2 + ...)` computes the sum of all expressions in the function.",
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
@@ -244,7 +244,7 @@ func GetPlusDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Infinity",
-		Usage: "`Infinity` represents the mathematical concept of infinity.",
+		Usage:      "`Infinity` represents the mathematical concept of infinity.",
 		Attributes: []string{"ReadProtected"},
 		Rules: []Rule{
 			{"Plus[Infinity, _Integer, rest___]", "Infinity + rest"},
@@ -268,7 +268,7 @@ func GetPlusDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "ComplexInfinity",
+		Name:  "ComplexInfinity",
 		Usage: "`ComplexInfinity` represents an an infinite quantity that extends in an unknown direction in the complex plane.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"ComplexInfinity", "0^(-1)"},
@@ -278,7 +278,7 @@ func GetPlusDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Indeterminate",
+		Name:  "Indeterminate",
 		Usage: "`Indeterminate` represents an indeterminate form.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"Indeterminate", "0/0"},

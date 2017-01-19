@@ -211,7 +211,7 @@ func (this *Attributes) toStrings() []string {
 func GetSymbolDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Set",
-		Usage: "`lhs = rhs` sets `lhs` to stand for `rhs`.",
+		Usage:      "`lhs = rhs` sets `lhs` to stand for `rhs`.",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -267,7 +267,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "SetDelayed",
-		Usage: "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
+		Usage:      "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
 		Attributes: []string{"HoldAll", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -351,7 +351,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Attributes",
-		Usage: "`Attributes[sym]` returns a `List` of attributes for `sym`.",
+		Usage:      "`Attributes[sym]` returns a `List` of attributes for `sym`.",
 		Attributes: []string{"HoldAll", "Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -387,7 +387,7 @@ func GetSymbolDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Clear",
-		Usage: "`Clear[sym1, sym2, ...]` clears the symbol definitions from the evaluation context.",
+		Usage:      "`Clear[sym1, sym2, ...]` clears the symbol definitions from the evaluation context.",
 		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			for _, arg := range this.Parts[1:] {

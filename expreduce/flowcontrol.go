@@ -3,7 +3,7 @@ package expreduce
 func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "If",
-		Usage: "`If[cond, iftrue, iffalse]` returns `iftrue` if `cond` is True, and `iffalse` if `cond` is False.",
+		Usage:      "`If[cond, iftrue, iffalse]` returns `iftrue` if `cond` is True, and `iffalse` if `cond` is False.",
 		Attributes: []string{"HoldRest"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 4 {
@@ -51,7 +51,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "While",
-		Usage: "`While[cond, body]` evaluates `cond`, and if it returns True, evaluates `body`. This happens repeatedly.",
+		Usage:      "`While[cond, body]` evaluates `cond`, and if it returns True, evaluates `body`. This happens repeatedly.",
 		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

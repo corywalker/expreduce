@@ -14,7 +14,7 @@ func TestIncludedModules(t *testing.T) {
 		for _, def := range defSet.Defs {
 			td := TestDesc{
 				module: defSet.Name,
-				def: def,
+				def:    def,
 			}
 			es := NewEvalState()
 			i := 0

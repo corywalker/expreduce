@@ -167,7 +167,7 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 
 func GetComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Equal",
+		Name:  "Equal",
 		Usage: "`lhs == rhs` evaluates to True or False if equality or inequality is known.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " == ", true, "", "", form)
@@ -257,7 +257,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Unequal",
+		Name:  "Unequal",
 		Usage: "`lhs != rhs` evaluates to True if inequality is known or False if equality is known.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " != ", true, "", "", form)
@@ -296,7 +296,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "SameQ",
+		Name:  "SameQ",
 		Usage: "`lhs === rhs` evaluates to True if `lhs` and `rhs` are identical after evaluation, False otherwise.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " === ", true, "", "", form)
@@ -358,7 +358,7 @@ func GetComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "MatchQ",
+		Name:  "MatchQ",
 		Usage: "`MatchQ[expr, form]` returns True if `expr` matches `form`, False otherwise.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

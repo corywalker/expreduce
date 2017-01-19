@@ -222,7 +222,7 @@ func (this *String) DeepCopy() Ex {
 
 func GetConstantsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Rational",
+		Name:  "Rational",
 		Usage: "`Rational` is the head for the atomic rational type.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -286,7 +286,7 @@ func GetConstantsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "NumberQ",
+		Name:  "NumberQ",
 		Usage: "`NumberQ[expr]` returns True if `expr` is numeric, otherwise False.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -317,7 +317,7 @@ func GetConstantsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "String",
+		Name:  "String",
 		Usage: "`String` is the head for the atomic string type.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"\"Hello\"", "\"Hello\""},
@@ -327,7 +327,7 @@ func GetConstantsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Real",
+		Name:  "Real",
 		Usage: "`Real` is the head for the atomic floating point type.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"Real", "Head[1.53]"},
@@ -341,7 +341,7 @@ func GetConstantsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Integer",
+		Name:  "Integer",
 		Usage: "`Integer` is the head for the atomic integer type.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"Integer", "Head[153]"},

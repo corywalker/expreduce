@@ -7,11 +7,11 @@ func GetRandomDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "RandomReal",
 		Usage: "`RandomReal[]` generates a random floating point from 0 to 1.\n\n" +
-		"`RandomReal[max]` generates a random floating point from 0 to `max`.\n\n" +
-		"`RandomReal[min, max]` generates a random floating point from `min` to `max.",
+			"`RandomReal[max]` generates a random floating point from 0 to `max`.\n\n" +
+			"`RandomReal[min, max]` generates a random floating point from `min` to `max.",
 		Details: "`SeedRandom[UnixTime[]]` is called automatically upon " +
-		"initialization of Expreduce, so random number sequences will not " +
-		"repeat over subsequent sessions.",
+			"initialization of Expreduce, so random number sequences will not " +
+			"repeat over subsequent sessions.",
 		Rules: []Rule{
 			{"RandomReal[{min_, max_}]", "RandomReal[]*(max - min) + min"},
 			{"RandomReal[max_]", "RandomReal[]*max"},
@@ -36,11 +36,11 @@ func GetRandomDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "SeedRandom",
+		Name:  "SeedRandom",
 		Usage: "`SeedRandom[seed]` seeds the internal random number generator with a given integer `seed`.",
 		Details: "`SeedRandom[UnixTime[]]` is called automatically upon " +
-		"initialization of Expreduce, so random number sequences will not " +
-		"repeat over subsequent sessions.",
+			"initialization of Expreduce, so random number sequences will not " +
+			"repeat over subsequent sessions.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

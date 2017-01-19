@@ -281,7 +281,7 @@ func (this *Expression) Swap(i, j int) {
 
 func GetExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "Apply",
+		Name:  "Apply",
 		Usage: "`Apply[f, e]` (`f@@e`) replaces the head of expression `e` with `f`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -318,7 +318,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Sequence",
+		Name:  "Sequence",
 		Usage: "`Sequence[e1, e2, ...]` holds a list of expressions to be automatically inserted into another function.",
 		SimpleExamples: []TestInstruction{
 			&TestComment{"Sequence arguments are automatically inserted into the parent functions:"},
@@ -348,7 +348,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Evaluate",
+		Name:  "Evaluate",
 		Usage: "`Evaluate[expr]` evaluates to an evaluated form of `expr`, even when under hold conditions.",
 		SimpleExamples: []TestInstruction{
 			&StringTest{"Hold[4, (2 + 1)]", "Hold[Evaluate[1 + 3], 2 + 1]"},
@@ -358,9 +358,9 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Function",
-		Usage:       "`Function[inner]` defines a pure function where `inner` is evaluated with `Slot` parameters.\n\n" +
-		"`Function[x, inner]` defines a pure function where `inner` is evaluated a single parameter `x`.",
+		Name: "Function",
+		Usage: "`Function[inner]` defines a pure function where `inner` is evaluated with `Slot` parameters.\n\n" +
+			"`Function[x, inner]` defines a pure function where `inner` is evaluated a single parameter `x`.",
 		Attributes: []string{"HoldAll"},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"1 + x", "Function[1 + #][x]"},
@@ -372,9 +372,9 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Slot",
-		Usage:       "`#` serves as a pure function's first parameter.\n\n" +
-		"`#n` serves as a pure function's `n`'th parameter.",
+		Name: "Slot",
+		Usage: "`#` serves as a pure function's first parameter.\n\n" +
+			"`#n` serves as a pure function's `n`'th parameter.",
 		Attributes: []string{"NHoldAll"},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"1 + x", "Function[1 + #][x]"},
@@ -385,7 +385,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Hold",
-		Usage:       "`Hold[expr]` prevents automatic evaluation of `expr`.",
+		Usage:      "`Hold[expr]` prevents automatic evaluation of `expr`.",
 		Attributes: []string{"HoldAll"},
 		SimpleExamples: []TestInstruction{
 			&StringTest{"Hold[5^3]", "Hold[Power[5, 3]]"},

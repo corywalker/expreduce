@@ -77,7 +77,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceAll",
 		Usage: "`expr /. rule` replaces all occurences of the LHS of `rule` with the RHS of `rule` in `expr`.\n\n" +
-		"`expr /. {r1, r2, ...}` performes the same operation as `expr /. rule`, but evaluating each `r_n` in sequence.",
+			"`expr /. {r1, r2, ...}` performes the same operation as `expr /. rule`, but evaluating each `r_n` in sequence.",
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -257,7 +257,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceRepeated",
 		Usage: "`expr //. rule` replaces all occurences of the LHS of `rule` with the RHS of `rule` in `expr` repeatedly until the expression stabilizes.\n\n" +
-		"`expr //. {r1, r2, ...}` performes the same operation as `expr //. rule`, but evaluating each `r_n` in sequence.",
+			"`expr //. {r1, r2, ...}` performes the same operation as `expr //. rule`, but evaluating each `r_n` in sequence.",
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -296,7 +296,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Rule",
-		Usage: "`lhs -> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`.",
+		Usage:      "`lhs -> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`.",
 		Attributes: []string{"SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -313,7 +313,7 @@ func GetReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "RuleDelayed",
-		Usage: "`lhs :> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`, evaluating `rhs` only after replacement.",
+		Usage:      "`lhs :> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`, evaluating `rhs` only after replacement.",
 		Attributes: []string{"HoldRest", "SequenceHold"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
