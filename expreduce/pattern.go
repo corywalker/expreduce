@@ -178,6 +178,8 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Pattern",
+		Usage: "`name{BLANKFORM}` is equivalent to `Pattern[name, {BLANKFORM}]` and can be used in pattern matching to refer to the matched expression as `name`, where `{BLANKFORM}` is one of `{_, __, ___}`.\n\n" +
+		"`name{BLANKFORM}head` is equivalent to `Pattern[name, {BLANKFORM}head]` and can be used in pattern matching to refer to the matched expression as `name`, where `{BLANKFORM}` is one of `{_, __, ___}`.",
 		Attributes: []string{"HoldFirst"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -191,16 +193,41 @@ func GetPatternDefinitions() (defs []Definition) {
 			buffer.WriteString(this.Parts[2].StringForm(form))
 			return true, buffer.String()
 		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"To demonstrate referencing `name` in the replacement RHS:"},
+			&SameTest{"2", "foo[2, 1] /. foo[a_, b_] -> a"},
+			&TestComment{"If two matches share the same name, they must be equivalent:"},
+			&SameTest{"foo[2, 1]", "foo[2, 1] /. foo[a_, a_] -> a"},
+			&SameTest{"2", "foo[2, 2] /. foo[a_, a_] -> a"},
+			&TestComment{"To demonstrate the head matching capability:"},
+			&SameTest{"True", "MatchQ[2, a_Integer]"},
+			&SameTest{"False", "MatchQ[2, a_Real]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"To demonstrate patterns matching a sequence of expressions:"},
+			&SameTest{"bar[2, 1]", "foo[2, 1] /. foo[a___Integer] -> bar[a]"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name: "Blank",
+		Usage: "`_` matches any expression.\n\n" +
+		"`_head` matches any expression with a `Head` of `head`.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("_", this.Parts, form)
 		},
-		Tests: []TestInstruction{
-			// Matching patterns
+		SimpleExamples: []TestInstruction{
+			&SameTest{"True", "MatchQ[a + b, _]"},
 			&SameTest{"True", "MatchQ[1, _Integer]"},
 			&SameTest{"False", "MatchQ[s, _Integer]"},
+			&TestComment{"`Blank` works with nonatomic `head`s:"},
+			&SameTest{"2", "a*b*c*d /. _Times -> 2"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"For `Orderless` functions, the match engine will attempt to find a match in any order:"},
+			&SameTest{"True", "MatchQ[x+3., c1match_Real+matcha_]"},
+		},
+		Tests: []TestInstruction{
+			// Matching patterns
 			&SameTest{"True", "MatchQ[s, _Symbol]"},
 			&SameTest{"False", "MatchQ[1, _Symbol]"},
 			&SameTest{"False", "MatchQ[_Symbol, _Symbol]"},
@@ -253,8 +280,23 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "BlankSequence",
+		Usage: "`__` matches any sequence of one or more expressions.\n\n" +
+		"`__head` matches any sequence of one or more expressions, each with a `Head` of `head`.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("__", this.Parts, form)
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"True", "MatchQ[a + b + c, a + b + __]"},
+			&SameTest{"False", "MatchQ[a + b + c, a + b + c + __]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"With head assertions:"},
+			&SameTest{"False", "MatchQ[a * b, __Symbol]"},
+			&SameTest{"False", "MatchQ[a * b, x__Symbol]"},
+			&SameTest{"True", "MatchQ[a, __Symbol]"},
+			&SameTest{"True", "MatchQ[a * b, x__Times]"},
+			&SameTest{"False", "MatchQ[a * b, x__Plus]"},
+			&SameTest{"True", "MatchQ[a + b, x__Plus]"},
 		},
 		Tests: []TestInstruction{
 			// Be wary of the false matches - the default is usually false.
@@ -330,8 +372,19 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "BlankNullSequence",
+		Usage: "`___` matches any sequence of zero or more expressions.\n\n" +
+		"`___head` matches any sequence of zero or more expressions, each with a `Head` of `head`.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("___", this.Parts, form)
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"True", "MatchQ[a*b, ___]"},
+			&SameTest{"True", "MatchQ[a + b, a + b + ___]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"With head assertions:"},
+			&SameTest{"True", "MatchQ[a + b + c, a + x___Symbol]"},
+			&SameTest{"False", "MatchQ[a + b + c, a + x___Plus]"},
 		},
 		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[a*b, ___]"},
@@ -367,7 +420,9 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Except",
-		Tests: []TestInstruction{
+		Usage: "`Except[pat]` matches all expressions except those that match `pat`.\n\n" +
+		"`Except[pat1, pat2]` matches all expressions that match `pat2` but not `pat1`.",
+		SimpleExamples: []TestInstruction{
 			&SameTest{"{5, 2, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, Except[_Real]]"},
 			&SameTest{"{5, 2, x, y, 4}", "Cases[{5, 2, a^b, x, y, 4}, Except[_Symbol^_Symbol]]"},
 			&SameTest{"{a, b, 0, foo[1], foo[2], x, y}", "{a, b, 0, 1, 2, x, y} /. Except[0, a_Integer] -> foo[a]"},
@@ -375,8 +430,9 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "PatternTest",
+		Usage: "`pat?test` matches when the expression matches `pat` and `test[MATCH]` evaluates to `True`.",
 		Attributes: []string{"HoldRest"},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "MatchQ[1, _?NumberQ]"},
 			&SameTest{"False", "MatchQ[a, _?NumberQ]"},
 			&SameTest{"True", "MatchQ[1, 1?NumberQ]"},
@@ -387,8 +443,9 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Condition",
+		Usage: "`pat /; cond` matches an expression if the expression matches `pat`, and if `cond` evaluates to `True` with all the named patterns substituted in.",
 		Attributes: []string{"HoldAll"},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "MatchQ[5, _ /; True]"},
 			&SameTest{"False", "MatchQ[5, _ /; False]"},
 			&SameTest{"True", "MatchQ[5, y_ /; True]"},
@@ -401,7 +458,8 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Alternatives",
-		Tests: []TestInstruction{
+		Usage: "`alt1 | alt2 | ...` matches an expression if it matches any pattern in the list of alternatives.",
+		SimpleExamples: []TestInstruction{
 			&SameTest{"Alternatives[c,d]", "c | d"},
 			&SameTest{"False", "MatchQ[b, c | d]"},
 			&SameTest{"True", "MatchQ[c, c | d]"},
