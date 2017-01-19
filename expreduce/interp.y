@@ -13,14 +13,12 @@ import (
 %union{
 	val Ex
 	valSeq []Ex
-	compExpr []Ex
 }
 
 // any non-terminal which returns a value needs a type, which is
 // really a field name in the above union struct
 %type <val> expr
 %type <valSeq> exprseq
-%type <compExpr> compexpr
 
 // same for terminals
 %token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM PATTESTSYM ALTSYM SAMESYM EQUALSYM UNEQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM
@@ -82,17 +80,12 @@ expr	:    LPARSYM expr RPARSYM
 		/*This sentinel expression could be removed by attaching metadata to*/
 		/*either the val object or the Expression object.*/
 		{ $$  =  &Expression{[]Ex{&Symbol{"Internal`Parens"}, $2}} }
-	|    LPARSYM compexpr RPARSYM
-		{
-			ex := &Expression{}
-			ex.Parts = []Ex{&Symbol{"CompoundExpression"}}
-			ex.Parts = append(ex.Parts, $2...)
-			$$ = ex
-		}
 	/*|    INTEGER NAME*/
 		/*{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }*/
-	/*|    expr SEMISYM expr*/
-		/*{ $$  =  &Expression{[]Ex{&Symbol{"CompoundExpression"}, $1, $3}} }*/
+	|    expr SEMISYM expr
+		{ $$  =  FullyAssoc("CompoundExpression", $1, $3) }
+	|    expr SEMISYM
+		{ $$  =  FullyAssoc("CompoundExpression", $1, &Symbol{"Null"}) }
 	|    expr LBRACKETSYM exprseq RBRACKETSYM
 		{
 			ex := &Expression{}
@@ -207,16 +200,6 @@ exprseq:
 	| exprseq COMMASYM expr
 	    { $$ = append($$, $3) }
 	| exprseq COMMASYM
-	    { $$ = append($$, &Symbol{"Null"}) }
-	;
-compexpr:
-	/* empty */
-		{ $$ = []Ex{} }
-	| expr
-	    { $$ = append($$, $1) }
-	| compexpr SEMISYM expr
-	    { $$ = append($$, $3) }
-	| compexpr SEMISYM
 	    { $$ = append($$, &Symbol{"Null"}) }
 	;
 

@@ -154,6 +154,12 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return toReturn
 		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"The result of the first expression is not included in the output, but the result of the second is:"},
+			&SameTest{"3", "a = 5; a - 2"},
+			&TestComment{"Including a trailing semicolon causes the expression to return `Null`:"},
+			&SameTest{"Null", "a = 5; a - 2;"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name:  "Head",
@@ -206,6 +212,10 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "MessageName",
 		Usage: "`sym::msg` references a particular message for `sym`.",
 		Attributes: []string{"HoldFirst", "ReadProtected"},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"`MessageName` is used to store the usage messages of built-in symbols:"},
+			&SameTest{"\"`sym::msg` references a particular message for `sym`.\"", "MessageName::usage"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name:     "Infix",
