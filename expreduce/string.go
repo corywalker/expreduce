@@ -2,7 +2,7 @@ package expreduce
 
 func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "ToString",
+		Name:  "ToString",
 		Usage: "`ToString[expr, form]` converts `expr` into a string using printing method `form`.",
 		Rules: []Rule{
 			{"ToString[a_]", "ToString[a, OutputForm]"},
@@ -32,7 +32,7 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "StringJoin",
-		Usage: "`s1 <> s2 <> ...` can join a list of strings into a single string.",
+		Usage:      "`s1 <> s2 <> ...` can join a list of strings into a single string.",
 		Attributes: []string{"Flat", "OneIdentity"},
 		Rules: []Rule{
 			// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]

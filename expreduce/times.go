@@ -340,7 +340,7 @@ func GetTimesDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Factorial",
-		Usage: "`n!` returns the factorial of `n`.",
+		Usage:      "`n!` returns the factorial of `n`.",
 		Attributes: []string{"Listable", "NumericFunction", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {

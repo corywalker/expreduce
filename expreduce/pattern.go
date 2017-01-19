@@ -177,9 +177,9 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 
 func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:       "Pattern",
+		Name: "Pattern",
 		Usage: "`name{BLANKFORM}` is equivalent to `Pattern[name, {BLANKFORM}]` and can be used in pattern matching to refer to the matched expression as `name`, where `{BLANKFORM}` is one of `{_, __, ___}`.\n\n" +
-		"`name{BLANKFORM}head` is equivalent to `Pattern[name, {BLANKFORM}head]` and can be used in pattern matching to refer to the matched expression as `name`, where `{BLANKFORM}` is one of `{_, __, ___}`.",
+			"`name{BLANKFORM}head` is equivalent to `Pattern[name, {BLANKFORM}head]` and can be used in pattern matching to refer to the matched expression as `name`, where `{BLANKFORM}` is one of `{_, __, ___}`.",
 		Attributes: []string{"HoldFirst"},
 		toString: func(this *Expression, form string) (bool, string) {
 			if len(this.Parts) != 3 {
@@ -211,7 +211,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Blank",
 		Usage: "`_` matches any expression.\n\n" +
-		"`_head` matches any expression with a `Head` of `head`.",
+			"`_head` matches any expression with a `Head` of `head`.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("_", this.Parts, form)
 		},
@@ -281,7 +281,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "BlankSequence",
 		Usage: "`__` matches any sequence of one or more expressions.\n\n" +
-		"`__head` matches any sequence of one or more expressions, each with a `Head` of `head`.",
+			"`__head` matches any sequence of one or more expressions, each with a `Head` of `head`.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("__", this.Parts, form)
 		},
@@ -373,7 +373,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "BlankNullSequence",
 		Usage: "`___` matches any sequence of zero or more expressions.\n\n" +
-		"`___head` matches any sequence of zero or more expressions, each with a `Head` of `head`.",
+			"`___head` matches any sequence of zero or more expressions, each with a `Head` of `head`.",
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringBlankType("___", this.Parts, form)
 		},
@@ -421,7 +421,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Except",
 		Usage: "`Except[pat]` matches all expressions except those that match `pat`.\n\n" +
-		"`Except[pat1, pat2]` matches all expressions that match `pat2` but not `pat1`.",
+			"`Except[pat1, pat2]` matches all expressions that match `pat2` but not `pat1`.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{5, 2, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, Except[_Real]]"},
 			&SameTest{"{5, 2, x, y, 4}", "Cases[{5, 2, a^b, x, y, 4}, Except[_Symbol^_Symbol]]"},
@@ -430,7 +430,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "PatternTest",
-		Usage: "`pat?test` matches when the expression matches `pat` and `test[MATCH]` evaluates to `True`.",
+		Usage:      "`pat?test` matches when the expression matches `pat` and `test[MATCH]` evaluates to `True`.",
 		Attributes: []string{"HoldRest"},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "MatchQ[1, _?NumberQ]"},
@@ -443,7 +443,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Condition",
-		Usage: "`pat /; cond` matches an expression if the expression matches `pat`, and if `cond` evaluates to `True` with all the named patterns substituted in.",
+		Usage:      "`pat /; cond` matches an expression if the expression matches `pat`, and if `cond` evaluates to `True` with all the named patterns substituted in.",
 		Attributes: []string{"HoldAll"},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "MatchQ[5, _ /; True]"},
@@ -457,7 +457,7 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Alternatives",
+		Name:  "Alternatives",
 		Usage: "`alt1 | alt2 | ...` matches an expression if it matches any pattern in the list of alternatives.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"Alternatives[c,d]", "c | d"},
