@@ -3,6 +3,7 @@ package expreduce
 func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ToString",
+		Usage: "`ToString[expr, form]` converts `expr` into a string using printing method `form`.",
 		Rules: []Rule{
 			{"ToString[a_]", "ToString[a, OutputForm]"},
 		},
@@ -24,9 +25,14 @@ func GetStringDefinitions() (defs []Definition) {
 
 			return &String{this.Parts[1].StringForm(formAsSymbol.Name)}
 		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"\"a^2\"", "ToString[a^2, InputForm]"},
+			&SameTest{"\"Hello World\"", "\"Hello World\" // ToString"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name:       "StringJoin",
+		Usage: "`s1 <> s2 <> ...` can join a list of strings into a single string.",
 		Attributes: []string{"Flat", "OneIdentity"},
 		Rules: []Rule{
 			// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
@@ -49,6 +55,18 @@ func GetStringDefinitions() (defs []Definition) {
 				toReturn += asStr.Val
 			}
 			return &String{toReturn}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"\"Hello World\"", "\"Hello\" <> \" \" <> \"World\""},
+			&SameTest{"\"If a=2, then a^2=4\"", "\"If a=2, then \" <> ToString[a^2, InputForm] <> \"=\" <> ToString[a^2 /. a -> 2, InputForm]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"The `StringJoin` of nothing is the empty string:"},
+			&SameTest{"\"\"", "StringJoin[]"},
+			&TestComment{"If `StringJoin` receives any non-string arguments, the expression does not evaluate:"},
+			&SameTest{"\"Hello\" <> 5", "StringJoin[\"Hello\", 5]"},
+			&TestComment{"This function takes `List` arguments as well:"},
+			&SameTest{"\"abc\"", "StringJoin[{\"a\", \"b\", \"c\"}]"},
 		},
 	})
 	return

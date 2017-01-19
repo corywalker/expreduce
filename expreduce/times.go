@@ -40,14 +40,15 @@ func factorial(n *big.Int) (result *big.Int) {
 func GetTimesDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Times",
+		Usage:      "`(e1 * e2 * ...)` computes the product of all expressions in the function.",
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Rules: []Rule{
 			{"Times[a_, a_, rest___]", "a^2 * rest"},
 			{"Times[a_^n_, a_, rest___]", "a^(n+1) * rest"},
 			{"Times[a_^n_, a_^m_, rest___]", "a^(n+m) * rest"},
-			{"Times[den_Integer^(-1), num_Integer, rest___]", "Rational[num,den] * rest"},
-			{"Times[a_, Power[a_, -1], rest___]", "rest"},
-			{"Times[a_^b_, Power[a_, -1], rest___]", "a^(b-1) * rest"},
+			{"Times[den_Integer^-1, num_Integer, rest___]", "Rational[num,den] * rest"},
+			{"Times[a_, a_^-1, rest___]", "rest"},
+			{"Times[a_^b_, a_^-1, rest___]", "a^(b-1) * rest"},
 			//"Times[a_^b_, Power[a_^c_, -1], rest___]": "a^(b-c) * rest",
 			//"Times[a_^b_, Power[a_, Power[c_, -1]], rest___]": "a^(b-c) * rest",
 			{"(1/Infinity)", "0"},
@@ -276,6 +277,18 @@ func GetTimesDefinitions() (defs []Definition) {
 			this.Parts = append(this.Parts, multiplicands...)
 			return this
 		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Simplification rules apply automatically:"},
+			&SameTest{"3/2", "(3 + (x^2 * 0)) * 2^-1"},
+			&SameTest{"a^(2+c)", "a^2*a^c"},
+			&SameTest{"a/(b*c*d)", "a/b/c/d"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"Rational numbers are suppported (explicit rational declaration added for clarity):"},
+			&StringTest{"-2/3", "Rational[1, -2]*Rational[-2, 3]*-2"},
+			&TestComment{"The product of nothing is defined to be one:"},
+			&SameTest{"1", "Times[]"},
+		},
 		Tests: []TestInstruction{
 			// Test that we do not delete all the multiplicands
 			&SameTest{"1", "1*1"},
@@ -327,6 +340,7 @@ func GetTimesDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Factorial",
+		Usage: "`n!` returns the factorial of `n`.",
 		Attributes: []string{"Listable", "NumericFunction", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -341,11 +355,17 @@ func GetTimesDefinitions() (defs []Definition) {
 			}
 			return this
 		},
-		Tests: []TestInstruction{
-			&SameTest{"2432902008176640000", "Factorial[20]"},
-			&SameTest{"1", "Factorial[1]"},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2432902008176640000", "20!"},
+			&SameTest{"120", "Factorial[5]"},
+		},
+		FurtherExamples: []TestInstruction{
 			&SameTest{"1", "Factorial[0]"},
 			&SameTest{"ComplexInfinity", "Factorial[-1]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"1", "Factorial[1]"},
+			&SameTest{"1", "Factorial[0]"},
 			&SameTest{"1", "Factorial[-0]"},
 			&SameTest{"ComplexInfinity", "Factorial[-10]"},
 			&SameTest{"120", "Factorial[5]"},
