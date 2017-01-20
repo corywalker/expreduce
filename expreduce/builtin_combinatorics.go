@@ -4,7 +4,8 @@ import (
 	"math/big"
 )
 
-func GenIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]int) {
+// Used for the IntegerPartitions builtin
+func genIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]int) {
 	if len(prefix)+1 > k {
 		return
 	}
@@ -15,11 +16,12 @@ func GenIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]in
 			*parts = append(*parts, make([]int, len(prefix)))
 			copy((*parts)[len(*parts)-1], prefix)
 		} else {
-			GenIntegerPartitions(n-i, k, Min(i, n-i), prefix, parts)
+			genIntegerPartitions(n-i, k, Min(i, n-i), prefix, parts)
 		}
 	}
 }
 
+// Used for the Permutations builtin
 func permListContains(permList [][]Ex, perm []Ex, cl *CASLogger) bool {
 	for _, permInList := range permList {
 		if len(permInList) != len(perm) {
@@ -39,7 +41,8 @@ func permListContains(permList [][]Ex, perm []Ex, cl *CASLogger) bool {
 	return false
 }
 
-func GenPermutations(parts []Ex, cl *CASLogger) (perms [][]Ex) {
+// Used for the Permutations builtin
+func genPermutations(parts []Ex, cl *CASLogger) (perms [][]Ex) {
 	// Base case
 	if len(parts) == 1 {
 		return [][]Ex{parts}
@@ -47,13 +50,13 @@ func GenPermutations(parts []Ex, cl *CASLogger) (perms [][]Ex) {
 	// Recursion
 	toReturn := [][]Ex{}
 	for i, first := range parts {
-		// We must make a copy of "parts" becasue selecting "others" actually
+		// We must make a copy of "parts" because selecting "others" actually
 		// modifies "parts" and corrupts it.
 		copyParts := make([]Ex, len(parts))
 		copy(copyParts, parts)
 		others := append(copyParts[:i], copyParts[i+1:]...)
 		// TODO: This might be bad for memory complexity.
-		otherPerms := GenPermutations(others, cl)
+		otherPerms := genPermutations(others, cl)
 		for _, perm := range otherPerms {
 			prepended := make([]Ex, len(perm))
 			copy(prepended, perm)
@@ -67,7 +70,23 @@ func GenPermutations(parts []Ex, cl *CASLogger) (perms [][]Ex) {
 	return toReturn
 }
 
-func GetCombinatoricsDefinitions() (defs []Definition) {
+// Used for the Factorial builtin
+func factorial(n *big.Int) (result *big.Int) {
+	result = new(big.Int)
+
+	switch n.Cmp(&big.Int{}) {
+	case -1, 0:
+		result.SetInt64(1)
+	default:
+		result.Set(n)
+		var one big.Int
+		one.SetInt64(1)
+		result.Mul(result, factorial(n.Sub(n, &one)))
+	}
+	return
+}
+
+func getCombinatoricsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "IntegerPartitions",
 		Usage: "`IntegerPartitions[n]` lists the possible ways to partition `n` into smaller integers.\n\n" +
@@ -100,7 +119,7 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 			}
 
 			var parts [][]int
-			GenIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
+			genIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
 
 			exParts := &Expression{[]Ex{&Symbol{"List"}}}
 			for _, partition := range parts {
@@ -146,7 +165,7 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 				return this
 			}
 
-			perms := GenPermutations(list.Parts[1:], &es.CASLogger)
+			perms := genPermutations(list.Parts[1:], &es.CASLogger)
 
 			exPerms := &Expression{[]Ex{&Symbol{"List"}}}
 			for _, perm := range perms {
@@ -178,6 +197,42 @@ func GetCombinatoricsDefinitions() (defs []Definition) {
 			&SameTest{"20", "Multinomial[1, 3, 1]"},
 			&TestComment{"`Multinomial` handles symbolic arguments:"},
 			&SameTest{"Factorial[k+2] / Factorial[k]", "Multinomial[1,k,1]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "Factorial",
+		Usage:      "`n!` returns the factorial of `n`.",
+		Attributes: []string{"Listable", "NumericFunction", "ReadProtected"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			asInt, isInt := this.Parts[1].(*Integer)
+			if isInt {
+				if asInt.Val.Cmp(big.NewInt(0)) == -1 {
+					return &Symbol{"ComplexInfinity"}
+				}
+				return &Integer{factorial(asInt.Val)}
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2432902008176640000", "20!"},
+			&SameTest{"120", "Factorial[5]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&SameTest{"1", "Factorial[0]"},
+			&SameTest{"ComplexInfinity", "Factorial[-1]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"1", "Factorial[1]"},
+			&SameTest{"1", "Factorial[0]"},
+			&SameTest{"1", "Factorial[-0]"},
+			&SameTest{"ComplexInfinity", "Factorial[-10]"},
+			&SameTest{"120", "Factorial[5]"},
+
+			&SameTest{"Indeterminate", "0 * Infinity"},
+			&SameTest{"Indeterminate", "0 * ComplexInfinity"},
 		},
 	})
 	return

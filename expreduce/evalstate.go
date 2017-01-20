@@ -1,0 +1,195 @@
+package expreduce
+
+import (
+	"bytes"
+	"sort"
+	"strings"
+)
+
+type EvalState struct {
+	// Embedded type for logging
+	CASLogger
+
+	defined map[string]Def
+	NoInit  bool
+}
+
+func (this *EvalState) Load(def Definition) {
+	// TODO: do we really need SetDelayed here, or should we just write to
+	// downvalues directly? If we did this, we could potentially remove the
+	// "bootstrap" attribute that SetDelayed has.
+	for _, rule := range def.Rules {
+		(&Expression{[]Ex{
+			&Symbol{"SetDelayed"},
+			Interp(rule.Lhs),
+			Interp(rule.Rhs),
+		}}).Eval(this)
+	}
+
+	if len(def.Usage) > 0 {
+		(&Expression{[]Ex{
+			&Symbol{"SetDelayed"},
+			&Expression{[]Ex{
+				&Symbol{"MessageName"},
+				&Symbol{def.Name},
+				&String{"usage"},
+			}},
+			&String{def.Usage},
+		}}).Eval(this)
+	}
+
+	newDef, foundDef := this.defined[def.Name]
+	if !foundDef {
+		newDef = Def{}
+	}
+
+	if def.legacyEvalFn != nil {
+		newDef.legacyEvalFn = def.legacyEvalFn
+	}
+	protectedAttrs := append(def.Attributes, "Protected")
+	newDef.attributes = stringsToAttributes(protectedAttrs)
+	if def.toString != nil {
+		// Global so that standard String() interface can access these
+		toStringFns[def.Name] = def.toString
+	}
+	this.defined[def.Name] = newDef
+}
+
+func InitCAS(es *EvalState) {
+	// System initialization
+	EvalInterp("SeedRandom[UnixTime[]]", es)
+}
+
+func (es *EvalState) Init(loadAllDefs bool) {
+	es.defined = make(map[string]Def)
+
+	es.NoInit = !loadAllDefs
+	if !es.NoInit {
+		// Init modules
+		for _, defSet := range GetAllDefinitions() {
+			for _, def := range defSet.Defs {
+				if def.Bootstrap {
+					es.Load(def)
+				}
+			}
+		}
+		for _, defSet := range GetAllDefinitions() {
+			for _, def := range defSet.Defs {
+				if !def.Bootstrap {
+					es.Load(def)
+				}
+			}
+		}
+		InitCAS(es)
+	}
+}
+
+func NewEvalState() *EvalState {
+	var es EvalState
+	es.Init(true)
+
+	es.SetUpLogging()
+	es.DebugOff()
+
+	return &es
+}
+
+func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
+	var es EvalState
+	es.Init(loadAllDefs)
+	es.CASLogger.debugState = false
+	return &es
+}
+
+func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
+	_, isd := this.defined[name]
+	if !isd {
+		return nil, false
+	}
+	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
+	for i := range this.defined[name].downvalues {
+		ismatchq, _ := IsMatchQ(lhs, this.defined[name].downvalues[i].Parts[1], EmptyPD(), &this.CASLogger)
+		if ismatchq {
+			res := ReplaceAll(lhs, &this.defined[name].downvalues[i], &this.CASLogger, EmptyPD())
+			return res, true
+		}
+	}
+	return nil, false
+}
+
+func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
+	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
+	_, isd := this.defined[name]
+	if !isd {
+		newDef := Def{
+			downvalues: []Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}},
+		}
+		this.defined[name] = newDef
+		return
+	}
+
+	for i := range this.defined[name].downvalues {
+		if IsSameQ(this.defined[name].downvalues[i].Parts[1], lhs, &this.CASLogger) {
+			this.defined[name].downvalues[i].Parts[2] = rhs
+			return
+		}
+	}
+
+	// Insert into definitions for name. Maintain order of decreasing
+	// complexity. I define complexity as the length of the Lhs.String()
+	// because it is simple, and it works for most of the common cases. We wish
+	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
+	// "complexity" score, order then matters. TODO: Create better measure of
+	// complexity (or specificity)
+	var tmp = this.defined[name]
+	newLhsLen := len(lhs.StringForm("InputForm"))
+	for i := range this.defined[name].downvalues {
+		thisLhsLen := len(this.defined[name].downvalues[i].Parts[1].String())
+		if thisLhsLen < newLhsLen {
+			tmp.downvalues = append(tmp.downvalues[:i], append([]Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}}, this.defined[name].downvalues[i:]...)...)
+			this.defined[name] = tmp
+			return
+		}
+	}
+	tmp.downvalues = append(tmp.downvalues, Expression{[]Ex{&Symbol{"Rule"}, lhs, rhs}})
+	this.defined[name] = tmp
+}
+
+func (this *EvalState) ClearAll() {
+	this.Init(!this.NoInit)
+}
+
+func (this *EvalState) Clear(name string) {
+	_, ok := this.defined[name]
+	if ok {
+		delete(this.defined, name)
+	}
+}
+
+func (this *EvalState) GetDefinedSnapshot() map[string]Def {
+	return CopyDefs(this.defined)
+}
+
+func (this *EvalState) String() string {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	// We sort the keys here such that converting identical EvalStates always
+	// produces the same string.
+	keys := []string{}
+	for k := range this.defined {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := this.defined[k]
+		buffer.WriteString(k)
+		buffer.WriteString(": ")
+		buffer.WriteString(v.String())
+		buffer.WriteString(", ")
+	}
+	if strings.HasSuffix(buffer.String(), ", ") {
+		buffer.Truncate(buffer.Len() - 2)
+	}
+	buffer.WriteString("}")
+	return buffer.String()
+}

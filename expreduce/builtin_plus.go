@@ -2,6 +2,15 @@ package expreduce
 
 import "math/big"
 
+func ExArrayContainsFloat(a []Ex) bool {
+	res := false
+	for _, e := range a {
+		_, isfloat := e.(*Flt)
+		res = res || isfloat
+	}
+	return res
+}
+
 func GetPlusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Plus",

@@ -22,21 +22,6 @@ func RationalAssertion(num Ex, den Ex) (r *Rational, isR bool) {
 	return &Rational{numInt.Val, denInt.Val}, true
 }
 
-func factorial(n *big.Int) (result *big.Int) {
-	result = new(big.Int)
-
-	switch n.Cmp(&big.Int{}) {
-	case -1, 0:
-		result.SetInt64(1)
-	default:
-		result.Set(n)
-		var one big.Int
-		one.SetInt64(1)
-		result.Mul(result, factorial(n.Sub(n, &one)))
-	}
-	return
-}
-
 func GetTimesDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Times",
@@ -336,42 +321,6 @@ func GetTimesDefinitions() (defs []Definition) {
 			&SameTest{"m^2", "m*m"},
 			&SameTest{"1", "m/m"},
 			&SameTest{"1", "m^2/m^2"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name:       "Factorial",
-		Usage:      "`n!` returns the factorial of `n`.",
-		Attributes: []string{"Listable", "NumericFunction", "ReadProtected"},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
-				return this
-			}
-			asInt, isInt := this.Parts[1].(*Integer)
-			if isInt {
-				if asInt.Val.Cmp(big.NewInt(0)) == -1 {
-					return &Symbol{"ComplexInfinity"}
-				}
-				return &Integer{factorial(asInt.Val)}
-			}
-			return this
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"2432902008176640000", "20!"},
-			&SameTest{"120", "Factorial[5]"},
-		},
-		FurtherExamples: []TestInstruction{
-			&SameTest{"1", "Factorial[0]"},
-			&SameTest{"ComplexInfinity", "Factorial[-1]"},
-		},
-		Tests: []TestInstruction{
-			&SameTest{"1", "Factorial[1]"},
-			&SameTest{"1", "Factorial[0]"},
-			&SameTest{"1", "Factorial[-0]"},
-			&SameTest{"ComplexInfinity", "Factorial[-10]"},
-			&SameTest{"120", "Factorial[5]"},
-
-			&SameTest{"Indeterminate", "0 * Infinity"},
-			&SameTest{"Indeterminate", "0 * ComplexInfinity"},
 		},
 	})
 	return

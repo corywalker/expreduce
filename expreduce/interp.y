@@ -85,9 +85,9 @@ expr	:    LPARSYM expr RPARSYM
 	/*|    INTEGER NAME*/
 		/*{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }*/
 	|    expr SEMISYM expr
-		{ $$  =  FullyAssoc("CompoundExpression", $1, $3) }
+		{ $$  =  fullyAssoc("CompoundExpression", $1, $3) }
 	|    expr SEMISYM
-		{ $$  =  FullyAssoc("CompoundExpression", $1, &Symbol{"Null"}) }
+		{ $$  =  fullyAssoc("CompoundExpression", $1, &Symbol{"Null"}) }
 	|    expr FACTORIALSYM
 		{ $$  =  &Expression{[]Ex{&Symbol{"Factorial"}, $1}} }
 	|    expr FUNCTIONSYM
@@ -106,11 +106,11 @@ expr	:    LPARSYM expr RPARSYM
 			$$ = ex
 		}
 	|    expr PLUSSYM expr
-		{ $$  =  FullyAssoc("Plus", $1, $3) }
+		{ $$  =  fullyAssoc("Plus", $1, $3) }
 	|    expr MINUSSYM expr
-		{ $$  =  FullyAssoc("Plus", $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}}) }
+		{ $$  =  fullyAssoc("Plus", $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}}) }
 	|    expr MULTSYM expr
-		{ $$  =  FullyAssoc("Times", $1, $3) }
+		{ $$  =  fullyAssoc("Times", $1, $3) }
 	|    expr expr %prec MULTSYM
 		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }
 	|    expr DIVSYM expr
@@ -138,7 +138,7 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr PATTESTSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"PatternTest"}, $1, $3}} }
 	|    expr ALTSYM expr
-		{ $$  =  FullyAssoc("Alternatives", $1, $3) }
+		{ $$  =  fullyAssoc("Alternatives", $1, $3) }
 	|    expr APPLYSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"Apply"}, $1, $3}} }
 	|    expr MAPSYM expr
@@ -158,11 +158,11 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr SETDELAYEDSYM expr
 		{ $$  =  &Expression{[]Ex{&Symbol{"SetDelayed"}, $1, $3}} }
 	|    expr SAMESYM expr
-		{ $$  =  FullyAssoc("SameQ", $1, $3) }
+		{ $$  =  fullyAssoc("SameQ", $1, $3) }
 	|    expr EQUALSYM expr
-		{ $$  =  FullyAssoc("Equal", $1, $3) }
+		{ $$  =  fullyAssoc("Equal", $1, $3) }
 	|    expr UNEQUALSYM expr
-		{ $$  =  FullyAssoc("Unequal", $1, $3) }
+		{ $$  =  fullyAssoc("Unequal", $1, $3) }
 	|    MINUSSYM expr
 		{
 			if integer, isInteger := $2.(*Integer); isInteger {
@@ -180,13 +180,13 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr MESSAGENAMESYM expr
 		{
 			if sym, isSym := $3.(*Symbol); isSym {
-				$$  =  FullyAssoc("MessageName", $1, &String{sym.Name})
+				$$  =  fullyAssoc("MessageName", $1, &String{sym.Name})
 			} else {
-				$$  =  FullyAssoc("MessageName", $1, $3)
+				$$  =  fullyAssoc("MessageName", $1, $3)
 			}
 		}
 	|    expr STRINGJOINSYM expr
-		{ $$  =  FullyAssoc("StringJoin", $1, $3) }
+		{ $$  =  fullyAssoc("StringJoin", $1, $3) }
 	|    PATTERN
 		{ $$  =  $1 }
 	|    NAME
@@ -210,6 +210,15 @@ exprseq:
 	;
 
 %%      /*  start  of  programs  */
+
+func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
+	opExpr, isOp := HeadAssertion(lhs, op)
+	if isOp {
+		opExpr.Parts = append(opExpr.Parts, rhs)
+		return opExpr
+	}
+	return &Expression{[]Ex{&Symbol{op}, lhs, rhs}}
+}
 
 func removeParens(ex Ex) {
 	expr, isExpr := ex.(*Expression)
@@ -249,13 +258,4 @@ func EvalInterp(line string, es *EvalState) Ex {
 
 func EasyRun(line string, es *EvalState) string {
 	return EvalInterp(line, es).StringForm("InputForm")
-}
-
-func FullyAssoc(op string, lhs Ex, rhs Ex) Ex {
-	opExpr, isOp := HeadAssertion(lhs, op)
-	if isOp {
-		opExpr.Parts = append(opExpr.Parts, rhs)
-		return opExpr
-	}
-	return &Expression{[]Ex{&Symbol{op}, lhs, rhs}}
 }

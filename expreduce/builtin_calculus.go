@@ -1,6 +1,6 @@
 package expreduce
 
-func GetCalculusDefinitions() (defs []Definition) {
+func getCalculusDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "D",
 		Usage:      "`D[f, x]` finds the partial derivative of `f` with respect to `x`.",
