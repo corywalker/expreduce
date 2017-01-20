@@ -17,165 +17,59 @@ func ToStringBlankType(repr string, parts []Ex, form string) (bool, string) {
 	return false, ""
 }
 
-// -------------------------
-
-func IsBlankTypeOnly(e Ex) bool {
-	asPattern, patternOk := HeadAssertion(e, "Pattern")
-	if patternOk {
-		_, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
-		_, bsOk := HeadAssertion(asPattern.Parts[2], "BlankSequence")
-		_, bnsOk := HeadAssertion(asPattern.Parts[2], "BlankNullSequence")
-		if blankOk || bsOk || bnsOk {
-			return true
-		}
-	}
-	_, blankOk := HeadAssertion(e, "Blank")
-	_, bsOk := HeadAssertion(e, "BlankSequence")
-	_, bnsOk := HeadAssertion(e, "BlankNullSequence")
-	if blankOk || bsOk || bnsOk {
-		return true
-	}
-	return false
-}
-
-func IsBlankType(e Ex, t string) bool {
-	// Calling this function on an amatch_Integer with t == "Integer" would
-	// yield true, while calling this function on an actual integer with
-	// t == "Integer" would return false.
-	asPattern, patternOk := HeadAssertion(e, "Pattern")
-	if patternOk {
-		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
-		if blankOk {
-			asSymbol, symbolOk := asBlank.Parts[1].(*Symbol)
-			if symbolOk {
-				return asSymbol.Name == t
-			}
-		}
-	}
-	asBlank, blankOk := HeadAssertion(e, "Blank")
-	if blankOk {
-		asSymbol, symbolOk := asBlank.Parts[1].(*Symbol)
-		if symbolOk {
-			return asSymbol.Name == t
-		}
-	}
-	// TODO: Should I add BlankSequence support here? Doesn't seem to impact
-	// tests.
-	return false
-}
-
-func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	// Similar to IsBlankType, but will capture target into es.patternDefined
-	// if there is a valid match.
-	pm = CopyPD(pm)
-	asPattern, patternOk := HeadAssertion(e, "Pattern")
-	if patternOk {
-		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
-		asBS, bsOk := HeadAssertion(asPattern.Parts[2], "BlankSequence")
-		asBNS, bnsOk := HeadAssertion(asPattern.Parts[2], "BlankNullSequence")
-		if blankOk || bsOk || bnsOk {
-			parts := []Ex{}
-			if blankOk {
-				parts = asBlank.Parts
-			} else if bsOk {
-				parts = asBS.Parts
-			} else if bnsOk {
-				parts = asBNS.Parts
-			}
-			//if len(parts) < 2 {
-			//return true, pm
-			//}
-			cl.Debugf("%v %v", parts, len(parts))
-			matchesHead := false
-			if len(parts) < 2 {
-				matchesHead = true
-			} else {
-				asSymbol, symbolOk := parts[1].(*Symbol)
-				if symbolOk {
-					if asSymbol.Name == t {
-						matchesHead = true
-					}
-				}
-			}
-			cl.Debugf("%v", matchesHead)
-			if matchesHead {
-				sAsSymbol, sAsSymbolOk := asPattern.Parts[1].(*Symbol)
-				if sAsSymbolOk {
-					// TODO: we should handle matches with BlankSequences
-					// differently here.
-					//_, isd := es.defined[sAsSymbol.Name]
-					toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
-					if !ispd {
-						toMatch = target
-						pm.patternDefined[sAsSymbol.Name] = target
-					}
-					if !IsSameQ(toMatch, target, cl) {
-						return false, pm
-					}
-
-					/*if !isd {
-						//es.defined[sAsSymbol.Name] = target
-						es.Define(sAsSymbol.Name, sAsSymbol, target)
-					} else {
-						//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
-						return true
-					}*/
-				}
-				return true, pm
-			}
-			return false, pm
-		}
-	}
-	asBlank, blankOk := HeadAssertion(e, "Blank")
-	asBS, bsOk := HeadAssertion(e, "BlankSequence")
-	asBNS, bnsOk := HeadAssertion(e, "BlankNullSequence")
-	if blankOk || bsOk || bnsOk {
-		var asSymbol *Symbol
-		parts := []Ex{}
-		if blankOk {
-			parts = asBlank.Parts
-		} else if bsOk {
-			parts = asBS.Parts
-		} else if bnsOk {
-			parts = asBNS.Parts
-		}
-		if len(parts) < 2 {
-			return true, pm
-		}
-		asSymbol, symbolOk := parts[1].(*Symbol)
-		if symbolOk {
-			return asSymbol.Name == t, pm
-		}
-	}
-	return false, pm
-}
-
-func BlankNullSequenceToBlank(bns *Expression) *Expression {
-	if len(bns.Parts) < 2 {
-		return &Expression{[]Ex{&Symbol{"Blank"}}}
-	}
-	return &Expression{[]Ex{&Symbol{"Blank"}, bns.Parts[1]}}
-}
-
-func BlankSequenceToBlank(bs *Expression) *Expression {
-	if len(bs.Parts) < 2 {
-		return &Expression{[]Ex{&Symbol{"Blank"}}}
-	}
-	return &Expression{[]Ex{&Symbol{"Blank"}, bs.Parts[1]}}
-}
-
-func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) bool {
-	toReturn := true
-	for _, e := range array {
-		tmpEs := NewEvalStateNoLog(false)
-		isMatch, _ := IsMatchQ(e, blank, EmptyPD(), &tmpEs.CASLogger)
-		cl.Debugf("%v %v %v", e, blank, isMatch)
-		toReturn = toReturn && isMatch
-	}
-	return toReturn
-}
-
 func GetPatternDefinitions() (defs []Definition) {
+	defs = append(defs, Definition{
+		Name:  "MatchQ",
+		Usage: "`MatchQ[expr, form]` returns True if `expr` matches `form`, False otherwise.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger); res {
+				return &Symbol{"True"}
+			} else {
+				return &Symbol{"False"}
+			}
+		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"A `Blank[]` expression matches everything:"},
+			&SameTest{"True", "MatchQ[2*x, _]"},
+			&TestComment{"Although a more specific pattern would have matched as well:"},
+			&SameTest{"True", "MatchQ[2*x, c1_Integer*a_Symbol]"},
+			&TestComment{"Since `Times` is `Orderless`, this would work as well:"},
+			&SameTest{"True", "MatchQ[x*2, c1_Integer*a_Symbol]"},
+			&TestComment{"As would the `FullForm`:"},
+			&SameTest{"True", "MatchQ[Times[x, 2], c1_Integer*a_Symbol]"},
+
+			&TestComment{"Named patterns must match the same expression, or the match will fail:"},
+			&SameTest{"False", "MatchQ[a + b, x_Symbol + x_Symbol]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&SameTest{"True", "MatchQ[{2^a, a}, {2^x_Symbol, x_Symbol}]"},
+			&SameTest{"False", "MatchQ[{2^a, b}, {2^x_Symbol, x_Symbol}]"},
+			&TestComment{"`Blank` sequences allow for the matching of multiple objects. `BlankSequence` (__) matches one or more parts of the expression:"},
+			&SameTest{"True", "MatchQ[{a, b}, {a, __}]"},
+			&SameTest{"False", "MatchQ[{a}, {a, __}]"},
+			&TestComment{"`BlankNullSequence` (___) allows for zero or more matches:"},
+			&SameTest{"True", "MatchQ[{a}, {a, ___}]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"True", "MatchQ[2^x, base_Integer^pow_Symbol]"},
+			&SameTest{"True", "MatchQ[2+x, c1_Integer+a_Symbol]"},
+			&SameTest{"True", "MatchQ[a + b, x_Symbol + y_Symbol]"},
+			&SameTest{"True", "MatchQ[{a,b}, {x_Symbol,y_Symbol}]"},
+			&SameTest{"False", "MatchQ[{a,b}, {x_Symbol,x_Symbol}]"},
+			// Test speed of OrderlessIsMatchQ
+			&SameTest{"Null", "Plus[testa, testb, rest___] := bar + rest"},
+			&SameTest{"bar + 1 + a + b + c + d + e + f + g", "Plus[testa,1,testb,a,b,c,d,e,f,g]"},
+
+			&SameTest{"True", "MatchQ[foo[2*x, x], foo[matcha_Integer*matchx_, matchx_]]"},
+			&SameTest{"False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]"},
+			&SameTest{"False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]"},
+			&SameTest{"False", "MatchQ[foo[x, 2*y], foo[matcha_Integer*matchx_, matchx_]]"},
+		},
+	})
 	defs = append(defs, Definition{
 		Name: "Pattern",
 		Usage: "`name{BLANKFORM}` is equivalent to `Pattern[name, {BLANKFORM}]` and can be used in pattern matching to refer to the matched expression as `name`, where `{BLANKFORM}` is one of `{_, __, ___}`.\n\n" +

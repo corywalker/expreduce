@@ -193,55 +193,56 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "MatchQ",
-		Usage: "`MatchQ[expr, form]` returns True if `expr` matches `form`, False otherwise.",
+		Name:  "AtomQ",
+		Usage: "`AtomQ[expr]` returns True if `expr` is an atomic type, and False if `expr` is a full expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+			if len(this.Parts) != 2 {
 				return this
 			}
 
-			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger); res {
-				return &Symbol{"True"}
-			} else {
+			_, IsExpr := this.Parts[1].(*Expression)
+			if IsExpr {
 				return &Symbol{"False"}
 			}
+			return &Symbol{"True"}
 		},
 		SimpleExamples: []TestInstruction{
-			&TestComment{"A `Blank[]` expression matches everything:"},
-			&SameTest{"True", "MatchQ[2*x, _]"},
-			&TestComment{"Although a more specific pattern would have matched as well:"},
-			&SameTest{"True", "MatchQ[2*x, c1_Integer*a_Symbol]"},
-			&TestComment{"Since `Times` is `Orderless`, this would work as well:"},
-			&SameTest{"True", "MatchQ[x*2, c1_Integer*a_Symbol]"},
-			&TestComment{"As would the `FullForm`:"},
-			&SameTest{"True", "MatchQ[Times[x, 2], c1_Integer*a_Symbol]"},
-
-			&TestComment{"Named patterns must match the same expression, or the match will fail:"},
-			&SameTest{"False", "MatchQ[a + b, x_Symbol + x_Symbol]"},
+			&SameTest{"True", "AtomQ[\"hello\"]"},
+			&SameTest{"True", "AtomQ[5/3]"},
+			&SameTest{"True", "AtomQ[hello]"},
+			&SameTest{"False", "AtomQ[a/b]"},
+			&SameTest{"False", "AtomQ[bar[x]]"},
 		},
-		FurtherExamples: []TestInstruction{
-			&SameTest{"True", "MatchQ[{2^a, a}, {2^x_Symbol, x_Symbol}]"},
-			&SameTest{"False", "MatchQ[{2^a, b}, {2^x_Symbol, x_Symbol}]"},
-			&TestComment{"`Blank` sequences allow for the matching of multiple objects. `BlankSequence` (__) matches one or more parts of the expression:"},
-			&SameTest{"True", "MatchQ[{a, b}, {a, __}]"},
-			&SameTest{"False", "MatchQ[{a}, {a, __}]"},
-			&TestComment{"`BlankNullSequence` (___) allows for zero or more matches:"},
-			&SameTest{"True", "MatchQ[{a}, {a, ___}]"},
+	})
+	defs = append(defs, Definition{
+		Name:  "NumberQ",
+		Usage: "`NumberQ[expr]` returns True if `expr` is numeric, otherwise False.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			_, ok := this.Parts[1].(*Integer)
+			if ok {
+				return &Symbol{"True"}
+			}
+			_, ok = this.Parts[1].(*Flt)
+			if ok {
+				return &Symbol{"True"}
+			}
+			_, ok = this.Parts[1].(*Rational)
+			if ok {
+				return &Symbol{"True"}
+			}
+			return &Symbol{"False"}
 		},
-		Tests: []TestInstruction{
-			&SameTest{"True", "MatchQ[2^x, base_Integer^pow_Symbol]"},
-			&SameTest{"True", "MatchQ[2+x, c1_Integer+a_Symbol]"},
-			&SameTest{"True", "MatchQ[a + b, x_Symbol + y_Symbol]"},
-			&SameTest{"True", "MatchQ[{a,b}, {x_Symbol,y_Symbol}]"},
-			&SameTest{"False", "MatchQ[{a,b}, {x_Symbol,x_Symbol}]"},
-			// Test speed of OrderlessIsMatchQ
-			&SameTest{"Null", "Plus[testa, testb, rest___] := bar + rest"},
-			&SameTest{"bar + 1 + a + b + c + d + e + f + g", "Plus[testa,1,testb,a,b,c,d,e,f,g]"},
-
-			&SameTest{"True", "MatchQ[foo[2*x, x], foo[matcha_Integer*matchx_, matchx_]]"},
-			&SameTest{"False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]"},
-			&SameTest{"False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]"},
-			&SameTest{"False", "MatchQ[foo[x, 2*y], foo[matcha_Integer*matchx_, matchx_]]"},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"True", "NumberQ[2]"},
+			&SameTest{"True", "NumberQ[2.2]"},
+			&SameTest{"True", "NumberQ[Rational[5, 2]]"},
+			&SameTest{"False", "NumberQ[Infinity]"},
+			&SameTest{"False", "NumberQ[Sqrt[2]]"},
+			&SameTest{"False", "NumberQ[randomvar]"},
+			&SameTest{"False", "NumberQ[\"hello\"]"},
 		},
 	})
 	return

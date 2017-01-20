@@ -1,41 +1,110 @@
 package expreduce
 
+import "math/big"
+
+func CalcDepth(ex Ex) int {
+	expr, isExpr := ex.(*Expression)
+	if !isExpr {
+		return 1
+	}
+	theMax := 1
+	// Find max depth of params. Heads are not counted.
+	for i := 1; i < len(expr.Parts); i++ {
+		theMax = Max(theMax, CalcDepth(expr.Parts[i]))
+	}
+	return theMax + 1
+}
+
 func GetExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "Apply",
-		Usage: "`Apply[f, e]` (`f@@e`) replaces the head of expression `e` with `f`.",
+		Name:  "Head",
+		Usage: "`Head[expr]` returns the head of the expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+			if len(this.Parts) != 2 {
 				return this
 			}
 
-			sym, isSym := this.Parts[1].(*Symbol)
-			expr, isExpr := this.Parts[2].DeepCopy().(*Expression)
-			if isSym && isExpr {
-				toReturn := &Expression{[]Ex{sym}}
-				toReturn.Parts = append(toReturn.Parts, expr.Parts[1:]...)
-				return toReturn.Eval(es)
+			_, IsFlt := this.Parts[1].(*Flt)
+			if IsFlt {
+				return &Symbol{"Real"}
 			}
-			return this.Parts[2]
+			_, IsInteger := this.Parts[1].(*Integer)
+			if IsInteger {
+				return &Symbol{"Integer"}
+			}
+			_, IsString := this.Parts[1].(*String)
+			if IsString {
+				return &Symbol{"String"}
+			}
+			_, IsSymbol := this.Parts[1].(*Symbol)
+			if IsSymbol {
+				return &Symbol{"Symbol"}
+			}
+			_, IsRational := this.Parts[1].(*Rational)
+			if IsRational {
+				return &Symbol{"Rational"}
+			}
+			asExpr, IsExpression := this.Parts[1].(*Expression)
+			if IsExpression {
+				return asExpr.Parts[0].DeepCopy()
+			}
+			return this
 		},
 		SimpleExamples: []TestInstruction{
-			&SameTest{"bar[syma, symb]", "Apply[bar, foo[syma, symb]]"},
-			&SameTest{"bar[syma, symb]", "bar@@foo[syma, symb]"},
-			&SameTest{"{syma, symb}", "List@@(syma + symb)"},
-			&TestComment{"`Apply` is useful in performing aggregations on `List`s:"},
-			&SameTest{"12", "Times @@ {2, 6}"},
-			&SameTest{"a b", "Times @@ {a, b}"},
+			&SameTest{"f", "Head[f[x]]"},
+			&SameTest{"Symbol", "Head[x]"},
+			&SameTest{"List", "Head[{x}]"},
+			&SameTest{"Plus", "Head[a + b]"},
+			&SameTest{"Integer", "Head[1]"},
+			&SameTest{"Real", "Head[1.]"},
+			&SameTest{"Rational", "Head[2/7]"},
+			&SameTest{"Rational", "Head[1/7]"},
+			&SameTest{"String", "Head[\"1\"]"},
+			&SameTest{"Plus", "Head[Head[(a + b)[x]]]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Depth",
+		Usage: "`Depth[expr]` returns the depth of `expr`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			return &Integer{big.NewInt(int64(CalcDepth(this.Parts[1])))}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"1", "Depth[foo]"},
+			&SameTest{"2", "Depth[{foo}]"},
+			&SameTest{"2", "Depth[bar[foo, bar]]"},
+			&SameTest{"3", "Depth[foo[foo[]]]"},
+			&SameTest{"1", "Depth[3]"},
+			&SameTest{"1", "Depth[3.5]"},
+			&SameTest{"1", "Depth[3/5]"},
+			&SameTest{"2", "Depth[foo[{{{}}}][]]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Length",
+		Usage: "`Length[expr]` returns the length of `expr`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			expr, isExpr := this.Parts[1].(*Expression)
+			if isExpr {
+				return &Integer{big.NewInt(int64(len(expr.Parts) - 1))}
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"4", "Length[{1,2,3,4}]"},
+			&SameTest{"0", "Length[{}]"},
+			&SameTest{"1", "Length[{5}]"},
 		},
 		FurtherExamples: []TestInstruction{
-			&TestComment{"`Apply` has no effect on atoms:"},
-			&SameTest{"1", "foo @@ 1"},
-			&SameTest{"bar", "foo @@ bar"},
-		},
-		Tests: []TestInstruction{
-			&SameTest{"foo[a,b,c]", "Apply[foo, {a,b,c}]"},
-			&SameTest{"foo[bar, buzz]", "Apply[foo, {bar, buzz}]"},
-			&SameTest{"foo[bar, buzz]", "foo @@ {bar, buzz}"},
-			&SameTest{"foo[1, 2]", "foo @@ {1, 2}"},
+			&TestComment{"`expr` need not have a `List` head:"},
+			&SameTest{"2", "Length[foo[1, 2]]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -76,32 +145,6 @@ func GetExpressionDefinitions() (defs []Definition) {
 			&StringTest{"Hold[foo[Evaluate[(1 + 1)]]]", "Hold[foo[Evaluate[1 + 1]]]"},
 			&StringTest{"Hold[4, 7, (2 + 1)]", "Hold[Evaluate[1 + 3, 5 + 2], 2 + 1]"},
 			&StringTest{"Hold[(1 + 3), (5 + 2), (2 + 1)]", "Hold[Sequence[1 + 3, 5 + 2], 2 + 1]"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name: "Function",
-		Usage: "`Function[inner]` defines a pure function where `inner` is evaluated with `Slot` parameters.\n\n" +
-			"`Function[x, inner]` defines a pure function where `inner` is evaluated a single parameter `x`.",
-		Attributes: []string{"HoldAll"},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"1 + x", "Function[1 + #][x]"},
-			&SameTest{"1 + x + 2y", "Function[1 + # + 2#2][x, y]"},
-			&SameTest{"a^2", "Function[x, x^2][a]"},
-			&SameTest{"a^2", "Function[x, x^2][a, b]"},
-			&SameTest{"x^2", "Function[x, x^2][x]"},
-			&SameTest{"4", "Function[x, x^2][-2]"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name: "Slot",
-		Usage: "`#` serves as a pure function's first parameter.\n\n" +
-			"`#n` serves as a pure function's `n`'th parameter.",
-		Attributes: []string{"NHoldAll"},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"1 + x", "Function[1 + #][x]"},
-			&SameTest{"1 + x + 2y", "Function[1 + # + 2#2][x, y]"},
-			&SameTest{"True", "# === Slot[1]"},
-			&SameTest{"True", "#2 === Slot[2]"},
 		},
 	})
 	defs = append(defs, Definition{

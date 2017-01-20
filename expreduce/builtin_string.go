@@ -69,5 +69,13 @@ func GetStringDefinitions() (defs []Definition) {
 			&SameTest{"\"abc\"", "StringJoin[{\"a\", \"b\", \"c\"}]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:     "Infix",
+		Usage:    "`Infix[expr, sep]` represents `expr` in infix form with separator `sep` when converted to a string.",
+		toString: (*Expression).ToStringInfix,
+		SimpleExamples: []TestInstruction{
+			&SameTest{"\"(bar|fuzz|zip)\"", "Infix[foo[bar, fuzz, zip], \"|\"] // ToString"},
+		},
+	})
 	return
 }

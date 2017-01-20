@@ -3,78 +3,6 @@ package expreduce
 import "math/big"
 import "time"
 import "fmt"
-import "bytes"
-
-func ToStringInfix(parts []Ex, delim string, form string) (bool, string) {
-	if form != "InputForm" && form != "OutputForm" {
-		return false, ""
-	}
-	if len(parts) < 2 {
-		return false, ""
-	}
-	var buffer bytes.Buffer
-	buffer.WriteString("(")
-	for i := 0; i < len(parts); i++ {
-		buffer.WriteString(parts[i].StringForm(form))
-		if i != len(parts)-1 {
-			buffer.WriteString(delim)
-		}
-	}
-	buffer.WriteString(")")
-	return true, buffer.String()
-}
-
-func (this *Expression) ToStringInfix(form string) (bool, string) {
-	if len(this.Parts) != 3 {
-		return false, ""
-	}
-	expr, isExpr := this.Parts[1].(*Expression)
-	delim, delimIsStr := this.Parts[2].(*String)
-	if !isExpr || !delimIsStr {
-		return false, ""
-	}
-	return ToStringInfix(expr.Parts[1:], delim.Val, form)
-}
-
-func TrueQ(ex Ex) bool {
-	asSym, isSym := ex.(*Symbol)
-	if !isSym {
-		return false
-	}
-	if !(asSym.Name == "True") {
-		return false
-	}
-	return true
-}
-
-func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start string, end string, form string) (bool, string) {
-	if form != "InputForm" && form != "OutputForm" {
-		return false, ""
-	}
-	if len(parts) < 2 {
-		return false, ""
-	}
-	var buffer bytes.Buffer
-	if !surroundEachArg {
-		buffer.WriteString(start)
-	}
-	for i := 0; i < len(parts); i++ {
-		if surroundEachArg {
-			buffer.WriteString("(")
-			buffer.WriteString(parts[i].String())
-			buffer.WriteString(")")
-		} else {
-			buffer.WriteString(parts[i].String())
-		}
-		if i != len(parts)-1 {
-			buffer.WriteString(delim)
-		}
-	}
-	if !surroundEachArg {
-		buffer.WriteString(end)
-	}
-	return true, buffer.String()
-}
 
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
@@ -101,6 +29,68 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:       "Attributes",
+		Usage:      "`Attributes[sym]` returns a `List` of attributes for `sym`.",
+		Attributes: []string{"HoldAll", "Listable"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			sym, isSym := this.Parts[1].(*Symbol)
+			if !isSym {
+				return this
+			}
+
+			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+			def, isDef := es.defined[sym.Name]
+			if isDef {
+				for _, s := range def.attributes.toStrings() {
+					toReturn.Parts = append(toReturn.Parts, &Symbol{s})
+				}
+			}
+			return toReturn
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{Protected, ReadProtected}", "Attributes[Infinity]"},
+			&SameTest{"{HoldAll, Listable, Protected}", "Attributes[Attributes]"},
+			&SameTest{"{Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}", "Attributes[Plus]"},
+			&TestComment{"The default set of attributes is the empty list:"},
+			&SameTest{"{}", "Attributes[undefinedSym]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"Only symbols can have attributes:"},
+			&SameTest{"Attributes[2]", "Attributes[2]"},
+			&SameTest{"Attributes[a^2]", "Attributes[a^2]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "Clear",
+		Usage:      "`Clear[sym1, sym2, ...]` clears the symbol definitions from the evaluation context.",
+		Attributes: []string{"HoldAll"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			for _, arg := range this.Parts[1:] {
+				es.Debugf("arg: %v", arg)
+				sym, isSym := arg.(*Symbol)
+				if isSym {
+					es.Clear(sym.Name)
+				}
+			}
+			return &Symbol{"Null"}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"a", "a"},
+			&SameTest{"5", "a = 5"},
+			&SameTest{"6", "b = 6"},
+			&SameTest{"7", "c = 7"},
+			&SameTest{"5", "a"},
+			&SameTest{"Null", "Clear[a, 99, b]"},
+			&StringTest{"a", "a"},
+			&StringTest{"b", "b"},
+			&StringTest{"7", "c"},
+		},
+	})
+	defs = append(defs, Definition{
 		Name:              "Definition",
 		Attributes:        []string{"HoldAll"},
 		OmitDocumentation: true,
@@ -111,6 +101,146 @@ func GetSystemDefinitions() (defs []Definition) {
 
 			//sym, ok := this.Expr.(*Symbol)
 			return &Expression{[]Ex{&Symbol{"Error"}, &String{es.String()}}}
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "Set",
+		Usage:      "`lhs = rhs` sets `lhs` to stand for `rhs`.",
+		Attributes: []string{"HoldFirst", "SequenceHold"},
+		toString: func(this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], " = ", true, "(", ")", form)
+		},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			LhsSym, ok := this.Parts[1].(*Symbol)
+			if ok {
+				es.Define(LhsSym.Name, LhsSym, this.Parts[2])
+				return this.Parts[2]
+			}
+			LhsF, ok := this.Parts[1].(*Expression)
+			if ok {
+				headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
+				if headIsSym {
+					es.Define(headAsSym.Name, LhsF, this.Parts[2])
+					return this.Parts[2]
+				}
+			}
+
+			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
+		},
+		SimpleExamples: []TestInstruction{
+			&StringTest{"3", "x=1+2"},
+			&StringTest{"3", "x"},
+			&StringTest{"4", "x+1"},
+			// To make sure the result does not change
+			&StringTest{"4", "x+1"},
+
+			&StringTest{"3", "x=1+2"},
+			&StringTest{"6", "x*2"},
+			// To make sure the result does not change
+			&StringTest{"6", "x=x*2"},
+			&StringTest{"36", "x=x*x"},
+
+			&StringTest{"a^2", "y=a*a"},
+			&StringTest{"a^4", "y=y*y"},
+			&StringTest{"2", "a=2"},
+			&StringTest{"16", "y"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:"},
+			&SameTest{"{HoldFirst, Protected, SequenceHold}", "Attributes[Set]"},
+			&TestComment{"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:"},
+			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "SetDelayed",
+		Usage:      "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
+		Attributes: []string{"HoldAll", "SequenceHold"},
+		toString: func(this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 3 {
+				return false, ""
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], " := ", true, "(", ")", form)
+		},
+		Bootstrap: true,
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			LhsSym, ok := this.Parts[1].(*Symbol)
+			if ok {
+				es.Define(LhsSym.Name, LhsSym, this.Parts[2])
+				return &Symbol{"Null"}
+			}
+			LhsF, ok := this.Parts[1].(*Expression)
+			if ok {
+				headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
+				if headIsSym {
+					es.Define(headAsSym.Name, LhsF, this.Parts[2])
+					return &Symbol{"Null"}
+				}
+			}
+
+			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
+		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"`SetDelayed` can be used to define functions:"},
+			&SameTest{"Null", "testa[x_] := x*2"},
+			&SameTest{"Null", "testa[x_Integer] := x*3"},
+			&SameTest{"Null", "testa[x_Real] := x*4"},
+			&TestComment{"The more \"specific\" definitions match first:"},
+			&SameTest{"8.", "testa[2.]"},
+			&SameTest{"6", "testa[2]"},
+			&TestComment{"There is no specific match for `testa[k]`, so the general case matches:"},
+			&SameTest{"2 * k", "testa[k]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:"},
+			&SameTest{"{HoldFirst, Protected, SequenceHold}", "Attributes[Set]"},
+			&TestComment{"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:"},
+			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
+		},
+		Tests: []TestInstruction{
+			// Test function definitions
+			&SameTest{"Null", "testa[x_] := x*2"},
+			&SameTest{"Null", "testa[x_Integer] := x*3"},
+			&SameTest{"Null", "testa[x_Real] := x*4"},
+			&SameTest{"8.", "testa[2.]"},
+			&SameTest{"6", "testa[2]"},
+			&SameTest{"2 * k", "testa[k]"},
+			&SameTest{"Null", "testb[x_Real] := x*4"},
+			&SameTest{"Null", "testb[x_Integer] := x*3"},
+			&SameTest{"Null", "testb[x_] := x*2"},
+			&SameTest{"8.", "testb[2.]"},
+			&SameTest{"6", "testb[2]"},
+			&SameTest{"2 * k", "testb[k]"},
+			&SameTest{"testa", "testa"},
+			&SameTest{"testb", "testb"},
+			&SameTest{"Null", "testb[x_] := x*5"},
+			&SameTest{"5 * k", "testb[k]"},
+			&SameTest{"8.", "testb[2.]"},
+			&SameTest{"Null", "testb[x_Real + sym] := 5"},
+			&SameTest{"5", "testb[2.+sym]"},
+			&SameTest{"5", "testb[sym+2.]"},
+			&SameTest{"Null", "testb[x_Real + sym] := 6"},
+			&SameTest{"6", "testb[2.+sym]"},
+			&SameTest{"6", "testb[sym+2.]"},
+			&SameTest{"Null", "dist[x_, y_]:=(x^2 + y^2)^.5"},
+			&SameTest{"(j^2+k^2)^.5", "dist[j,k]"},
+
+			// Test pattern name conflicts.
+			&SameTest{"Null", "foo[k_, m_] := bar[k, m]"},
+			&SameTest{"bar[m, 2]", "foo[m, 2]"},
+			&SameTest{"Null", "fizz[m_, k_] := buzz[m, k]"},
+			&SameTest{"buzz[m, 2]", "fizz[m, 2]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -144,85 +274,12 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "CompoundExpression",
-		Usage:      "`CompoundExpression[e1, e2, ...]` evaluates each expression in order and returns the result of the last one.",
-		Attributes: []string{"HoldAll", "ReadProtected"},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			var toReturn Ex
-			for i := 1; i < len(this.Parts); i++ {
-				toReturn = this.Parts[i].Eval(es)
-			}
-			return toReturn
-		},
-		SimpleExamples: []TestInstruction{
-			&TestComment{"The result of the first expression is not included in the output, but the result of the second is:"},
-			&SameTest{"3", "a = 5; a - 2"},
-			&TestComment{"Including a trailing semicolon causes the expression to return `Null`:"},
-			&SameTest{"Null", "a = 5; a - 2;"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name:  "Head",
-		Usage: "`Head[expr]` returns the head of the expression.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
-				return this
-			}
-
-			_, IsFlt := this.Parts[1].(*Flt)
-			if IsFlt {
-				return &Symbol{"Real"}
-			}
-			_, IsInteger := this.Parts[1].(*Integer)
-			if IsInteger {
-				return &Symbol{"Integer"}
-			}
-			_, IsString := this.Parts[1].(*String)
-			if IsString {
-				return &Symbol{"String"}
-			}
-			_, IsSymbol := this.Parts[1].(*Symbol)
-			if IsSymbol {
-				return &Symbol{"Symbol"}
-			}
-			_, IsRational := this.Parts[1].(*Rational)
-			if IsRational {
-				return &Symbol{"Rational"}
-			}
-			asExpr, IsExpression := this.Parts[1].(*Expression)
-			if IsExpression {
-				return asExpr.Parts[0].DeepCopy()
-			}
-			return this
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"f", "Head[f[x]]"},
-			&SameTest{"Symbol", "Head[x]"},
-			&SameTest{"List", "Head[{x}]"},
-			&SameTest{"Plus", "Head[a + b]"},
-			&SameTest{"Integer", "Head[1]"},
-			&SameTest{"Real", "Head[1.]"},
-			&SameTest{"Rational", "Head[2/7]"},
-			&SameTest{"Rational", "Head[1/7]"},
-			&SameTest{"String", "Head[\"1\"]"},
-			&SameTest{"Plus", "Head[Head[(a + b)[x]]]"},
-		},
-	})
-	defs = append(defs, Definition{
 		Name:       "MessageName",
 		Usage:      "`sym::msg` references a particular message for `sym`.",
 		Attributes: []string{"HoldFirst", "ReadProtected"},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"`MessageName` is used to store the usage messages of built-in symbols:"},
 			&SameTest{"\"`sym::msg` references a particular message for `sym`.\"", "MessageName::usage"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name:     "Infix",
-		Usage:    "`Infix[expr, sep]` represents `expr` in infix form with separator `sep` when converted to a string.",
-		toString: (*Expression).ToStringInfix,
-		SimpleExamples: []TestInstruction{
-			&SameTest{"\"(bar|fuzz|zip)\"", "Infix[foo[bar, fuzz, zip], \"|\"] // ToString"},
 		},
 	})
 	return

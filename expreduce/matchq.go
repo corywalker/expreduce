@@ -343,3 +343,14 @@ func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
 	}
 	return
 }
+
+func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) bool {
+	toReturn := true
+	for _, e := range array {
+		tmpEs := NewEvalStateNoLog(false)
+		isMatch, _ := IsMatchQ(e, blank, EmptyPD(), &tmpEs.CASLogger)
+		cl.Debugf("%v %v %v", e, blank, isMatch)
+		toReturn = toReturn && isMatch
+	}
+	return toReturn
+}

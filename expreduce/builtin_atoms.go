@@ -1,6 +1,6 @@
 package expreduce
 
-func getConstantsDefinitions() (defs []Definition) {
+func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "Rational",
 		Usage: "`Rational` is the head for the atomic rational type.",
@@ -63,37 +63,6 @@ func getConstantsDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[1/2, Rational[1, 2]]"},
 			&SameTest{"True", "MatchQ[Rational[1, 2], 1/2]"},
 			&SameTest{"False", "Hold[Rational[1, 2]] === Hold[1/2]"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name:  "NumberQ",
-		Usage: "`NumberQ[expr]` returns True if `expr` is numeric, otherwise False.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
-				return this
-			}
-			_, ok := this.Parts[1].(*Integer)
-			if ok {
-				return &Symbol{"True"}
-			}
-			_, ok = this.Parts[1].(*Flt)
-			if ok {
-				return &Symbol{"True"}
-			}
-			_, ok = this.Parts[1].(*Rational)
-			if ok {
-				return &Symbol{"True"}
-			}
-			return &Symbol{"False"}
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"True", "NumberQ[2]"},
-			&SameTest{"True", "NumberQ[2.2]"},
-			&SameTest{"True", "NumberQ[Rational[5, 2]]"},
-			&SameTest{"False", "NumberQ[Infinity]"},
-			&SameTest{"False", "NumberQ[Sqrt[2]]"},
-			&SameTest{"False", "NumberQ[randomvar]"},
-			&SameTest{"False", "NumberQ[\"hello\"]"},
 		},
 	})
 	defs = append(defs, Definition{

@@ -19,142 +19,6 @@ func (this *Expression) ToStringList(form string) (bool, string) {
 	return true, buffer.String()
 }
 
-type IterSpec struct {
-	i       Ex
-	iName   string
-	iMin    *Integer
-	iMax    *Integer
-	curr    int64
-	iMaxInt int64
-}
-
-func IterSpecFromList(listEx Ex) (is IterSpec, isOk bool) {
-	list, isList := HeadAssertion(listEx, "List")
-	if isList {
-		iOk, iMinOk, iMaxOk := false, false, false
-		if len(list.Parts) > 2 {
-			iAsSymbol, iIsSymbol := list.Parts[1].(*Symbol)
-			if iIsSymbol {
-				iOk = true
-				is.i = iAsSymbol
-				is.iName = iAsSymbol.Name
-			}
-			iAsExpression, iIsExpression := list.Parts[1].(*Expression)
-			if iIsExpression {
-				headAsSymbol, headIsSymbol := iAsExpression.Parts[0].(*Symbol)
-				if headIsSymbol {
-					iOk = true
-					is.i = iAsExpression
-					is.iName = headAsSymbol.Name
-				}
-			}
-		}
-		if len(list.Parts) == 3 {
-			is.iMin, iMinOk = &Integer{big.NewInt(1)}, true
-			is.iMax, iMaxOk = list.Parts[2].(*Integer)
-		} else if len(list.Parts) == 4 {
-			is.iMin, iMinOk = list.Parts[2].(*Integer)
-			is.iMax, iMaxOk = list.Parts[3].(*Integer)
-		}
-		if iOk && iMinOk && iMaxOk {
-			is.Reset()
-			return is, true
-		}
-	}
-	return is, false
-}
-
-func (this *IterSpec) Reset() {
-	this.curr = this.iMin.Val.Int64()
-	this.iMaxInt = this.iMax.Val.Int64()
-}
-
-func (this *IterSpec) Next() {
-	this.curr++
-}
-
-func (this *IterSpec) Cont() bool {
-	return this.curr <= this.iMaxInt
-}
-
-type MultiIterSpec struct {
-	iSpecs     []IterSpec
-	origDefs   []Ex
-	isOrigDefs []bool
-	cont       bool
-}
-
-func MultiIterSpecFromLists(lists []Ex) (mis MultiIterSpec, isOk bool) {
-	// Retrieve variables of iteration
-	mis.cont = true
-	for i := range lists {
-		is, isOk := IterSpecFromList(lists[i])
-		if !isOk {
-			return mis, false
-		}
-		mis.iSpecs = append(mis.iSpecs, is)
-	}
-	return mis, true
-}
-
-func (this *MultiIterSpec) Next() {
-	for i := len(this.iSpecs) - 1; i >= 0; i-- {
-		this.iSpecs[i].Next()
-		if this.iSpecs[i].Cont() {
-			return
-		}
-		this.iSpecs[i].Reset()
-	}
-	this.cont = false
-}
-
-func (this *MultiIterSpec) Cont() bool {
-	return this.cont
-}
-
-func (this *MultiIterSpec) TakeVarSnapshot(es *EvalState) {
-	this.origDefs = make([]Ex, len(this.iSpecs))
-	this.isOrigDefs = make([]bool, len(this.iSpecs))
-	for i := range this.iSpecs {
-		this.origDefs[i], this.isOrigDefs[i] = es.GetDef(this.iSpecs[i].iName, this.iSpecs[i].i)
-	}
-}
-
-func (this *MultiIterSpec) RestoreVarSnapshot(es *EvalState) {
-	for i := range this.iSpecs {
-		if this.isOrigDefs[i] {
-			es.Define(this.iSpecs[i].iName, this.iSpecs[i].i, this.origDefs[i])
-		} else {
-			es.Clear(this.iSpecs[i].iName)
-		}
-	}
-}
-
-func (this *MultiIterSpec) DefineCurrent(es *EvalState) {
-	for i := range this.iSpecs {
-		es.Define(this.iSpecs[i].iName, this.iSpecs[i].i, &Integer{big.NewInt(this.iSpecs[i].curr)})
-	}
-}
-
-func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex {
-	if len(this.Parts) >= 3 {
-		mis, isOk := MultiIterSpecFromLists(this.Parts[2:])
-		if isOk {
-			// Simulate evaluation within Block[]
-			mis.TakeVarSnapshot(es)
-			var toReturn Ex = init
-			for mis.Cont() {
-				mis.DefineCurrent(es)
-				toReturn = (&Expression{[]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
-				mis.Next()
-			}
-			mis.RestoreVarSnapshot(es)
-			return toReturn
-		}
-	}
-	return this
-}
-
 func MemberQ(components []Ex, item Ex, cl *CASLogger) bool {
 	for _, part := range components {
 		if matchq, _ := IsMatchQ(part, item, EmptyPD(), cl); matchq {
@@ -186,19 +50,6 @@ func ValidatePadParams(this *Expression) (list *Expression, n int64, x Ex, valid
 
 	valid = true
 	return
-}
-
-func CalcDepth(ex Ex) int {
-	expr, isExpr := ex.(*Expression)
-	if !isExpr {
-		return 1
-	}
-	theMax := 1
-	// Find max depth of params. Heads are not counted.
-	for i := 1; i < len(expr.Parts); i++ {
-		theMax = Max(theMax, CalcDepth(expr.Parts[i]))
-	}
-	return theMax + 1
 }
 
 func GetListDefinitions() (defs []Definition) {
@@ -233,50 +84,6 @@ func GetListDefinitions() (defs []Definition) {
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"11/2", "Mean[{5,6}]"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name:  "Depth",
-		Usage: "`Depth[expr]` returns the depth of `expr`.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
-				return this
-			}
-			return &Integer{big.NewInt(int64(CalcDepth(this.Parts[1])))}
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"1", "Depth[foo]"},
-			&SameTest{"2", "Depth[{foo}]"},
-			&SameTest{"2", "Depth[bar[foo, bar]]"},
-			&SameTest{"3", "Depth[foo[foo[]]]"},
-			&SameTest{"1", "Depth[3]"},
-			&SameTest{"1", "Depth[3.5]"},
-			&SameTest{"1", "Depth[3/5]"},
-			&SameTest{"2", "Depth[foo[{{{}}}][]]"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name:  "Length",
-		Usage: "`Length[expr]` returns the length of `expr`.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
-				return this
-			}
-
-			expr, isExpr := this.Parts[1].(*Expression)
-			if isExpr {
-				return &Integer{big.NewInt(int64(len(expr.Parts) - 1))}
-			}
-			return this
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"4", "Length[{1,2,3,4}]"},
-			&SameTest{"0", "Length[{}]"},
-			&SameTest{"1", "Length[{5}]"},
-		},
-		FurtherExamples: []TestInstruction{
-			&TestComment{"`expr` need not have a `List` head:"},
-			&SameTest{"2", "Length[foo[1, 2]]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -325,49 +132,6 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Sum",
-		Usage: "`Sum[expr, n]` returns the sum of `n` copies of `expr`.\n\n" +
-			"`Sum[expr, {sym, n}]` returns the sum of `expr` evaluated with `sym` = 1 to `n`.\n\n" +
-			"`Sum[expr, {sym, m, n}]` returns the sum of `expr` evaluated with `sym` = `m` to `n`.",
-		Attributes: []string{"HoldAll", "ReadProtected"},
-		Rules: []Rule{
-			{"Sum[i_Symbol, {i_Symbol, 0, n_Integer}]", "1/2*n*(1 + n)"},
-			{"Sum[i_Symbol, {i_Symbol, 1, n_Integer}]", "1/2*n*(1 + n)"},
-			{"Sum[i_Symbol, {i_Symbol, n_Integer}]", "1/2*n*(1 + n)"},
-			{"Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]", "1/2*n*(1 + n)"},
-			{"Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]", "1/2*n*(1 + n)"},
-		},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"45", "Sum[i, {i, 5, 10}]"},
-			&SameTest{"55", "Sum[i, {i, 1, 10}]"},
-			&SameTest{"55", "Sum[i, {i, 0, 10}]"},
-			&SameTest{"450015000", "Sum[i, {i, 1, 30000}]"},
-			&SameTest{"450015000", "Sum[i, {i, 0, 30000}]"},
-			&SameTest{"1/2*n*(1 + n)", "Sum[i, {i, 0, n}]"},
-			&SameTest{"1/2*n*(1 + n)", "Sum[i, {i, 1, n}]"},
-			&SameTest{"30", "Sum[a + b, {a, 0, 2}, {b, 0, 3}]"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name: "Product",
-		Usage: "`Product[expr, n]` returns the product of `n` copies of `expr`.\n\n" +
-			"`Product[expr, {sym, n}]` returns the product of `expr` evaluated with `sym` = 1 to `n`.\n\n" +
-			"`Product[expr, {sym, m, n}]` returns the product of `expr` evaluated with `sym` = `m` to `n`.",
-		Attributes: []string{"HoldAll", "ReadProtected"},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"120", "Product[a, {a, 1, 5}]"},
-			&SameTest{"f[1] * f[2] * f[3] * f[4] * f[5]", "Product[f[a], {a, 1, 5}]"},
-			&SameTest{"576", "Product[a^2, {a, 4}]"},
-			&SameTest{"1440", "Product[a + b, {a, 1, 2}, {b, 1, 3}]"},
-		},
-	})
-	defs = append(defs, Definition{
 		Name:  "MemberQ",
 		Usage: "`MemberQ[expr, pat]` returns True if any of the elements in `expr` match `pat`, otherwise returns False.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -411,70 +175,6 @@ func GetListDefinitions() (defs []Definition) {
 			&TestComment{"`expr` need not be a List:"},
 			&SameTest{"True", "MemberQ[bar[a, b, c], a]"},
 			&SameTest{"False", "MemberQ[bar[a, b, c], bar]"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name:  "Map",
-		Usage: "`Map[f, expr]` returns a new expression with the same head as `expr`, but with `f` mapped to each of the arguments.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
-				return this
-			}
-
-			expr, isExpr := this.Parts[2].(*Expression)
-			if isExpr {
-				toReturn := &Expression{[]Ex{expr.Parts[0]}}
-				for i := 1; i < len(expr.Parts); i++ {
-					toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
-						this.Parts[1].DeepCopy(),
-						expr.Parts[i].DeepCopy(),
-					}})
-				}
-				return toReturn
-			}
-			return this.Parts[2]
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"{foo[a], foo[b], foo[c]}", "Map[foo, {a, b, c}]"},
-			&SameTest{"{foo[a], foo[b], foo[c]}", "foo /@ {a, b, c}"},
-			&SameTest{"{2, 4, 9}", "Times /@ {2, 4, 9}"},
-			&SameTest{"{foo[{a, b}], foo[c]}", "Map[foo, {{a, b}, c}]"},
-			&SameTest{"Map[foo]", "Map[foo]"},
-			&SameTest{"foo", "Map[foo, foo]"},
-			&SameTest{"Map[foo, foo, foo]", "Map[foo, foo, foo]"},
-			&TestComment{"Pure functions are useful with `Map`:"},
-			&SameTest{"{4,16}", "Function[x, x^2] /@ {2,4}"},
-			&SameTest{"{4,16}", "Function[#^2] /@ {2,4}"},
-		},
-	})
-	defs = append(defs, Definition{
-		Name:  "Array",
-		Usage: "`Array[f, n]` creates a list of `f[i]`, with `i` = 1 to `n`.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
-				return this
-			}
-
-			nInt, nOk := this.Parts[2].(*Integer)
-			if nOk {
-				n := nInt.Val.Int64()
-				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-				for i := int64(1); i <= n; i++ {
-					toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
-						this.Parts[1].DeepCopy(),
-						&Integer{big.NewInt(i)},
-					}})
-				}
-				return toReturn
-			}
-			return this.Parts[2]
-		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"{f[1], f[2], f[3]}", "Array[f, 3]"},
-			&SameTest{"Null", "mytest[x_] := 5"},
-			&SameTest{"{5, 5, 5}", "Array[mytest, 3]"},
-			&SameTest{"{(a + b)[1], (a + b)[2], (a + b)[3]}", "Array[a + b, 3]"},
-			&SameTest{"Array[a, a]", "Array[a, a]"},
 		},
 	})
 	defs = append(defs, Definition{

@@ -81,5 +81,23 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			&SameTest{"5", "a"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:       "CompoundExpression",
+		Usage:      "`CompoundExpression[e1, e2, ...]` evaluates each expression in order and returns the result of the last one.",
+		Attributes: []string{"HoldAll", "ReadProtected"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			var toReturn Ex
+			for i := 1; i < len(this.Parts); i++ {
+				toReturn = this.Parts[i].Eval(es)
+			}
+			return toReturn
+		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"The result of the first expression is not included in the output, but the result of the second is:"},
+			&SameTest{"3", "a = 5; a - 2"},
+			&TestComment{"Including a trailing semicolon causes the expression to return `Null`:"},
+			&SameTest{"Null", "a = 5; a - 2;"},
+		},
+	})
 	return
 }
