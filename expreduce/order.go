@@ -130,4 +130,3 @@ func ExOrder(a Ex, b Ex) int64 {
 
 	return -2
 }
-

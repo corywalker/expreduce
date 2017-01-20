@@ -38,4 +38,3 @@ func FunctionIsSameQ(components []Ex, other_components []Ex, cl *CASLogger) bool
 	}
 	return true
 }
-

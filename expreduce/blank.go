@@ -144,4 +144,3 @@ func BlankSequenceToBlank(bs *Expression) *Expression {
 	}
 	return &Expression{[]Ex{&Symbol{"Blank"}, bs.Parts[1]}}
 }
-

@@ -1,8 +1,8 @@
 package expreduce
 
 import (
-	"github.com/op/go-logging"
 	"bytes"
+	"github.com/op/go-logging"
 	"os"
 	"runtime/debug"
 )

@@ -36,4 +36,3 @@ func (this *String) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy
 }
-

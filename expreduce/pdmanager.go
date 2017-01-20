@@ -1,8 +1,8 @@
 package expreduce
 
 import (
-	"sort"
 	"bytes"
+	"sort"
 	"strings"
 )
 

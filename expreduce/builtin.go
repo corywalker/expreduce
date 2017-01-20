@@ -70,4 +70,3 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	}
 	return
 }
-

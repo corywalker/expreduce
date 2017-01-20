@@ -1,8 +1,8 @@
 package expreduce
 
 import (
-	"sort"
 	"math/big"
+	"sort"
 )
 
 func GetSortDefinitions() (defs []Definition) {
