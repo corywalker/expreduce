@@ -15,6 +15,20 @@ func CalcDepth(ex Ex) int {
 	return theMax + 1
 }
 
+func flattenExpr(src *Expression, dst *Expression, level int64, cl *CASLogger) {
+	continueFlatten := level > 0
+	for i := 1; i < len(src.Parts); i++ {
+		expr, isExpr := src.Parts[i].(*Expression)
+		if continueFlatten && isExpr {
+			if IsSameQ(src.Parts[0], expr.Parts[0], cl) {
+				flattenExpr(expr, dst, level - 1, cl)
+				continue
+			}
+		}
+		dst.Parts = append(dst.Parts, src.Parts[i])
+	}
+}
+
 func GetExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "Head",
@@ -154,6 +168,49 @@ func GetExpressionDefinitions() (defs []Definition) {
 		SimpleExamples: []TestInstruction{
 			&StringTest{"Hold[5^3]", "Hold[Power[5, 3]]"},
 			&StringTest{"Hold[5.^3.]", "Hold[Power[5., 3.]]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Flatten",
+		Usage: "`Flatten[list]` flattens out lists in `list`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) < 2 {
+				return this
+			}
+			level := int64(999999999999)
+			if len(this.Parts) > 2 {
+				asInt, isInt := this.Parts[2].(*Integer)
+				if !isInt {
+					return this
+				}
+				level = int64(asInt.Val.Int64())
+			}
+			expr, isExpr := this.Parts[1].(*Expression)
+			if !isExpr {
+				return this
+			}
+			dst := &Expression{[]Ex{expr.Parts[0]}}
+			flattenExpr(expr, dst, level, &es.CASLogger)
+			return dst
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"Flatten[1]", "Flatten[1]"},
+			&TestComment{"Input must be nonatomic:"},
+			&SameTest{"{1}", "Flatten[{1}]"},
+			&SameTest{"{1}", "Flatten[{{{{1}}}}]"},
+			&SameTest{"{1, 2, 3}", "Flatten[{{{{1}, 2}}, 3}]"},
+			&SameTest{"{1, 2, 3, 4}", "Flatten[{{{{1}, 2}}, 3, 4}]"},
+			&SameTest{"{-1, 1, 2, 3, 4}", "Flatten[{-1, {{{1}, 2}}, 3, 4}]"},
+			&TestComment{"A level of zero means no change:"},
+			&SameTest{"{-1, {{{1}, 2}}, 3, 4}", "Flatten[{-1, {{{1}, 2}}, 3, 4}, 0]"},
+			&SameTest{"{-1, {{1}, 2}, 3, 4}", "Flatten[{-1, {{{1}, 2}}, 3, 4}, 1]"},
+			&SameTest{"{-1, {1}, 2, 3, 4}", "Flatten[{-1, {{{1}, 2}}, 3, 4}, 2]"},
+			&SameTest{"{-1, 1, 2, 3, 4}", "Flatten[{-1, {{{1}, 2}}, 3, 4}, 3]"},
+			&SameTest{"{-1, 1, 2, 3, 4}", "Flatten[{-1, {{{1}, 2}}, 3, 4}, 4]"},
+			&SameTest{"Flatten[{-1, {{{1}, 2}}, 3, 4}, a]", "Flatten[{-1, {{{1}, 2}}, 3, 4}, a]"},
+			&SameTest{"{-1, foo[{{1}, 2}], 3, 4}", "Flatten[{-1, {foo[{{1}, 2}]}, 3, 4}, 999]"},
+			&SameTest{"{-1, foo[{{1}, 2}], 3, 4}", "Flatten[{-1, {foo[{{1}, 2}]}, 3, 4}, 999]"},
+			&SameTest{"{-1, 1[{{1}, 2}], 3, 4}", "Flatten[{-1, {1[{{1}, 2}]}, 3, 4}, 999]"},
 		},
 	})
 	return

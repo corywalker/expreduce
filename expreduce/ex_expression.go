@@ -21,9 +21,13 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 	return &Expression{}, false
 }
 
+// Is this causing issues by not creating a copy as we modify? Actually it is
+// creating copies.
 func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval bool) {
 	// TODO: I should not be attempting to merge the head if it happens to be
-	// a Sequence type
+	// a Sequence type. This is very similar to the flatten function. Perhaps
+	// it should be combined. This version is not recursive, and it does not
+	// accept level depths. It is a specific case of Flatten.
 	origLen := len(this.Parts)
 	offset := 0
 	for i := 0; i < origLen; i++ {
