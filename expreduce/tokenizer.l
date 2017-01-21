@@ -99,6 +99,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 \) return RPARSYM /* skipped */
 , return COMMASYM /* skipped */
 ; return SEMISYM /* CompoundExpression */
+;; return SPANSYM /* Span */
 \[ return LBRACKETSYM /* skipped */
 \] return RBRACKETSYM /* skipped */
 \{ return LCURLYSYM /* skipped */

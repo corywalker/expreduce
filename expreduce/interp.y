@@ -21,7 +21,7 @@ import (
 %type <valSeq> exprseq
 
 // same for terminals
-%token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM PATTESTSYM ALTSYM SAMESYM EQUALSYM UNEQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM FACTORIALSYM FUNCTIONSYM
+%token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM PATTESTSYM ALTSYM SAMESYM EQUALSYM UNEQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM FACTORIALSYM FUNCTIONSYM SPANSYM
 
 /*Adding some of the tokens above to this precedence list can decrease the*/
 /*number of conflicts*/
@@ -39,6 +39,7 @@ import (
 %left SAMESYM
 %left UNEQUALSYM
 %left EQUALSYM
+%left SPANSYM
 %left PLUSSYM /* Plus and minus seem to be reversed according to the table. Investigate this. */
 %left MINUSSYM
 %left MULTSYM
@@ -92,6 +93,12 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  &Expression{[]Ex{&Symbol{"Factorial"}, $1}} }
 	|    expr FUNCTIONSYM
 		{ $$  =  &Expression{[]Ex{&Symbol{"Function"}, $1}} }
+	|    expr LBRACKETSYM LBRACKETSYM exprseq RBRACKETSYM RBRACKETSYM
+		{
+			ex := &Expression{}
+			ex.Parts = append([]Ex{&Symbol{"Part"}, $1}, $4...)
+			$$ = ex
+		}
 	|    expr LBRACKETSYM exprseq RBRACKETSYM
 		{
 			ex := &Expression{}
@@ -163,6 +170,8 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  fullyAssoc("Equal", $1, $3) }
 	|    expr UNEQUALSYM expr
 		{ $$  =  fullyAssoc("Unequal", $1, $3) }
+	|    expr SPANSYM expr
+		{ $$  =  fullyAssoc("Span", $1, $3) }
 	|    MINUSSYM expr
 		{
 			if integer, isInteger := $2.(*Integer); isInteger {

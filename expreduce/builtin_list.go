@@ -52,6 +52,27 @@ func ValidatePadParams(this *Expression) (list *Expression, n int64, x Ex, valid
 	return
 }
 
+func applyIndex(ex Ex, index Ex) (Ex, bool) {
+	expr, isExpr := ex.(*Expression)
+	if !isExpr {
+		return nil, false
+	}
+	iInt, iIsInt := index.(*Integer)
+	if iIsInt {
+		if iInt.Val.Int64() >= int64(len(expr.Parts)) {
+			return nil, false
+		}
+		return expr.Parts[iInt.Val.Int64()], true
+	}
+	iSym, iIsSym := index.(*Symbol)
+	if iIsSym {
+		if iSym.Name == "All" {
+			return expr, true
+		}
+	}
+	return nil, false
+}
+
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "List",
@@ -287,6 +308,77 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"{1, 2, 3}", "Range[3]"},
 			&SameTest{"{2, 3, 4, 5}", "Range[2, 5]"},
 			//&SameTest{"{}", "Range[2, -5]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Part",
+		Usage: "`expr[[i]]` or `Part[expr, i]` returns the `i`th element of `expr`.",
+		Attributes: []string{"NHoldRest", "ReadProtected"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) == 1 {
+				return this
+			}
+			applied, ok := this.Parts[1], true
+			// This assumes that e[[a, b]] is equivalent to e[[a]][[b]]. It is
+			// in most cases, but try this with mat[[All, 5]]. It seems that
+			// the indices are aware of each other and the fact that e is a
+			// matrix. I will most likely need to perform this selection using
+			// another method. TODO
+			for i := 2; i < len(this.Parts); i++ {
+				//es.Infof("applyIndex(%v, %v)", applied, this.Parts[i])
+				applied, ok = applyIndex(applied, this.Parts[i])
+				//es.Infof("after running, applied = %v", applied)
+				if !ok {
+					return this
+				}
+			}
+			return applied
+		},
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Return the second item in a list:"},
+			&SameTest{"b", "{a, b, c, d}[[2]]"},
+			&TestComment{"Multi-dimensional indices are supported:"},
+			&SameTest{"{{1, 4, 9, 16, 25}, {2, 8, 18, 32, 50}, {3, 12, 27, 48, 75}, {4, 16, 36, 64, 100}, {5, 20, 45, 80, 125}}", "mat = Table[Table[a*b^2, {b, 5}], {a, 5}]"},
+			&SameTest{"20", "mat[[5, 2]]"},
+			&TestComment{"Use `All` to select along the entire dimension:"},
+			&SameTest{"{5, 20, 45, 80, 125}", "mat[[5, All]]"},
+		},
+		FurtherExamples: []TestInstruction{
+			&TestComment{"Out of bounds issues will prevent the expression from evaluating:"},
+			&SameTest{"{a}[[2]]", "Part[{a}, 2]"},
+			&TestComment{"The input need not be a `List`:"},
+			&SameTest{"foo", "Part[foo[a], 0]"},
+			&TestComment{"Omitting an index will return the original expression:"},
+			&SameTest{"i", "Part[i]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"i", "Part[i]"},
+			&SameTest{"Part[]", "Part[]"},
+			&SameTest{"{a, b}[[1.5]]", "Part[{a, b}, 1.5]"},
+			&SameTest{"{a, b}[[a, 1.5]]", "Part[{a, b}, a, 1.5]"},
+			&SameTest{"foo", "Part[foo[a], 0]"},
+			&SameTest{"{{1, 4, 9, 16, 25}, {2, 8, 18, 32, 50}, {3, 12, 27, 48, 75}, {4, 16, 36, 64, 100}, {5, 20, 45, 80, 125}}", "mat = Table[Table[a*b^2, {b, 5}], {a, 5}]"},
+			&SameTest{"20", "mat[[5, 2]]"},
+			&SameTest{"{5, 20, 45, 80, 125}", "mat[[5, All]]"},
+			//&SameTest{"{25, 50, 75, 100, 125}", "mat[[All, 5]]"},
+			&SameTest{"foo[a, b, c]", "foo[a, b, c][[All]]"},
+			&SameTest{"1[[5]]", "Part[1, 5]"},
+			//&SameTest{"Integer[]", "Part[1, All]"},
+			//&SameTest{"Symbol[]", "Part[a, All]"},
+			&SameTest{"a", "Part[{a}, 1]"},
+			&SameTest{"{a}[[2]]", "Part[{a}, 2]"},
+			&SameTest{"{5, 20, 45, 80, 125}", "mat[[All]][[5]]"},
+			&SameTest{"3", "{{1, 2}, {3, 4}}[[2, 1]]"},
+			&SameTest{"{{1, 2}, {3}}[[2, 2]]", "{{1, 2}, {3}}[[2, 2]]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "All",
+		Usage: "`All` allows selection along a dimension in `Part`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{{1, 4, 9, 16, 25}, {2, 8, 18, 32, 50}, {3, 12, 27, 48, 75}, {4, 16, 36, 64, 100}, {5, 20, 45, 80, 125}}", "mat = Table[Table[a*b^2, {b, 5}], {a, 5}]"},
+			&TestComment{"Use `All` to select along the entire dimension:"},
+			&SameTest{"{5, 20, 45, 80, 125}", "mat[[5, All]]"},
 		},
 	})
 	return
