@@ -171,6 +171,24 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:       "HoldForm",
+		Usage:      "`HoldForm[expr]` prevents automatic evaluation of `expr`. Prints as `expr`.",
+		Attributes: []string{"HoldAll"},
+		toString: func(this *Expression, form string) (bool, string) {
+			if len(this.Parts) != 2 {
+				return false, ""
+			}
+			if form == "FullForm" {
+				return false, ""
+			}
+			return true, this.Parts[1].StringForm(form)
+		},
+		SimpleExamples: []TestInstruction{
+			&StringTest{"5^3", "HoldForm[Power[5, 3]]"},
+			&StringTest{"5.^3.", "HoldForm[Power[5., 3.]]"},
+		},
+	})
+	defs = append(defs, Definition{
 		Name:  "Flatten",
 		Usage: "`Flatten[list]` flattens out lists in `list`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {

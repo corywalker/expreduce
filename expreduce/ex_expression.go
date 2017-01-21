@@ -85,12 +85,35 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			if headIsSym && attrs.HoldAll {
 				continue
 			}
+
+			// Handle tracing
+			traceBak := es.trace
+			if es.trace != nil {
+				es.trace = &Expression{[]Ex{&Symbol{"List"}}}
+			}
 			curr.Parts[i] = curr.Parts[i].Eval(es)
+			if es.trace != nil {
+				if len(es.trace.Parts) > 1 {
+					traceBak.Parts = append(traceBak.Parts, es.trace)
+				}
+				es.trace = traceBak
+			}
 		}
 
 		// If any of the parts are Sequence, merge them with parts
 		curr.mergeSequences(es, "Sequence", false)
 		curr.mergeSequences(es, "Evaluate", true)
+
+		// Handle tracing
+		if es.trace != nil {
+			es.trace.Parts = append(
+				es.trace.Parts,
+				&Expression{[]Ex{
+					&Symbol{"HoldForm"},
+					currEx.DeepCopy(),
+				}},
+			)
+		}
 
 		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
 		if headIsSym {
@@ -121,6 +144,17 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 		if IsSameQ(currEx, lastEx, &es.CASLogger) {
 			shouldEval = false
+		} else {
+			// Handle tracing
+			if es.trace != nil {
+				es.trace.Parts = append(
+					es.trace.Parts,
+					&Expression{[]Ex{
+						&Symbol{"HoldForm"},
+						currEx.DeepCopy(),
+					}},
+				)
+			}
 		}
 		lastEx = currEx
 	}
@@ -235,6 +269,8 @@ func IsOrderless(sym *Symbol) bool {
 	if sym.Name == "Times" {
 		return true
 	} else if sym.Name == "Plus" {
+		return true
+	} else if sym.Name == "orderlessFoo" {
 		return true
 	}
 	return false

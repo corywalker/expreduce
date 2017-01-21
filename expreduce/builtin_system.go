@@ -282,5 +282,32 @@ func GetSystemDefinitions() (defs []Definition) {
 			&SameTest{"\"`sym::msg` references a particular message for `sym`.\"", "MessageName::usage"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:       "Trace",
+		Usage:      "`Trace[expr]` traces the evaluation of `expr`.",
+		Attributes: []string{"HoldAll"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			// TODO: this will prevent nested Trace calls. Figure out a better
+			// way.
+
+			// Put system in trace mode:
+			es.trace = &Expression{[]Ex{&Symbol{"List"}}}
+			// Evaluate first argument in trace mode:
+			this.Parts[1].Eval(es)
+			// Take system out of trace mode:
+			toReturn := es.trace.DeepCopy()
+			es.trace = nil
+			return toReturn
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"List[HoldForm[Plus[1, 2]], HoldForm[3]]", "1 + 2 // Trace"},
+			&SameTest{"List[List[HoldForm[Plus[1, 3]], HoldForm[4]], HoldForm[Plus[4, 2]], HoldForm[6]]", "(1 + 3) + 2 // Trace"},
+			&SameTest{"List[List[HoldForm[Plus[1, 3]], HoldForm[4]], HoldForm[Plus[2, 4]], HoldForm[6]]", "2 + (1 + 3) // Trace"},
+		},
+	})
 	return
 }
