@@ -99,7 +99,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) >= 3 {
-				mis, isOk := MultiIterSpecFromLists(this.Parts[2:])
+				mis, isOk := MultiIterSpecFromLists(es, this.Parts[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
 					mis.TakeVarSnapshot(es)
@@ -129,6 +129,11 @@ func GetListDefinitions() (defs []Definition) {
 		},
 		FurtherExamples: []TestInstruction{
 			&SameTest{"{0,1,2}", "Table[x[99], {x[_], 0, 2}]"},
+		},
+		Tests: []TestInstruction{
+			&TestComment{"Test proper evaluation of the iterspec."},
+			&SameTest{"Null", "testn := 5;"},
+			&SameTest{"{1, 2, 3, 4, 5}", "Table[i, {i, testn}]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -267,7 +272,7 @@ func GetListDefinitions() (defs []Definition) {
 			// require being passed a list and a variable of iteration. TODO
 			iterSpecList := &Expression{[]Ex{&Symbol{"List"}, &Symbol{"$DUMMY"}}}
 			iterSpecList.Parts = append(iterSpecList.Parts, this.Parts[1:]...)
-			is, isOk := IterSpecFromList(iterSpecList)
+			is, isOk := IterSpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
 			}

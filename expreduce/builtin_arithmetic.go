@@ -269,6 +269,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			//&SameTest{"-3 + (-4 + r) s", "4 r*s - 2 s - 3 (r*s + 1) - 2 s // BasicSimplify"},
 			//&SameTest{"7 y - z + 3 y z", "8 y - 2 z - (y - z) + 3 y*z"},
 			//&SameTest{"-z + y (7 + 3 z)", "8 y - 2 z - (y - z) + 3 y*z // BasicSimplify"},
+			&SameTest{"50*a", "a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a"},
 		},
 	})
 	defs = append(defs, Definition{

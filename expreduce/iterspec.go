@@ -11,7 +11,8 @@ type IterSpec struct {
 	iMaxInt int64
 }
 
-func IterSpecFromList(listEx Ex) (is IterSpec, isOk bool) {
+func IterSpecFromList(es *EvalState, listEx Ex) (is IterSpec, isOk bool) {
+	listEx = evalIterSpecCandidate(es, listEx)
 	list, isList := HeadAssertion(listEx, "List")
 	if isList {
 		iOk, iMinOk, iMaxOk := false, false, false
@@ -67,11 +68,11 @@ type MultiIterSpec struct {
 	cont       bool
 }
 
-func MultiIterSpecFromLists(lists []Ex) (mis MultiIterSpec, isOk bool) {
+func MultiIterSpecFromLists(es *EvalState, lists []Ex) (mis MultiIterSpec, isOk bool) {
 	// Retrieve variables of iteration
 	mis.cont = true
 	for i := range lists {
-		is, isOk := IterSpecFromList(lists[i])
+		is, isOk := IterSpecFromList(es, lists[i])
 		if !isOk {
 			return mis, false
 		}
@@ -121,7 +122,7 @@ func (this *MultiIterSpec) DefineCurrent(es *EvalState) {
 
 func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex {
 	if len(this.Parts) >= 3 {
-		mis, isOk := MultiIterSpecFromLists(this.Parts[2:])
+		mis, isOk := MultiIterSpecFromLists(es, this.Parts[2:])
 		if isOk {
 			// Simulate evaluation within Block[]
 			mis.TakeVarSnapshot(es)
@@ -136,4 +137,26 @@ func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex 
 		}
 	}
 	return this
+}
+
+func evalIterSpecCandidate(es *EvalState, cand Ex) Ex {
+	// Special handling for Lists, which might have variables of iteration in
+	// them.
+	list, isList := HeadAssertion(cand, "List")
+	if isList {
+		toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+		for i := 1; i < len(list.Parts); i++ {
+			toAdd := list.Parts[i].DeepCopy()
+			// Do not evaluate the variable of iteration. Even if "n" is
+			// defined already, we just want it to be "n".
+			if i != 1 {
+				toAdd = toAdd.Eval(es)
+			}
+			toReturn.Parts = append(toReturn.Parts, toAdd)
+		}
+		return toReturn
+	}
+	// We should attempt to evaluate all non-Lists, since we expect them to not
+	// have any variables of iteration in them.
+	return cand.Eval(es)
 }
