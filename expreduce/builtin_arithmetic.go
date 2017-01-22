@@ -297,7 +297,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&SameTest{"1/2*n*(1 + n)", "Sum[i, {i, 0, n}]"},
 			&SameTest{"1/2*n*(1 + n)", "Sum[i, {i, 1, n}]"},
 			&SameTest{"30", "Sum[a + b, {a, 0, 2}, {b, 0, 3}]"},
-			//&SameTest{"b+c+d+e", "Sum[a, {a, {b, c, d, e}}]"},
+			&SameTest{"b+c+d+e", "Sum[a, {a, {b, c, d, e}}]"},
+			&SameTest{"b g + c g + d g + e g + b h + c h + d h + e h", "Sum[a*f, {a, {b, c, d, e}}, {f, {g, h}}]"},
 		},
 	})
 	defs = append(defs, Definition{

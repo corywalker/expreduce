@@ -3,6 +3,7 @@ package expreduce
 import "math/big"
 
 type iterSpec interface {
+	// Should be called before every iteration:
 	reset()
 	next()
 	cont() bool
@@ -20,8 +21,17 @@ type iterSpecRange struct {
 	iMaxInt int64
 }
 
+type iterSpecList struct {
+	i       Ex
+	iName   string
+	pos     int
+	list    *Expression
+}
+
 func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
-	is := &iterSpecRange{}
+	isr := &iterSpecRange{}
+	isl := &iterSpecList{}
+
 	listEx = evalIterSpecCandidate(es, listEx)
 	list, isList := HeadAssertion(listEx, "List")
 	if isList {
@@ -30,32 +40,42 @@ func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
 			iAsSymbol, iIsSymbol := list.Parts[1].(*Symbol)
 			if iIsSymbol {
 				iOk = true
-				is.i = iAsSymbol
-				is.iName = iAsSymbol.Name
+				isr.i, isl.i = iAsSymbol, iAsSymbol
+				isr.iName, isl.iName = iAsSymbol.Name, iAsSymbol.Name
 			}
 			iAsExpression, iIsExpression := list.Parts[1].(*Expression)
 			if iIsExpression {
 				headAsSymbol, headIsSymbol := iAsExpression.Parts[0].(*Symbol)
 				if headIsSymbol {
 					iOk = true
-					is.i = iAsExpression
-					is.iName = headAsSymbol.Name
+					isr.i, isl.i = iAsExpression, iAsExpression
+					isr.iName, isl.iName = headAsSymbol.Name, headAsSymbol.Name
 				}
 			}
 		}
 		if len(list.Parts) == 3 {
-			is.iMin, iMinOk = &Integer{big.NewInt(1)}, true
-			is.iMax, iMaxOk = list.Parts[2].(*Integer)
+			isr.iMin, iMinOk = &Integer{big.NewInt(1)}, true
+			isr.iMax, iMaxOk = list.Parts[2].(*Integer)
 		} else if len(list.Parts) == 4 {
-			is.iMin, iMinOk = list.Parts[2].(*Integer)
-			is.iMax, iMaxOk = list.Parts[3].(*Integer)
+			isr.iMin, iMinOk = list.Parts[2].(*Integer)
+			isr.iMax, iMaxOk = list.Parts[3].(*Integer)
 		}
 		if iOk && iMinOk && iMaxOk {
-			is.reset()
-			return is, true
+			isr.reset()
+			return isr, true
+		}
+
+		// Conversion to iterSpecRange failed. Try iterSpecList.
+		iterListOk := false
+		if len(list.Parts) == 3 {
+			isl.list, iterListOk = HeadAssertion(list.Parts[2], "List")
+		}
+		if iOk && iterListOk {
+			isl.reset()
+			return isl, true
 		}
 	}
-	return is, false
+	return isr, false
 }
 
 func (this *iterSpecRange) reset() {
@@ -80,6 +100,30 @@ func (this *iterSpecRange) getI() Ex {
 }
 
 func (this *iterSpecRange) getIName() string {
+	return this.iName
+}
+
+func (this *iterSpecList) reset() {
+	this.pos = 1
+}
+
+func (this *iterSpecList) next() {
+	this.pos++
+}
+
+func (this *iterSpecList) cont() bool {
+	return this.pos < len(this.list.Parts)
+}
+
+func (this *iterSpecList) getCurr() Ex {
+	return this.list.Parts[this.pos]
+}
+
+func (this *iterSpecList) getI() Ex {
+	return this.i
+}
+
+func (this *iterSpecList) getIName() string {
 	return this.iName
 }
 
