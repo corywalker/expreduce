@@ -120,18 +120,18 @@ func GetListDefinitions() (defs []Definition) {
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) >= 3 {
-				mis, isOk := MultiIterSpecFromLists(es, this.Parts[2:])
+				mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
-					mis.TakeVarSnapshot(es)
+					mis.takeVarSnapshot(es)
 					toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-					for mis.Cont() {
-						mis.DefineCurrent(es)
+					for mis.cont() {
+						mis.defineCurrent(es)
 						toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
 						es.Debugf("%v\n", toReturn)
-						mis.Next()
+						mis.next()
 					}
-					mis.RestoreVarSnapshot(es)
+					mis.restoreVarSnapshot(es)
 					return toReturn
 				}
 			}
@@ -293,14 +293,14 @@ func GetListDefinitions() (defs []Definition) {
 			// require being passed a list and a variable of iteration. TODO
 			iterSpecList := &Expression{[]Ex{&Symbol{"List"}, &Symbol{"$DUMMY"}}}
 			iterSpecList.Parts = append(iterSpecList.Parts, this.Parts[1:]...)
-			is, isOk := IterSpecFromList(es, iterSpecList)
+			is, isOk := iterSpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
 			}
 			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
-			for is.Cont() {
-				toReturn.Parts = append(toReturn.Parts, &Integer{big.NewInt(is.curr)})
-				is.Next()
+			for is.cont() {
+				toReturn.Parts = append(toReturn.Parts, is.getCurr())
+				is.next()
 			}
 			return toReturn
 		},

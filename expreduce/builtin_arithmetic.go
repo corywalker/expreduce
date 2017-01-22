@@ -286,7 +286,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			{"Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]", "1/2*n*(1 + n)"},
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			return this.EvalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
+			return this.evalIterationFunc(es, &Integer{big.NewInt(0)}, "Plus")
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"45", "Sum[i, {i, 5, 10}]"},
@@ -297,6 +297,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&SameTest{"1/2*n*(1 + n)", "Sum[i, {i, 0, n}]"},
 			&SameTest{"1/2*n*(1 + n)", "Sum[i, {i, 1, n}]"},
 			&SameTest{"30", "Sum[a + b, {a, 0, 2}, {b, 0, 3}]"},
+			//&SameTest{"b+c+d+e", "Sum[a, {a, {b, c, d, e}}]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -606,7 +607,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			"`Product[expr, {sym, m, n}]` returns the product of `expr` evaluated with `sym` = `m` to `n`.",
 		Attributes: []string{"HoldAll", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			return this.EvalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
+			return this.evalIterationFunc(es, &Integer{big.NewInt(1)}, "Times")
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"120", "Product[a, {a, 1, 5}]"},

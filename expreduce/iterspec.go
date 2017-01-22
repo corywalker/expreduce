@@ -2,7 +2,16 @@ package expreduce
 
 import "math/big"
 
-type IterSpec struct {
+type iterSpec interface {
+	reset()
+	next()
+	cont() bool
+	getCurr() Ex
+	getI() Ex
+	getIName() string
+}
+
+type iterSpecRange struct {
 	i       Ex
 	iName   string
 	iMin    *Integer
@@ -11,7 +20,8 @@ type IterSpec struct {
 	iMaxInt int64
 }
 
-func IterSpecFromList(es *EvalState, listEx Ex) (is IterSpec, isOk bool) {
+func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
+	is := &iterSpecRange{}
 	listEx = evalIterSpecCandidate(es, listEx)
 	list, isList := HeadAssertion(listEx, "List")
 	if isList {
@@ -41,38 +51,50 @@ func IterSpecFromList(es *EvalState, listEx Ex) (is IterSpec, isOk bool) {
 			is.iMax, iMaxOk = list.Parts[3].(*Integer)
 		}
 		if iOk && iMinOk && iMaxOk {
-			is.Reset()
+			is.reset()
 			return is, true
 		}
 	}
 	return is, false
 }
 
-func (this *IterSpec) Reset() {
+func (this *iterSpecRange) reset() {
 	this.curr = this.iMin.Val.Int64()
 	this.iMaxInt = this.iMax.Val.Int64()
 }
 
-func (this *IterSpec) Next() {
+func (this *iterSpecRange) next() {
 	this.curr++
 }
 
-func (this *IterSpec) Cont() bool {
+func (this *iterSpecRange) cont() bool {
 	return this.curr <= this.iMaxInt
 }
 
-type MultiIterSpec struct {
-	iSpecs     []IterSpec
-	origDefs   []Ex
-	isOrigDefs []bool
-	cont       bool
+func (this *iterSpecRange) getCurr() Ex {
+	return &Integer{big.NewInt(this.curr)}
 }
 
-func MultiIterSpecFromLists(es *EvalState, lists []Ex) (mis MultiIterSpec, isOk bool) {
+func (this *iterSpecRange) getI() Ex {
+	return this.i
+}
+
+func (this *iterSpecRange) getIName() string {
+	return this.iName
+}
+
+type multiIterSpec struct {
+	iSpecs     []iterSpec
+	origDefs   []Ex
+	isOrigDefs []bool
+	shouldCont       bool
+}
+
+func multiIterSpecFromLists(es *EvalState, lists []Ex) (mis multiIterSpec, isOk bool) {
 	// Retrieve variables of iteration
-	mis.cont = true
+	mis.shouldCont = true
 	for i := range lists {
-		is, isOk := IterSpecFromList(es, lists[i])
+		is, isOk := iterSpecFromList(es, lists[i])
 		if !isOk {
 			return mis, false
 		}
@@ -81,58 +103,58 @@ func MultiIterSpecFromLists(es *EvalState, lists []Ex) (mis MultiIterSpec, isOk 
 	return mis, true
 }
 
-func (this *MultiIterSpec) Next() {
+func (this *multiIterSpec) next() {
 	for i := len(this.iSpecs) - 1; i >= 0; i-- {
-		this.iSpecs[i].Next()
-		if this.iSpecs[i].Cont() {
+		this.iSpecs[i].next()
+		if this.iSpecs[i].cont() {
 			return
 		}
-		this.iSpecs[i].Reset()
+		this.iSpecs[i].reset()
 	}
-	this.cont = false
+	this.shouldCont = false
 }
 
-func (this *MultiIterSpec) Cont() bool {
-	return this.cont
+func (this *multiIterSpec) cont() bool {
+	return this.shouldCont
 }
 
-func (this *MultiIterSpec) TakeVarSnapshot(es *EvalState) {
+func (this *multiIterSpec) takeVarSnapshot(es *EvalState) {
 	this.origDefs = make([]Ex, len(this.iSpecs))
 	this.isOrigDefs = make([]bool, len(this.iSpecs))
 	for i := range this.iSpecs {
-		this.origDefs[i], this.isOrigDefs[i] = es.GetDef(this.iSpecs[i].iName, this.iSpecs[i].i)
+		this.origDefs[i], this.isOrigDefs[i] = es.GetDef(this.iSpecs[i].getIName(), this.iSpecs[i].getI())
 	}
 }
 
-func (this *MultiIterSpec) RestoreVarSnapshot(es *EvalState) {
+func (this *multiIterSpec) restoreVarSnapshot(es *EvalState) {
 	for i := range this.iSpecs {
 		if this.isOrigDefs[i] {
-			es.Define(this.iSpecs[i].iName, this.iSpecs[i].i, this.origDefs[i])
+			es.Define(this.iSpecs[i].getIName(), this.iSpecs[i].getI(), this.origDefs[i])
 		} else {
-			es.Clear(this.iSpecs[i].iName)
+			es.Clear(this.iSpecs[i].getIName())
 		}
 	}
 }
 
-func (this *MultiIterSpec) DefineCurrent(es *EvalState) {
+func (this *multiIterSpec) defineCurrent(es *EvalState) {
 	for i := range this.iSpecs {
-		es.Define(this.iSpecs[i].iName, this.iSpecs[i].i, &Integer{big.NewInt(this.iSpecs[i].curr)})
+		es.Define(this.iSpecs[i].getIName(), this.iSpecs[i].getI(), this.iSpecs[i].getCurr())
 	}
 }
 
-func (this *Expression) EvalIterationFunc(es *EvalState, init Ex, op string) Ex {
+func (this *Expression) evalIterationFunc(es *EvalState, init Ex, op string) Ex {
 	if len(this.Parts) >= 3 {
-		mis, isOk := MultiIterSpecFromLists(es, this.Parts[2:])
+		mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
 		if isOk {
 			// Simulate evaluation within Block[]
-			mis.TakeVarSnapshot(es)
+			mis.takeVarSnapshot(es)
 			var toReturn Ex = init
-			for mis.Cont() {
-				mis.DefineCurrent(es)
+			for mis.cont() {
+				mis.defineCurrent(es)
 				toReturn = (&Expression{[]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
-				mis.Next()
+				mis.next()
 			}
-			mis.RestoreVarSnapshot(es)
+			mis.restoreVarSnapshot(es)
 			return toReturn
 		}
 	}
