@@ -73,6 +73,15 @@ When the engine applies rules for a given symbol, it tries to match the most "sp
 
 The pattern matching system can be very slow, especially when working with `Orderless` expressions with many terms. This is because correctly matching such terms often involves checking many different permutations of a pattern until one finds a match. My theory right now is that the current matching system is behaving naively and that it can be modified to speed things up.
 
+# Future directions
+
+I'm interested in trying to apply Golang's concurrency paradigms to the evaluation sequence. Some low hanging fruit would be to have parallel computation of mapping pure functions onto Lists or other expressions (computing the derivative of a list expressions). Similarly, supporting automatic threading of Listable functions would be nice (computing sin(x) of a large array). The evaluation of an expression often starts with evaluating each of the parameters at the beginning. This could potentially be made concurrent as well. A more complicated but very interesting application would be to break down the pattern matching engine into concurrent components. We would have to be very careful about side effects here, so we might need to overhaul our scoping constructs or somehow restrict access to the EvalState. Another option would be to create a function that predicts if another function has side effects (is this feasible?). A true prediction could allow the system to fall back to non-concurrent evaluation.
+
+Also of interest is to build up some formal theory on the rule definitions. There should be some pre-existing literature on this, as term-rewriting is a studied field. Some interesting questions to answer are:
+
+1. Given a set of rules for a symbol (or the universe of rules?), can we find duplicates or reduce the set of rules to the most fundamental ones? Answering such a question would improve the efficiency and clarity of the system.
+2. Given a set of rules for a symbol (or the universe of rules?), can we prove that the recursive rewrites will terminate? It is fairly easy to write a rule that loops on itself or in cooperation with other rules. Of course, we should remove from consideration some of the imperative symbols such as `While` and `For`. Even with these imperative functions removed, is this question still the halting problem? Can we restrict our considerations enough such that the problem is not the halting problem? Answering this question would improve the stability of the system.
+
 # Development
 
 To run the tests:
