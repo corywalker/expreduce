@@ -235,17 +235,17 @@ func GetPowerDefinitions() (defs []Definition) {
 		Name: "Expand",
 		Rules: []Rule{
 			{"possibleExponents[n_Integer, m_Integer]", "Flatten[Permutations /@ ((PadRight[#, m]) & /@ IntegerPartitions[n, m]), 1]"},
-			{"genVars[addends_List, exponents_List]", "Product[addends[[i]]^exponents[[i]], {i, 1, Length[addends]}]"},
-			{"genExpand[addends_List, exponents_List]", "Sum[(Multinomial @@ exponents[[i]])*genVars[addends, exponents[[i]]], {i, 1, Length[exponents]}]"},
+			{"genVars[addends_List, exponents_List]", "Product[addends[[ExpandUnique`i]]^exponents[[ExpandUnique`i]], {ExpandUnique`i, 1, Length[addends]}]"},
+			{"genExpand[addends_List, exponents_List]", "Sum[(Multinomial @@ exponents[[ExpandUnique`i]])*genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, Length[exponents]}]"},
 			// This is what it should be:
 			//{"myExpand[(Plus[addends__])^(nmatch_Integer)]", "genExpand[List @@ addends, possibleExponents[nmatch, Length[addends]]]"},
 			// But this is what it currently needs to be:
 			{"Expand[(Plus[addends__])^(nmatch_Integer)]", "genExpand[List[addends], possibleExponents[nmatch, Length[List[addends]]]]"},
 			{"Expand[(Plus[addends__])^(nmatch_Integer)*rest___]", "Expand[Expand[Plus[addends]^nmatch] * rest]"},
 			// This line faces a similar problem:
-			{"Expand[Plus[a1s__]*Plus[a2s__]*rest___]", "Expand[Sum[a1*a2, {a1, List[a1s]}, {a2, List[a2s]}]*rest]"},
+			{"Expand[Plus[a1s__]*Plus[a2s__]*rest___]", "Expand[Sum[ExpandUnique`a1*ExpandUnique`a2, {ExpandUnique`a1, List[a1s]}, {ExpandUnique`a2, List[a2s]}]*rest]"},
 			// This line faces a similar problem:
-			{"Expand[Plus[addends__]/den_]", "Sum[Expand[a1/den], {a1, {addends}}]"},
+			{"Expand[Plus[addends__]/den_]", "Sum[Expand[ExpandUnique`a/den], {ExpandUnique`a, {addends}}]"},
 			// Default case:
 			{"Expand[a_]", "a"},
 		},
