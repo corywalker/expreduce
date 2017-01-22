@@ -244,7 +244,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			{"Expand[(Plus[addends__])^(nmatch_Integer)*rest___]", "Expand[Expand[Plus[addends]^nmatch] * rest]"},
 			// This line faces a similar problem:
 			{"Expand[Plus[a1s__]*Plus[a2s__]*rest___]", "Expand[Sum[a1*a2, {a1, List[a1s]}, {a2, List[a2s]}]*rest]"},
-			{"Expand[Plus[addends__]/den_]", "Sum[a1/den, {a1, {addends}}]"},
+			// This line faces a similar problem:
+			{"Expand[Plus[addends__]/den_]", "Sum[Expand[a1/den], {a1, {addends}}]"},
 			// Default case:
 			{"Expand[a_]", "a"},
 		},
@@ -254,6 +255,7 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"a d^2 + b d^2 + c d^2 + 2 a d e + 2 b d e + 2 c d e + a e^2 + b e^2 + c e^2", "(a + b + c)*(d + e)^2 // Expand"},
 			&SameTest{"a^(2 b) + 2 a^b * c^d + c^(2 d)", "Expand[(a^b + c^d)^2]"},
 			&SameTest{"a/d + b/d + c/d", "Expand[(a + b + c)/d]"},
+			&SameTest{"1/d + (2 a)/d + a^2/d + b/d + c/d", "Expand[((a + 1)^2 + b + c)/d]"},
 		},
 		Tests: []TestInstruction{
 			// The following tests should not take 10 seconds:
