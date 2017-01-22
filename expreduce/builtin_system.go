@@ -4,6 +4,42 @@ import "math/big"
 import "time"
 import "fmt"
 
+func exprToN(es *EvalState, e Ex) Ex {
+	asInt, isInt := e.(*Integer)
+	if isInt {
+		toReturn, _ := IntegerToFlt(asInt)
+		return toReturn
+	}
+	asRat, isRat := e.(*Rational)
+	if isRat {
+		toReturn, _ := RationalToFlt(asRat)
+		return toReturn
+	}
+	asExpr, isExpr := e.(*Expression)
+	if isExpr {
+		toReturn, defined := es.GetDef(
+			"N",
+			&Expression{[]Ex{&Symbol{"N"}, e}},
+		)
+		if defined {
+			return toReturn
+		}
+		exToReturn := &Expression{}
+		for _, part := range asExpr.Parts {
+			toAdd, defined := es.GetDef(
+				"N",
+				&Expression{[]Ex{&Symbol{"N"}, part}},
+			)
+			if !defined {
+				toAdd = exprToN(es, part)
+			}
+			exToReturn.Parts = append(exToReturn.Parts, toAdd)
+		}
+		return exToReturn
+	}
+	return e.DeepCopy()
+}
+
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceSetLogging",
@@ -324,6 +360,20 @@ func GetSystemDefinitions() (defs []Definition) {
 			// We are close with this one but not quite:
 			//&SameTest{"{{{HoldForm[a*a], HoldForm[a^2]}, HoldForm[foo[a^2, b]]}, HoldForm[a + foo[a^2, b]]}", "Trace[a+foo[a*a,b]]"},
 			&SameTest{"{HoldForm[foo[Sequence[a, b]]], HoldForm[foo[a, b]]}", "Trace[foo[Sequence[a,b]]]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "N",
+		Usage:      "`N[expr]` attempts to convert `expr` to a numeric value.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			return exprToN(es, this.Parts[1])
+		},
+		Tests: []TestInstruction{
+			&SameTest{"2.", "N[2]"},
+			&SameTest{"0.5", "N[1/2]"},
 		},
 	})
 	return

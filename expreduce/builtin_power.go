@@ -246,6 +246,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			{"Expand[Plus[a1s__]*Plus[a2s__]*rest___]", "Expand[Sum[ExpandUnique`a1*ExpandUnique`a2, {ExpandUnique`a1, List[a1s]}, {ExpandUnique`a2, List[a2s]}]*rest]"},
 			// This line faces a similar problem:
 			{"Expand[Plus[addends__]/den_]", "Sum[Expand[ExpandUnique`a/den], {ExpandUnique`a, {addends}}]"},
+			// This one might be redundant
+			{"Expand[c_?AtomQ*Plus[addends__]]", "Sum[Expand[c*ExpandUnique`a], {ExpandUnique`a, {addends}}]"},
 			// Default case:
 			{"Expand[a_]", "a"},
 		},
@@ -256,6 +258,7 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"a^(2 b) + 2 a^b * c^d + c^(2 d)", "Expand[(a^b + c^d)^2]"},
 			&SameTest{"a/d + b/d + c/d", "Expand[(a + b + c)/d]"},
 			&SameTest{"1/d + (2 a)/d + a^2/d + b/d + c/d", "Expand[((a + 1)^2 + b + c)/d]"},
+			&SameTest{"2 + 2 a", "2*(a + 1) // Expand"},
 		},
 		Tests: []TestInstruction{
 			// The following tests should not take 10 seconds:

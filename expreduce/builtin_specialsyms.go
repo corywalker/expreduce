@@ -47,5 +47,13 @@ func getSpecialSymsDefinitions() (defs []Definition) {
 			&SameTest{"Indeterminate", "0^0"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:       "Pi",
+		Usage:      "`Pi` is the constant of pi.",
+		Attributes: []string{"ReadProtected", "Constant"},
+		Rules: []Rule{
+			{"N[Pi]", "3.141592653589793238462643383279502884197"},
+		},
+	})
 	return
 }

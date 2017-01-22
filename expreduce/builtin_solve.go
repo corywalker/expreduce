@@ -5,6 +5,8 @@ func GetSolveDefinitions() (defs []Definition) {
 		Name:  "Solve",
 		// Flip parameter order because of matching bug:
 		Usage: "`Solve[var, eqn]` solves `eqn` for `var`.",
+		Details: "!!! warning \"Under development\"\n" +
+			"	This function is under development, and as such will be incomplete and inaccurate. The function currently only knows how to solve a few example forms of equations.",
 		Rules: []Rule{
 			{"Solve[x_, x_ == expr_]", "{{x -> expr}}"},
 			{"Solve[x_, x_ * exprB__ == exprA_]", "{{x -> exprA / Times[exprB]}}"},
