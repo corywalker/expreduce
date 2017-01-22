@@ -8,6 +8,7 @@ import (
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Power",
+		Usage: "`base^exp` finds `base` raised to the power of `exp`.",
 		Attributes: []string{"Listable", "NumericFunction", "OneIdentity"},
 		Rules: []Rule{
 			// Simplify nested exponents
@@ -21,6 +22,7 @@ func GetPowerDefinitions() (defs []Definition) {
 
 			// Rational simplifications
 			{"Power[Rational[a_,b_], -1]", "Rational[b,a]"},
+			{"Power[Rational[a_,b_], e_?Positive]", "Rational[a^e,b^e]"},
 		},
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form)
@@ -232,7 +234,8 @@ func GetPowerDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Expand",
+		Name:  "Expand",
+		Usage: "`Expand[expr]` attempts to expand `expr`.",
 		Rules: []Rule{
 			{"possibleExponents[n_Integer, m_Integer]", "Flatten[Permutations /@ ((PadRight[#, m]) & /@ IntegerPartitions[n, m]), 1]"},
 			{"genVars[addends_List, exponents_List]", "Product[addends[[ExpandUnique`i]]^exponents[[ExpandUnique`i]], {ExpandUnique`i, 1, Length[addends]}]"},

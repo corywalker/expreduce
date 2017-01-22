@@ -9,7 +9,7 @@ func getCalculusDefinitions() (defs []Definition) {
 			{"D[x_,x_]", "1"},
 			{"D[a_,x_]", "0"},
 			{"D[a_+b__,x_]", "D[a,x]+D[Plus[b],x]"},
-			{"D[a_ b__,x_]", "D[a,x] b+a D[Times[b],x]"},
+			{"D[a_ b__,x_]", "D[a,x]*b + a*D[Times[b],x]"},
 			// The times operator is needed here. Whitespace precedence is messed up
 			{"D[a_^(b_), x_]", "a^b*(D[b,x] Log[a]+D[a,x]/a*b)"},
 			{"D[Log[a_], x_]", "D[a, x]/a"},

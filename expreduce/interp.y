@@ -123,7 +123,7 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr MULTSYM expr
 		{ $$  =  fullyAssoc("Times", $1, $3) }
 	|    expr expr %prec MULTSYM
-		{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }
+		{ $$  =  fullyAssoc("Times", $1, $2) }
 	|    expr DIVSYM expr
 		{ $$  =  &Expression{[]Ex{
 		           &Symbol{"Times"},

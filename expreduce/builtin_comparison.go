@@ -344,5 +344,27 @@ func getComparisonDefinitions() (defs []Definition) {
 			&SameTest{"True", "3 >= 3"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:       "Positive",
+		Usage:      "`Positive[x]` returns `True` if `x` is positive.",
+		Attributes: []string{"Listable"},
+		Rules: []Rule{
+			{"Positive[x_?NumberQ]", "x > 0"},
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{True, False, False, Positive[a]}", "Map[Positive, {1, 0, -1, a}]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "Negative",
+		Usage:      "`Negative[x]` returns `True` if `x` is positive.",
+		Attributes: []string{"Listable"},
+		Rules: []Rule{
+			{"Negative[x_?NumberQ]", "x < 0"},
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{False, False, True, Negative[a]}", "Map[Negative, {1, 0, -1, a}]"},
+		},
+	})
 	return
 }

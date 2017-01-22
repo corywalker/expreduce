@@ -38,8 +38,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
-			{"Plus[c1_Integer*a_, c2_Integer*a_, rest___]", "((c1+c2)*a + rest)"},
-			{"Plus[c1_Rational*a_, c2_Rational*a_, rest___]", "((c1+c2)*a + rest)"},
+			{"Plus[c1_Integer*a__, c2_Integer*a__, rest___]", "((c1+c2)*a + rest)"},
+			{"Plus[c1_Rational*a__, c2_Rational*a__, rest___]", "((c1+c2)*a + rest)"},
 			// For some reason, this messes up the Infinity - Infinity rule
 			{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
 			{"Plus[a_, a_, rest___]", "2*a + rest"},
@@ -193,6 +193,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&TestComment{"Plus automatically combines like terms:"},
 			&SameTest{"a+6*b^2", "a + b^2 + 5*b^2"},
 			&SameTest{"((5 * c^a) + (3 * d))", "(a+b)-(a+b)+c-c+2*c^a+2*d+5*d+d-5*d+3*c^a"},
+			&SameTest{"-3 a b c d e f", "4*a*b*c*d*e*f + -7*a*b*c*d*e*f"},
 		},
 		Tests: []TestInstruction{
 			// Test automatic expansion
@@ -596,6 +597,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 
 			// Simplifications with Power
 			&SameTest{"a^(2+c)", "a^2*a^c"},
+			&SameTest{"a^(2-c)", "a^2/a^c"},
 			&SameTest{"m^2", "m*m"},
 			&SameTest{"1", "m/m"},
 			&SameTest{"1", "m^2/m^2"},
