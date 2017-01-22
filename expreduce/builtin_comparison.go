@@ -217,24 +217,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "NumberQ",
 		Usage: "`NumberQ[expr]` returns True if `expr` is numeric, otherwise False.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
-				return this
-			}
-			_, ok := this.Parts[1].(*Integer)
-			if ok {
-				return &Symbol{"True"}
-			}
-			_, ok = this.Parts[1].(*Flt)
-			if ok {
-				return &Symbol{"True"}
-			}
-			_, ok = this.Parts[1].(*Rational)
-			if ok {
-				return &Symbol{"True"}
-			}
-			return &Symbol{"False"}
-		},
+		legacyEvalFn: singleParamQEval(numberQ),
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "NumberQ[2]"},
 			&SameTest{"True", "NumberQ[2.2]"},
@@ -243,6 +226,122 @@ func getComparisonDefinitions() (defs []Definition) {
 			&SameTest{"False", "NumberQ[Sqrt[2]]"},
 			&SameTest{"False", "NumberQ[randomvar]"},
 			&SameTest{"False", "NumberQ[\"hello\"]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Less",
+		Usage: "`a < b` returns True if `a` is less than `b`.",
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " < ", true, "", "", form)
+		},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			if !numberQ(this.Parts[1]) || !numberQ(this.Parts[2]) {
+				return this
+			}
+			// Less
+			if ExOrder(this.Parts[1], this.Parts[2]) == 1 {
+				return &Symbol{"True"}
+			}
+			return &Symbol{"False"}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"a < b", "a < b"},
+			&SameTest{"True", "1 < 2"},
+			&SameTest{"True", "3 < 5.5"},
+			&SameTest{"False", "5.5 < 3"},
+			&SameTest{"False", "3 < 3"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Greater",
+		Usage: "`a > b` returns True if `a` is greater than `b`.",
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " > ", true, "", "", form)
+		},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			if !numberQ(this.Parts[1]) || !numberQ(this.Parts[2]) {
+				return this
+			}
+			// Greater
+			if ExOrder(this.Parts[1], this.Parts[2]) == -1 {
+				return &Symbol{"True"}
+			}
+			return &Symbol{"False"}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"a > b", "a > b"},
+			&SameTest{"False", "1 > 2"},
+			&SameTest{"False", "3 > 5.5"},
+			&SameTest{"True", "5.5 > 3"},
+			&SameTest{"False", "3 > 3"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "LessEqual",
+		Usage: "`a <= b` returns True if `a` is less than or equal to `b`.",
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " <= ", true, "", "", form)
+		},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			if !numberQ(this.Parts[1]) || !numberQ(this.Parts[2]) {
+				return this
+			}
+			// Less
+			if ExOrder(this.Parts[1], this.Parts[2]) == 1 {
+				return &Symbol{"True"}
+			}
+			// Equal
+			if ExOrder(this.Parts[1], this.Parts[2]) == 0 {
+				return &Symbol{"True"}
+			}
+			return &Symbol{"False"}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"a <= b", "a <= b"},
+			&SameTest{"True", "1 <= 2"},
+			&SameTest{"True", "3 <= 5.5"},
+			&SameTest{"False", "5.5 <= 3"},
+			&SameTest{"True", "3 <= 3"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "GreaterEqual",
+		Usage: "`a >= b` returns True if `a` is greater than or equal to `b`.",
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " >= ", true, "", "", form)
+		},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			if !numberQ(this.Parts[1]) || !numberQ(this.Parts[2]) {
+				return this
+			}
+			// Greater
+			if ExOrder(this.Parts[1], this.Parts[2]) == -1 {
+				return &Symbol{"True"}
+			}
+			// Equal
+			if ExOrder(this.Parts[1], this.Parts[2]) == 0 {
+				return &Symbol{"True"}
+			}
+			return &Symbol{"False"}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"a >= b", "a >= b"},
+			&SameTest{"False", "1 >= 2"},
+			&SameTest{"False", "3 >= 5.5"},
+			&SameTest{"True", "5.5 >= 3"},
+			&SameTest{"True", "3 >= 3"},
 		},
 	})
 	return
