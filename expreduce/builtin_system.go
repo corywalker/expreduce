@@ -298,15 +298,32 @@ func GetSystemDefinitions() (defs []Definition) {
 			es.trace = &Expression{[]Ex{&Symbol{"List"}}}
 			// Evaluate first argument in trace mode:
 			this.Parts[1].Eval(es)
-			// Take system out of trace mode:
-			toReturn := es.trace.DeepCopy()
+			if len(es.trace.Parts) > 2 {
+				// Take system out of trace mode:
+				toReturn := es.trace.DeepCopy()
+				es.trace = nil
+				return toReturn
+			}
 			es.trace = nil
-			return toReturn
+			return &Expression{[]Ex{&Symbol{"List"}}}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"List[HoldForm[Plus[1, 2]], HoldForm[3]]", "1 + 2 // Trace"},
 			&SameTest{"List[List[HoldForm[Plus[1, 3]], HoldForm[4]], HoldForm[Plus[4, 2]], HoldForm[6]]", "(1 + 3) + 2 // Trace"},
 			&SameTest{"List[List[HoldForm[Plus[1, 3]], HoldForm[4]], HoldForm[Plus[2, 4]], HoldForm[6]]", "2 + (1 + 3) // Trace"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{}", "Trace[a + b + c]"},
+			&SameTest{"{}", "Trace[1]"},
+			&SameTest{"{HoldForm[2^2], HoldForm[4]}", "Trace[2^2]"},
+			&SameTest{"{{HoldForm[2^2], HoldForm[4]}, HoldForm[4*5], HoldForm[20]}", "Trace[2^2*5]"},
+			&SameTest{"{{{HoldForm[2^2], HoldForm[4]}, HoldForm[4*5], HoldForm[20]}, HoldForm[20 + 4], HoldForm[24]}", "Trace[2^2*5+4]"},
+			&SameTest{"{{{HoldForm[2^2], HoldForm[4]}, {HoldForm[3^3], HoldForm[27]}, HoldForm[4*27*5], HoldForm[540]}, HoldForm[540 + 4], HoldForm[544]}", "Trace[2^2*3^3*5+4]"},
+			&SameTest{"{HoldForm[b + a], HoldForm[a + b]}", "Trace[b+a]"},
+			&SameTest{"{}", "Trace[a+foo[a,b]]"},
+			// We are close with this one but not quite:
+			//&SameTest{"{{{HoldForm[a*a], HoldForm[a^2]}, HoldForm[foo[a^2, b]]}, HoldForm[a + foo[a^2, b]]}", "Trace[a+foo[a*a,b]]"},
+			&SameTest{"{HoldForm[foo[Sequence[a, b]]], HoldForm[foo[a, b]]}", "Trace[foo[Sequence[a,b]]]"},
 		},
 	})
 	return

@@ -63,7 +63,20 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		curr, isExpr := currEx.(*Expression)
 		// Transition to the right Eval() if this is no longer an Expression
 		if !isExpr {
-			return currEx.Eval(es)
+			toReturn := currEx.Eval(es)
+			// Handle tracing
+			if es.trace != nil {
+				toAppend := &Expression{[]Ex{
+					&Symbol{"HoldForm"},
+					toReturn.DeepCopy(),
+				}}
+				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
+				es.trace.Parts = append(
+					es.trace.Parts,
+					toAppend,
+				)
+			}
+			return toReturn
 		}
 
 		// Start by evaluating each argument
@@ -93,27 +106,34 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			}
 			curr.Parts[i] = curr.Parts[i].Eval(es)
 			if es.trace != nil {
-				if len(es.trace.Parts) > 1 {
-					traceBak.Parts = append(traceBak.Parts, es.trace)
+				if len(es.trace.Parts) > 2 {
+					// The DeepCopy here doesn't seem to affect anything, but
+					// should be good to have.
+					//fmt.Printf("Argument eval: appending %v\n", es.trace.DeepCopy().StringForm("FullForm"))
+					traceBak.Parts = append(traceBak.Parts, es.trace.DeepCopy())
 				}
 				es.trace = traceBak
+			}
+		}
+
+		// Handle tracing
+		if es.trace != nil {
+			toAppend := &Expression{[]Ex{
+				&Symbol{"HoldForm"},
+				currEx.DeepCopy(),
+			}}
+			if !IsSameQ(es.trace.Parts[len(es.trace.Parts)-1], toAppend, &es.CASLogger) {
+				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
+				es.trace.Parts = append(
+					es.trace.Parts,
+					toAppend,
+				)
 			}
 		}
 
 		// If any of the parts are Sequence, merge them with parts
 		curr.mergeSequences(es, "Sequence", false)
 		curr.mergeSequences(es, "Evaluate", true)
-
-		// Handle tracing
-		if es.trace != nil {
-			es.trace.Parts = append(
-				es.trace.Parts,
-				&Expression{[]Ex{
-					&Symbol{"HoldForm"},
-					currEx.DeepCopy(),
-				}},
-			)
-		}
 
 		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
 		if headIsSym {
@@ -146,15 +166,18 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			shouldEval = false
 		} else {
 			// Handle tracing
+			/*
 			if es.trace != nil {
+				toAppend := &Expression{[]Ex{
+					&Symbol{"HoldForm"},
+					currEx.DeepCopy(),
+				}}
+				fmt.Printf("Change: appending %v\n", toAppend.StringForm("FullForm"))
 				es.trace.Parts = append(
 					es.trace.Parts,
-					&Expression{[]Ex{
-						&Symbol{"HoldForm"},
-						currEx.DeepCopy(),
-					}},
+					toAppend,
 				)
-			}
+			}*/
 		}
 		lastEx = currEx
 	}
