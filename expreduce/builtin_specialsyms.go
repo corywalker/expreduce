@@ -53,6 +53,16 @@ func getSpecialSymsDefinitions() (defs []Definition) {
 		Attributes: []string{"ReadProtected", "Constant"},
 		Rules: []Rule{
 			{"N[Pi]", "3.141592653589793238462643383279502884197"},
+			{"Times[Pi, a_Real, rest___]", "N[Pi] * a * rest"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "E",
+		Usage:      "`E` is the constant for the base of the natural logarithm.",
+		Attributes: []string{"ReadProtected", "Constant"},
+		Rules: []Rule{
+			{"N[E]", "2.71828182845904523536028747135266249775724709370"},
+			{"Times[E, a_Real, rest___]", "N[E] * a * rest"},
 		},
 	})
 	return
