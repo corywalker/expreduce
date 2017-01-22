@@ -13,6 +13,7 @@ func GetPowerDefinitions() (defs []Definition) {
 			// Simplify nested exponents
 			{"Power[Power[a_,b_Integer],c_Integer]", "a^(b*c)"},
 			{"Power[Power[a_,b_Real],c_Integer]", "a^(b*c)"},
+			{"Power[Power[a_,b_Symbol],c_Integer]", "a^(b*c)"},
 
 			// Power definitions
 			{"Power[Times[Except[_Symbol, first_], inner___], pow_]", "first^pow*Power[Times[inner],pow]"},
@@ -240,9 +241,19 @@ func GetPowerDefinitions() (defs []Definition) {
 			//{"myExpand[(Plus[addends__])^(nmatch_Integer)]", "genExpand[List @@ addends, possibleExponents[nmatch, Length[addends]]]"},
 			// But this is what it currently needs to be:
 			{"Expand[(Plus[addends__])^(nmatch_Integer)]", "genExpand[List[addends], possibleExponents[nmatch, Length[List[addends]]]]"},
+			{"Expand[(Plus[addends__])^(nmatch_Integer)*rest___]", "Expand[Expand[Plus[addends]^nmatch] * rest]"},
+			// This line faces a similar problem:
+			{"Expand[Plus[a1s__]*Plus[a2s__]*rest___]", "Expand[Sum[a1*a2, {a1, List[a1s]}, {a2, List[a2s]}]*rest]"},
+			{"Expand[Plus[addends__]/den_]", "Sum[a1/den, {a1, {addends}}]"},
+			// Default case:
+			{"Expand[a_]", "a"},
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"a^3 + 3 a^2 * b + 3 a b^2 + b^3 + 3 a^2 * c + 6 a b c + 3 b^2 * c + 3 a c^2 + 3 b c^2 + c^3", "Expand[(a + b + c)^3]"},
+			&SameTest{"a c + b c + a d + b d + a e + b e", "(a + b) * (c + d + e) // Expand"},
+			&SameTest{"a d^2 + b d^2 + c d^2 + 2 a d e + 2 b d e + 2 c d e + a e^2 + b e^2 + c e^2", "(a + b + c)*(d + e)^2 // Expand"},
+			&SameTest{"a^(2 b) + 2 a^b * c^d + c^(2 d)", "Expand[(a^b + c^d)^2]"},
+			&SameTest{"a/d + b/d + c/d", "Expand[(a + b + c)/d]"},
 		},
 		Tests: []TestInstruction{
 			// The following tests should not take 10 seconds:
