@@ -74,7 +74,9 @@ high precedence. */
 %%
 
 list	: /* empty */
+	| list '\n' {Calcrcvr.lval.val = &Symbol{"Null"}}
 	| list stat '\n'
+	| list error '\n' {Calcrcvr.lval.val = &Symbol{"Null"}}
 	;
 
 stat	:    expr

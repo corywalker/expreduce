@@ -3,6 +3,7 @@ package expreduce
 
 import (
     "log"
+    "fmt"
     "math/big"
     "strings"
 )
@@ -39,7 +40,7 @@ func (y *Calclexer) getc() rune {
 }
 
 func (y Calclexer) Error(e string) {
-    log.Fatal(e)
+    fmt.Printf("Syntax::sntx: %v.\n\n\n", e)
 }
 
 func (y *Calclexer) Lex(lval *CalcSymType) int {

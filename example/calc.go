@@ -34,6 +34,9 @@ func main() {
 		if err != nil { // io.EOF, readline.ErrInterrupt
 			break
 		}
+		if line == "" {
+			continue
+		}
 		fmt.Printf("\n")
 
 		exp := expreduce.Interp(line)
