@@ -8,6 +8,7 @@ type Expression struct {
 	Parts []Ex
 }
 
+// Deprecated in favor of headExAssertion
 func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
@@ -16,6 +17,16 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 			if sym.Name == head {
 				return expr, true
 			}
+		}
+	}
+	return &Expression{}, false
+}
+
+func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
+	expr, isExpr := ex.(*Expression)
+	if isExpr {
+		if IsSameQ(head, expr.Parts[0], cl) {
+			return expr, true
 		}
 	}
 	return &Expression{}, false

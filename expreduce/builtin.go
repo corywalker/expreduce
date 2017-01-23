@@ -47,6 +47,7 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"solve", GetSolveDefinitions()})
 	defs = append(defs, NamedDefSet{"flowcontrol", GetFlowControlDefinitions()})
 	defs = append(defs, NamedDefSet{"list", GetListDefinitions()})
+	defs = append(defs, NamedDefSet{"matrix", GetMatrixDefinitions()})
 	defs = append(defs, NamedDefSet{"arithmetic", getArithmeticDefinitions()})
 	defs = append(defs, NamedDefSet{"specialsyms", getSpecialSymsDefinitions()})
 	defs = append(defs, NamedDefSet{"power", GetPowerDefinitions()})
