@@ -12,7 +12,7 @@ func main() {
 	flag.Parse()
 
 	rl, err := readline.NewEx(&readline.Config{
-		HistoryFile: "/tmp/readline.tmp",
+		HistoryFile:         "/tmp/readline.tmp",
 		ForceUseInteractive: true,
 	})
 	if err != nil {

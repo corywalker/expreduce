@@ -2,7 +2,7 @@ package expreduce
 
 func GetSolveDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "Solve",
+		Name: "Solve",
 		// Flip parameter order because of matching bug:
 		Usage: "`Solve[var, eqn]` solves `eqn` for `var`.",
 		Details: "!!! warning \"Under development\"\n" +

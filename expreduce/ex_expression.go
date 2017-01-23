@@ -178,17 +178,17 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		} else {
 			// Handle tracing
 			/*
-			if es.trace != nil {
-				toAppend := &Expression{[]Ex{
-					&Symbol{"HoldForm"},
-					currEx.DeepCopy(),
-				}}
-				fmt.Printf("Change: appending %v\n", toAppend.StringForm("FullForm"))
-				es.trace.Parts = append(
-					es.trace.Parts,
-					toAppend,
-				)
-			}*/
+				if es.trace != nil {
+					toAppend := &Expression{[]Ex{
+						&Symbol{"HoldForm"},
+						currEx.DeepCopy(),
+					}}
+					fmt.Printf("Change: appending %v\n", toAppend.StringForm("FullForm"))
+					es.trace.Parts = append(
+						es.trace.Parts,
+						toAppend,
+					)
+				}*/
 		}
 		lastEx = currEx
 	}

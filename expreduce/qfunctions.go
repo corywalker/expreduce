@@ -2,7 +2,7 @@ package expreduce
 
 type singleParamQType (func(Ex) bool)
 type singleParamQLogType (func(Ex, *CASLogger) bool)
-type evalFnType (func (*Expression, *EvalState) Ex)
+type evalFnType (func(*Expression, *EvalState) Ex)
 
 func singleParamQEval(fn singleParamQType) evalFnType {
 	return (func(this *Expression, es *EvalState) Ex {

@@ -215,8 +215,8 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "NumberQ",
-		Usage: "`NumberQ[expr]` returns True if `expr` is numeric, otherwise False.",
+		Name:         "NumberQ",
+		Usage:        "`NumberQ[expr]` returns True if `expr` is numeric, otherwise False.",
 		legacyEvalFn: singleParamQEval(numberQ),
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "NumberQ[2]"},

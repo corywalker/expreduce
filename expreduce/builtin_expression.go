@@ -21,7 +21,7 @@ func flattenExpr(src *Expression, dst *Expression, level int64, cl *CASLogger) {
 		expr, isExpr := src.Parts[i].(*Expression)
 		if continueFlatten && isExpr {
 			if IsSameQ(src.Parts[0], expr.Parts[0], cl) {
-				flattenExpr(expr, dst, level - 1, cl)
+				flattenExpr(expr, dst, level-1, cl)
 				continue
 			}
 		}

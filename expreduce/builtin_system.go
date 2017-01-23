@@ -363,8 +363,8 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "N",
-		Usage:      "`N[expr]` attempts to convert `expr` to a numeric value.",
+		Name:  "N",
+		Usage: "`N[expr]` attempts to convert `expr` to a numeric value.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

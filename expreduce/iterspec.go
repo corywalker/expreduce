@@ -22,10 +22,10 @@ type iterSpecRange struct {
 }
 
 type iterSpecList struct {
-	i       Ex
-	iName   string
-	pos     int
-	list    *Expression
+	i     Ex
+	iName string
+	pos   int
+	list  *Expression
 }
 
 func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
@@ -131,7 +131,7 @@ type multiIterSpec struct {
 	iSpecs     []iterSpec
 	origDefs   []Ex
 	isOrigDefs []bool
-	shouldCont       bool
+	shouldCont bool
 }
 
 func multiIterSpecFromLists(es *EvalState, lists []Ex) (mis multiIterSpec, isOk bool) {

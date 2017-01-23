@@ -4,14 +4,14 @@ import "math/big"
 
 func dimensions(ex *Expression, level int, cl *CASLogger) []int64 {
 	head := ex.Parts[0]
-	dims := []int64{int64(len(ex.Parts)-1)}
+	dims := []int64{int64(len(ex.Parts) - 1)}
 	nextDims := []int64{}
 	for i := 1; i < len(ex.Parts); i++ {
 		subHead, isSubHead := headExAssertion(ex.Parts[i], head, cl)
 		if !isSubHead {
 			return dims
 		} else {
-			currDims := dimensions(subHead, level + 1, cl)
+			currDims := dimensions(subHead, level+1, cl)
 			if i != 1 {
 				if len(nextDims) > len(currDims) {
 					nextDims = nextDims[:len(currDims)-1]
@@ -57,8 +57,8 @@ func calcIJ(i, j, innerDim int64, a, b *Expression) Ex {
 
 func GetMatrixDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "Inverse",
-		Usage: "`Inverse[mat]` finds the inverse of the square matrix `mat`.",
+		Name:    "Inverse",
+		Usage:   "`Inverse[mat]` finds the inverse of the square matrix `mat`.",
 		Details: "The row-reduce method has not been added yet, but the shortcuts to finding the inverses of matrices up to 3x3 have been added.",
 		Rules: []Rule{
 			{"Inverse[{{a_}}]", "{{1/a}}"},
@@ -114,8 +114,8 @@ func GetMatrixDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "VectorQ",
-		Usage: "`VectorQ[expr]` returns True if `expr` is a vector, False otherwise.",
+		Name:         "VectorQ",
+		Usage:        "`VectorQ[expr]` returns True if `expr` is a vector, False otherwise.",
 		legacyEvalFn: singleParamQEval(vectorQ),
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "VectorQ[{1, 2, c}]"},
@@ -128,8 +128,8 @@ func GetMatrixDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "MatrixQ",
-		Usage: "`MatrixQ[expr]` returns True if `expr` is a 2D matrix, False otherwise.",
+		Name:         "MatrixQ",
+		Usage:        "`MatrixQ[expr]` returns True if `expr` is a 2D matrix, False otherwise.",
 		legacyEvalFn: singleParamQLogEval(matrixQ),
 		SimpleExamples: []TestInstruction{
 			&SameTest{"False", "MatrixQ[{}]"},
@@ -146,8 +146,8 @@ func GetMatrixDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Dot",
-		Usage: "`a.b` computes the product of `a` and `b` for vectors and matrices.",
+		Name:       "Dot",
+		Usage:      "`a.b` computes the product of `a` and `b` for vectors and matrices.",
 		Attributes: []string{"Flat", "OneIdentity"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) == 2 {
@@ -164,7 +164,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 				if len(aVector.Parts) != len(bVector.Parts) {
 					return this
 				}
-				vecLen := len(aVector.Parts)-1
+				vecLen := len(aVector.Parts) - 1
 				toReturn := &Expression{[]Ex{&Symbol{"Plus"}}}
 				for i := 0; i < vecLen; i++ {
 					toReturn.appendEx(&Expression{[]Ex{
@@ -223,7 +223,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Transpose",
-		Usage:  "`Transpose[mat]` transposes the first two levels of `mat`",
+		Usage: "`Transpose[mat]` transposes the first two levels of `mat`",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

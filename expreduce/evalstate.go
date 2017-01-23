@@ -11,7 +11,7 @@ type EvalState struct {
 	CASLogger
 
 	defined map[string]Def
-	trace *Expression
+	trace   *Expression
 	NoInit  bool
 }
 

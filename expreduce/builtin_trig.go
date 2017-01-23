@@ -3,7 +3,7 @@ package expreduce
 import "math/big"
 import "math"
 
-func mathFnOneParam(fn (func(float64) float64)) (func(*Expression, *EvalState) Ex) {
+func mathFnOneParam(fn func(float64) float64) func(*Expression, *EvalState) Ex {
 	return (func(this *Expression, es *EvalState) Ex {
 		if len(this.Parts) != 2 {
 			return this
@@ -22,21 +22,21 @@ func mathFnOneParam(fn (func(float64) float64)) (func(*Expression, *EvalState) E
 
 func GetTrigDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:              "Sin",
-		Attributes: []string{"Listable", "NumericFunction"},
-		Usage:             "`Sin[x]` is the sine of `x`.",
+		Name:         "Sin",
+		Attributes:   []string{"Listable", "NumericFunction"},
+		Usage:        "`Sin[x]` is the sine of `x`.",
 		legacyEvalFn: mathFnOneParam(math.Sin),
 	})
 	defs = append(defs, Definition{
-		Name:              "Cos",
-		Attributes: []string{"Listable", "NumericFunction"},
-		Usage:             "`Cos[x]` is the cosine of `x`.",
+		Name:         "Cos",
+		Attributes:   []string{"Listable", "NumericFunction"},
+		Usage:        "`Cos[x]` is the cosine of `x`.",
 		legacyEvalFn: mathFnOneParam(math.Cos),
 	})
 	defs = append(defs, Definition{
-		Name:              "Tan",
-		Attributes: []string{"Listable", "NumericFunction"},
-		Usage:             "`Tan[x]` is the tangent of `x`.",
+		Name:         "Tan",
+		Attributes:   []string{"Listable", "NumericFunction"},
+		Usage:        "`Tan[x]` is the tangent of `x`.",
 		legacyEvalFn: mathFnOneParam(math.Tan),
 	})
 	return

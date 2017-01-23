@@ -311,8 +311,8 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Part",
-		Usage: "`expr[[i]]` or `Part[expr, i]` returns the `i`th element of `expr`.",
+		Name:       "Part",
+		Usage:      "`expr[[i]]` or `Part[expr, i]` returns the `i`th element of `expr`.",
 		Attributes: []string{"NHoldRest", "ReadProtected"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) == 1 {
@@ -373,7 +373,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "All",
+		Name:  "All",
 		Usage: "`All` allows selection along a dimension in `Part`.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{{1, 4, 9, 16, 25}, {2, 8, 18, 32, 50}, {3, 12, 27, 48, 75}, {4, 16, 36, 64, 100}, {5, 20, 45, 80, 125}}", "mat = Table[Table[a*b^2, {b, 5}], {a, 5}]"},
