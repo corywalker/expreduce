@@ -48,6 +48,7 @@ import (
 %left MINUSSYM
 %left MULTSYM
 %left DIVSYM /* does not need to be fully associative */
+%left DOTSYM
 %right EXPSYM
 %left STRINGJOINSYM
 %nonassoc FACTORIALSYM
@@ -186,6 +187,8 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  fullyAssoc("GreaterEqual", $1, $3) }
 	|    expr SPANSYM expr
 		{ $$  =  fullyAssoc("Span", $1, $3) }
+	|    expr DOTSYM expr
+		{ $$  =  fullyAssoc("Dot", $1, $3) }
 	|    MINUSSYM expr
 		{
 			if integer, isInteger := $2.(*Integer); isInteger {

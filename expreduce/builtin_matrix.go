@@ -38,6 +38,23 @@ func intSliceToList(ints []int64) Ex {
 	return toReturn
 }
 
+// This function assumes that mat is a matrix and that i and j are not out of
+// bounds. i and j are 1-indexed.
+func (mat *Expression) matrix2dGetElem(i, j int64) Ex {
+	return (mat.Parts[i].(*Expression)).Parts[j]
+}
+
+func calcIJ(i, j, innerDim int64, a, b *Expression) Ex {
+	toReturn := &Expression{[]Ex{&Symbol{"Plus"}}}
+	for pairI := int64(1); pairI <= innerDim; pairI++ {
+		toAdd := &Expression{[]Ex{&Symbol{"Times"}}}
+		toAdd.appendEx(a.matrix2dGetElem(i, pairI))
+		toAdd.appendEx(b.matrix2dGetElem(pairI, j))
+		toReturn.appendEx(toAdd)
+	}
+	return toReturn
+}
+
 func GetMatrixDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "Inverse",
@@ -126,6 +143,82 @@ func GetMatrixDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatrixQ[{{a, b, e}, {c, d, f}}]"},
 			&SameTest{"False", "MatrixQ[{{{a}, {b}}, {{c}, {d}}}]"},
 			&SameTest{"True", "MatrixQ[{{a, b, e}}]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Dot",
+		//Usage: "`MatrixQ[expr]` returns True if `expr` is a 2D matrix, False otherwise.",
+		Attributes: []string{"Flat", "OneIdentity"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) == 2 {
+				return this.Parts[1]
+			}
+			if len(this.Parts) != 3 {
+				return this
+			}
+			aIsVector := vectorQ(this.Parts[1])
+			bIsVector := vectorQ(this.Parts[2])
+			if aIsVector && bIsVector {
+				aVector := this.Parts[1].(*Expression)
+				bVector := this.Parts[2].(*Expression)
+				if len(aVector.Parts) != len(bVector.Parts) {
+					return this
+				}
+				vecLen := len(aVector.Parts)-1
+				toReturn := &Expression{[]Ex{&Symbol{"Plus"}}}
+				for i := 0; i < vecLen; i++ {
+					toReturn.appendEx(&Expression{[]Ex{
+						&Symbol{"Times"},
+						aVector.Parts[i+1],
+						bVector.Parts[i+1],
+					}})
+				}
+				return toReturn
+			}
+			aIsMatrix := matrixQ(this.Parts[1], &es.CASLogger)
+			bIsMatrix := matrixQ(this.Parts[2], &es.CASLogger)
+			if aIsMatrix && bIsMatrix {
+				aEx := this.Parts[1].(*Expression)
+				bEx := this.Parts[2].(*Expression)
+				aDims := dimensions(aEx, 0, &es.CASLogger)
+				bDims := dimensions(bEx, 0, &es.CASLogger)
+				if len(aDims) != 2 || len(bDims) != 2 {
+					return this
+				}
+				aH, aW := aDims[0], aDims[1]
+				bH, bW := bDims[0], bDims[1]
+				if aW != bH {
+					return this
+				}
+				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+				for i := int64(1); i <= aH; i++ {
+					row := &Expression{[]Ex{&Symbol{"List"}}}
+					for j := int64(1); j <= bW; j++ {
+						//row.appendEx(&Integer{big.NewInt(0)})
+						row.appendEx(calcIJ(i, j, aW, aEx, bEx))
+					}
+					toReturn.appendEx(row)
+				}
+				return toReturn
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"a c + b d", "{a, b}.{c, d}"},
+			&SameTest{"{a, b}.{c, d, e}", "{a, b}.{c, d, e}"},
+			&SameTest{"Dot[1, {c, d, e}]", "Dot[1, {c, d, e}]"},
+			&SameTest{"0", "Dot[{}, {}]"},
+			//&SameTest{"{a e + b f, c e + d f}", "{{a, b}, {c, d}}.{e, f}"},
+			&SameTest{"{{a, b}, {c, d}}.{e, f, g}", "{{a, b}, {c, d}}.{e, f, g}"},
+			//&SameTest{"{a e + c f, b e + d f}", "{e, f}.{{a, b}, {c, d}}"},
+			&SameTest{"{a, b}", "Dot[{a, b}]"},
+			&SameTest{"a", "Dot[a]"},
+			&SameTest{"1", "Dot[1]"},
+
+			// Matrix multiplication
+			&SameTest{"{{a e + b g, a f + b h}, {c e + d g, c f + d h}}", "{{a, b}, {c, d}}.{{e, f}, {g, h}}"},
+			&SameTest{"{{a e + b f}, {c e + d f}}", "{{a, b}, {c, d}}.{{e}, {f}}"},
+			&SameTest{"{{a, b}, {c, d}}.{{e, f}}", "{{a, b}, {c, d}}.{{e, f}}"},
 		},
 	})
 	return

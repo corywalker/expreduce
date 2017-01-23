@@ -352,3 +352,7 @@ func (this *Expression) Less(i, j int) bool {
 func (this *Expression) Swap(i, j int) {
 	this.Parts[j+1], this.Parts[i+1] = this.Parts[i+1], this.Parts[j+1]
 }
+
+func (this *Expression) appendEx(e Ex) {
+	this.Parts = append(this.Parts, e)
+}

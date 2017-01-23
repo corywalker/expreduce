@@ -121,6 +121,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 \< return LESSSYM /* Less */
 >= return GREATEREQUALSYM /* GreaterEqual */
 \<= return LESSEQUALSYM /* LessEqual */
+\. return DOTSYM /* Dot */
 ! return FACTORIALSYM /* Factorial */
 & return FUNCTIONSYM /* Factorial */
 != return UNEQUALSYM /* Unequal */
