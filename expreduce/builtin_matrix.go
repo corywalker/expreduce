@@ -147,7 +147,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Dot",
-		//Usage: "`MatrixQ[expr]` returns True if `expr` is a 2D matrix, False otherwise.",
+		Usage: "`a.b` computes the product of `a` and `b` for vectors and matrices.",
 		Attributes: []string{"Flat", "OneIdentity"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) == 2 {
@@ -219,6 +219,40 @@ func GetMatrixDefinitions() (defs []Definition) {
 			&SameTest{"{{a e + b g, a f + b h}, {c e + d g, c f + d h}}", "{{a, b}, {c, d}}.{{e, f}, {g, h}}"},
 			&SameTest{"{{a e + b f}, {c e + d f}}", "{{a, b}, {c, d}}.{{e}, {f}}"},
 			&SameTest{"{{a, b}, {c, d}}.{{e, f}}", "{{a, b}, {c, d}}.{{e, f}}"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Transpose",
+		Usage:  "`Transpose[mat]` transposes the first two levels of `mat`",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			l, isL := HeadAssertion(this.Parts[1], "List")
+			if !isL {
+				return this
+			}
+			dims := dimensions(l, 0, &es.CASLogger)
+			if len(dims) < 2 {
+				return this
+			}
+			h, w := dims[0], dims[1]
+			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+			for tI := int64(1); tI <= w; tI++ {
+				tRow := &Expression{[]Ex{&Symbol{"List"}}}
+				for tJ := int64(1); tJ <= h; tJ++ {
+					tRow.appendEx(l.matrix2dGetElem(tJ, tI))
+				}
+				toReturn.appendEx(tRow)
+			}
+			return toReturn
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"Transpose[{a, b}]", "Transpose[{a, b}]"},
+			&SameTest{"{{a, b}}", "Transpose[{{a}, {b}}]"},
+			&SameTest{"{{a}, {b}}", "Transpose[{{a, b}}]"},
+			&SameTest{"{{{a}}, {{b}}}", "Transpose[{{{a}, {b}}}]"},
+			&SameTest{"Transpose[a]", "Transpose[a]"},
 		},
 	})
 	return
