@@ -15,18 +15,13 @@ The term rewriting system and pattern matching engine is fairly advanced. The co
 
 Expreduce has documentation for every function that is supported. [Link to documentation](https://corywalker.github.io/expreduce-docs/).
 
-# Setup
-`go generate` is required to generate source files from lex and yacc:
+# Installation
 ```
-go get -d ./...
-go get golang.org/x/tools/cmd/goyacc
-go get github.com/cznic/golex
-go generate ./...
-go get ./...
+go get github.com/corywalker/expreduce/expreduce
 ```
 
 # Example
-This must be done after running "go generate". To run the example CAS prompt:
+To run the example CAS prompt:
 
 ```
 cd example
