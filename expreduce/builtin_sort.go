@@ -157,5 +157,17 @@ func GetSortDefinitions() (defs []Definition) {
 			&SameTest{"1", "Order[\"a\", \"aa\"]"},
 		},
 	})
+	/*defs = append(defs, Definition{
+		// Credit for this function goes to the Mathics contributors.
+		Name:  "PatternsOrderedQ",
+		Usage: "`PatternsOrderedQ[e1, e2]` returns True if `e1` should come before `e2` in patterns ordering.",
+		legacyEvalFn: doubleParamQLogEval(patternsOrderedQ),
+		SimpleExamples: []TestInstruction{
+			&TestComment{"Find the relative order of patterns:"},
+			&SameTest{"False", "PatternsOrderedQ[x__, x_]"},
+			&SameTest{"True", "PatternsOrderedQ[x_, x__]"},
+			&SameTest{"True", "PatternsOrderedQ[b, a]"},
+		},
+	})*/
 	return
 }

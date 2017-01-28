@@ -2,6 +2,7 @@ package expreduce
 
 type singleParamQType (func(Ex) bool)
 type singleParamQLogType (func(Ex, *CASLogger) bool)
+type doubleParamQLogType (func(Ex, Ex, *CASLogger) bool)
 type evalFnType (func(*Expression, *EvalState) Ex)
 
 func singleParamQEval(fn singleParamQType) evalFnType {
@@ -22,6 +23,18 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 			return this
 		}
 		if fn(this.Parts[1], &es.CASLogger) {
+			return &Symbol{"True"}
+		}
+		return &Symbol{"False"}
+	})
+}
+
+func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
+	return (func(this *Expression, es *EvalState) Ex {
+		if len(this.Parts) != 3 {
+			return this
+		}
+		if fn(this.Parts[1], this.Parts[2], &es.CASLogger) {
 			return &Symbol{"True"}
 		}
 		return &Symbol{"False"}
@@ -63,5 +76,9 @@ func matrixQ(e Ex, cl *CASLogger) bool {
 	if isL {
 		return len(dimensions(l, 0, cl)) == 2
 	}
+	return false
+}
+
+func patternsOrderedQ(a Ex, b Ex, cl *CASLogger) bool {
 	return false
 }

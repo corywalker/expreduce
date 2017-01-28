@@ -173,7 +173,7 @@ func (this *multiIterSpec) takeVarSnapshot(es *EvalState) {
 func (this *multiIterSpec) restoreVarSnapshot(es *EvalState) {
 	for i := range this.iSpecs {
 		if this.isOrigDefs[i] {
-			es.Define(this.iSpecs[i].getIName(), this.iSpecs[i].getI(), this.origDefs[i])
+			es.Define(this.iSpecs[i].getI(), this.origDefs[i])
 		} else {
 			es.Clear(this.iSpecs[i].getIName())
 		}
@@ -182,7 +182,7 @@ func (this *multiIterSpec) restoreVarSnapshot(es *EvalState) {
 
 func (this *multiIterSpec) defineCurrent(es *EvalState) {
 	for i := range this.iSpecs {
-		es.Define(this.iSpecs[i].getIName(), this.iSpecs[i].getI(), this.iSpecs[i].getCurr())
+		es.Define(this.iSpecs[i].getI(), this.iSpecs[i].getCurr())
 	}
 }
 

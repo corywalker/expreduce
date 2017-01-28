@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"sort"
 	"strings"
+	"log"
 )
 
 type EvalState struct {
@@ -118,7 +119,25 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	return nil, false
 }
 
-func (this *EvalState) Define(name string, lhs Ex, rhs Ex) {
+func (this *EvalState) Define(lhs Ex, rhs Ex) {
+	// This function used to require a name as a parameter. Centralize the logic
+	// here.
+	name := ""
+	LhsSym, ok := lhs.(*Symbol)
+	if ok {
+		name = LhsSym.Name
+	}
+	LhsF, ok := lhs.(*Expression)
+	if ok {
+		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
+		if headIsSym {
+			name = headAsSym.Name
+		}
+	}
+	if name == "" {
+		log.Fatalf("Trying to define an invalid lhs: %v", lhs)
+	}
+
 	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
 	_, isd := this.defined[name]
 	if !isd {

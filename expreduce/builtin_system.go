@@ -154,21 +154,8 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			LhsSym, ok := this.Parts[1].(*Symbol)
-			if ok {
-				es.Define(LhsSym.Name, LhsSym, this.Parts[2])
-				return this.Parts[2]
-			}
-			LhsF, ok := this.Parts[1].(*Expression)
-			if ok {
-				headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
-				if headIsSym {
-					es.Define(headAsSym.Name, LhsF, this.Parts[2])
-					return this.Parts[2]
-				}
-			}
-
-			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
+			es.Define(this.Parts[1], this.Parts[2])
+			return this.Parts[2]
 		},
 		SimpleExamples: []TestInstruction{
 			&StringTest{"3", "x=1+2"},
@@ -211,21 +198,8 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			LhsSym, ok := this.Parts[1].(*Symbol)
-			if ok {
-				es.Define(LhsSym.Name, LhsSym, this.Parts[2])
-				return &Symbol{"Null"}
-			}
-			LhsF, ok := this.Parts[1].(*Expression)
-			if ok {
-				headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
-				if headIsSym {
-					es.Define(headAsSym.Name, LhsF, this.Parts[2])
-					return &Symbol{"Null"}
-				}
-			}
-
-			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Can only set expression to a symbol or a function"}}}
+			es.Define(this.Parts[1], this.Parts[2])
+			return &Symbol{"Null"}
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"`SetDelayed` can be used to define functions:"},
