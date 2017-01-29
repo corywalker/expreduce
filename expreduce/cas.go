@@ -15,4 +15,5 @@ type Ex interface {
 	StringForm(form string) string
 	IsEqual(b Ex, cl *CASLogger) string
 	DeepCopy() Ex
+	NeedsEval() bool
 }

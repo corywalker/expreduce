@@ -19,16 +19,16 @@ func exprToN(es *EvalState, e Ex) Ex {
 	if isExpr {
 		toReturn, defined := es.GetDef(
 			"N",
-			&Expression{[]Ex{&Symbol{"N"}, e}},
+			NewExpression([]Ex{&Symbol{"N"}, e}),
 		)
 		if defined {
 			return toReturn
 		}
-		exToReturn := &Expression{}
+		exToReturn := NewEmptyExpression()
 		for _, part := range asExpr.Parts {
 			toAdd, defined := es.GetDef(
 				"N",
-				&Expression{[]Ex{&Symbol{"N"}, part}},
+				NewExpression([]Ex{&Symbol{"N"}, part}),
 			)
 			if !defined {
 				toAdd = exprToN(es, part)
@@ -78,7 +78,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+			toReturn := NewExpression([]Ex{&Symbol{"List"}})
 			def, isDef := es.defined[sym.Name]
 			if isDef {
 				for _, s := range def.attributes.toStrings() {
@@ -136,7 +136,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 
 			//sym, ok := this.Expr.(*Symbol)
-			return &Expression{[]Ex{&Symbol{"Error"}, &String{es.String()}}}
+			return NewExpression([]Ex{&Symbol{"Error"}, &String{es.String()}})
 		},
 	})
 	defs = append(defs, Definition{
@@ -265,7 +265,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			start := time.Now()
 			res := this.Parts[1].Eval(es)
 			elapsed := time.Since(start).Seconds()
-			return &Expression{[]Ex{&Symbol{"List"}, &Flt{big.NewFloat(elapsed)}, res}}
+			return NewExpression([]Ex{&Symbol{"List"}, &Flt{big.NewFloat(elapsed)}, res})
 		},
 		SimpleExamples: []TestInstruction{
 			&ExampleOnlyInstruction{"{0.00167509, 5000000050000000}", "Timing[Sum[a, {a, 100000000}]]"},
@@ -305,7 +305,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			// way.
 
 			// Put system in trace mode:
-			es.trace = &Expression{[]Ex{&Symbol{"List"}}}
+			es.trace = NewExpression([]Ex{&Symbol{"List"}})
 			// Evaluate first argument in trace mode:
 			this.Parts[1].Eval(es)
 			if len(es.trace.Parts) > 2 {
@@ -315,7 +315,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return toReturn
 			}
 			es.trace = nil
-			return &Expression{[]Ex{&Symbol{"List"}}}
+			return NewExpression([]Ex{&Symbol{"List"}})
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"List[HoldForm[Plus[1, 2]], HoldForm[3]]", "1 + 2 // Trace"},

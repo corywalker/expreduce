@@ -62,3 +62,7 @@ func RationalToFlt(r *Rational) (*Flt, bool) {
 	newfloat.SetRat(r.AsBigRat())
 	return &Flt{newfloat}, true
 }
+
+func (this *Flt) NeedsEval() bool {
+	return false
+}

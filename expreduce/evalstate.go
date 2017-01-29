@@ -2,9 +2,9 @@ package expreduce
 
 import (
 	"bytes"
+	"log"
 	"sort"
 	"strings"
-	"log"
 )
 
 type EvalState struct {
@@ -21,23 +21,24 @@ func (this *EvalState) Load(def Definition) {
 	// downvalues directly? If we did this, we could potentially remove the
 	// "bootstrap" attribute that SetDelayed has.
 	for _, rule := range def.Rules {
-		(&Expression{[]Ex{
+		(NewExpression([]Ex{
 			&Symbol{"SetDelayed"},
 			Interp(rule.Lhs),
 			Interp(rule.Rhs),
-		}}).Eval(this)
+		})).Eval(this)
 	}
 
 	if len(def.Usage) > 0 {
-		(&Expression{[]Ex{
+		(NewExpression([]Ex{
 			&Symbol{"SetDelayed"},
-			&Expression{[]Ex{
+			NewExpression([]Ex{
 				&Symbol{"MessageName"},
 				&Symbol{def.Name},
 				&String{"usage"},
-			}},
+			}),
+
 			&String{def.Usage},
-		}}).Eval(this)
+		})).Eval(this)
 	}
 
 	newDef, foundDef := this.defined[def.Name]
@@ -142,7 +143,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	_, isd := this.defined[name]
 	if !isd {
 		newDef := Def{
-			downvalues: []Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}},
+			downvalues: []Expression{*NewExpression([]Ex{&Symbol{"Rule"}, lhs, rhs})},
 		}
 		this.defined[name] = newDef
 		return
@@ -166,12 +167,12 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	for i := range this.defined[name].downvalues {
 		thisLhsLen := len(this.defined[name].downvalues[i].Parts[1].String())
 		if thisLhsLen < newLhsLen {
-			tmp.downvalues = append(tmp.downvalues[:i], append([]Expression{{[]Ex{&Symbol{"Rule"}, lhs, rhs}}}, this.defined[name].downvalues[i:]...)...)
+			tmp.downvalues = append(tmp.downvalues[:i], append([]Expression{*NewExpression([]Ex{&Symbol{"Rule"}, lhs, rhs})}, this.defined[name].downvalues[i:]...)...)
 			this.defined[name] = tmp
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, Expression{[]Ex{&Symbol{"Rule"}, lhs, rhs}})
+	tmp.downvalues = append(tmp.downvalues, *NewExpression([]Ex{&Symbol{"Rule"}, lhs, rhs}))
 	this.defined[name] = tmp
 }
 

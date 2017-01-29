@@ -195,7 +195,7 @@ func (this *Expression) evalIterationFunc(es *EvalState, init Ex, op string) Ex 
 			var toReturn Ex = init
 			for mis.cont() {
 				mis.defineCurrent(es)
-				toReturn = (&Expression{[]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)}}).Eval(es)
+				toReturn = (NewExpression([]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)})).Eval(es)
 				mis.next()
 			}
 			mis.restoreVarSnapshot(es)
@@ -210,7 +210,7 @@ func evalIterSpecCandidate(es *EvalState, cand Ex) Ex {
 	// them.
 	list, isList := HeadAssertion(cand, "List")
 	if isList {
-		toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+		toReturn := NewExpression([]Ex{&Symbol{"List"}})
 		for i := 1; i < len(list.Parts); i++ {
 			toAdd := list.Parts[i].DeepCopy()
 			// Do not evaluate the variable of iteration. Even if "n" is

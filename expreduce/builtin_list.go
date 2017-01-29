@@ -124,7 +124,7 @@ func GetListDefinitions() (defs []Definition) {
 				if isOk {
 					// Simulate evaluation within Block[]
 					mis.takeVarSnapshot(es)
-					toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+					toReturn := NewExpression([]Ex{&Symbol{"List"}})
 					for mis.cont() {
 						mis.defineCurrent(es)
 						toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
@@ -213,7 +213,7 @@ func GetListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
-				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+				toReturn := NewExpression([]Ex{&Symbol{"List"}})
 
 				for i := 1; i < len(expr.Parts); i++ {
 					if matchq, _ := IsMatchQ(expr.Parts[i], this.Parts[2], EmptyPD(), &es.CASLogger); matchq {
@@ -242,7 +242,7 @@ func GetListDefinitions() (defs []Definition) {
 			if !valid {
 				return this
 			}
-			toReturn := &Expression{[]Ex{list.Parts[0]}}
+			toReturn := NewExpression([]Ex{list.Parts[0]})
 			for i := int64(0); i < n; i++ {
 				if i >= int64(len(list.Parts)-1) {
 					toReturn.Parts = append(toReturn.Parts, x)
@@ -265,7 +265,7 @@ func GetListDefinitions() (defs []Definition) {
 			if !valid {
 				return this
 			}
-			toReturn := &Expression{[]Ex{list.Parts[0]}}
+			toReturn := NewExpression([]Ex{list.Parts[0]})
 			for i := int64(0); i < n; i++ {
 				if i < n-int64(len(list.Parts))+1 {
 					toReturn.Parts = append(toReturn.Parts, x)
@@ -291,13 +291,13 @@ func GetListDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// I should probably refactor the IterSpec system so that it does not
 			// require being passed a list and a variable of iteration. TODO
-			iterSpecList := &Expression{[]Ex{&Symbol{"List"}, &Symbol{"$DUMMY"}}}
+			iterSpecList := NewExpression([]Ex{&Symbol{"List"}, &Symbol{"$DUMMY"}})
 			iterSpecList.Parts = append(iterSpecList.Parts, this.Parts[1:]...)
 			is, isOk := iterSpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
 			}
-			toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+			toReturn := NewExpression([]Ex{&Symbol{"List"}})
 			for is.cont() {
 				toReturn.Parts = append(toReturn.Parts, is.getCurr())
 				is.next()

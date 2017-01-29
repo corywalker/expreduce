@@ -35,10 +35,10 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), cl)
 			if matchq {
 				tmpEs := NewEvalStateNoLog(true)
-				res := (&Expression{[]Ex{
+				res := (NewExpression([]Ex{
 					patternTest.Parts[2],
 					a,
-				}}).Eval(tmpEs)
+				})).Eval(tmpEs)
 				resSymbol, resIsSymbol := res.(*Symbol)
 				if resIsSymbol {
 					if resSymbol.Name == "True" {
@@ -132,11 +132,12 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 
 func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	return IsMatchQ(
-		&Expression{[]Ex{
+		NewExpression([]Ex{
 			&Symbol{"Rational"},
 			&Integer{a.Num},
 			&Integer{a.Den},
-		}},
+		}),
+
 		b, pm, cl)
 }
 
@@ -292,7 +293,7 @@ func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, c
 						if sAsSymbolOk {
 							toTryParts := []Ex{&Symbol{"Sequence"}}
 							toTryParts = append(toTryParts, seqToTry...)
-							target := &Expression{toTryParts}
+							target := NewExpression(toTryParts)
 							_, ispd := pm.patternDefined[sAsSymbol.Name]
 							if !ispd {
 								pm.patternDefined[sAsSymbol.Name] = target

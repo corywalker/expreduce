@@ -61,3 +61,7 @@ func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start
 	}
 	return true, buffer.String()
 }
+
+func (this *String) NeedsEval() bool {
+	return false
+}

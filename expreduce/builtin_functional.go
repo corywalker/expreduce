@@ -40,7 +40,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 			sym, isSym := this.Parts[1].(*Symbol)
 			expr, isExpr := this.Parts[2].DeepCopy().(*Expression)
 			if isSym && isExpr {
-				toReturn := &Expression{[]Ex{sym}}
+				toReturn := NewExpression([]Ex{sym})
 				toReturn.Parts = append(toReturn.Parts, expr.Parts[1:]...)
 				return toReturn.Eval(es)
 			}
@@ -76,12 +76,12 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.Parts[2].(*Expression)
 			if isExpr {
-				toReturn := &Expression{[]Ex{expr.Parts[0]}}
+				toReturn := NewExpression([]Ex{expr.Parts[0]})
 				for i := 1; i < len(expr.Parts); i++ {
-					toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
+					toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
 						this.Parts[1].DeepCopy(),
 						expr.Parts[i].DeepCopy(),
-					}})
+					}))
 				}
 				return toReturn
 			}
@@ -111,12 +111,12 @@ func getFunctionalDefinitions() (defs []Definition) {
 			nInt, nOk := this.Parts[2].(*Integer)
 			if nOk {
 				n := nInt.Val.Int64()
-				toReturn := &Expression{[]Ex{&Symbol{"List"}}}
+				toReturn := NewExpression([]Ex{&Symbol{"List"}})
 				for i := int64(1); i <= n; i++ {
-					toReturn.Parts = append(toReturn.Parts, &Expression{[]Ex{
+					toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
 						this.Parts[1].DeepCopy(),
 						&Integer{big.NewInt(i)},
-					}})
+					}))
 				}
 				return toReturn
 			}

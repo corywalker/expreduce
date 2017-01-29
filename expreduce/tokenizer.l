@@ -149,27 +149,27 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
     }
     parts := strings.Split(string(y.buf), delim)
     if len(parts) == 1 {
-        lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{blankType}}}}
+        lval.val = NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
         return PATTERN
     }
     if len(parts) == 2 {
         if parts[0] == "" {
             if parts[1] == "" {
-                lval.val = &Expression{[]Ex{blankType}}
+                lval.val = NewExpression([]Ex{blankType})
             } else {
-                lval.val = &Expression{[]Ex{blankType, &Symbol{parts[1]}}}
+                lval.val = NewExpression([]Ex{blankType, &Symbol{parts[1]}})
             }
             return PATTERN
         } else {
             if parts[1] == "" {
-                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{blankType}}}}
+                lval.val = NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
             } else {
-                lval.val = &Expression{[]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, &Expression{[]Ex{blankType, &Symbol{parts[1]}}}}}
+                lval.val = NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType, &Symbol{parts[1]}})})
             }
             return PATTERN
         }
     }
-    lval.val = &Expression{[]Ex{&Symbol{"Error"}, &String{"Pattern parse error."}}}
+    lval.val = NewExpression([]Ex{&Symbol{"Error"}, &String{"Pattern parse error."}})
     return PATTERN
 
 {contextedIdent}

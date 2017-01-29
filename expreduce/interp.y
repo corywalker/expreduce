@@ -89,32 +89,32 @@ stat	:    expr
 expr	:    LPARSYM expr RPARSYM
 		/*This sentinel expression could be removed by attaching metadata to*/
 		/*either the val object or the Expression object.*/
-		{ $$  =  &Expression{[]Ex{&Symbol{"Internal`Parens"}, $2}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Internal`Parens"}, $2}) }
 	/*|    INTEGER NAME*/
-		/*{ $$  =  &Expression{[]Ex{&Symbol{"Times"}, $1, $2}} }*/
+		/*{ $$  =  NewExpression([]Ex{&Symbol{"Times"}, $1, $2}) }*/
 	|    expr SEMISYM expr
 		{ $$  =  fullyAssoc("CompoundExpression", $1, $3) }
 	|    expr SEMISYM
 		{ $$  =  fullyAssoc("CompoundExpression", $1, &Symbol{"Null"}) }
 	|    expr FACTORIALSYM
-		{ $$  =  &Expression{[]Ex{&Symbol{"Factorial"}, $1}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Factorial"}, $1}) }
 	|    expr FUNCTIONSYM
-		{ $$  =  &Expression{[]Ex{&Symbol{"Function"}, $1}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Function"}, $1}) }
 	|    expr LBRACKETSYM LBRACKETSYM exprseq RBRACKETSYM RBRACKETSYM
 		{
-			ex := &Expression{}
+			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{&Symbol{"Part"}, $1}, $4...)
 			$$ = ex
 		}
 	|    expr LBRACKETSYM exprseq RBRACKETSYM
 		{
-			ex := &Expression{}
+			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{$1}, $3...)
 			$$ = ex
 		}
 	|    LCURLYSYM exprseq RCURLYSYM
 		{
-			ex := &Expression{}
+			ex := NewEmptyExpression()
 			ex.Parts = []Ex{&Symbol{"List"}}
 			ex.Parts = append(ex.Parts, $2...)
 			$$ = ex
@@ -122,55 +122,55 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr PLUSSYM expr
 		{ $$  =  fullyAssoc("Plus", $1, $3) }
 	|    expr MINUSSYM expr
-		{ $$  =  fullyAssoc("Plus", $1, &Expression{[]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}}}) }
+		{ $$  =  fullyAssoc("Plus", $1, NewExpression([]Ex{&Symbol{"Times"}, $3, &Integer{big.NewInt(-1)}})) }
 	|    expr MULTSYM expr
 		{ $$  =  fullyAssoc("Times", $1, $3) }
 	|    expr expr %prec MULTSYM
 		{ $$  =  fullyAssoc("Times", $1, $2) }
 	|    expr DIVSYM expr
-		{ $$  =  &Expression{[]Ex{
+		{ $$  =  NewExpression([]Ex{
 		           &Symbol{"Times"},
 				   $1,
-				   &Expression{[]Ex{
+				   NewExpression([]Ex{
 				     &Symbol{"Power"},
 				     $3,
 					 &Integer{big.NewInt(-1)},
-				   }},
-			     }}
+				   }),
+			     })
 		}
 	|    expr EXPSYM expr
-		{ $$  =  &Expression{[]Ex{
+		{ $$  =  NewExpression([]Ex{
 		           &Symbol{"Power"},
 				   $1,
 				   $3,
-				 }}
+				 })
 		}
 	|    expr POSTFIXSYM expr
-		{ $$  =  &Expression{[]Ex{$3, $1}} }
+		{ $$  =  NewExpression([]Ex{$3, $1}) }
 	|    expr FUNCAPPSYM expr
-		{ $$  =  &Expression{[]Ex{$1, $3}} }
+		{ $$  =  NewExpression([]Ex{$1, $3}) }
 	|    expr PATTESTSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"PatternTest"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"PatternTest"}, $1, $3}) }
 	|    expr ALTSYM expr
 		{ $$  =  fullyAssoc("Alternatives", $1, $3) }
 	|    expr APPLYSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Apply"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Apply"}, $1, $3}) }
 	|    expr MAPSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Map"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Map"}, $1, $3}) }
 	|    expr RULESYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Rule"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Rule"}, $1, $3}) }
 	|    expr RULEDELAYEDSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"RuleDelayed"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"RuleDelayed"}, $1, $3}) }
 	|    expr REPLACEREPSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"ReplaceRepeated"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"ReplaceRepeated"}, $1, $3}) }
 	|    expr REPLACEALLSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"ReplaceAll"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"ReplaceAll"}, $1, $3}) }
 	|    expr CONDITIONSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Condition"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Condition"}, $1, $3}) }
 	|    expr SETSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"Set"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Set"}, $1, $3}) }
 	|    expr SETDELAYEDSYM expr
-		{ $$  =  &Expression{[]Ex{&Symbol{"SetDelayed"}, $1, $3}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"SetDelayed"}, $1, $3}) }
 	|    expr SAMESYM expr
 		{ $$  =  fullyAssoc("SameQ", $1, $3) }
 	|    expr EQUALSYM expr
@@ -196,13 +196,13 @@ expr	:    LPARSYM expr RPARSYM
 			} else if flt, isFlt := $2.(*Flt); isFlt {
 				$$  =  &Flt{flt.Val.Neg(flt.Val)}
 			} else {
-				$$  =  &Expression{[]Ex{&Symbol{"Times"}, $2, &Integer{big.NewInt(-1)}}}
+				$$  =  NewExpression([]Ex{&Symbol{"Times"}, $2, &Integer{big.NewInt(-1)}})
 			}
 		}
 	|    SLOTSYM
-		{ $$  =  &Expression{[]Ex{&Symbol{"Slot"}, &Integer{big.NewInt(1)}}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Slot"}, &Integer{big.NewInt(1)}}) }
 	|    SLOTSYM INTEGER
-		{ $$  =  &Expression{[]Ex{&Symbol{"Slot"}, $2}} }
+		{ $$  =  NewExpression([]Ex{&Symbol{"Slot"}, $2}) }
 	|    expr MESSAGENAMESYM expr
 		{
 			if sym, isSym := $3.(*Symbol); isSym {
@@ -243,7 +243,7 @@ func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
 		opExpr.Parts = append(opExpr.Parts, rhs)
 		return opExpr
 	}
-	return &Expression{[]Ex{&Symbol{op}, lhs, rhs}}
+	return NewExpression([]Ex{&Symbol{op}, lhs, rhs})
 }
 
 func removeParens(ex Ex) {
@@ -267,7 +267,7 @@ func Interp(line string) Ex {
 
 	parsed := parser.(*CalcParserImpl).lval.val
 	// Remove outer parens
-	parens, isParens := &Expression{}, true
+	parens, isParens := NewEmptyExpression(), true
 	for isParens {
 		parens, isParens = HeadAssertion(parsed, "Internal`Parens")
 		if isParens {

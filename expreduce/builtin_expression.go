@@ -207,7 +207,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this
 			}
-			dst := &Expression{[]Ex{expr.Parts[0]}}
+			dst := NewExpression([]Ex{expr.Parts[0]})
 			flattenExpr(expr, dst, level, &es.CASLogger)
 			return dst
 		},

@@ -82,3 +82,7 @@ func (this *Rational) DeepCopy() Ex {
 func (this *Rational) AsBigRat() *big.Rat {
 	return big.NewRat(this.Num.Int64(), this.Den.Int64())
 }
+
+func (this *Rational) NeedsEval() bool {
+	return false
+}

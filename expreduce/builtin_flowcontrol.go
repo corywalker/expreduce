@@ -19,7 +19,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				return this.Parts[3]
 			}
 
-			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
+			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
 		},
 		SimpleExamples: []TestInstruction{
 			&StringTest{"9", "x=9"},
@@ -66,14 +66,14 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			}
 
 			if isequal == "EQUAL_UNK" {
-				return &Expression{[]Ex{&Symbol{"Error"}, &String{"Encountered EQUAL_UNK when evaluating test for the While."}}}
+				return NewExpression([]Ex{&Symbol{"Error"}, &String{"Encountered EQUAL_UNK when evaluating test for the While."}})
 			} else if isequal == "EQUAL_TRUE" {
 				return &Symbol{"Null"}
 			} else if isequal == "EQUAL_FALSE" {
 				return &Symbol{"Null"}
 			}
 
-			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
+			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"1", "a=1"},

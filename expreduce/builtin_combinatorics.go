@@ -113,17 +113,17 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 
 			cmpVal := n.Val.Cmp(big.NewInt(0))
 			if cmpVal == -1 {
-				return &Expression{[]Ex{&Symbol{"List"}}}
+				return NewExpression([]Ex{&Symbol{"List"}})
 			} else if cmpVal == 0 {
-				return &Expression{[]Ex{&Symbol{"List"}, &Expression{[]Ex{&Symbol{"List"}}}}}
+				return NewExpression([]Ex{&Symbol{"List"}, NewExpression([]Ex{&Symbol{"List"}})})
 			}
 
 			var parts [][]int
 			genIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
 
-			exParts := &Expression{[]Ex{&Symbol{"List"}}}
+			exParts := NewExpression([]Ex{&Symbol{"List"}})
 			for _, partition := range parts {
-				toAppend := &Expression{[]Ex{&Symbol{"List"}}}
+				toAppend := NewExpression([]Ex{&Symbol{"List"}})
 				for _, integer := range partition {
 					toAppend.Parts = append(toAppend.Parts, &Integer{big.NewInt(int64(integer))})
 				}
@@ -167,9 +167,9 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 
 			perms := genPermutations(list.Parts[1:], &es.CASLogger)
 
-			exPerms := &Expression{[]Ex{&Symbol{"List"}}}
+			exPerms := NewExpression([]Ex{&Symbol{"List"}})
 			for _, perm := range perms {
-				toAppend := &Expression{[]Ex{&Symbol{"List"}}}
+				toAppend := NewExpression([]Ex{&Symbol{"List"}})
 				for _, ex := range perm {
 					toAppend.Parts = append(toAppend.Parts, ex)
 				}

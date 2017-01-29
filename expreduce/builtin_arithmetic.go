@@ -352,11 +352,13 @@ func getArithmeticDefinitions() (defs []Definition) {
 
 			// If there is a zero in the expression, return zero, except under
 			// special circumstances.
-			containsInfinity := MemberQ(multiplicands, &Expression{[]Ex{
+			containsInfinity := MemberQ(multiplicands, NewExpression([]Ex{
 				&Symbol{"Alternatives"},
 				&Symbol{"Infinity"},
 				&Symbol{"ComplexInfinity"},
-			}}, &es.CASLogger)
+			}),
+
+				&es.CASLogger)
 			for _, e := range multiplicands {
 				float, isFlt := e.(*Flt)
 				if isFlt {
@@ -511,14 +513,15 @@ func getArithmeticDefinitions() (defs []Definition) {
 				}
 				if theInt != nil && thePlus != nil {
 					if theInt.Val.Cmp(big.NewInt(-1)) == 0 {
-						toreturn := &Expression{[]Ex{&Symbol{"Plus"}}}
+						toreturn := NewExpression([]Ex{&Symbol{"Plus"}})
 						addends := thePlus.Parts[1:len(thePlus.Parts)]
 						for i := range addends {
-							toAppend := &Expression{[]Ex{
+							toAppend := NewExpression([]Ex{
 								&Symbol{"Times"},
 								addends[i],
 								&Integer{big.NewInt(-1)},
-							}}
+							})
+
 							toreturn.Parts = append(toreturn.Parts, toAppend)
 						}
 						return toreturn.Eval(es)

@@ -130,7 +130,7 @@ func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
 		opExpr.Parts = append(opExpr.Parts, rhs)
 		return opExpr
 	}
-	return &Expression{[]Ex{&Symbol{op}, lhs, rhs}}
+	return NewExpression([]Ex{&Symbol{op}, lhs, rhs})
 }
 
 func removeParens(ex Ex) {
@@ -154,7 +154,7 @@ func Interp(line string) Ex {
 
 	parsed := parser.(*CalcParserImpl).lval.val
 	// Remove outer parens
-	parens, isParens := &Expression{}, true
+	parens, isParens := NewEmptyExpression(), true
 	for isParens {
 		parens, isParens = HeadAssertion(parsed, "Internal`Parens")
 		if isParens {
@@ -760,7 +760,7 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:92
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Internal`Parens"}, CalcDollar[2].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Internal`Parens"}, CalcDollar[2].val})
 		}
 	case 7:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
@@ -778,19 +778,19 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
 		//line interp.y:100
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Factorial"}, CalcDollar[1].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Factorial"}, CalcDollar[1].val})
 		}
 	case 10:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
 		//line interp.y:102
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Function"}, CalcDollar[1].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Function"}, CalcDollar[1].val})
 		}
 	case 11:
 		CalcDollar = CalcS[Calcpt-6 : Calcpt+1]
 		//line interp.y:104
 		{
-			ex := &Expression{}
+			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{&Symbol{"Part"}, CalcDollar[1].val}, CalcDollar[4].valSeq...)
 			CalcVAL.val = ex
 		}
@@ -798,7 +798,7 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-4 : Calcpt+1]
 		//line interp.y:110
 		{
-			ex := &Expression{}
+			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{CalcDollar[1].val}, CalcDollar[3].valSeq...)
 			CalcVAL.val = ex
 		}
@@ -806,7 +806,7 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:116
 		{
-			ex := &Expression{}
+			ex := NewEmptyExpression()
 			ex.Parts = []Ex{&Symbol{"List"}}
 			ex.Parts = append(ex.Parts, CalcDollar[2].valSeq...)
 			CalcVAL.val = ex
@@ -821,7 +821,7 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:125
 		{
-			CalcVAL.val = fullyAssoc("Plus", CalcDollar[1].val, &Expression{[]Ex{&Symbol{"Times"}, CalcDollar[3].val, &Integer{big.NewInt(-1)}}})
+			CalcVAL.val = fullyAssoc("Plus", CalcDollar[1].val, NewExpression([]Ex{&Symbol{"Times"}, CalcDollar[3].val, &Integer{big.NewInt(-1)}}))
 		}
 	case 16:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
@@ -839,43 +839,43 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:131
 		{
-			CalcVAL.val = &Expression{[]Ex{
+			CalcVAL.val = NewExpression([]Ex{
 				&Symbol{"Times"},
 				CalcDollar[1].val,
-				&Expression{[]Ex{
+				NewExpression([]Ex{
 					&Symbol{"Power"},
 					CalcDollar[3].val,
 					&Integer{big.NewInt(-1)},
-				}},
-			}}
+				}),
+			})
 		}
 	case 19:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:142
 		{
-			CalcVAL.val = &Expression{[]Ex{
+			CalcVAL.val = NewExpression([]Ex{
 				&Symbol{"Power"},
 				CalcDollar[1].val,
 				CalcDollar[3].val,
-			}}
+			})
 		}
 	case 20:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:149
 		{
-			CalcVAL.val = &Expression{[]Ex{CalcDollar[3].val, CalcDollar[1].val}}
+			CalcVAL.val = NewExpression([]Ex{CalcDollar[3].val, CalcDollar[1].val})
 		}
 	case 21:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:151
 		{
-			CalcVAL.val = &Expression{[]Ex{CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 22:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:153
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"PatternTest"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"PatternTest"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 23:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
@@ -887,55 +887,55 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:157
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Apply"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Apply"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 25:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:159
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Map"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Map"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 26:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:161
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Rule"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Rule"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 27:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:163
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"RuleDelayed"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"RuleDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 28:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:165
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"ReplaceRepeated"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"ReplaceRepeated"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 29:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:167
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"ReplaceAll"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"ReplaceAll"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 30:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:169
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Condition"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Condition"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 31:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:171
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Set"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Set"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 32:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:173
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"SetDelayed"}, CalcDollar[1].val, CalcDollar[3].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"SetDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 33:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
@@ -1000,20 +1000,20 @@ Calcdefault:
 			} else if flt, isFlt := CalcDollar[2].val.(*Flt); isFlt {
 				CalcVAL.val = &Flt{flt.Val.Neg(flt.Val)}
 			} else {
-				CalcVAL.val = &Expression{[]Ex{&Symbol{"Times"}, CalcDollar[2].val, &Integer{big.NewInt(-1)}}}
+				CalcVAL.val = NewExpression([]Ex{&Symbol{"Times"}, CalcDollar[2].val, &Integer{big.NewInt(-1)}})
 			}
 		}
 	case 43:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
 		//line interp.y:203
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Slot"}, &Integer{big.NewInt(1)}}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Slot"}, &Integer{big.NewInt(1)}})
 		}
 	case 44:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
 		//line interp.y:205
 		{
-			CalcVAL.val = &Expression{[]Ex{&Symbol{"Slot"}, CalcDollar[2].val}}
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Slot"}, CalcDollar[2].val})
 		}
 	case 45:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]

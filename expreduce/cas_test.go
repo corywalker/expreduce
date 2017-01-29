@@ -50,16 +50,17 @@ func TestLowLevel(t *testing.T) {
 	assert.Equal(t, "5.5", f.String())
 
 	// Test nested addition functionality
-	var a = &Expression{[]Ex{
+	var a = NewExpression([]Ex{
 		&Symbol{"Plus"},
-		&Expression{[]Ex{
+		NewExpression([]Ex{
 			&Symbol{"Plus"},
 			&Flt{big.NewFloat(80)},
 			&Flt{big.NewFloat(3)},
-		}},
+		}),
+
 		&Flt{big.NewFloat(2)},
 		&Flt{big.NewFloat(2.5)},
-	}}
+	})
 
 	// Test equality checking
 	assert.Equal(t, "EQUAL_TRUE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}, &es.CASLogger))

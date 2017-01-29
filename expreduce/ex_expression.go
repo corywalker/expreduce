@@ -4,8 +4,11 @@ import "bytes"
 import "math/big"
 import "sort"
 
+//import "fmt"
+
 type Expression struct {
 	Parts []Ex
+	//needsEval bool
 }
 
 // Deprecated in favor of headExAssertion
@@ -19,7 +22,7 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 			}
 		}
 	}
-	return &Expression{}, false
+	return NewEmptyExpression(), false
 }
 
 func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
@@ -29,7 +32,7 @@ func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
 			return expr, true
 		}
 	}
-	return &Expression{}, false
+	return NewEmptyExpression(), false
 }
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
@@ -70,6 +73,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	shouldEval := true
 	var lastEx Ex = this.DeepCopy()
 	var currEx Ex = this.DeepCopy()
+	needsEval := currEx.NeedsEval()
 	for shouldEval {
 		curr, isExpr := currEx.(*Expression)
 		// Transition to the right Eval() if this is no longer an Expression
@@ -77,10 +81,11 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			toReturn := currEx.Eval(es)
 			// Handle tracing
 			if es.trace != nil {
-				toAppend := &Expression{[]Ex{
+				toAppend := NewExpression([]Ex{
 					&Symbol{"HoldForm"},
 					toReturn.DeepCopy(),
-				}}
+				})
+
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
 				es.trace.Parts = append(
 					es.trace.Parts,
@@ -113,7 +118,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			traceBak := es.trace
 			if es.trace != nil {
-				es.trace = &Expression{[]Ex{&Symbol{"List"}}}
+				es.trace = NewExpression([]Ex{&Symbol{"List"}})
 			}
 			curr.Parts[i] = curr.Parts[i].Eval(es)
 			if es.trace != nil {
@@ -129,10 +134,11 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 		// Handle tracing
 		if es.trace != nil {
-			toAppend := &Expression{[]Ex{
+			toAppend := NewExpression([]Ex{
 				&Symbol{"HoldForm"},
 				currEx.DeepCopy(),
-			}}
+			})
+
 			if !IsSameQ(es.trace.Parts[len(es.trace.Parts)-1], toAppend, &es.CASLogger) {
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
 				es.trace.Parts = append(
@@ -179,10 +185,10 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			/*
 				if es.trace != nil {
-					toAppend := &Expression{[]Ex{
+					toAppend := NewExpression([]Ex{
 						&Symbol{"HoldForm"},
 						currEx.DeepCopy(),
-					}}
+					})
 					fmt.Printf("Change: appending %v\n", toAppend.StringForm("FullForm"))
 					es.trace.Parts = append(
 						es.trace.Parts,
@@ -190,7 +196,11 @@ func (this *Expression) Eval(es *EvalState) Ex {
 					)
 				}*/
 		}
+		if !needsEval && shouldEval {
+			//fmt.Printf("this.NeedsEval() is %v but should be %v. (last: %v, curr: %v)\n", this.NeedsEval(), shouldEval, lastEx, currEx)
+		}
 		lastEx = currEx
+		needsEval = currEx.NeedsEval()
 	}
 	return currEx
 }
@@ -200,14 +210,17 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		toReturn := this.Parts[1].DeepCopy()
 		for i, arg := range args {
 			toReturn = ReplaceAll(toReturn,
-				&Expression{[]Ex{
+				NewExpression([]Ex{
 					&Symbol{"Rule"},
-					&Expression{[]Ex{
+					NewExpression([]Ex{
 						&Symbol{"Slot"},
 						&Integer{big.NewInt(int64(i + 1))},
-					}},
+					}),
+
 					arg,
-				}}, &es.CASLogger, EmptyPD())
+				}),
+
+				&es.CASLogger, EmptyPD())
 		}
 		return toReturn
 	} else if len(this.Parts) == 3 {
@@ -217,11 +230,13 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		}
 		toReturn := this.Parts[2].DeepCopy()
 		toReturn = ReplaceAll(toReturn,
-			&Expression{[]Ex{
+			NewExpression([]Ex{
 				&Symbol{"Rule"},
 				repSym,
 				args[0],
-			}}, &es.CASLogger, EmptyPD())
+			}),
+
+			&es.CASLogger, EmptyPD())
 		return toReturn
 	}
 	return this
@@ -333,7 +348,7 @@ func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
 }
 
 func (this *Expression) DeepCopy() Ex {
-	var thiscopy = &Expression{}
+	var thiscopy = NewEmptyExpression()
 	for i := range this.Parts {
 		thiscopy.Parts = append(thiscopy.Parts, this.Parts[i].DeepCopy())
 	}
@@ -355,4 +370,17 @@ func (this *Expression) Swap(i, j int) {
 
 func (this *Expression) appendEx(e Ex) {
 	this.Parts = append(this.Parts, e)
+}
+
+func (this *Expression) NeedsEval() bool {
+	//return this.needsEval
+	return false
+}
+
+func NewExpression(parts []Ex) *Expression {
+	return &Expression{Parts: parts}
+}
+
+func NewEmptyExpression() *Expression {
+	return &Expression{}
 }

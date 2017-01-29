@@ -208,3 +208,7 @@ func (this *Attributes) toStrings() []string {
 	sort.Strings(strings)
 	return strings
 }
+
+func (this *Symbol) NeedsEval() bool {
+	return false
+}

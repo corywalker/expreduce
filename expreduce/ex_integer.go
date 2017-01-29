@@ -44,3 +44,7 @@ func (this *Integer) DeepCopy() Ex {
 	tmp.Set(this.Val)
 	return &Integer{tmp}
 }
+
+func (this *Integer) NeedsEval() bool {
+	return false
+}

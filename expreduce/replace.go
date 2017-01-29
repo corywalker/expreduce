@@ -91,20 +91,24 @@ func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 	// foo[m, 2] might print bar[2, 2] without this change.
 	for _, nameStr := range keys {
 		toReturn = ReplaceAll(toReturn,
-			&Expression{[]Ex{
+			NewExpression([]Ex{
 				&Symbol{"Rule"},
 				&Symbol{nameStr},
 				&Symbol{"UniqueDefined`" + nameStr},
-			}}, cl, EmptyPD())
+			}),
+
+			cl, EmptyPD())
 	}
 	for _, nameStr := range keys {
 		def := pm.patternDefined[nameStr]
 		toReturn = ReplaceAll(toReturn,
-			&Expression{[]Ex{
+			NewExpression([]Ex{
 				&Symbol{"Rule"},
 				&Symbol{"UniqueDefined`" + nameStr},
 				def,
-			}}, cl, EmptyPD())
+			}),
+
+			cl, EmptyPD())
 	}
 	cl.Infof("Finished ReplacePD with toReturn=%v", toReturn)
 	return toReturn

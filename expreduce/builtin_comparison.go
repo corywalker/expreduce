@@ -21,7 +21,7 @@ func getComparisonDefinitions() (defs []Definition) {
 				return &Symbol{"False"}
 			}
 
-			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
+			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"Expressions known to be equal will evaluate to True:"},
@@ -111,7 +111,7 @@ func getComparisonDefinitions() (defs []Definition) {
 				return &Symbol{"True"}
 			}
 
-			return &Expression{[]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}}}
+			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"Expressions known to be unequal will evaluate to True:"},

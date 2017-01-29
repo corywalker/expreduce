@@ -66,11 +66,12 @@ func (this *TestComment) Run(t *testing.T, es *EvalState, td TestDesc) {
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {
 	inTree := EvalInterp(in, es).Eval(es)
 	outTree := EvalInterp(out, es).Eval(es)
-	theTestTree := &Expression{[]Ex{
+	theTestTree := NewExpression([]Ex{
 		&Symbol{"SameQ"},
-		&Expression{[]Ex{&Symbol{"Hold"}, inTree}},
-		&Expression{[]Ex{&Symbol{"Hold"}, outTree}},
-	}}
+		NewExpression([]Ex{&Symbol{"Hold"}, inTree}),
+		NewExpression([]Ex{&Symbol{"Hold"}, outTree}),
+	})
+
 	theTest := theTestTree.Eval(es)
 
 	var buffer bytes.Buffer
