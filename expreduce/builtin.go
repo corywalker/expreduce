@@ -59,6 +59,7 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"string", GetStringDefinitions()})
 	defs = append(defs, NamedDefSet{"time", GetTimeDefinitions()})
 	defs = append(defs, NamedDefSet{"pattern", GetPatternDefinitions()})
+	defs = append(defs, NamedDefSet{"numbertheory", GetNumberTheoryDefinitions()})
 
 	// Check for duplicate definitions
 	definedNames := make(map[string]bool)
