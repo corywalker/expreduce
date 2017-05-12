@@ -122,7 +122,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 >= return GREATEREQUALSYM /* GreaterEqual */
 \<= return LESSEQUALSYM /* LessEqual */
 \. return DOTSYM /* Dot */
-! return FACTORIALSYM /* Factorial */
+! return EXCLAMATIONSYM /* Factorial, Not */
 & return FUNCTIONSYM /* Factorial */
 != return UNEQUALSYM /* Unequal */
 # return SLOTSYM /* Slot */

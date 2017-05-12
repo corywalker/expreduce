@@ -52,7 +52,7 @@ const NAME = 57379
 const PATTERN = 57380
 const MESSAGENAMESYM = 57381
 const STRINGJOINSYM = 57382
-const FACTORIALSYM = 57383
+const EXCLAMATIONSYM = 57383
 const FUNCTIONSYM = 57384
 const SPANSYM = 57385
 const LESSEQUALSYM = 57386
@@ -105,7 +105,7 @@ var CalcToknames = [...]string{
 	"PATTERN",
 	"MESSAGENAMESYM",
 	"STRINGJOINSYM",
-	"FACTORIALSYM",
+	"EXCLAMATIONSYM",
 	"FUNCTIONSYM",
 	"SPANSYM",
 	"LESSEQUALSYM",
@@ -124,7 +124,7 @@ const CalcEofCode = 1
 const CalcErrCode = 2
 const CalcInitialStackSize = 16
 
-//line interp.y:244
+//line interp.y:256
 
 /*  start  of  programs  */
 
@@ -182,181 +182,191 @@ var CalcExca = [...]int{
 	-1, 1,
 	1, -1,
 	-2, 0,
-	-1, 68,
+	-1, 19,
+	41, 0,
+	-2, 10,
+	-1, 55,
+	41, 0,
+	-2, 11,
+	-1, 61,
+	41, 0,
+	-2, 9,
+	-1, 71,
 	29, 0,
-	-2, 22,
+	-2, 24,
 }
 
-const CalcNprod = 58
+const CalcNprod = 60
 const CalcPrivate = 57344
 
 var CalcTokenNames []string
 var CalcStates []string
 
-const CalcLast = 1423
+const CalcLast = 1427
 
 var CalcAct = [...]int{
 
-	24, 16, 5, 15, 54, 94, 99, 53, 55, 56,
-	93, 94, 94, 57, 98, 96, 3, 1, 58, 0,
-	0, 55, 61, 62, 63, 60, 64, 65, 66, 67,
-	68, 69, 70, 71, 72, 73, 74, 75, 76, 77,
-	78, 79, 80, 81, 82, 83, 84, 85, 86, 87,
-	88, 89, 90, 91, 0, 0, 0, 0, 0, 0,
-	55, 0, 0, 0, 95, 0, 0, 0, 0, 0,
+	25, 17, 5, 16, 56, 102, 97, 54, 55, 57,
+	58, 96, 97, 97, 59, 101, 99, 3, 1, 60,
+	61, 0, 57, 64, 65, 66, 63, 67, 68, 69,
+	70, 71, 72, 73, 74, 75, 76, 77, 78, 79,
+	80, 81, 82, 83, 84, 85, 86, 87, 88, 89,
+	90, 91, 92, 93, 94, 0, 0, 0, 0, 0,
+	0, 0, 0, 57, 0, 0, 0, 98, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 13, 14, 12, 6, 92,
-	0, 17, 20, 0, 7, 97, 35, 36, 37, 21,
-	22, 23, 25, 26, 33, 34, 27, 28, 31, 32,
-	29, 30, 40, 41, 42, 38, 39, 9, 11, 10,
-	51, 52, 18, 19, 47, 44, 43, 46, 45, 50,
-	49, 48, 13, 14, 12, 6, 0, 0, 17, 20,
-	0, 7, 0, 35, 36, 37, 21, 22, 23, 25,
-	26, 33, 34, 27, 28, 31, 32, 29, 30, 40,
-	41, 42, 38, 39, 9, 11, 10, 51, 52, 18,
-	19, 47, 44, 43, 46, 45, 50, 49, 48, 13,
-	14, 12, 6, 0, 0, 0, 20, 0, 7, 0,
-	35, 36, 37, 21, 22, 23, 25, 26, 33, 34,
-	27, 28, 31, 32, 29, 30, 40, 41, 42, 38,
-	39, 9, 11, 10, 51, 52, 18, 19, 47, 44,
-	43, 46, 45, 50, 49, 48, 13, 14, 12, 6,
-	0, 0, 0, 20, 0, 7, 0, 35, 36, 37,
-	21, 22, 23, 25, 26, 33, 34, 27, 28, 31,
-	32, 29, 30, 40, 41, 42, 38, 39, 9, 11,
-	10, 51, 52, 18, 0, 47, 44, 43, 46, 45,
-	50, 49, 48, 13, 14, 12, 6, 0, 0, 0,
-	20, 0, 7, 0, 35, 36, 37, 21, 22, 23,
-	25, 26, 33, 34, 27, 28, 31, 32, 29, 30,
-	40, 41, 42, 38, 0, 9, 11, 10, 51, 52,
-	18, 0, 47, 44, 43, 46, 45, 50, 49, 48,
-	13, 14, 12, 6, 0, 0, 0, 20, 0, 7,
-	0, 35, 36, 37, 21, 22, 23, 25, 26, 33,
-	34, 0, 28, 31, 32, 29, 30, 40, 41, 42,
-	0, 0, 9, 11, 10, 51, 52, 18, 0, 47,
-	44, 43, 46, 45, 50, 49, 48, 13, 14, 12,
-	6, 0, 0, 0, 20, 0, 7, 0, 0, 36,
-	37, 21, 22, 23, 25, 26, 33, 34, 0, 28,
-	31, 32, 29, 30, 40, 41, 42, 0, 0, 9,
-	11, 10, 51, 52, 18, 0, 47, 44, 43, 46,
-	45, 50, 49, 48, 13, 14, 12, 6, 0, 0,
-	0, 20, 0, 7, 0, 0, 0, 37, 21, 22,
-	23, 25, 26, 33, 34, 0, 28, 31, 32, 29,
-	30, 40, 41, 42, 0, 0, 9, 11, 10, 51,
-	52, 18, 0, 47, 44, 43, 46, 45, 50, 49,
-	48, 13, 14, 12, 6, 0, 0, 0, 20, 0,
-	7, 0, 0, 0, 37, 21, 22, 23, 25, 26,
-	33, 0, 0, 28, 31, 32, 29, 30, 40, 41,
-	42, 0, 0, 9, 11, 10, 51, 52, 18, 0,
-	47, 44, 43, 46, 45, 50, 49, 48, 13, 14,
-	12, 6, 0, 0, 0, 20, 0, 7, 0, 0,
-	0, 0, 21, 22, 23, 25, 26, 0, 0, 0,
-	28, 31, 32, 29, 30, 40, 41, 42, 0, 0,
-	9, 11, 10, 51, 52, 18, 0, 47, 44, 43,
-	46, 45, 50, 49, 48, 13, 14, 12, 6, 0,
-	0, 0, 20, 0, 7, 0, 0, 0, 0, 21,
-	22, 23, 25, 26, 0, 0, 0, 28, 31, 32,
-	29, 0, 40, 41, 42, 0, 0, 9, 11, 10,
-	51, 52, 18, 0, 47, 44, 43, 46, 45, 50,
-	49, 48, 13, 14, 12, 6, 0, 0, 0, 20,
-	0, 7, 0, 0, 0, 0, 21, 22, 23, 25,
-	26, 0, 0, 0, 28, 31, 32, 29, 0, 40,
-	41, 42, 0, 0, 9, 11, 10, 51, 52, 18,
-	0, 47, 44, 43, 46, 45, 0, 49, 48, 13,
-	14, 12, 6, 0, 0, 0, 20, 0, 7, 0,
-	0, 0, 0, 21, 22, 23, 25, 26, 0, 0,
-	0, 28, 31, 32, 29, 0, 40, 41, 42, 0,
-	0, 9, 11, 10, 51, 52, 18, 0, 47, 44,
-	43, 46, 45, 0, 0, 48, 13, 14, 12, 6,
-	0, 0, 0, 20, 0, 7, 0, 0, 0, 0,
-	21, 22, 23, 25, 26, 0, 0, 0, 28, 31,
-	32, 29, 0, 0, 41, 42, 0, 0, 9, 11,
-	10, 51, 52, 18, 0, 47, 44, 43, 46, 45,
-	0, 0, 48, 13, 14, 12, 6, 0, 0, 0,
-	20, 0, 7, 0, 0, 0, 0, 21, 22, 23,
-	25, 26, 0, 0, 0, 28, 31, 32, 29, 0,
-	0, 41, 42, 0, 0, 9, 11, 10, 51, 52,
-	18, 0, 47, 0, 43, 46, 45, 0, 0, 48,
-	13, 14, 12, 6, 0, 0, 0, 20, 0, 7,
-	0, 0, 0, 0, 21, 22, 23, 25, 26, 0,
-	0, 0, 28, 31, 32, 29, 0, 0, 41, 42,
-	0, 0, 9, 11, 10, 51, 52, 18, 0, 47,
-	0, 0, 46, 45, 0, 0, 48, 13, 14, 12,
-	6, 0, 0, 0, 20, 0, 7, 0, 0, 0,
-	0, 21, 22, 23, 25, 26, 0, 0, 0, 28,
-	31, 32, 29, 0, 0, 41, 42, 0, 0, 9,
-	11, 10, 51, 52, 18, 0, 47, 0, 0, 0,
-	45, 0, 0, 48, 13, 14, 12, 6, 0, 0,
-	0, 20, 0, 7, 0, 0, 0, 0, 21, 22,
-	23, 25, 26, 0, 0, 0, 28, 31, 32, 29,
-	0, 0, 41, 42, 0, 0, 9, 11, 10, 51,
-	52, 18, 0, 47, 13, 14, 12, 6, 0, 0,
-	48, 20, 0, 7, 0, 0, 0, 0, 21, 22,
-	23, 25, 26, 0, 0, 0, 28, 31, 32, 29,
-	0, 0, 41, 0, 0, 0, 9, 11, 10, 51,
-	52, 18, 0, 47, 13, 14, 12, 6, 0, 0,
-	48, 20, 0, 7, 0, 0, 0, 0, 21, 22,
-	23, 25, 26, 0, 0, 0, 28, 31, 32, 29,
-	0, 0, 0, 0, 0, 0, 9, 11, 10, 51,
-	52, 18, 0, 47, 13, 14, 12, 6, 0, 0,
-	48, 20, 0, 7, 0, 0, 0, 0, 21, 22,
-	23, 25, 26, 0, 0, 0, 28, 31, 32, 29,
-	0, 0, 0, 0, 0, 0, 9, 11, 10, 51,
-	52, 18, 13, 14, 12, 6, 0, 0, 0, 20,
-	48, 7, 0, 0, 0, 0, 0, 22, 23, 25,
-	26, 0, 0, 0, 28, 31, 32, 29, 0, 0,
-	0, 0, 0, 0, 9, 11, 10, 51, 52, 18,
-	13, 14, 12, 6, 0, 0, 0, 20, 48, 7,
-	0, 0, 0, 0, 0, 0, 23, 25, 26, 0,
-	0, 0, 28, 31, 32, 29, 0, 0, 0, 0,
-	0, 0, 9, 11, 10, 51, 52, 18, 13, 14,
-	12, 6, 0, 0, 0, 20, 48, 7, 0, 0,
-	0, 0, 0, 0, 0, 25, 26, 0, 0, 0,
-	28, 31, 32, 29, 0, 0, 0, 0, 0, 0,
-	9, 11, 10, 51, 52, 18, 13, 14, 12, 6,
-	0, 0, 0, 20, 48, 7, 0, 0, 0, 0,
-	0, 0, 0, 0, 26, 0, 0, 0, 28, 31,
-	32, 29, 0, 0, 0, 0, 0, 0, 9, 11,
-	10, 51, 52, 18, 4, 0, 13, 14, 12, 6,
-	0, 0, 48, 0, 0, 7, 0, 0, 0, 0,
-	0, 8, 0, 13, 14, 12, 6, 0, 0, 0,
-	20, 0, 7, 0, 0, 0, 0, 0, 9, 11,
-	10, 26, 0, 0, 0, 28, 31, 32, 29, 0,
-	0, 0, 0, 0, 2, 9, 11, 10, 51, 52,
-	18, 13, 14, 12, 6, 0, 0, 0, 20, 0,
-	7, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 28, 31, 32, 29, 0, 0, 0,
-	0, 0, 0, 9, 11, 10, 51, 0, 18, 13,
-	14, 12, 6, 0, 0, 0, 20, 0, 7, 0,
-	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 28, 31, 32, 29, 0, 0, 0, 0, 0,
-	0, 9, 11, 10, 51, 13, 14, 12, 6, 0,
-	0, 0, 20, 0, 7, 0, 0, 13, 14, 12,
-	6, 0, 0, 0, 20, 0, 7, 28, 0, 32,
-	29, 0, 0, 13, 14, 12, 6, 9, 11, 10,
-	51, 32, 7, 0, 0, 0, 0, 0, 8, 9,
-	11, 10, 51, 13, 14, 12, 6, 0, 0, 0,
-	59, 0, 7, 0, 0, 9, 11, 10, 8, 13,
-	14, 12, 6, 0, 0, 0, 20, 0, 7, 0,
-	0, 0, 0, 0, 0, 9, 11, 10, 0, 0,
-	0, 0, 0, 32, 0, 0, 0, 0, 0, 0,
-	0, 0, 11,
+	0, 0, 0, 0, 0, 0, 0, 0, 14, 15,
+	13, 6, 95, 0, 18, 21, 0, 8, 100, 36,
+	37, 38, 22, 23, 24, 26, 27, 34, 35, 28,
+	29, 32, 33, 30, 31, 41, 42, 43, 39, 40,
+	10, 12, 11, 52, 53, 19, 20, 48, 45, 44,
+	47, 46, 51, 50, 49, 14, 15, 13, 6, 0,
+	0, 18, 21, 0, 8, 0, 36, 37, 38, 22,
+	23, 24, 26, 27, 34, 35, 28, 29, 32, 33,
+	30, 31, 41, 42, 43, 39, 40, 10, 12, 11,
+	52, 53, 19, 20, 48, 45, 44, 47, 46, 51,
+	50, 49, 14, 15, 13, 6, 0, 0, 0, 21,
+	0, 8, 0, 36, 37, 38, 22, 23, 24, 26,
+	27, 34, 35, 28, 29, 32, 33, 30, 31, 41,
+	42, 43, 39, 40, 10, 12, 11, 52, 53, 19,
+	20, 48, 45, 44, 47, 46, 51, 50, 49, 14,
+	15, 13, 6, 0, 0, 0, 21, 0, 8, 0,
+	36, 37, 38, 22, 23, 24, 26, 27, 34, 35,
+	28, 29, 32, 33, 30, 31, 41, 42, 43, 39,
+	40, 10, 12, 11, 52, 53, 19, 0, 48, 45,
+	44, 47, 46, 51, 50, 49, 14, 15, 13, 6,
+	0, 0, 0, 21, 0, 8, 0, 36, 37, 38,
+	22, 23, 24, 26, 27, 34, 35, 28, 29, 32,
+	33, 30, 31, 41, 42, 43, 39, 0, 10, 12,
+	11, 52, 53, 19, 0, 48, 45, 44, 47, 46,
+	51, 50, 49, 14, 15, 13, 6, 0, 0, 0,
+	21, 0, 8, 0, 36, 37, 38, 22, 23, 24,
+	26, 27, 34, 35, 0, 29, 32, 33, 30, 31,
+	41, 42, 43, 0, 0, 10, 12, 11, 52, 53,
+	19, 0, 48, 45, 44, 47, 46, 51, 50, 49,
+	14, 15, 13, 6, 0, 0, 0, 21, 0, 8,
+	0, 0, 37, 38, 22, 23, 24, 26, 27, 34,
+	35, 0, 29, 32, 33, 30, 31, 41, 42, 43,
+	0, 0, 10, 12, 11, 52, 53, 19, 0, 48,
+	45, 44, 47, 46, 51, 50, 49, 14, 15, 13,
+	6, 0, 0, 0, 21, 0, 8, 0, 0, 0,
+	38, 22, 23, 24, 26, 27, 34, 35, 0, 29,
+	32, 33, 30, 31, 41, 42, 43, 0, 0, 10,
+	12, 11, 52, 53, 19, 0, 48, 45, 44, 47,
+	46, 51, 50, 49, 14, 15, 13, 6, 0, 0,
+	0, 21, 0, 8, 0, 0, 0, 38, 22, 23,
+	24, 26, 27, 34, 0, 0, 29, 32, 33, 30,
+	31, 41, 42, 43, 0, 0, 10, 12, 11, 52,
+	53, 19, 0, 48, 45, 44, 47, 46, 51, 50,
+	49, 14, 15, 13, 6, 0, 0, 0, 21, 0,
+	8, 0, 0, 0, 0, 22, 23, 24, 26, 27,
+	0, 0, 0, 29, 32, 33, 30, 31, 41, 42,
+	43, 0, 0, 10, 12, 11, 52, 53, 19, 0,
+	48, 45, 44, 47, 46, 51, 50, 49, 14, 15,
+	13, 6, 0, 0, 0, 21, 0, 8, 0, 0,
+	0, 0, 22, 23, 24, 26, 27, 0, 0, 0,
+	29, 32, 33, 30, 0, 41, 42, 43, 0, 0,
+	10, 12, 11, 52, 53, 19, 0, 48, 45, 44,
+	47, 46, 51, 50, 49, 14, 15, 13, 6, 0,
+	0, 0, 21, 0, 8, 0, 0, 0, 0, 22,
+	23, 24, 26, 27, 0, 0, 0, 29, 32, 33,
+	30, 0, 41, 42, 43, 0, 0, 10, 12, 11,
+	52, 53, 19, 0, 48, 45, 44, 47, 46, 0,
+	50, 49, 14, 15, 13, 6, 0, 0, 0, 21,
+	0, 8, 0, 0, 0, 0, 22, 23, 24, 26,
+	27, 0, 0, 0, 29, 32, 33, 30, 0, 41,
+	42, 43, 0, 0, 10, 12, 11, 52, 53, 19,
+	0, 48, 45, 44, 47, 46, 0, 0, 49, 14,
+	15, 13, 6, 0, 0, 0, 21, 0, 8, 0,
+	0, 0, 0, 22, 23, 24, 26, 27, 0, 0,
+	0, 29, 32, 33, 30, 0, 0, 42, 43, 0,
+	0, 10, 12, 11, 52, 53, 19, 0, 48, 45,
+	44, 47, 46, 0, 0, 49, 14, 15, 13, 6,
+	0, 0, 0, 21, 0, 8, 0, 0, 0, 0,
+	22, 23, 24, 26, 27, 0, 0, 0, 29, 32,
+	33, 30, 0, 0, 42, 43, 0, 0, 10, 12,
+	11, 52, 53, 19, 0, 48, 0, 44, 47, 46,
+	0, 0, 49, 14, 15, 13, 6, 0, 0, 0,
+	21, 0, 8, 0, 0, 0, 0, 22, 23, 24,
+	26, 27, 0, 0, 0, 29, 32, 33, 30, 0,
+	0, 42, 43, 0, 0, 10, 12, 11, 52, 53,
+	19, 0, 48, 0, 0, 47, 46, 0, 0, 49,
+	14, 15, 13, 6, 0, 0, 0, 21, 0, 8,
+	0, 0, 0, 0, 22, 23, 24, 26, 27, 0,
+	0, 0, 29, 32, 33, 30, 0, 0, 42, 43,
+	0, 0, 10, 12, 11, 52, 53, 19, 0, 48,
+	0, 0, 0, 46, 0, 0, 49, 14, 15, 13,
+	6, 0, 0, 0, 21, 0, 8, 0, 0, 0,
+	0, 22, 23, 24, 26, 27, 0, 0, 0, 29,
+	32, 33, 30, 0, 0, 42, 43, 0, 0, 10,
+	12, 11, 52, 53, 19, 0, 48, 14, 15, 13,
+	6, 0, 0, 49, 21, 0, 8, 0, 0, 0,
+	0, 22, 23, 24, 26, 27, 0, 0, 0, 29,
+	32, 33, 30, 0, 0, 42, 0, 0, 0, 10,
+	12, 11, 52, 53, 19, 0, 48, 14, 15, 13,
+	6, 0, 0, 49, 21, 0, 8, 0, 0, 0,
+	0, 22, 23, 24, 26, 27, 0, 0, 0, 29,
+	32, 33, 30, 0, 0, 0, 0, 0, 0, 10,
+	12, 11, 52, 53, 19, 0, 48, 14, 15, 13,
+	6, 0, 0, 49, 21, 0, 8, 14, 15, 13,
+	6, 22, 23, 24, 26, 27, 8, 0, 0, 29,
+	32, 33, 30, 0, 0, 0, 0, 0, 0, 10,
+	12, 11, 52, 53, 19, 14, 15, 13, 6, 10,
+	12, 11, 21, 49, 8, 0, 0, 0, 0, 0,
+	23, 24, 26, 27, 0, 0, 0, 29, 32, 33,
+	30, 0, 0, 0, 0, 0, 0, 10, 12, 11,
+	52, 53, 19, 14, 15, 13, 6, 0, 0, 0,
+	21, 49, 8, 0, 0, 0, 0, 0, 0, 24,
+	26, 27, 0, 0, 0, 29, 32, 33, 30, 0,
+	0, 0, 0, 0, 0, 10, 12, 11, 52, 53,
+	19, 14, 15, 13, 6, 0, 0, 0, 21, 49,
+	8, 0, 0, 0, 0, 0, 0, 0, 26, 27,
+	0, 0, 0, 29, 32, 33, 30, 0, 0, 0,
+	0, 0, 0, 10, 12, 11, 52, 53, 19, 14,
+	15, 13, 6, 0, 0, 0, 21, 49, 8, 0,
+	0, 0, 0, 0, 0, 0, 0, 27, 0, 0,
+	0, 29, 32, 33, 30, 0, 0, 0, 0, 0,
+	0, 10, 12, 11, 52, 53, 19, 4, 0, 14,
+	15, 13, 6, 0, 0, 49, 0, 0, 8, 0,
+	0, 0, 0, 0, 9, 0, 14, 15, 13, 6,
+	0, 0, 0, 21, 0, 8, 0, 0, 0, 0,
+	0, 10, 12, 11, 27, 0, 7, 0, 29, 32,
+	33, 30, 0, 0, 0, 0, 0, 2, 10, 12,
+	11, 52, 53, 19, 14, 15, 13, 6, 0, 0,
+	0, 21, 0, 8, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, 0, 29, 32, 33, 30,
+	0, 0, 0, 0, 0, 0, 10, 12, 11, 52,
+	0, 19, 14, 15, 13, 6, 0, 0, 0, 21,
+	0, 8, 0, 0, 0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 29, 32, 33, 30, 0, 0,
+	0, 0, 0, 0, 10, 12, 11, 52, 14, 15,
+	13, 6, 0, 0, 0, 21, 0, 8, 0, 14,
+	15, 13, 6, 0, 0, 0, 62, 0, 8, 0,
+	29, 0, 33, 30, 9, 14, 15, 13, 6, 0,
+	10, 12, 11, 52, 8, 0, 0, 0, 0, 0,
+	9, 10, 12, 11, 0, 0, 7, 14, 15, 13,
+	6, 0, 0, 0, 21, 0, 8, 10, 12, 11,
+	0, 0, 7, 14, 15, 13, 6, 0, 0, 0,
+	21, 33, 8, 0, 0, 0, 0, 0, 0, 10,
+	12, 11, 52, 0, 0, 0, 0, 33, 0, 0,
+	0, 0, 0, 0, 0, 0, 12,
 }
 var CalcPact = [...]int{
 
-	-1000, 1192, -1000, -49, -51, 128, 1349, 1349, 1349, 8,
-	-1000, -1000, -1000, -1000, -1000, -1000, -1000, 1349, -1000, -1000,
-	1369, 1349, 1349, 1349, 1114, 1349, 1349, 1349, 1349, 1349,
-	1349, 1349, 1349, 1349, 1349, 1349, 1349, 1349, 1349, 1349,
-	1349, 1349, 1349, 1349, 1349, 1349, 1349, 1349, 1349, 1349,
-	1349, 1349, 1349, 81, -4, 128, 1076, -1000, 175, 1349,
-	3, 1038, 1076, 1114, 1152, 1209, 316, 1321, 1333, 551,
-	1285, 128, 457, 410, 363, 410, 504, 269, 222, 692,
-	960, 920, 786, 739, 880, 833, 1000, 1209, 645, 598,
-	1385, 1247, -1000, -1000, 1349, 2, -1000, 128, -6, -1000,
+	-1000, 1195, -1000, -49, -51, 131, 1351, 1351, 1351, 1351,
+	9, -1000, -1000, -1000, -1000, -1000, -1000, -1000, 1351, 1013,
+	-1000, 1335, 1351, 1351, 1351, 1117, 1351, 1351, 1351, 1351,
+	1351, 1351, 1351, 1351, 1351, 1351, 1351, 1351, 1351, 1351,
+	1351, 1351, 1351, 1351, 1351, 1351, 1351, 1351, 1351, 1351,
+	1351, 1351, 1351, 1351, 84, 1288, -3, 131, 1079, -1000,
+	178, 1288, 1351, 4, 1041, 1079, 1117, 1155, 1212, 319,
+	1324, 1373, 554, 1288, 131, 460, 413, 366, 413, 507,
+	272, 225, 695, 963, 923, 789, 742, 883, 836, 1003,
+	1212, 648, 601, 1389, 1250, -1000, -1000, 1351, 3, -1000,
+	131, -7, -1000,
 }
 var CalcPgo = [...]int{
 
-	0, 0, 4, 17, 16,
+	0, 0, 4, 18, 17,
 }
 var CalcR1 = [...]int{
 
@@ -365,42 +375,44 @@ var CalcR1 = [...]int{
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
 	1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
-	1, 1, 1, 1, 2, 2, 2, 2,
+	1, 1, 1, 1, 1, 1, 2, 2, 2, 2,
 }
 var CalcR2 = [...]int{
 
-	0, 0, 2, 3, 3, 1, 3, 3, 2, 2,
-	2, 6, 4, 3, 3, 3, 3, 2, 3, 3,
+	0, 0, 2, 3, 3, 1, 3, 3, 2, 3,
+	2, 2, 2, 6, 4, 3, 3, 3, 3, 2,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
 	3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
-	3, 3, 3, 3, 2, 1, 2, 3, 3, 1,
-	1, 1, 1, 1, 0, 1, 3, 2,
+	3, 3, 3, 3, 3, 3, 2, 1, 2, 3,
+	3, 1, 1, 1, 1, 1, 0, 1, 3, 2,
 }
 var CalcChk = [...]int{
 
-	-1000, -3, 52, -4, 2, -1, 7, 13, 19, 36,
-	38, 37, 6, 4, 5, 52, 52, 10, 41, 42,
-	11, 18, 19, 20, -1, 21, 22, 25, 26, 29,
-	30, 27, 28, 23, 24, 15, 16, 17, 34, 35,
-	31, 32, 33, 45, 44, 47, 46, 43, 50, 49,
-	48, 39, 40, -1, -2, -1, -1, 5, -1, 11,
-	-2, -1, -1, -1, -1, -1, -1, -1, -1, -1,
+	-1000, -3, 52, -4, 2, -1, 7, 41, 13, 19,
+	36, 38, 37, 6, 4, 5, 52, 52, 10, 41,
+	42, 11, 18, 19, 20, -1, 21, 22, 25, 26,
+	29, 30, 27, 28, 23, 24, 15, 16, 17, 34,
+	35, 31, 32, 33, 45, 44, 47, 46, 43, 50,
+	49, 48, 39, 40, -1, -1, -2, -1, -1, 5,
+	-1, -1, 11, -2, -1, -1, -1, -1, -1, -1,
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
 	-1, -1, -1, -1, -1, -1, -1, -1, -1, -1,
-	-1, -1, 8, 14, 9, -2, 12, -1, 12, 12,
+	-1, -1, -1, -1, -1, 8, 14, 9, -2, 12,
+	-1, 12, 12,
 }
 var CalcDef = [...]int{
 
-	1, -2, 2, 0, 0, 5, 0, 54, 0, 45,
-	49, 50, 51, 52, 53, 3, 4, 8, 9, 10,
-	54, 0, 0, 0, 17, 0, 0, 0, 0, 0,
+	1, -2, 2, 0, 0, 5, 0, 0, 56, 0,
+	47, 51, 52, 53, 54, 55, 3, 4, 8, -2,
+	12, 56, 0, 0, 0, 19, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-	0, 0, 0, 0, 0, 55, 44, 46, 7, 54,
-	0, 14, 15, 16, 18, 19, 20, 21, -2, 23,
-	24, 25, 26, 27, 28, 29, 30, 31, 32, 33,
-	34, 35, 36, 37, 38, 39, 40, 41, 42, 43,
-	47, 48, 6, 13, 57, 0, 12, 56, 0, 11,
+	0, 0, 0, 0, 0, -2, 0, 57, 46, 48,
+	7, -2, 56, 0, 16, 17, 18, 20, 21, 22,
+	23, -2, 25, 26, 27, 28, 29, 30, 31, 32,
+	33, 34, 35, 36, 37, 38, 39, 40, 41, 42,
+	43, 44, 45, 49, 50, 6, 15, 59, 0, 14,
+	58, 0, 13,
 }
 var CalcTok1 = [...]int{
 
@@ -793,69 +805,88 @@ Calcdefault:
 			CalcVAL.val = fullyAssoc("CompoundExpression", CalcDollar[1].val, &Symbol{"Null"})
 		}
 	case 9:
-		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
+		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:102
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Factorial"}, CalcDollar[1].val})
+			CalcVAL.val = NewExpression([]Ex{
+				&Symbol{"Times"},
+				NewExpression([]Ex{
+					&Symbol{"Factorial"},
+					CalcDollar[1].val,
+				}),
+				CalcDollar[3].val,
+			})
 		}
 	case 10:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:104
+		//line interp.y:112
+		{
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Factorial"}, CalcDollar[1].val})
+		}
+	case 11:
+		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
+		//line interp.y:114
+		{
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Not"}, CalcDollar[2].val})
+		}
+	case 12:
+		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
+		//line interp.y:116
 		{
 			CalcVAL.val = NewExpression([]Ex{&Symbol{"Function"}, CalcDollar[1].val})
 		}
-	case 11:
+	case 13:
 		CalcDollar = CalcS[Calcpt-6 : Calcpt+1]
-		//line interp.y:106
+		//line interp.y:118
 		{
 			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{&Symbol{"Part"}, CalcDollar[1].val}, CalcDollar[4].valSeq...)
 			CalcVAL.val = ex
 		}
-	case 12:
+	case 14:
 		CalcDollar = CalcS[Calcpt-4 : Calcpt+1]
-		//line interp.y:112
+		//line interp.y:124
 		{
 			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{CalcDollar[1].val}, CalcDollar[3].valSeq...)
 			CalcVAL.val = ex
 		}
-	case 13:
+	case 15:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:118
+		//line interp.y:130
 		{
 			ex := NewEmptyExpression()
 			ex.Parts = []Ex{&Symbol{"List"}}
 			ex.Parts = append(ex.Parts, CalcDollar[2].valSeq...)
 			CalcVAL.val = ex
 		}
-	case 14:
+	case 16:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:125
+		//line interp.y:137
 		{
 			CalcVAL.val = fullyAssoc("Plus", CalcDollar[1].val, CalcDollar[3].val)
 		}
-	case 15:
+	case 17:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:127
+		//line interp.y:139
 		{
 			CalcVAL.val = fullyAssoc("Plus", CalcDollar[1].val, NewExpression([]Ex{&Symbol{"Times"}, CalcDollar[3].val, &Integer{big.NewInt(-1)}}))
 		}
-	case 16:
+	case 18:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:129
+		//line interp.y:141
 		{
 			CalcVAL.val = fullyAssoc("Times", CalcDollar[1].val, CalcDollar[3].val)
 		}
-	case 17:
+	case 19:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:131
+		//line interp.y:143
 		{
 			CalcVAL.val = fullyAssoc("Times", CalcDollar[1].val, CalcDollar[2].val)
 		}
-	case 18:
+	case 20:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:133
+		//line interp.y:145
 		{
 			CalcVAL.val = NewExpression([]Ex{
 				&Symbol{"Times"},
@@ -867,9 +898,9 @@ Calcdefault:
 				}),
 			})
 		}
-	case 19:
+	case 21:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:144
+		//line interp.y:156
 		{
 			CalcVAL.val = NewExpression([]Ex{
 				&Symbol{"Power"},
@@ -877,153 +908,153 @@ Calcdefault:
 				CalcDollar[3].val,
 			})
 		}
-	case 20:
-		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:151
-		{
-			CalcVAL.val = NewExpression([]Ex{CalcDollar[3].val, CalcDollar[1].val})
-		}
-	case 21:
-		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:153
-		{
-			CalcVAL.val = NewExpression([]Ex{CalcDollar[1].val, CalcDollar[3].val})
-		}
 	case 22:
-		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:155
-		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"PatternTest"}, CalcDollar[1].val, CalcDollar[3].val})
-		}
-	case 23:
-		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:157
-		{
-			CalcVAL.val = fullyAssoc("Alternatives", CalcDollar[1].val, CalcDollar[3].val)
-		}
-	case 24:
-		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:159
-		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Apply"}, CalcDollar[1].val, CalcDollar[3].val})
-		}
-	case 25:
-		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:161
-		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Map"}, CalcDollar[1].val, CalcDollar[3].val})
-		}
-	case 26:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:163
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Rule"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{CalcDollar[3].val, CalcDollar[1].val})
 		}
-	case 27:
+	case 23:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:165
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"RuleDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 28:
+	case 24:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:167
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"ReplaceRepeated"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"PatternTest"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 29:
+	case 25:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:169
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"ReplaceAll"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = fullyAssoc("Alternatives", CalcDollar[1].val, CalcDollar[3].val)
 		}
-	case 30:
+	case 26:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:171
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Condition"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Apply"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 31:
+	case 27:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:173
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Set"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Map"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 32:
+	case 28:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:175
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"SetDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Rule"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 33:
+	case 29:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:177
 		{
-			CalcVAL.val = fullyAssoc("SameQ", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"RuleDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 34:
+	case 30:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:179
 		{
-			CalcVAL.val = fullyAssoc("Equal", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"ReplaceRepeated"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 35:
+	case 31:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:181
 		{
-			CalcVAL.val = fullyAssoc("Unequal", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"ReplaceAll"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 36:
+	case 32:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:183
 		{
-			CalcVAL.val = fullyAssoc("Less", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Condition"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 37:
+	case 33:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:185
 		{
-			CalcVAL.val = fullyAssoc("LessEqual", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"Set"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 38:
+	case 34:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:187
 		{
-			CalcVAL.val = fullyAssoc("Greater", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"SetDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
-	case 39:
+	case 35:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:189
 		{
-			CalcVAL.val = fullyAssoc("GreaterEqual", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("SameQ", CalcDollar[1].val, CalcDollar[3].val)
 		}
-	case 40:
+	case 36:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:191
 		{
-			CalcVAL.val = fullyAssoc("Span", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("Equal", CalcDollar[1].val, CalcDollar[3].val)
 		}
-	case 41:
+	case 37:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:193
 		{
-			CalcVAL.val = fullyAssoc("Dot", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("Unequal", CalcDollar[1].val, CalcDollar[3].val)
 		}
-	case 42:
+	case 38:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:195
 		{
-			CalcVAL.val = fullyAssoc("And", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("Less", CalcDollar[1].val, CalcDollar[3].val)
 		}
-	case 43:
+	case 39:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:197
 		{
-			CalcVAL.val = fullyAssoc("Or", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("LessEqual", CalcDollar[1].val, CalcDollar[3].val)
+		}
+	case 40:
+		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
+		//line interp.y:199
+		{
+			CalcVAL.val = fullyAssoc("Greater", CalcDollar[1].val, CalcDollar[3].val)
+		}
+	case 41:
+		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
+		//line interp.y:201
+		{
+			CalcVAL.val = fullyAssoc("GreaterEqual", CalcDollar[1].val, CalcDollar[3].val)
+		}
+	case 42:
+		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
+		//line interp.y:203
+		{
+			CalcVAL.val = fullyAssoc("Span", CalcDollar[1].val, CalcDollar[3].val)
+		}
+	case 43:
+		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
+		//line interp.y:205
+		{
+			CalcVAL.val = fullyAssoc("Dot", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 44:
+		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
+		//line interp.y:207
+		{
+			CalcVAL.val = fullyAssoc("And", CalcDollar[1].val, CalcDollar[3].val)
+		}
+	case 45:
+		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
+		//line interp.y:209
+		{
+			CalcVAL.val = fullyAssoc("Or", CalcDollar[1].val, CalcDollar[3].val)
+		}
+	case 46:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:199
+		//line interp.y:211
 		{
 			if integer, isInteger := CalcDollar[2].val.(*Integer); isInteger {
 				CalcVAL.val = &Integer{integer.Val.Neg(integer.Val)}
@@ -1033,21 +1064,21 @@ Calcdefault:
 				CalcVAL.val = NewExpression([]Ex{&Symbol{"Times"}, CalcDollar[2].val, &Integer{big.NewInt(-1)}})
 			}
 		}
-	case 45:
+	case 47:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:209
+		//line interp.y:221
 		{
 			CalcVAL.val = NewExpression([]Ex{&Symbol{"Slot"}, &Integer{big.NewInt(1)}})
 		}
-	case 46:
+	case 48:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:211
+		//line interp.y:223
 		{
 			CalcVAL.val = NewExpression([]Ex{&Symbol{"Slot"}, CalcDollar[2].val})
 		}
-	case 47:
+	case 49:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:213
+		//line interp.y:225
 		{
 			if sym, isSym := CalcDollar[3].val.(*Symbol); isSym {
 				CalcVAL.val = fullyAssoc("MessageName", CalcDollar[1].val, &String{sym.Name})
@@ -1055,63 +1086,63 @@ Calcdefault:
 				CalcVAL.val = fullyAssoc("MessageName", CalcDollar[1].val, CalcDollar[3].val)
 			}
 		}
-	case 48:
+	case 50:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:221
+		//line interp.y:233
 		{
 			CalcVAL.val = fullyAssoc("StringJoin", CalcDollar[1].val, CalcDollar[3].val)
 		}
-	case 49:
-		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:223
-		{
-			CalcVAL.val = CalcDollar[1].val
-		}
-	case 50:
-		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:225
-		{
-			CalcVAL.val = CalcDollar[1].val
-		}
 	case 51:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:227
+		//line interp.y:235
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 52:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:229
+		//line interp.y:237
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 53:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:231
+		//line interp.y:239
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 54:
-		CalcDollar = CalcS[Calcpt-0 : Calcpt+1]
-		//line interp.y:235
+		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
+		//line interp.y:241
 		{
-			CalcVAL.valSeq = []Ex{}
+			CalcVAL.val = CalcDollar[1].val
 		}
 	case 55:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:237
+		//line interp.y:243
+		{
+			CalcVAL.val = CalcDollar[1].val
+		}
+	case 56:
+		CalcDollar = CalcS[Calcpt-0 : Calcpt+1]
+		//line interp.y:247
+		{
+			CalcVAL.valSeq = []Ex{}
+		}
+	case 57:
+		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
+		//line interp.y:249
 		{
 			CalcVAL.valSeq = append(CalcVAL.valSeq, CalcDollar[1].val)
 		}
-	case 56:
+	case 58:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:239
+		//line interp.y:251
 		{
 			CalcVAL.valSeq = append(CalcVAL.valSeq, CalcDollar[3].val)
 		}
-	case 57:
+	case 59:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:241
+		//line interp.y:253
 		{
 			CalcVAL.valSeq = append(CalcVAL.valSeq, &Symbol{"Null"})
 		}

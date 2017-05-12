@@ -85,6 +85,28 @@ func GetBooleanDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:       "Not",
+		Usage:      "`!e` returns `True` if `e` is `False` and `False` if `e` is `True`.",
+		Attributes: []string{},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			if trueQ(this.Parts[1], &es.CASLogger) {
+				return &Symbol{"False"}
+			}
+			if falseQ(this.Parts[1], &es.CASLogger) {
+				return &Symbol{"True"}
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"False", "!True"},
+			&SameTest{"True", "!False"},
+			&SameTest{"!a", "!a"},
+		},
+	})
+	defs = append(defs, Definition{
 		Name:         "TrueQ",
 		Usage:        "`TrueQ[expr]` returns True if `expr` is True, False otherwise.",
 		legacyEvalFn: singleParamQLogEval(trueQ),

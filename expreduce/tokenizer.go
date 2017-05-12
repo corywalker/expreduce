@@ -666,7 +666,7 @@ yyrule30: // \.
 	}
 yyrule31: // !
 	{
-		return FACTORIALSYM /* Factorial */
+		return EXCLAMATIONSYM /* Factorial, Not */
 	}
 yyrule32: // &
 	{

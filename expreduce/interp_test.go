@@ -51,4 +51,9 @@ func TestInterp(t *testing.T) {
 
 	// Test StringJoin
 	CasAssertSame(t, es, "StringJoin[\"a\", \" world\", \"hi\"]", "\"a\" <> \" world\" <> \"hi\"")
+
+	// Test Not and Factorial
+	CasAssertSame(t, es, "Factorial[a]", "a!")
+	CasAssertSame(t, es, "Not[a]", "!a")
+	CasAssertSame(t, es, "Factorial[a]*b", "a!b")
 }
