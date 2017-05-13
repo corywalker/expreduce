@@ -149,7 +149,13 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 
 		// If any of the parts are Sequence, merge them with parts
-		curr.mergeSequences(es, "Sequence", false)
+		if headIsSym {
+			if !attrs.SequenceHold {
+				curr.mergeSequences(es, "Sequence", false)
+			}
+		} else {
+			curr.mergeSequences(es, "Sequence", false)
+		}
 		curr.mergeSequences(es, "Evaluate", true)
 
 		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
