@@ -17,6 +17,14 @@ func ExArrayToString(exArray []Ex) string {
 	return buffer.String()
 }
 
+func ExArrayDeepCopy(exArray []Ex) []Ex {
+	res := make([]Ex, len(exArray))
+	for i, e := range exArray {
+		res[i] = e.DeepCopy()
+	}
+	return res
+}
+
 func Max(x, y int) int {
 	if x > y {
 		return x

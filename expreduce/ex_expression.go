@@ -273,6 +273,20 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
 				}
+				// I have a feeling that much of the logic in OrderlessReplace
+				// actually assumes Flat as well. This is because most of my
+				// testing was with Plus and Times, which happen to have both
+				// attributes. For now, I'll have two parallel functions, but
+				// later on I should factor out the common functionality and
+				// also see if I am making any assumptions about Flat in my
+				// OrderlessReplace.
+				if IsFlat(thisSym) {
+					cl.Debugf("r.Parts[1] is Flat. Now running OrderlessReplace")
+					replaced := this.Parts[1:len(this.Parts)]
+					FlatReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], cl)
+					this.Parts = this.Parts[0:1]
+					this.Parts = append(this.Parts, replaced...)
+				}
 			}
 		}
 	}
@@ -325,7 +339,14 @@ func IsOrderless(sym *Symbol) bool {
 		return true
 	} else if sym.Name == "Plus" {
 		return true
-	} else if sym.Name == "orderlessFoo" {
+	}
+	return false
+}
+
+func IsFlat(sym *Symbol) bool {
+	if sym.Name == "And" {
+		return true
+	} else if sym.Name == "Or" {
 		return true
 	}
 	return false

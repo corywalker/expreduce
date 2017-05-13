@@ -179,6 +179,24 @@ func getReplacementDefinitions() (defs []Definition) {
 
 			&SameTest{"2 * a + 12 * b", "foo[1, 2, 3, 4] /. foo[1, amatch__Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]"},
 			&SameTest{"a + 24 * b", "foo[1, 2, 3, 4] /. foo[1, amatch___Integer, bmatch___Integer] -> a*Times[amatch] + b*Times[bmatch]"},
+
+			// Test handling of Orderless and Flat attributes.
+			&SameTest{"False", "MatchQ[Plus[a, b], Plus[a, b, c]]"},
+			&SameTest{"f && c", "And[a, b, c] /. And[a, b] -> f"},
+			&SameTest{"False", "MatchQ[And[a, b, c], And[b, c]]"},
+			&SameTest{"False", "MatchQ[And[a, b, c], And[a, b]]"},
+			&SameTest{"jjj && eee && c", "And[a, b, c] /. And[a, b] -> Sequence[jjj, eee]"},
+			&SameTest{"myand[a, b, c]", "myand[a, b, c] /. myand[a, b] -> f"},
+			&SameTest{"a && b && c", "And[a, b, c] /. And[b, a] -> Sequence[jjj, eee]"},
+			&SameTest{"c + eee + jjj", "Plus[a, b, c] /. Plus[b, a] -> Sequence[jjj, eee]"},
+			&SameTest{"c + eee + jjj", "Plus[a, b, c] /. Plus[a, b] -> Sequence[jjj, eee]"},
+			&SameTest{"a && b && c", "And[a, b, c] /. And[a, c] -> Sequence[jjj, eee]"},
+			&SameTest{"1 && 2 && a && b && jjj && eee", "And[1, 2, a, b, c] /. And[___Integer, c] -> Sequence[jjj, eee]"},
+			&SameTest{"1 && 2 && a && b && c", "And[1, 2, a, b, c] /. And[__Integer, c] -> Sequence[jjj, eee]"},
+			&SameTest{"jjj && eee && b && c", "And[1, 2, a, b, c] /. And[__Integer, a] -> Sequence[jjj, eee]"},
+			&SameTest{"Sequence[jjj, eee]", "And[1, 2, a, b, c] /. And[__Integer, a, __Symbol] -> Sequence[jjj, eee]"},
+			&SameTest{"1 && 2 && a && b && c", "And[1, 2, a, b, c] /. And[__Symbol, a, __Integer] -> Sequence[jjj, eee]"},
+			&SameTest{"1 && 2 && jjj && eee && b && c", "And[1, 2, a, b, c] /. And[___Symbol, a, ___Integer] -> Sequence[jjj, eee]"},
 		},
 	})
 	defs = append(defs, Definition{

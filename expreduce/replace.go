@@ -63,6 +63,45 @@ func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogg
 	}
 }
 
+func allRuns(totLength int) [][]int {
+	// Example: allRuns(3) == [[0 1 2] [0 1] [1 2] [0] [1] [2]]
+	res := make([][]int, 0)
+	for thisLen := totLength; thisLen > 0; thisLen -= 1 {
+		for startI := 0; startI <= (totLength-thisLen); startI += 1 {
+			thisRun := []int{}
+			for i := 0; i < thisLen; i++ {
+				thisRun = append(thisRun, i+startI)
+			}
+			res = append(res, thisRun)
+		}
+	}
+	return res
+}
+
+func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
+	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
+	cl.Infof("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
+	//TODO: convert to a generator method?
+	runs := allRuns(len(*components))
+	cl.Debugf("Runs to try: %v\n", runs)
+
+	for _, run := range runs {
+		thisComponents := make([]Ex, len(run))
+		for tci, ci := range run {
+			thisComponents[tci] = (*components)[ci].DeepCopy()
+		}
+		pm := EmptyPD()
+		mq, matches := NonOrderlessIsMatchQ(thisComponents, lhs_components, pm, cl)
+		if mq {
+			copiedComponents := ExArrayDeepCopy((*components)[run[len(run)-1]+1:])
+			*components = append((*components)[:run[0]], []Ex{ReplacePD(rhs.DeepCopy(), cl, matches)}...)
+			*components = append(*components, copiedComponents...)
+			return
+		}
+		//cl.Debugf("Done checking. Context: %v\n", es)
+	}
+}
+
 func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 	cl.Infof("In ReplacePD(%v, pm=%v)", this, pm)
 	toReturn := this.DeepCopy()
