@@ -1,5 +1,9 @@
 package expreduce
 
+import (
+	"math/big"
+)
+
 type singleParamQType (func(Ex) bool)
 type singleParamQLogType (func(Ex, *CASLogger) bool)
 type doubleParamQLogType (func(Ex, Ex, *CASLogger) bool)
@@ -105,4 +109,14 @@ func booleanQ(e Ex, cl *CASLogger) bool {
 		return sym.Name == "False" || sym.Name == "True"
 	}
 	return false
+}
+
+func primeQ(e Ex) bool {
+	asInt, ok := e.(*Integer)
+	if !ok {
+		return false
+	}
+	abs := big.NewInt(0)
+	abs.Abs(asInt.Val)
+	return abs.ProbablyPrime(100)
 }
