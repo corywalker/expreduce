@@ -21,7 +21,11 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	alts, isAlts := HeadAssertion(b, "Alternatives")
 	if isAlts {
 		for _, alt := range alts.Parts[1:] {
-			matchq, newPD := IsMatchQ(a, alt, EmptyPD(), cl)
+			// I recently changed the third argument from EmptyPD() to pm
+			// because MatchQ[{a, b}, {a_, k | a_}] was returning True, causing
+			// problems in some of the boolean patterns. Might need to make
+			// similar changes to the other pattern clauses.
+			matchq, newPD := IsMatchQ(a, alt, pm, cl)
 			if matchq {
 				return matchq, newPD
 			}

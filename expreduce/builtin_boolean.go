@@ -5,6 +5,9 @@ func GetBooleanDefinitions() (defs []Definition) {
 		Name:       "And",
 		Usage:      "`e1 && e2 && ...` returns `True` if all expressions evaluate to `True`.",
 		Attributes: []string{"Flat", "HoldAll", "OneIdentity"},
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " && ", form)
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			res := &Expression{[]Ex{&Symbol{"And"}}}
 			for i := 1; i < len(this.Parts); i++ {
@@ -47,6 +50,9 @@ func GetBooleanDefinitions() (defs []Definition) {
 		Name:       "Or",
 		Usage:      "`e1 || e2 || ...` returns `True` if any expressions evaluate to `True`.",
 		Attributes: []string{"Flat", "HoldAll", "OneIdentity"},
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " || ", form)
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			res := &Expression{[]Ex{&Symbol{"Or"}}}
 			for i := 1; i < len(this.Parts); i++ {
@@ -104,6 +110,10 @@ func GetBooleanDefinitions() (defs []Definition) {
 			&SameTest{"False", "!True"},
 			&SameTest{"True", "!False"},
 			&SameTest{"!a", "!a"},
+			&SameTest{"a", "!!a"},
+		},
+		Rules: []Rule{
+			{"!!e_", "e"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -126,5 +136,15 @@ func GetBooleanDefinitions() (defs []Definition) {
 			&SameTest{"False", "BooleanQ[1]"},
 		},
 	})
+	/*
+	defs = append(defs, Definition{
+		Name: "LogicalExpand",
+		SimpleExamples: []TestInstruction{
+			&TestComment{"`LogicalExpand` can expand logic expressions."},
+		},
+		Rules: []Rule{
+			{"LogicalExpand[exp_]", "exp //. {And[begin___,e_,!e_,end___]:>And[begin, end]}"},
+		},
+	})*/
 	return
 }

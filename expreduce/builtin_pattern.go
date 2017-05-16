@@ -361,6 +361,10 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"{c, 1, 2}", "Cases[{a, b, c, 1, 2}, c | _Integer]"},
 			&SameTest{"(1 + List)[1 + a, 1 + b, 1 + c, 1., 3]", "{a, b, c, 1., 2} /. amatch_Symbol | amatch_Integer -> amatch + 1"},
 			&SameTest{"{b, c, d, e}", "Cases[{a, b, c, d, e, f}, b | c | d | e]"},
+			&SameTest{"False", "MatchQ[{a, b}, {a_, k | a_}]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"False", "MatchQ[c || a || Not[b], Or[___, a_, ___, Not[And[___, a_, ___] | a_], ___]]"},
 		},
 	})
 	return
