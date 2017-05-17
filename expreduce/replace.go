@@ -136,7 +136,7 @@ func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 				&Symbol{"UniqueDefined`" + nameStr},
 			}),
 
-			cl, EmptyPD())
+			cl, EmptyPD(), "")
 	}
 	for _, nameStr := range keys {
 		def := pm.patternDefined[nameStr]
@@ -147,7 +147,7 @@ func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 				def,
 			}),
 
-			cl, EmptyPD())
+			cl, EmptyPD(), "")
 	}
 	cl.Infof("Finished ReplacePD with toReturn=%v", toReturn)
 	return toReturn
@@ -157,7 +157,8 @@ func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 // RHS upon successful matches. We will NOT substitute any named patterns in
 // the RHS. We will merely make sure that the named patterns are added to pm.
 // Final named pattern substitution will occur at the last possible time.
-func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
+func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager,
+                stopAtHead string) Ex {
 	_, isFlt := this.(*Flt)
 	_, isInteger := this.(*Integer)
 	_, isString := this.(*String)
@@ -171,8 +172,14 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager) Ex {
 		}
 		return this
 	} else if isExpression {
-		cl.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
-		return asExpression.ReplaceAll(r, cl)
+		_, isRestrictedHead := HeadAssertion(this, stopAtHead)
+		if isRestrictedHead {
+			return this
+		} else {
+			// Continue recursion
+			cl.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
+			return asExpression.ReplaceAll(r, cl, stopAtHead)
+		}
 	}
 	return &Symbol{"$ReplaceAllFailed"}
 }

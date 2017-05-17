@@ -113,7 +113,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
 	for i := range this.defined[name].downvalues {
 		ismatchq, _ := IsMatchQ(lhs, this.defined[name].downvalues[i].Parts[1], EmptyPD(), &this.CASLogger)
 		if ismatchq {
-			res := ReplaceAll(lhs, &this.defined[name].downvalues[i], &this.CASLogger, EmptyPD())
+			res := ReplaceAll(lhs, &this.defined[name].downvalues[i], &this.CASLogger, EmptyPD(), "")
 			return res, true
 		}
 	}

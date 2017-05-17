@@ -41,16 +41,18 @@ func GetSimplifyDefinitions() (defs []Definition) {
 			&SameTest{"a || c || !b", "a || c || ! a && ! c && ! b // Simplify // Sort"},
 			&SameTest{"a || c || (! b && d)", "a || c || ! a && ! c && ! b && d // Simplify // Sort"},
 			&SameTest{"a || c || Not[b]", "c || a || Not[b] // Simplify // Sort"},
+
+			&SameTest{"False", "And[x1, a, x2, Not[Or[x3, a, x4]], x5] // Simplify"},
+			&SameTest{"a && x1 && x2 && x5", "And[x1, a, x2, Or[x3, a, x4], x5] // Simplify"},
+			&SameTest{"a && b", "a&&b&&a//Simplify"},
 		},
 		Rules: []Rule{
 			{"Simplify[exp_]", "exp //. {" +
-				"a_ && !a_ :> False, " +
-				"!a_ && a_ :> False, " +
-
-				"a_ && a_  :> a, " +
+				// "a_ && a_  :> a, " +
 				// "a_ || a_  :> a, " +
 
 				"!x_ || !y_  :> !(x && y), " +
+				//"Or[match___?(AllTrue[#, (Head[#] == Not &)] &)] :> Not[(#[[1]] &) /@ match], " +
 				// "a_ || (a_ && b_) :> a, " +
 				// "a_ || !a_ && b_ :> a || b, " +
 
@@ -59,12 +61,22 @@ func GetSimplifyDefinitions() (defs []Definition) {
 
 				"Or[___, a_, ___, Not[And[___, a_, ___] | a_], ___] :> True, " +
 				"Or[___, Not[And[___, a_, ___] | a_], ___, a_, ___] :> True, " +
-				"Or[x1___, a_, x2___, And[x3___, a_, x4___], x5___] :> a || x1 || x2 || x5, " +
-				"Or[x1___, And[x2___, a_, x3___], x4___, a_, x5___] :> a || x1 || x4 || x5, " +
-				"Or[x1___, a_, x2___, a_, x3___] :> a || x1 || x2 || x3, " +
+				"Or[x1___, a_, x2___, And[x3___, a_, x4___], x5___] :> Or[a, x1, x2, x5], " +
+				"Or[x1___, And[x2___, a_, x3___], x4___, a_, x5___] :> Or[a, x1, x4, x5], " +
+				"Or[x1___, a_, x2___, a_, x3___] :> Or[a, x1, x2, x3], " +
 
-				"Or[x1___, a_, x2___, And[x3___, !a_, x4___], x5___] :> a || x1 || x2 || (x3 && x4) || x5, " +
-				"Or[x1___, And[x2___, !a_, x3___], x4___, a_, x5___] :> a || x1 || (x2 && x3) || x4 || x5" +
+				"Or[x1___, a_, x2___, And[x3___, !a_, x4___], x5___] :> Or[a, x1, x2, And[x3, x4], x5], " +
+				"Or[x1___, And[x2___, !a_, x3___], x4___, a_, x5___] :> Or[a, x1, And[x2, x3], x4, x5], " +
+
+				// Dual of these rules.
+				"And[___, a_, ___, Not[Or[___, a_, ___] | a_], ___] :> False, " +
+				"And[___, Not[Or[___, a_, ___] | a_], ___, a_, ___] :> False, " +
+				"And[x1___, a_, x2___, Or[x3___, a_, x4___], x5___] :> And[a, x1, x2, x5], " +
+				"And[x1___, Or[x2___, a_, x3___], x4___, a_, x5___] :> And[a, x1, x4, x5], " +
+				"And[x1___, a_, x2___, a_, x3___] :> And[a, x1, x2, x3], " +
+
+				"And[x1___, a_, x2___, Or[x3___, !a_, x4___], x5___] :> And[a, x1, x2, Or[x3, x4], x5], " +
+				"And[x1___, Or[x2___, !a_, x3___], x4___, a_, x5___] :> And[a, x1, Or[x2, x3], x4, x5]" +
 			"}"},
 		},
 	})

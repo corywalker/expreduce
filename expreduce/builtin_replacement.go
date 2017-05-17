@@ -21,7 +21,7 @@ func getReplacementDefinitions() (defs []Definition) {
 				rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
 			}
 			if ok {
-				newEx := ReplaceAll(this.Parts[1], rulesRule, &es.CASLogger, EmptyPD())
+				newEx := ReplaceAll(this.Parts[1], rulesRule, &es.CASLogger, EmptyPD(), "")
 				return newEx.Eval(es)
 			}
 
@@ -35,7 +35,7 @@ func getReplacementDefinitions() (defs []Definition) {
 						rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
 					}
 					if ok {
-						toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, &es.CASLogger, EmptyPD())
+						toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, &es.CASLogger, EmptyPD(), "")
 					}
 				}
 				return toReturn.Eval(es)

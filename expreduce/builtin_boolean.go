@@ -136,6 +136,17 @@ func GetBooleanDefinitions() (defs []Definition) {
 			&SameTest{"False", "BooleanQ[1]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:         "AllTrue",
+		Usage:        "`AllTrue[list, condition]` returns True if all parts of `list` satisfy `condition`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"False", "AllTrue[{1, a}, NumberQ]"},
+			&SameTest{"True", "AllTrue[{1, 2}, NumberQ]"},
+		},
+		Rules: []Rule{
+			{"AllTrue[_[elems___], cond_]", "And @@ (cond /@ {elems})"},
+		},
+	})
 	/*
 	defs = append(defs, Definition{
 		Name: "LogicalExpand",

@@ -27,6 +27,10 @@ func getFunctionalDefinitions() (defs []Definition) {
 			&SameTest{"1 + x + 2y", "Function[1 + # + 2#2][x, y]"},
 			&SameTest{"True", "# === Slot[1]"},
 			&SameTest{"True", "#2 === Slot[2]"},
+			&SameTest{"2a + 4b", "(4 # + (2 # &)[a] &)[b]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"foo[test, k]", "(foo[test, #] &) &[j][k]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -128,6 +132,17 @@ func getFunctionalDefinitions() (defs []Definition) {
 			&SameTest{"{5, 5, 5}", "Array[mytest, 3]"},
 			&SameTest{"{(a + b)[1], (a + b)[2], (a + b)[3]}", "Array[a + b, 3]"},
 			&SameTest{"Array[a, a]", "Array[a, a]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:         "Identity",
+		Usage:        "`Identity[expr_]` returns `expr`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"5", "Identity[5]"},
+			&SameTest{"a", "Identity[Identity[a]]"},
+		},
+		Rules: []Rule{
+			{"Identity[expr_]", "expr"},
 		},
 	})
 	return

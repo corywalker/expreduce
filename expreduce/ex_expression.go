@@ -226,7 +226,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 					arg,
 				}),
 
-				&es.CASLogger, EmptyPD())
+				&es.CASLogger, EmptyPD(), "Function")
 		}
 		return toReturn
 	} else if len(this.Parts) == 3 {
@@ -242,13 +242,13 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 				args[0],
 			}),
 
-			&es.CASLogger, EmptyPD())
+			&es.CASLogger, EmptyPD(), "Function")
 		return toReturn
 	}
 	return this
 }
 
-func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {
+func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead string) Ex {
 	cl.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	cl.Debugf("Rule r is: %s", r)
 
@@ -292,7 +292,7 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger) Ex {
 	}
 
 	for i := range this.Parts {
-		this.Parts[i] = ReplaceAll(this.Parts[i], r, cl, EmptyPD())
+		this.Parts[i] = ReplaceAll(this.Parts[i], r, cl, EmptyPD(), stopAtHead)
 	}
 	return this
 }
