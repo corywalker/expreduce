@@ -143,12 +143,14 @@ func GetExpressionDefinitions() (defs []Definition) {
 			&SameTest{"foo[2]", "foo[Sequence[2]]"},
 			&SameTest{"foo[14]", "foo[Sequence[2, 3] + Sequence[5, 4]]"},
 			&SameTest{"foo[2, 3, 5, 4]", "foo[Sequence[2, 3], Sequence[5, 4]]"},
+		},
+		KnownFailures: []TestInstruction{
 			// The following tests will fail until Equal and SameQ can handle
 			// multiple inputs:
-			//&SameTest{"False", "Sequence[2, 3] == Sequence[2, 3]"},
-			//&SameTest{"True", "Sequence[2, 2] == Sequence[2]"},
-			//&SameTest{"False", "Sequence[2, 3] === Sequence[2, 3]"},
-			//&SameTest{"True", "Sequence[2, 2] === Sequence[2]"},
+			&SameTest{"False", "Sequence[2, 3] == Sequence[2, 3]"},
+			&SameTest{"True", "Sequence[2, 2] == Sequence[2]"},
+			&SameTest{"False", "Sequence[2, 3] === Sequence[2, 3]"},
+			&SameTest{"True", "Sequence[2, 2] === Sequence[2]"},
 		},
 	})
 	defs = append(defs, Definition{

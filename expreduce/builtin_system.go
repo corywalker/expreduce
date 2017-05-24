@@ -351,9 +351,11 @@ func GetSystemDefinitions() (defs []Definition) {
 			&SameTest{"{{{HoldForm[2^2], HoldForm[4]}, {HoldForm[3^3], HoldForm[27]}, HoldForm[4*27*5], HoldForm[540]}, HoldForm[540 + 4], HoldForm[544]}", "Trace[2^2*3^3*5+4]"},
 			&SameTest{"{HoldForm[b + a], HoldForm[a + b]}", "Trace[b+a]"},
 			&SameTest{"{}", "Trace[a+foo[a,b]]"},
-			// We are close with this one but not quite:
-			//&SameTest{"{{{HoldForm[a*a], HoldForm[a^2]}, HoldForm[foo[a^2, b]]}, HoldForm[a + foo[a^2, b]]}", "Trace[a+foo[a*a,b]]"},
 			&SameTest{"{HoldForm[foo[Sequence[a, b]]], HoldForm[foo[a, b]]}", "Trace[foo[Sequence[a,b]]]"},
+		},
+		KnownFailures: []TestInstruction{
+			// We are close with this one but not quite:
+			&SameTest{"{{{HoldForm[a*a], HoldForm[a^2]}, HoldForm[foo[a^2, b]]}, HoldForm[a + foo[a^2, b]]}", "Trace[a+foo[a*a,b]]"},
 		},
 	})
 	defs = append(defs, Definition{

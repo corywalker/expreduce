@@ -126,9 +126,6 @@ func GetSortDefinitions() (defs []Definition) {
 			&SameTest{"-1", "Order[w[], x]"},
 			&SameTest{"1", "Order[w, x]"},
 
-			//&SameTest{"{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]"},
-			//&SameTest{"{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]"},
-
 			// Test Rational ordering
 			&SameTest{"0", "Order[Rational[4, 6], Rational[2, 3]]"},
 			&SameTest{"1", "Order[Rational[4, 6], Rational[5, 3]]"},
@@ -155,6 +152,10 @@ func GetSortDefinitions() (defs []Definition) {
 			&SameTest{"-1", "Order[\"b\", \"a\"]"},
 			&SameTest{"1", "Order[\"a\", \"b\"]"},
 			&SameTest{"1", "Order[\"a\", \"aa\"]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]"},
+			&SameTest{"{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]"},
 		},
 	})
 	/*defs = append(defs, Definition{

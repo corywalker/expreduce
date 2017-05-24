@@ -134,11 +134,8 @@ func getReplacementDefinitions() (defs []Definition) {
 			&SameTest{"2 + c", "a + b + c /. (d_Symbol + c_Symbol) -> 2"},
 			&SameTest{"2 + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> 2"},
 			&SameTest{"a+99+c+d", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch + 99"},
-			// Causes stack overflow
-			//&SameTest{"99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d"},
 			&SameTest{"a * b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c*d"},
 			&SameTest{"98", "d = 98"},
-			//&SameTest{"98 + 98 * a + c", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch"},
 			&SameTest{"c+98+(b*a)", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch"},
 
 			&ResetState{},
@@ -197,6 +194,11 @@ func getReplacementDefinitions() (defs []Definition) {
 			&SameTest{"Sequence[jjj, eee]", "And[1, 2, a, b, c] /. And[__Integer, a, __Symbol] -> Sequence[jjj, eee]"},
 			&SameTest{"1 && 2 && a && b && c", "And[1, 2, a, b, c] /. And[__Symbol, a, __Integer] -> Sequence[jjj, eee]"},
 			&SameTest{"1 && 2 && jjj && eee && b && c", "And[1, 2, a, b, c] /. And[___Symbol, a, ___Integer] -> Sequence[jjj, eee]"},
+		},
+		KnownFailures: []TestInstruction{
+			// Causes stack overflow
+			&SameTest{"99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d"},
+			&SameTest{"98 + 98 * a + c", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch"},
 		},
 	})
 	defs = append(defs, Definition{

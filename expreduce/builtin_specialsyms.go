@@ -17,13 +17,15 @@ func getSpecialSymsDefinitions() (defs []Definition) {
 			&SameTest{"Infinity", "Infinity - 990999999"},
 			&SameTest{"Infinity", "Infinity - 990999999."},
 			&SameTest{"Indeterminate", "Infinity - Infinity"},
-			// I can't simplify this type of infinity until I have ;/ rules
-			//&SameTest{"Infinity", "Infinity*2"},
 			&SameTest{"-Infinity", "Infinity*-1"},
 			&SameTest{"-Infinity", "-Infinity + 1"},
 			&SameTest{"-Infinity", "-Infinity + 999"},
 			&SameTest{"Infinity", "-Infinity*-1"},
 			&SameTest{"0", "1/Infinity"},
+		},
+		KnownFailures: []TestInstruction{
+			// I can't simplify this type of infinity until I have ;/ rules
+			&SameTest{"Infinity", "Infinity*2"},
 		},
 	})
 	defs = append(defs, Definition{

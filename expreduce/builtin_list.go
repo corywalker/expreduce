@@ -307,7 +307,9 @@ func GetListDefinitions() (defs []Definition) {
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{1, 2, 3}", "Range[3]"},
 			&SameTest{"{2, 3, 4, 5}", "Range[2, 5]"},
-			//&SameTest{"{}", "Range[2, -5]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"{}", "Range[2, -5]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -360,16 +362,18 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"{{1, 4, 9, 16, 25}, {2, 8, 18, 32, 50}, {3, 12, 27, 48, 75}, {4, 16, 36, 64, 100}, {5, 20, 45, 80, 125}}", "mat = Table[Table[a*b^2, {b, 5}], {a, 5}]"},
 			&SameTest{"20", "mat[[5, 2]]"},
 			&SameTest{"{5, 20, 45, 80, 125}", "mat[[5, All]]"},
-			//&SameTest{"{25, 50, 75, 100, 125}", "mat[[All, 5]]"},
 			&SameTest{"foo[a, b, c]", "foo[a, b, c][[All]]"},
 			&SameTest{"1[[5]]", "Part[1, 5]"},
-			//&SameTest{"Integer[]", "Part[1, All]"},
-			//&SameTest{"Symbol[]", "Part[a, All]"},
 			&SameTest{"a", "Part[{a}, 1]"},
 			&SameTest{"{a}[[2]]", "Part[{a}, 2]"},
 			&SameTest{"{5, 20, 45, 80, 125}", "mat[[All]][[5]]"},
 			&SameTest{"3", "{{1, 2}, {3, 4}}[[2, 1]]"},
 			&SameTest{"{{1, 2}, {3}}[[2, 2]]", "{{1, 2}, {3}}[[2, 2]]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"{25, 50, 75, 100, 125}", "mat[[All, 5]]"},
+			&SameTest{"Integer[]", "Part[1, All]"},
+			&SameTest{"Symbol[]", "Part[a, All]"},
 		},
 	})
 	defs = append(defs, Definition{

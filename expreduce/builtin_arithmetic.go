@@ -255,22 +255,24 @@ func getArithmeticDefinitions() (defs []Definition) {
 
 			// More complicated term combining
 			&SameTest{"-3 * m - 10 * n", "-9 * n - n - 3 * m"},
-			//&SameTest{"7*a * b - 2*a * c", "3*a*b - 2*a*c + 4*a*b"},
-			// For the next two, currently having trouble combining 3ab+4ab, etc
-			//&SameTest{"-3*a - 2*b + 3*a*b", "2*a - 4*b + 3*a*b - 5*a + 2*b"},
-			//&SameTest{"7*x - 11*y + x*y", "8*x - 9*y - 3*x*y - 2*y - x + 4*x*y"},
-			//&SameTest{"-3*a*b*c*d*e*f", "4*a*b*c*d*e*f + -7*a*b*c*d*e*f"},
-			//&SameTest{"-3*a*b*c*d*e*f", "a*b*c*4*d*e*f + -a*b*c*d*e*f*7"},
-			//&SameTest{"-3*a*b*c*d*e*f", "a*b*2*c*2*d*e*f + -a*b*c*d*e*f*7"},
-
-			//&SameTest{"2 r + 2 t", "2 r - 3 s - t + 3 t + 3 s"},
-			//&SameTest{"3 (x - 2 y) - 4 x y + 2 (-1 + x y)", "2 (x*y - 1) + 3 (x - 2 y) - 4 x*y"},
-			//&SameTest{"-2 + x (3 - 2 y) - 6 y", "2 (x*y - 1) + 3 (x - 2 y) - 4 x*y // BasicSimplify"},
-			//&SameTest{"-4 s + 4 r s - 3 (1 + r s)", "4 r*s - 2 s - 3 (r*s + 1) - 2 s"},
-			//&SameTest{"-3 + (-4 + r) s", "4 r*s - 2 s - 3 (r*s + 1) - 2 s // BasicSimplify"},
-			//&SameTest{"7 y - z + 3 y z", "8 y - 2 z - (y - z) + 3 y*z"},
-			//&SameTest{"-z + y (7 + 3 z)", "8 y - 2 z - (y - z) + 3 y*z // BasicSimplify"},
 			&SameTest{"50*a", "a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"7*a * b - 2*a * c", "3*a*b - 2*a*c + 4*a*b"},
+			// For the next two, currently having trouble combining 3ab+4ab, etc
+			&SameTest{"-3*a - 2*b + 3*a*b", "2*a - 4*b + 3*a*b - 5*a + 2*b"},
+			&SameTest{"7*x - 11*y + x*y", "8*x - 9*y - 3*x*y - 2*y - x + 4*x*y"},
+			&SameTest{"-3*a*b*c*d*e*f", "4*a*b*c*d*e*f + -7*a*b*c*d*e*f"},
+			&SameTest{"-3*a*b*c*d*e*f", "a*b*c*4*d*e*f + -a*b*c*d*e*f*7"},
+			&SameTest{"-3*a*b*c*d*e*f", "a*b*2*c*2*d*e*f + -a*b*c*d*e*f*7"},
+
+			&SameTest{"2 r + 2 t", "2 r - 3 s - t + 3 t + 3 s"},
+			&SameTest{"3 (x - 2 y) - 4 x y + 2 (-1 + x y)", "2 (x*y - 1) + 3 (x - 2 y) - 4 x*y"},
+			&SameTest{"-2 + x (3 - 2 y) - 6 y", "2 (x*y - 1) + 3 (x - 2 y) - 4 x*y // BasicSimplify"},
+			&SameTest{"-4 s + 4 r s - 3 (1 + r s)", "4 r*s - 2 s - 3 (r*s + 1) - 2 s"},
+			&SameTest{"-3 + (-4 + r) s", "4 r*s - 2 s - 3 (r*s + 1) - 2 s // BasicSimplify"},
+			&SameTest{"7 y - z + 3 y z", "8 y - 2 z - (y - z) + 3 y*z"},
+			&SameTest{"-z + y (7 + 3 z)", "8 y - 2 z - (y - z) + 3 y*z // BasicSimplify"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -568,7 +570,6 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&SameTest{"25", "50/2"},
 			&SameTest{"50", "100/2"},
 			&SameTest{"50", "1/2*100"},
-			//&SameTest{"1/4", "1/2*1/2"},
 			&SameTest{"5/4", "1/2*5/2"},
 			&SameTest{"a/(b*c*d)", "a/b/c/d"},
 
@@ -604,6 +605,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&SameTest{"m^2", "m*m"},
 			&SameTest{"1", "m/m"},
 			&SameTest{"1", "m^2/m^2"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"1/4", "1/2*1/2"},
 		},
 	})
 	defs = append(defs, Definition{

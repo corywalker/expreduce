@@ -350,7 +350,9 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[5, y_Integer /; True]"},
 			&SameTest{"False", "MatchQ[5, y_ /; y == 0]"},
 			&SameTest{"True", "MatchQ[5, y_ /; y == 5]"},
-			//&SameTest{"{1,2,3,5}", "{3, 5, 2, 1} //. {x___, y_, z_, k___} /; (Order[y, z] == -1) -> {x, z, y, k}"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"{1,2,3,5}", "{3, 5, 2, 1} //. {x___, y_, z_, k___} /; (Order[y, z] == -1) -> {x, z, y, k}"},
 		},
 	})
 	defs = append(defs, Definition{

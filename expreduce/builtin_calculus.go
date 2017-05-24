@@ -74,7 +74,9 @@ func getCalculusDefinitions() (defs []Definition) {
 		SimpleExamples: []TestInstruction{
 			&SameTest{"2 x + (3 x^(5/3))/5 + (3 x^2)/2", "Integrate[x^(2/3) + 3 x + 2, x]"},
 			&SameTest{"-((3 x^2)/4) + (1/2) (x^2) Log[x] - Sin[x]", "Integrate[Integrate[Sin[x] + Log[x], x], x]"},
-			//&SameTest{"Log[x] - 1/2 Log[1 + 2 x^2]", "Integrate[1/(2 x^3 + x), x]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"Log[x] - 1/2 Log[1 + 2 x^2]", "Integrate[1/(2 x^3 + x), x]"},
 		},
 	})
 	return

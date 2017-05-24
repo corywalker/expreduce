@@ -209,9 +209,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 			&SameTest{"{a, b}.{c, d, e}", "{a, b}.{c, d, e}"},
 			&SameTest{"Dot[1, {c, d, e}]", "Dot[1, {c, d, e}]"},
 			&SameTest{"0", "Dot[{}, {}]"},
-			//&SameTest{"{a e + b f, c e + d f}", "{{a, b}, {c, d}}.{e, f}"},
 			&SameTest{"{{a, b}, {c, d}}.{e, f, g}", "{{a, b}, {c, d}}.{e, f, g}"},
-			//&SameTest{"{a e + c f, b e + d f}", "{e, f}.{{a, b}, {c, d}}"},
 			&SameTest{"{a, b}", "Dot[{a, b}]"},
 			&SameTest{"a", "Dot[a]"},
 			&SameTest{"1", "Dot[1]"},
@@ -220,6 +218,10 @@ func GetMatrixDefinitions() (defs []Definition) {
 			&SameTest{"{{a e + b g, a f + b h}, {c e + d g, c f + d h}}", "{{a, b}, {c, d}}.{{e, f}, {g, h}}"},
 			&SameTest{"{{a e + b f}, {c e + d f}}", "{{a, b}, {c, d}}.{{e}, {f}}"},
 			&SameTest{"{{a, b}, {c, d}}.{{e, f}}", "{{a, b}, {c, d}}.{{e, f}}"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"{a e + b f, c e + d f}", "{{a, b}, {c, d}}.{e, f}"},
+			&SameTest{"{a e + c f, b e + d f}", "{e, f}.{{a, b}, {c, d}}"},
 		},
 	})
 	defs = append(defs, Definition{
