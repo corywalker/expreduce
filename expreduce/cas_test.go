@@ -9,6 +9,7 @@ import (
 
 func TestIncludedModules(t *testing.T) {
 	defSets := GetAllDefinitions()
+	var mockT testing.T
 	for _, defSet := range defSets {
 		fmt.Printf("Testing module %s\n", defSet.Name)
 		for _, def := range defSet.Defs {
@@ -33,8 +34,16 @@ func TestIncludedModules(t *testing.T) {
 				test.Run(t, es, td)
 				i += 1
 			}
-			/*for _, test := range def.KnownFailures {
+			for _, test := range def.KnownFailures {
 				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)
+				if test.Run(&mockT, es, td) {
+					fmt.Printf("Previously failing test is now passing: %v\n", test)
+				}
+				i += 1
+			}
+			/*for _, test := range def.KnownDangerous {
+				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)
+				fmt.Printf("Running %v\n", test)
 				test.Run(t, es, td)
 				i += 1
 			}*/

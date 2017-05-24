@@ -307,8 +307,6 @@ func GetListDefinitions() (defs []Definition) {
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{1, 2, 3}", "Range[3]"},
 			&SameTest{"{2, 3, 4, 5}", "Range[2, 5]"},
-		},
-		KnownFailures: []TestInstruction{
 			&SameTest{"{}", "Range[2, -5]"},
 		},
 	})

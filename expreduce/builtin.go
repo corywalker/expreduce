@@ -27,6 +27,7 @@ type Definition struct {
 	FurtherExamples []TestInstruction
 	Tests           []TestInstruction
 	KnownFailures   []TestInstruction
+	KnownDangerous  []TestInstruction
 
 	toString ToStringFnType
 

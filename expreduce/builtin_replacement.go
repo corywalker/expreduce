@@ -197,8 +197,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		},
 		KnownFailures: []TestInstruction{
 			// Causes stack overflow
-			&SameTest{"99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d"},
 			&SameTest{"98 + 98 * a + c", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch"},
+		},
+		KnownDangerous: []TestInstruction{
+			// Causes stack overflow
+			&SameTest{"99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d"},
 		},
 	})
 	defs = append(defs, Definition{

@@ -13,7 +13,7 @@ type TestDesc struct {
 }
 
 type TestInstruction interface {
-	Run(t *testing.T, es *EvalState, td TestDesc)
+	Run(t *testing.T, es *EvalState, td TestDesc) bool
 }
 
 type SameTest struct {
@@ -21,8 +21,8 @@ type SameTest struct {
 	In  string
 }
 
-func (this *SameTest) Run(t *testing.T, es *EvalState, td TestDesc) {
-	CasAssertSame(t, es, this.Out, this.In)
+func (this *SameTest) Run(t *testing.T, es *EvalState, td TestDesc) bool {
+	return CasAssertSame(t, es, this.Out, this.In)
 }
 
 type DiffTest struct {
@@ -30,8 +30,8 @@ type DiffTest struct {
 	In  string
 }
 
-func (this *DiffTest) Run(t *testing.T, es *EvalState, td TestDesc) {
-	CasAssertDiff(t, es, this.Out, this.In)
+func (this *DiffTest) Run(t *testing.T, es *EvalState, td TestDesc) bool {
+	return CasAssertDiff(t, es, this.Out, this.In)
 }
 
 type StringTest struct {
@@ -39,8 +39,8 @@ type StringTest struct {
 	In  string
 }
 
-func (this *StringTest) Run(t *testing.T, es *EvalState, td TestDesc) {
-	assert.Equal(t, this.Out, EasyRun(this.In, es), td.desc)
+func (this *StringTest) Run(t *testing.T, es *EvalState, td TestDesc) bool {
+	return assert.Equal(t, this.Out, EasyRun(this.In, es), td.desc)
 }
 
 type ExampleOnlyInstruction struct {
@@ -48,19 +48,23 @@ type ExampleOnlyInstruction struct {
 	In  string
 }
 
-func (this *ExampleOnlyInstruction) Run(t *testing.T, es *EvalState, td TestDesc) {}
+func (this *ExampleOnlyInstruction) Run(t *testing.T, es *EvalState, td TestDesc) bool {
+	return true
+}
 
 type ResetState struct{}
 
-func (this *ResetState) Run(t *testing.T, es *EvalState, td TestDesc) {
+func (this *ResetState) Run(t *testing.T, es *EvalState, td TestDesc) bool {
 	es.ClearAll()
+	return true
 }
 
 type TestComment struct {
 	Comment string
 }
 
-func (this *TestComment) Run(t *testing.T, es *EvalState, td TestDesc) {
+func (this *TestComment) Run(t *testing.T, es *EvalState, td TestDesc) bool {
+	return true
 }
 
 func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s string) {
@@ -93,12 +97,14 @@ func CasTestInner(es *EvalState, out string, in string, test bool) (succ bool, s
 	return (theTest.String() == "False"), buffer.String()
 }
 
-func CasAssertSame(t *testing.T, es *EvalState, out string, in string) {
+func CasAssertSame(t *testing.T, es *EvalState, out string, in string) bool {
 	succ, s := CasTestInner(es, out, in, true)
 	assert.True(t, succ, s)
+	return succ
 }
 
-func CasAssertDiff(t *testing.T, es *EvalState, out string, in string) {
+func CasAssertDiff(t *testing.T, es *EvalState, out string, in string) bool {
 	succ, s := CasTestInner(es, out, in, false)
 	assert.True(t, succ, s)
+	return succ
 }
