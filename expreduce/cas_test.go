@@ -33,6 +33,11 @@ func TestIncludedModules(t *testing.T) {
 				test.Run(t, es, td)
 				i += 1
 			}
+			/*for _, test := range def.KnownFailures {
+				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)
+				test.Run(t, es, td)
+				i += 1
+			}*/
 		}
 	}
 }

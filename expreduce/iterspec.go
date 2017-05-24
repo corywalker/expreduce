@@ -166,7 +166,7 @@ func (this *multiIterSpec) takeVarSnapshot(es *EvalState) {
 	this.origDefs = make([]Ex, len(this.iSpecs))
 	this.isOrigDefs = make([]bool, len(this.iSpecs))
 	for i := range this.iSpecs {
-		this.origDefs[i], this.isOrigDefs[i] = es.GetDef(this.iSpecs[i].getIName(), this.iSpecs[i].getI())
+		this.origDefs[i], this.isOrigDefs[i], _ = es.GetDef(this.iSpecs[i].getIName(), this.iSpecs[i].getI())
 	}
 }
 

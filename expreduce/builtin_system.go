@@ -3,6 +3,7 @@ package expreduce
 import "math/big"
 import "time"
 import "fmt"
+import "github.com/op/go-logging"
 
 func exprToN(es *EvalState, e Ex) Ex {
 	asInt, isInt := e.(*Integer)
@@ -17,7 +18,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 	}
 	asExpr, isExpr := e.(*Expression)
 	if isExpr {
-		toReturn, defined := es.GetDef(
+		toReturn, defined, _ := es.GetDef(
 			"N",
 			NewExpression([]Ex{&Symbol{"N"}, e}),
 		)
@@ -26,7 +27,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 		}
 		exToReturn := NewEmptyExpression()
 		for _, part := range asExpr.Parts {
-			toAdd, defined := es.GetDef(
+			toAdd, defined, _ := es.GetDef(
 				"N",
 				NewExpression([]Ex{&Symbol{"N"}, part}),
 			)
@@ -43,18 +44,30 @@ func exprToN(es *EvalState, e Ex) Ex {
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceSetLogging",
-		Usage:             "`ExpreduceSetLogging[bool]` sets the logging state to `bool`.",
-		Details:           "Logging output prints to the console. There can be a lot of logging output, especially for more complicated pattern matches.",
+		Usage:             "`ExpreduceSetLogging[bool, level]` sets the logging state to `bool` and the level to `level`.",
+		Details:           "Logging output prints to the console. There can be a lot of logging output, especially for more complicated pattern matches. Valid levels are `Debug`, `Info`, `Notice`, `Warning`, `Error`, and `Critical`.",
 		ExpreduceSpecific: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+			if len(this.Parts) != 3 {
 				return this
 			}
 
 			sym, ok := this.Parts[1].(*Symbol)
 			if ok {
 				if sym.Name == "True" {
-					es.DebugOn()
+			        levelSym, lsOk := this.Parts[2].(*Symbol)
+					if !lsOk {
+					  return NewExpression([]Ex{&Symbol{"Error"}, &String{"Invalid level."}})
+					}
+					if levelSym.Name == "Debug" {
+						es.DebugOn(logging.DEBUG)
+					} else if levelSym.Name == "Info" {
+						es.DebugOn(logging.INFO)
+					} else if levelSym.Name == "Notice" {
+						es.DebugOn(logging.NOTICE)
+					} else {
+					  return NewExpression([]Ex{&Symbol{"Error"}, &String{"Invalid level."}})
+					}
 					return &Symbol{"Null"}
 				} else if sym.Name == "False" {
 					es.DebugOff()
@@ -135,8 +148,15 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			//sym, ok := this.Expr.(*Symbol)
-			return NewExpression([]Ex{&Symbol{"Error"}, &String{es.String()}})
+			sym, ok := this.Parts[1].(*Symbol)
+			if !ok {
+				return this
+			}
+			def, isd := es.defined[sym.Name]
+			if !isd {
+				return &Symbol{"Null"}
+			}
+			return NewExpression([]Ex{&Symbol{"Error"}, &String{def.String()}})
 		},
 	})
 	defs = append(defs, Definition{

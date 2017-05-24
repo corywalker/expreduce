@@ -155,7 +155,7 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) 
 func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	pm = CopyPD(pm)
 	if cl.debugState {
-		cl.Infof("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+		cl.Debugf("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	}
 	nonBS, bs := extractBlankSequences(lhs_components)
 	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
@@ -208,7 +208,7 @@ func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *
 			orderedComponents[oci] = components[ci].DeepCopy()
 		}
 		if cl.debugState {
-			cl.Infof("%s", ExArrayToString(orderedComponents))
+			cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
 		ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, ordered_lhs_components, pm, cl)
 		if ncIsMatchQ {
@@ -227,7 +227,7 @@ func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, c
 	pm = CopyPD(pm)
 	// This function is now recursive because of the existence of BlankSequence.
 	if cl.debugState {
-		cl.Infof("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+		cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	}
 	// A base case for the recursion
 	if len(components) == 0 && len(lhs_components) == 0 {

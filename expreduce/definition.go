@@ -28,7 +28,7 @@ func (this *Def) String() string {
 	for i, e := range this.downvalues {
 		buffer.WriteString(e.String())
 		if i != len(this.downvalues)-1 {
-			buffer.WriteString(", ")
+			buffer.WriteString("\n")
 		}
 	}
 	buffer.WriteString("}")

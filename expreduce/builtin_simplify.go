@@ -38,7 +38,7 @@ func GetSimplifyDefinitions() (defs []Definition) {
 
 			&SameTest{"a || b || c", "a || c || ! a && b // Simplify // Sort"},
 			&SameTest{"a || b || c", "a || c || ! a && ! c && b // Simplify // Sort"},
-			&SameTest{"a || c || !b", "a || c || ! a && ! c && ! b // Simplify // Sort"},
+			&SameTest{"a || c || !b", "a || c || ! a && ! c && ! b // Simplify // Sort"}, //
 			&SameTest{"a || c || (! b && d)", "a || c || ! a && ! c && ! b && d // Simplify // Sort"},
 			&SameTest{"a || c || Not[b]", "c || a || Not[b] // Simplify // Sort"},
 
@@ -52,7 +52,15 @@ func GetSimplifyDefinitions() (defs []Definition) {
 				// "a_ || a_  :> a, " +
 
 				"!x_ || !y_  :> !(x && y), " +
-				//"Or[match___?(AllTrue[#, (Head[#] == Not &)] &)] :> Not[(#[[1]] &) /@ match], " +
+				"!x_ || !y_  || !z :> !(x && y && z), " +
+				// This is a generalization of the above rule, but causes issues
+				// This problem actually happens outside of Expreduce as well.
+				// The issue is that the Or with the pattern inside evaluates
+				// immediately to just the pattern, due to how Or works. This
+				// happens before pattern matching, causing all kinds of
+				// expressions, even outside Or expressions, to match.
+				// "Or[match__?(AllTrue[#, (Head[#] == Not &)] &)] :> Not[(#[[1]] &) /@ match], " +
+
 				// "a_ || (a_ && b_) :> a, " +
 				// "a_ || !a_ && b_ :> a || b, " +
 

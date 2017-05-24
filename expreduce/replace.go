@@ -17,7 +17,7 @@ func IterableReplace(components *[]Ex, r *Expression, pm *PDManager, cl *CASLogg
 
 func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	cl.Infof("Entering OrderlessReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
+	cl.Debugf("Entering OrderlessReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(*components))
@@ -80,7 +80,7 @@ func allRuns(totLength int) [][]int {
 
 func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	cl.Infof("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
+	cl.Debugf("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	//TODO: convert to a generator method?
 	runs := allRuns(len(*components))
 	cl.Debugf("Runs to try: %v\n", runs)
@@ -103,7 +103,7 @@ func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
 }
 
 func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
-	cl.Infof("In ReplacePD(%v, pm=%v)", this, pm)
+	cl.Debugf("In ReplacePD(%v, pm=%v)", this, pm)
 	toReturn := this.DeepCopy()
 	// In Golang, map iterations present random order. In rare circumstances,
 	// this can lead to different return expressions for the same inputs
@@ -149,7 +149,7 @@ func ReplacePD(this Ex, cl *CASLogger, pm *PDManager) Ex {
 
 			cl, EmptyPD(), "")
 	}
-	cl.Infof("Finished ReplacePD with toReturn=%v", toReturn)
+	cl.Debugf("Finished ReplacePD with toReturn=%v", toReturn)
 	return toReturn
 }
 

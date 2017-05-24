@@ -104,20 +104,21 @@ func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
 	return &es
 }
 
-func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool) {
+func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	_, isd := this.defined[name]
 	if !isd {
-		return nil, false
+		return nil, false, nil
 	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	for i := range this.defined[name].downvalues {
-		ismatchq, _ := IsMatchQ(lhs, this.defined[name].downvalues[i].Parts[1], EmptyPD(), &this.CASLogger)
+	    def := this.defined[name].downvalues[i]
+		ismatchq, _ := IsMatchQ(lhs, def.Parts[1], EmptyPD(), &this.CASLogger)
 		if ismatchq {
-			res := ReplaceAll(lhs, &this.defined[name].downvalues[i], &this.CASLogger, EmptyPD(), "")
-			return res, true
+			res := ReplaceAll(lhs, &def, &this.CASLogger, EmptyPD(), "")
+			return res, true, &def
 		}
 	}
-	return nil, false
+	return nil, false, nil
 }
 
 func (this *EvalState) Define(lhs Ex, rhs Ex) {

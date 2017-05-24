@@ -313,5 +313,53 @@ func GetPowerDefinitions() (defs []Definition) {
 		//&SameTest{"Null", "((60 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + a^5 + b^5 + c^5 + (5 * a * b^4) + (5 * a * c^4) + (5 * b * a^4) + (5 * b * c^4) + (5 * c * a^4) + (5 * c * b^4) + (10 * a^2 * b^3) + (10 * a^2 * c^3) + (10 * a^3 * b^2) + (10 * a^3 * c^2) + (10 * b^2 * c^3) + (10 * b^3 * c^2) + (20 * a * b * c^3) + (20 * a * c * b^3) + (20 * b * c * a^3));"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "PolynomialQ",
+		Usage:  "`PolynomialQ[e, var]` returns True if `e` is a polynomial in `var`.",
+		Rules: []Rule{
+			{"PolynomialQ[p_Plus,v_]", "AllTrue[List@@p,(PolynomialQ[#,v])&]"},
+			// TODO: Should probably assert that the integers are positive.
+			{"PolynomialQ[p_*v_^_Integer,v_]", "If[FreeQ[p,v],True,False]"},
+			{"PolynomialQ[_,v_Integer]", "True"},
+			{"PolynomialQ[v_,v_]", "True"},
+			{"PolynomialQ[p_*v_,v_]", "If[FreeQ[p,v],True,False]"},
+			{"PolynomialQ[p_,v_]", "If[FreeQ[p,v],True,False]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"True", "PolynomialQ[2x^2-3x+2, x]"},
+			&SameTest{"True", "PolynomialQ[2x^2, x]"},
+			&SameTest{"False", "PolynomialQ[2x^y, x]"},
+			&SameTest{"True", "PolynomialQ[-3x, x]"},
+			&SameTest{"True", "PolynomialQ[2, x]"},
+			&SameTest{"True", "PolynomialQ[2y^2, x]"},
+			&SameTest{"True", "PolynomialQ[-3y, x]"},
+			&SameTest{"False", "PolynomialQ[2x^2-3x+2+Cos[x], x]"},
+			&SameTest{"False", "PolynomialQ[Cos[x], x]"},
+			&SameTest{"False", "PolynomialQ[2x^2-3x+Cos[x], x]"},
+			&SameTest{"False", "PolynomialQ[2x^2-x*Cos[x], x]"},
+			&SameTest{"True", "PolynomialQ[2x^2-3x+2, 2]"},
+			&SameTest{"True", "PolynomialQ[2x^2-3x+2, \"hello\"]"},
+			&SameTest{"True", "PolynomialQ[2x^2-3x+2, y]"},
+			&SameTest{"True", "PolynomialQ[x, y]"},
+			&SameTest{"True", "PolynomialQ[y, y]"},
+			&SameTest{"True", "PolynomialQ[2*x, y]"},
+			&SameTest{"False", "PolynomialQ[2*x^Sin[y], x]"},
+			&SameTest{"True", "PolynomialQ[Sin[y]*x^2, x]"},
+			&SameTest{"False", "PolynomialQ[Sin[y]*x^2.5, x]"},
+			&SameTest{"False", "PolynomialQ[Sin[y]*x^y, x]"},
+			&SameTest{"True", "PolynomialQ[2*y, y]"},
+			&SameTest{"True", "PolynomialQ[y*x, y]"},
+			&SameTest{"True", "PolynomialQ[y*x, z]"},
+			&SameTest{"True", "PolynomialQ[y*Sin[x], z]"},
+			&SameTest{"False", "PolynomialQ[y^x, y]"},
+			&SameTest{"False", "PolynomialQ[x^y, y]"},
+			&SameTest{"True", "PolynomialQ[x^y, z]"},
+			&SameTest{"True", "PolynomialQ[x^y, 1]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"True", "PolynomialQ[2x^2-x*Cos[y], x]"},
+			&SameTest{"True", "PolynomialQ[2.5x^2-3x+2.5, 2.5]"},
+		},
+	})
 	return
 }

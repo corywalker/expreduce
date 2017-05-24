@@ -69,6 +69,9 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]"},
 			&SameTest{"False", "MatchQ[foo[x, 2*y], foo[matcha_Integer*matchx_, matchx_]]"},
 		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"True", "MatchQ[foo[2 * x,2], foo[(p_ * v_), v_]]"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name: "Pattern",
@@ -365,6 +368,29 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 		Tests: []TestInstruction{
 			&SameTest{"False", "MatchQ[c || a || Not[b], Or[___, a_, ___, Not[And[___, a_, ___] | a_], ___]]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "FreeQ",
+		Usage:  "`FreeQ[e, var]` returns True if `e` is free from any occurences of `var`.",
+		Rules: []Rule{
+			{"FreeQ[expr_, val_]", "expr === (expr /. val -> Internal`DummyReplace)"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"False", "FreeQ[{0, 1, 2}, 1]"},
+			&SameTest{"True", "FreeQ[{0, 1, 2}, 3]"},
+			&SameTest{"False", "FreeQ[{0, 1, 2}, _Integer]"},
+			&SameTest{"True", "FreeQ[{0, 1, 2}, _Real]"},
+			&SameTest{"True", "FreeQ[x^2, _Real]"},
+			&SameTest{"False", "FreeQ[x^2, _Integer]"},
+			&SameTest{"False", "FreeQ[x^2, 2]"},
+			&SameTest{"True", "FreeQ[x^2, 3]"},
+			&SameTest{"True", "FreeQ[x^2, y]"},
+			&SameTest{"True", "FreeQ[x^2, y]"},
+			&SameTest{"False", "FreeQ[x^2, x^_Integer]"},
+			&SameTest{"True", "FreeQ[x^2, y^_Integer]"},
+			&SameTest{"False", "FreeQ[5*foo[x], foo]"},
+			&SameTest{"True", "FreeQ[5*foo[x], bar]"},
 		},
 	})
 	return
