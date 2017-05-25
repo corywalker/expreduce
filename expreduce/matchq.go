@@ -267,47 +267,64 @@ func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *
 	return omi.next()
 }
 
+type nonOrderlessMatchIter struct {
+	components		[]Ex
+	lhs_components	[]Ex
+	pm				*PDManager
+	cl				*CASLogger
+	progressI		int
+}
+
+func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
+	nomi := &nonOrderlessMatchIter{}
+	nomi.components = components
+	nomi.lhs_components = lhs_components
+	nomi.pm = CopyPD(pm)
+	nomi.cl = cl
+
+	// This function is now recursive because of the existence of BlankSequence.
+	if nomi.cl.debugState {
+		nomi.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(nomi.components), ExArrayToString(nomi.lhs_components), nomi.pm)
+	}
+	if len(nomi.components) != 0 && len(nomi.lhs_components) == 0 {
+		return nomi, false
+	}
+
+	nomi.progressI = 0
+	return nomi, true
+}
+
 // I think for this to work, I must convert all MatchQ functions to iterators in
 // the backend. Only the final MatchQ function should try the first match.
 // Everything is an iterator that maintains its state. I think its just
 // two other functions: NonOrderlessIsMatchQ and IsMatchQ. potentially need to convert consumers of these functions to use the iterator version.
-func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	pm = CopyPD(pm)
-	// This function is now recursive because of the existence of BlankSequence.
-	if cl.debugState {
-		cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
-	}
+func (this *nonOrderlessMatchIter) next() (bool, *PDManager) {
 	// A base case for the recursion
-	if len(components) == 0 && len(lhs_components) == 0 {
-		return true, pm
+	if len(this.components) == 0 && len(this.lhs_components) == 0 {
+		return true, this.pm
 	}
-	if len(components) != 0 && len(lhs_components) == 0 {
-		return false, pm
-	}
-
-	progressI := 0
-	for i := 0; i < Max(len(components), len(lhs_components)); i++ {
-		progressI = i
-		if i >= len(lhs_components) {
-			return false, pm
+	for i := 0; i < Max(len(this.components), len(this.lhs_components)); i++ {
+		this.progressI = i
+		if i >= len(this.lhs_components) {
+			return false, this.pm
 		}
-		if i >= len(components) {
-			cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", lhs_components[i], i, pm)
+		if i >= len(this.components) {
+			this.cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", this.lhs_components[i], i, this.pm)
 		} else {
-			cl.Debugf("Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", components[i], lhs_components[i], i, pm)
+			this.cl.Debugf("Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", this.components[i], this.lhs_components[i], i, this.pm)
 		}
-		pat, isPat := HeadAssertion(lhs_components[i], "Pattern")
-		bns, isBns := HeadAssertion(lhs_components[i], "BlankNullSequence")
-		bs, isBs := HeadAssertion(lhs_components[i], "BlankSequence")
+		pat, isPat := HeadAssertion(this.lhs_components[i], "Pattern")
+		bns, isBns := HeadAssertion(this.lhs_components[i], "BlankNullSequence")
+		bs, isBs := HeadAssertion(this.lhs_components[i], "BlankSequence")
 		if isPat {
 			bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
 			bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
 		}
 		if isBns || isBs {
-			cl.Debugf("Encountered BS or BNS!")
-			remainingLhs := make([]Ex, len(lhs_components)-i-1)
-			for k := i + 1; k < len(lhs_components); k++ {
-				remainingLhs[k-i-1] = lhs_components[k].DeepCopy()
+			this.cl.Debugf("Encountered BS or BNS!")
+			remainingLhs := make([]Ex, len(this.lhs_components)-i-1)
+			for k := i + 1; k < len(this.lhs_components); k++ {
+				remainingLhs[k-i-1] = this.lhs_components[k].DeepCopy()
 			}
 			startI := 0
 			if isBns {
@@ -315,68 +332,79 @@ func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, c
 			} else {
 				startI = i
 			}
-			for j := startI; j < len(components); j++ {
+			for j := startI; j < len(this.components); j++ {
 				// This process involves a lot of extraneous copying. I should
 				// test to see how much of these arrays need to be copied from
 				// scratch on every iteration.
 				seqToTry := make([]Ex, j-i+1)
 				for k := i; k <= j; k++ {
-					seqToTry[k-i] = components[k].DeepCopy()
+					seqToTry[k-i] = this.components[k].DeepCopy()
 				}
 				seqMatches := false
 				if isBns {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), cl)
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), this.cl)
 				} else {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), cl)
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), this.cl)
 				}
-				cl.Debugf("%v", seqMatches)
-				remainingComps := make([]Ex, len(components)-j-1)
-				for k := j + 1; k < len(components); k++ {
-					remainingComps[k-j-1] = components[k].DeepCopy()
+				this.cl.Debugf("%v", seqMatches)
+				remainingComps := make([]Ex, len(this.components)-j-1)
+				for k := j + 1; k < len(this.components); k++ {
+					remainingComps[k-j-1] = this.components[k].DeepCopy()
 				}
-				if cl.debugState {
-					cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
+				if this.cl.debugState {
+					this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				}
-				matchq, newPDs := NonOrderlessIsMatchQ(remainingComps, remainingLhs, pm, cl)
+				matchq, newPDs := NonOrderlessIsMatchQ(remainingComps, remainingLhs, this.pm, this.cl)
 				if seqMatches && matchq {
-					pm.Update(newPDs)
+					this.pm.Update(newPDs)
 					if isPat {
 						sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 						if sAsSymbolOk {
 							toTryParts := []Ex{&Symbol{"Sequence"}}
 							toTryParts = append(toTryParts, seqToTry...)
 							target := NewExpression(toTryParts)
-							_, ispd := pm.patternDefined[sAsSymbol.Name]
+							_, ispd := this.pm.patternDefined[sAsSymbol.Name]
 							if !ispd {
-								pm.patternDefined[sAsSymbol.Name] = target
+								this.pm.patternDefined[sAsSymbol.Name] = target
 							}
-							if !IsSameQ(pm.patternDefined[sAsSymbol.Name], target, cl) {
-								return false, pm
+							if !IsSameQ(this.pm.patternDefined[sAsSymbol.Name], target, this.cl) {
+								return false, this.pm
 							}
 						}
 					}
-					return true, pm
+					return true, this.pm
 				}
 			}
-			return false, pm
+			return false, this.pm
 		}
-		if i >= len(components) {
-			return false, pm
+		if i >= len(this.components) {
+			return false, this.pm
 		}
-		ismatchq, toAdd := IsMatchQ(components[i].DeepCopy(), lhs_components[i], pm, cl)
+		ismatchq, toAdd := IsMatchQ(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
 		if ismatchq {
-			cl.Debugf("Returned True!\n")
-			pm.Update(toAdd)
+			this.cl.Debugf("Returned True!\n")
+			this.pm.Update(toAdd)
 		} else {
-			cl.Debugf("NonOrderlessIsMatchQ failed. Context: %s", pm)
-			return false, pm
+			this.cl.Debugf("NonOrderlessIsMatchQ failed. Context: %s", this.pm)
+			return false, this.pm
 		}
 	}
-	if progressI == len(lhs_components)-1 {
-		return true, pm
+	if this.progressI == len(this.lhs_components)-1 {
+		return true, this.pm
 	} else {
+		return false, this.pm
+	}
+}
+
+func (this *nonOrderlessMatchIter) reset() {}
+
+func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	nomi, ok := NewNonOrderlessMatchIter(components, lhs_components, pm, cl)
+	if !ok {
 		return false, pm
 	}
+	// Return the first match.
+	return nomi.next()
 }
 
 func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
