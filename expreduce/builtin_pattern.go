@@ -395,5 +395,29 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "FreeQ[5*foo[x], bar]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "ExpreduceAllMatches",
+		Usage: "`ExpreduceAllMatches[expr, form]` returns all the possible pattern matches of `form` on `expr`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			res := NewExpression([]Ex{&Symbol{"List"}})
+			mi, cont := NewMatchIter(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger)
+			for cont {
+				matchq, newPd, done := mi.next()
+				es.Infof("%v %v %v\n", matchq, newPd, done)
+				cont = !done
+				if matchq {
+					res.appendEx(newPd.Expression())
+				}
+			}
+			return res
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[a+b,x_+y_]"},
+		},
+	})
 	return
 }

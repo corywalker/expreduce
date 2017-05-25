@@ -53,3 +53,23 @@ func (this *PDManager) String() string {
 	buffer.WriteString("}")
 	return buffer.String()
 }
+
+func (this *PDManager) Expression() Ex {
+	res := NewExpression([]Ex{&Symbol{"List"}})
+	// We sort the keys here such that converting identical PDManagers always
+	// produces the same string.
+	keys := []string{}
+	for k := range this.patternDefined {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	for _, k := range keys {
+		v := this.patternDefined[k]
+		res.appendEx(NewExpression([]Ex{
+			&Symbol{"Rule"},
+			&String{k},
+			v,
+		}))
+	}
+	return res
+}

@@ -145,14 +145,20 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
 			if IsOrderless(aExpressionSym) {
-				matchq, newPm := OrderlessIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
-				return &dummyMatchIter{matchq, newPm, true}, true
+				omi, ok := NewOrderlessMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
+				if !ok {
+					return &dummyMatchIter{false, pm, true}, true
+				}
+				return omi, true
 			}
 		}
 	}
 
-	matchq, newPm := NonOrderlessIsMatchQ(aExpression.Parts, bExpression.Parts, pm, cl)
-	return &dummyMatchIter{matchq, newPm, true}, true
+	nomi, ok := NewNonOrderlessMatchIter(aExpression.Parts, bExpression.Parts, pm, cl)
+	if !ok {
+		return &dummyMatchIter{false, pm, true}, true
+	}
+	return nomi, true
 }
 
 // TODO: do not export this
@@ -269,15 +275,15 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
 		ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
+
+		// Generate next permutation, if any
+		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
 		if ncIsMatchQ {
 			if this.cl.debugState {
 				this.cl.Infof("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
 			}
 			return true, newPm, false
 		}
-
-		// Generate next permutation, if any
-		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
 	}
 	this.cl.Debugf("OrderlessIsMatchQ failed. Context: %s", this.pm)
 	return false, this.pm, true
