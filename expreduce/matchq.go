@@ -147,7 +147,8 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) 
 
 type matchIter interface {
 	reset()
-	next() (bool, *PDManager)
+	// returns ismatch, pd, isdone
+	next() (bool, *PDManager, bool)
 }
 
 type orderlessMatchIter struct {
@@ -228,7 +229,7 @@ func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, 
 // Returns if there is a match and the pm that results. This method can be
 // called until there is not a match to find all possible matches. It will
 // return false from then on.
-func (this *orderlessMatchIter) next() (bool, *PDManager) {
+func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 	for this.contval == 1 {
 		this.cl.Debugf("Using perm: %v\n", this.perm)
 
@@ -246,14 +247,14 @@ func (this *orderlessMatchIter) next() (bool, *PDManager) {
 			if this.cl.debugState {
 				this.cl.Infof("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
 			}
-			return true, newPm
+			return true, newPm, false
 		}
 
 		// Generate next permutation, if any
 		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
 	}
 	this.cl.Debugf("OrderlessIsMatchQ failed. Context: %s", this.pm)
-	return false, this.pm
+	return false, this.pm, true
 }
 
 func (this *orderlessMatchIter) reset() {}
@@ -264,7 +265,8 @@ func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *
 		return false, pm
 	}
 	// Return the first match.
-	return omi.next()
+	isMatch, newPm, _ := omi.next()
+	return isMatch, newPm
 }
 
 type nonOrderlessMatchIter struct {
@@ -298,15 +300,15 @@ func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManage
 // the backend. Only the final MatchQ function should try the first match.
 // Everything is an iterator that maintains its state. I think its just
 // two other functions: NonOrderlessIsMatchQ and IsMatchQ. potentially need to convert consumers of these functions to use the iterator version.
-func (this *nonOrderlessMatchIter) next() (bool, *PDManager) {
+func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	// A base case for the recursion
 	if len(this.components) == 0 && len(this.lhs_components) == 0 {
-		return true, this.pm
+		return true, this.pm, true
 	}
 	for i := 0; i < Max(len(this.components), len(this.lhs_components)); i++ {
 		this.progressI = i
 		if i >= len(this.lhs_components) {
-			return false, this.pm
+			return false, this.pm, true
 		}
 		if i >= len(this.components) {
 			this.cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", this.lhs_components[i], i, this.pm)
@@ -368,17 +370,17 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager) {
 								this.pm.patternDefined[sAsSymbol.Name] = target
 							}
 							if !IsSameQ(this.pm.patternDefined[sAsSymbol.Name], target, this.cl) {
-								return false, this.pm
+								return false, this.pm, true
 							}
 						}
 					}
-					return true, this.pm
+					return true, this.pm, true
 				}
 			}
-			return false, this.pm
+			return false, this.pm, true
 		}
 		if i >= len(this.components) {
-			return false, this.pm
+			return false, this.pm, true
 		}
 		ismatchq, toAdd := IsMatchQ(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
 		if ismatchq {
@@ -386,13 +388,13 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager) {
 			this.pm.Update(toAdd)
 		} else {
 			this.cl.Debugf("NonOrderlessIsMatchQ failed. Context: %s", this.pm)
-			return false, this.pm
+			return false, this.pm, true
 		}
 	}
 	if this.progressI == len(this.lhs_components)-1 {
-		return true, this.pm
+		return true, this.pm, true
 	} else {
-		return false, this.pm
+		return false, this.pm, true
 	}
 }
 
@@ -404,7 +406,8 @@ func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, c
 		return false, pm
 	}
 	// Return the first match.
-	return nomi.next()
+	matchq, newPd, _ := nomi.next()
+	return matchq, newPd
 }
 
 func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
