@@ -1,20 +1,37 @@
 package expreduce
 
-// TODO: do not export this
-func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+type matchIter interface {
+	reset()
+	// returns ismatch, pd, isdone
+	next() (bool, *PDManager, bool)
+}
+
+type dummyMatchIter struct {
+	isMatchQ	bool
+	pm			*PDManager
+	isDone		bool
+}
+
+func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
+	return this.isMatchQ, this.pm, this.isDone
+}
+
+func (this *dummyMatchIter) reset() {}
+
+func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	// Special case for Except
 	except, isExcept := HeadAssertion(b, "Except")
 	if isExcept {
 		if len(except.Parts) == 2 {
 			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), cl)
-			return !matchq, pm
+			return &dummyMatchIter{!matchq, pm, true}, true
 		} else if len(except.Parts) == 3 {
 			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), cl)
 			if !matchq {
 				matchqb, newPm := IsMatchQ(a, except.Parts[2], pm, cl)
-				return matchqb, newPm
+				return &dummyMatchIter{matchqb, newPm, true}, true
 			}
-			return false, pm
+			return &dummyMatchIter{false, pm, true}, true
 		}
 	}
 	// Special case for Alternatives
@@ -27,10 +44,10 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 			// similar changes to the other pattern clauses.
 			matchq, newPD := IsMatchQ(a, alt, pm, cl)
 			if matchq {
-				return matchq, newPD
+				return &dummyMatchIter{matchq, newPD, true}, true
 			}
 		}
-		return false, pm
+		return &dummyMatchIter{false, pm, true}, true
 	}
 	// Special case for PatternTest
 	patternTest, isPT := HeadAssertion(b, "PatternTest")
@@ -46,11 +63,11 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 				resSymbol, resIsSymbol := res.(*Symbol)
 				if resIsSymbol {
 					if resSymbol.Name == "True" {
-						return true, newPD
+						return &dummyMatchIter{true, newPD, true}, true
 					}
 				}
 			}
-			return false, pm
+			return &dummyMatchIter{false, pm, true}, true
 		}
 	}
 	// Special case for Condition
@@ -65,7 +82,7 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 				resSymbol, resIsSymbol := res.(*Symbol)
 				if resIsSymbol {
 					if resSymbol.Name == "True" {
-						return true, newPD
+						return &dummyMatchIter{true, newPD, true}, true
 					}
 				}
 			}
@@ -103,22 +120,24 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	if IsBlankTypeOnly(b) {
 		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headStr, pm, cl)
 		if ibtc {
-			return true, ibtcNewPDs
+			return &dummyMatchIter{true, ibtcNewPDs, true}, true
 		}
-		return false, EmptyPD()
+		return &dummyMatchIter{false, EmptyPD(), true}, true
 	}
 
 	// Handle special case for matching Rational[a_Integer, b_Integer]
 	if aIsRational && bIsExpression {
-		return isMatchQRational(aRational, bExpression, pm, cl)
+		matchq, newPm := isMatchQRational(aRational, bExpression, pm, cl)
+		return &dummyMatchIter{matchq, newPm, true}, true
 	} else if aIsExpression && bIsRational {
-		return isMatchQRational(bRational, aExpression, pm, cl)
+		matchq, newPm := isMatchQRational(bRational, aExpression, pm, cl)
+		return &dummyMatchIter{matchq, newPm, true}, true
 	}
 
 	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-		return IsSameQ(a, b, cl), EmptyPD()
+		return &dummyMatchIter{IsSameQ(a, b, cl), EmptyPD(), true}, true
 	} else if !(aIsExpression && bIsExpression) {
-		return false, EmptyPD()
+		return &dummyMatchIter{false, EmptyPD(), true}, true
 	}
 
 	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
@@ -126,12 +145,25 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
 			if IsOrderless(aExpressionSym) {
-				return OrderlessIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
+				matchq, newPm := OrderlessIsMatchQ(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
+				return &dummyMatchIter{matchq, newPm, true}, true
 			}
 		}
 	}
 
-	return NonOrderlessIsMatchQ(aExpression.Parts, bExpression.Parts, pm, cl)
+	matchq, newPm := NonOrderlessIsMatchQ(aExpression.Parts, bExpression.Parts, pm, cl)
+	return &dummyMatchIter{matchq, newPm, true}, true
+}
+
+// TODO: do not export this
+func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	mi, ok := NewMatchIter(a, b, pm, cl)
+	if !ok {
+		return false, pm
+	}
+	// Return the first match.
+	matchq, newPd, _ := mi.next()
+	return matchq, newPd
 }
 
 func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
@@ -143,12 +175,6 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) 
 		}),
 
 		b, pm, cl)
-}
-
-type matchIter interface {
-	reset()
-	// returns ismatch, pd, isdone
-	next() (bool, *PDManager, bool)
 }
 
 type orderlessMatchIter struct {
