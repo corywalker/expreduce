@@ -145,15 +145,30 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) 
 		b, pm, cl)
 }
 
-// Should a MatchQ call do:
-// 1. Modify pm directly <- bad idea. If we attempt a match and it partially
-//    matches, we'll have to restore pm from a snapshot
-// 2. Return a modified pm <- probably simplest
-// 3. Return a pm with fields to add <- would be most efficient, but complicated
-//    and could easily be incorrectly used.
-// See IsBlankCapturing for a good example of good use.
-func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	pm = CopyPD(pm)
+type matchIter interface {
+	reset()
+	next() (bool, *PDManager)
+}
+
+type orderlessMatchIter struct {
+	components		[]Ex
+	lhs_components	[]Ex
+	ordered_lhs_components	[]Ex
+	pm				*PDManager
+	cl				*CASLogger
+	kConstant		int
+	contval			int
+	perm			[]int
+}
+
+func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
+	omi := &orderlessMatchIter{}
+	omi.components = components
+	omi.lhs_components = lhs_components
+	// TODO: is copy needed?
+	omi.pm = CopyPD(pm)
+	omi.cl = cl
+
 	if cl.debugState {
 		cl.Debugf("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	}
@@ -162,10 +177,10 @@ func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *
 	// though because MatchQ[a + b + c, c + __] == True.
 	if len(bs) == 0 && len(components) != len(lhs_components) {
 		cl.Debugf("len(components) != len(lhs_components). OrderlessMatchQ failed")
-		return false, pm
+		return omi, false
 	} else if len(nonBS) > len(components) {
 		cl.Debugf("len(nonBS) > len(components). OrderlessMatchQ failed")
-		return false, pm
+		return omi, false
 	}
 
 	// After determining that there is a blanksequence, I should go through
@@ -176,53 +191,86 @@ func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *
 	// These lines are causing MatchQ[a + b, a + b + x___Plus] == True to fail
 	for _, mustContain := range lhs_components {
 		if !MemberQ(components, mustContain, cl) {
-			return false, pm
+			return omi, false
 		}
 	}
 
-	kConstant := len(components)
+	omi.kConstant = len(components)
 	if len(bs) == 1 {
 		// This is probably the most common case. It would be rare for us to
 		// have multiple BlankSequences in the same LHS. It saves us a lot of
 		// time by doing this
-		kConstant = len(nonBS)
+		omi.kConstant = len(nonBS)
 	}
 
 	// Start iterating through each permutation of LHS expressions
-	perm, cont := make([]int, len(components)), 1
-	for i := range perm {
-		perm[i] = i
+	omi.perm, omi.contval = make([]int, len(components)), 1
+	for i := range omi.perm {
+		omi.perm[i] = i
 	}
+
 	// Order lhs_components because if we have len(bs) == 1, we will depend on
 	// the last n-k items to be orderless. This means that the BlankSequence
 	// must be at the end. Eventually this may not be needed once automatic
 	// sorting is implemented
-	ordered_lhs_components := append(nonBS, bs...)
-	for cont == 1 {
-		cl.Debugf("Using perm: %v\n", perm)
+	omi.ordered_lhs_components = append(nonBS, bs...)
+
+	return omi, true
+}
+
+// Should a MatchQ call do:
+// 1. Modify pm directly <- bad idea. If we attempt a match and it partially
+//    matches, we'll have to restore pm from a snapshot
+// 2. Return a modified pm <- probably simplest
+// 3. Return a pm with fields to add <- would be most efficient, but complicated
+//    and could easily be incorrectly used.
+// See IsBlankCapturing for a good example of good use.
+// Returns if there is a match and the pm that results. This method can be
+// called until there is not a match to find all possible matches. It will
+// return false from then on.
+func (this *orderlessMatchIter) next() (bool, *PDManager) {
+	for this.contval == 1 {
+		this.cl.Debugf("Using perm: %v\n", this.perm)
 
 		// Build a version of components with the correct order. Can I do this
 		// more efficiently with a slice notation? Let's copy for now.
-		orderedComponents := make([]Ex, len(components))
-		for oci, ci := range perm {
-			orderedComponents[oci] = components[ci].DeepCopy()
+		orderedComponents := make([]Ex, len(this.components))
+		for oci, ci := range this.perm {
+			orderedComponents[oci] = this.components[ci].DeepCopy()
 		}
-		if cl.debugState {
-			cl.Debugf("%s", ExArrayToString(orderedComponents))
+		if this.cl.debugState {
+			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
-		ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, ordered_lhs_components, pm, cl)
+		ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
 		if ncIsMatchQ {
-			cl.Debugf("OrderlessIsMatchQ succeeded. Context: %s", pm)
+			if this.cl.debugState {
+				this.cl.Infof("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
+			}
 			return true, newPm
 		}
 
 		// Generate next permutation, if any
-		cont = nextKPermutation(perm, len(components), kConstant)
+		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
 	}
-	cl.Debugf("OrderlessIsMatchQ failed. Context: %s", pm)
-	return false, pm
+	this.cl.Debugf("OrderlessIsMatchQ failed. Context: %s", this.pm)
+	return false, this.pm
 }
 
+func (this *orderlessMatchIter) reset() {}
+
+func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	omi, ok := NewOrderlessMatchIter(components, lhs_components, pm, cl)
+	if !ok {
+		return false, pm
+	}
+	// Return the first match.
+	return omi.next()
+}
+
+// I think for this to work, I must convert all MatchQ functions to iterators in
+// the backend. Only the final MatchQ function should try the first match.
+// Everything is an iterator that maintains its state. I think its just
+// two other functions: NonOrderlessIsMatchQ and IsMatchQ. potentially need to convert consumers of these functions to use the iterator version.
 func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	pm = CopyPD(pm)
 	// This function is now recursive because of the existence of BlankSequence.
