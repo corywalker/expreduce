@@ -415,8 +415,11 @@ func GetPatternDefinitions() (defs []Definition) {
 			}
 			return res
 		},
-		Tests: []TestInstruction{
+		SimpleExamples: []TestInstruction{
 			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[a+b,x_+y_]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[foo[a+b],foo[x_+y_]]"},
 		},
 	})
 	return

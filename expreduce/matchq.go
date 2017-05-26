@@ -18,6 +18,22 @@ func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
 
 func (this *dummyMatchIter) reset() {}
 
+type multiMatchIter struct {
+	matchIters	[]matchIter
+	i			int
+}
+
+func (this *multiMatchIter) next() (bool, *PDManager, bool) {
+	matchq, newPd, done := this.matchIters[this.i].next()
+	if done {
+		this.i += 1
+	}
+	done = this.i >= len(this.matchIters)
+	return matchq, newPd, done
+}
+
+func (this *multiMatchIter) reset() {}
+
 func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	// Special case for Except
 	except, isExcept := HeadAssertion(b, "Except")
@@ -415,9 +431,19 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			return false, this.pm, true
 		}
 		ismatchq, toAdd := IsMatchQ(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
+		//matchiter, ok := NewMatchIter(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
+		// Add multimatchiter here.
 		if ismatchq {
 			this.cl.Debugf("Returned True!\n")
-			this.pm.Update(toAdd)
+			updatedPm := CopyPD(this.pm)
+			updatedPm.Update(toAdd)
+			nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], updatedPm, this.cl)
+			if !ok {
+				return false, updatedPm, true
+			}
+			// Return the first match.
+			matchq, newPd, _ := nomi.next()
+			return matchq, newPd, true
 		} else {
 			this.cl.Debugf("NonOrderlessIsMatchQ failed. Context: %s", this.pm)
 			return false, this.pm, true
