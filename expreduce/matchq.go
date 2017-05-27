@@ -420,30 +420,45 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				if this.cl.debugState {
 					this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				}
-				//mmi := &multiMatchIter{}
+				mmi := &multiMatchIter{}
 				//matchq, newPDs := NonOrderlessIsMatchQ(remainingComps, remainingLhs, this.pm, this.cl)
 				nomi, ok := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.pm, this.cl)
 				if ok {
 					matchq, newPDs, _ := nomi.next()
 					if seqMatches && matchq {
-						this.pm.Update(newPDs)
+						// TODO: set this to copy and then update
+						nextPm := CopyPD(newPDs)
+						nextPm.Update(newPDs)
+						matchedPattern := false
 						if isPat {
 							sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 							if sAsSymbolOk {
 								toTryParts := []Ex{&Symbol{"Sequence"}}
 								toTryParts = append(toTryParts, seqToTry...)
 								target := NewExpression(toTryParts)
-								_, ispd := this.pm.patternDefined[sAsSymbol.Name]
+								_, ispd := nextPm.patternDefined[sAsSymbol.Name]
 								if !ispd {
-									this.pm.patternDefined[sAsSymbol.Name] = target
+									nextPm.patternDefined[sAsSymbol.Name] = target
 								}
-								if !IsSameQ(this.pm.patternDefined[sAsSymbol.Name], target, this.cl) {
-									return false, this.pm, true
+								if !IsSameQ(nextPm.patternDefined[sAsSymbol.Name], target, this.cl) {
+									//return false, this.pm, true
+									mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, nextPm, true})
+									matchedPattern = true
 								}
 							}
 						}
-						return true, this.pm, true
+						//return true, this.pm, true
+						if !matchedPattern {
+							mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, nextPm, true})
+						}
 					}
+				}
+				if (len(mmi.matchIters) > 0) {
+					matchq, newPd, done := mmi.next()
+					if !done {
+						this.remainingMatchIter = mmi
+					}
+					return matchq, newPd, done
 				}
 			}
 			return false, this.pm, true
