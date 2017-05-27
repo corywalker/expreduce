@@ -314,12 +314,15 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 		// TODO: CHANGEME
 		//ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
 		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
+		if this.cl.debugState {
+			this.cl.Infof("Trying NewNonOrderlessMatchIter(%v, %v, %v)", ExArrayToString(orderedComponents), ExArrayToString(this.ordered_lhs_components), this.pm)
+		}
 		// Generate next permutation, if any
 		mmi := &multiMatchIter{}
 		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
-		if cont {
-			// TODO: update cont value and convert statement above to for statement
-			ncIsMatchQ, newPm, _ := nomi.next()
+		for cont {
+			ncIsMatchQ, newPm, done := nomi.next()
+			cont = !done
 			if ncIsMatchQ {
 				if this.cl.debugState {
 					this.cl.Infof("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
@@ -391,14 +394,10 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		if done {
 			this.remainingMatchIter = nil
 		}
-		if matchq {
-			this.cl.Infof("nonorder Returning a match at 5.")
-		}
 		return matchq, newPd, done
 	}
 	// A base case for the recursion
 	if len(this.components) == 0 && len(this.lhs_components) == 0 {
-		this.cl.Infof("nonorder Returning a match at 4: %v",this.pm)
 		return true, this.pm, true
 	}
 	for i := 0; i < Max(len(this.components), len(this.lhs_components)); i++ {
@@ -490,9 +489,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					if !done {
 						this.remainingMatchIter = mmi
 					}
-					if matchq {
-						this.cl.Infof("nonorder Returning a match at 3.")
-					}
 					return matchq, newPd, done
 				}
 			}
@@ -520,13 +516,9 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		if !done {
 			this.remainingMatchIter = mmi
 		}
-		if matchq {
-			this.cl.Infof("nonorder Returning a match at 2: %v", newPd)
-		}
 		return matchq, newPd, done
 	}
 	if this.progressI == len(this.lhs_components)-1 {
-		this.cl.Infof("nonorder Returning a match at 1.")
 		return true, this.pm, true
 	} else {
 		return false, this.pm, true
