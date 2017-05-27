@@ -182,13 +182,17 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 
 // TODO: do not export this
 func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	mi, ok := NewMatchIter(a, b, pm, cl)
-	if !ok {
-		return false, pm
+	mi, cont := NewMatchIter(a, b, pm, cl)
+	for cont {
+		matchq, newPd, done := mi.next()
+		cont = !done
+		// TODO: I could probably update my matchiters to only return if they
+		// have a match or are done.
+		if matchq {
+			return true, newPd
+		}
 	}
-	// Return the first match.
-	matchq, newPd, _ := mi.next()
-	return matchq, newPd
+	return false, pm
 }
 
 func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
@@ -442,18 +446,13 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		if i >= len(this.components) {
 			return false, this.pm, true
 		}
-		//ismatchq, toAdd := IsMatchQ(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
 		mi, cont := NewMatchIter(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
-		this.cl.Infof("NewMatchIter(%v, %v)\n", this.components[i], this.lhs_components[i])
 		// Add multimatchiter here.
 		mmi := &multiMatchIter{}
 		for cont {
 			matchq, toAdd, done := mi.next()
 			cont = !done
 			if matchq {
-				//res.appendEx(newPd.Expression())
-
-				this.cl.Infof("Returned True!\n")
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(toAdd)
 				nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], updatedPm, this.cl)
@@ -462,11 +461,9 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				}
 			}
 		}
-		this.cl.Infof("len(mmi.matchIters.) = %d", len(mmi.matchIters))
 		matchq, newPd, done := mmi.next()
 		if !done {
 			this.remainingMatchIter = mmi
-			this.cl.Infof("setting remaining.")
 		}
 		return matchq, newPd, done
 	}

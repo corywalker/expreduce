@@ -68,9 +68,11 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]"},
 			&SameTest{"False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]"},
 			&SameTest{"False", "MatchQ[foo[x, 2*y], foo[matcha_Integer*matchx_, matchx_]]"},
-		},
-		KnownFailures: []TestInstruction{
+
 			&SameTest{"True", "MatchQ[foo[2 * x,2], foo[(p_ * v_), v_]]"},
+
+			&SameTest{"True", "MatchQ[mysolve[m*x + b == 0, x], mysolve[x_*__ + _ == _, x_]]"},
+			&SameTest{"False", "MatchQ[mysolve[m*x + b == 0, y], mysolve[x_*__ + _ == _, x_]]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -417,6 +419,7 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[a+b,x_+y_]"},
+			&SameTest{"{{(\"j\") -> (b), (\"k\") -> (a)}}", "ExpreduceAllMatches[foo[a + b, b], foo[j_ + k_, j_]]"},
 		},
 		Tests: []TestInstruction{
 			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[foo[a+b],foo[x_+y_]]"},
