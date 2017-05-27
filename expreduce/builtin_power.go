@@ -17,8 +17,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			{"Power[Power[a_,b_Symbol],c_Integer]", "a^(b*c)"},
 
 			// Power definitions
-			{"Power[Times[Except[_Symbol, first_], inner___], pow_]", "first^pow*Power[Times[inner],pow]"},
-			{"Power[Times[first_, inner___], Except[_Symbol, pow_]]", "first^pow*Power[Times[inner],pow]"},
+			{"(Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_]", "first^pow * Times[inner]^pow"},
+			{"(first_ * inner___)^Except[_Symbol, pow_]", "first^pow * Times[inner]^pow"},
 
 			// Rational simplifications
 			{"Power[Rational[a_,b_], -1]", "Rational[b,a]"},
@@ -228,14 +228,10 @@ func GetPowerDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 		SimpleExamples: []TestInstruction{
 			&TestComment{"`PowerExpand` can expand nested log expressions:"},
+			&SameTest{"Log[a] + e (Log[b] + d Log[c])", "PowerExpand[Log[a (b c^d)^e]]"},
 		},
 		Rules: []Rule{
 			{"PowerExpand[exp_]", "exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
-		},
-		KnownFailures: []TestInstruction{
-			// This test currently fails, probably due to Orderless pattern
-			// matching issues.
-			&SameTest{"Log[a] + e (Log[b] + d Log[c])", "PowerExpand[Log[a (b c^d)^e]]"},
 		},
 	})
 	defs = append(defs, Definition{

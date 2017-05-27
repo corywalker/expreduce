@@ -312,9 +312,6 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
 		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
-		if this.cl.debugState {
-			this.cl.Infof("Trying NewNonOrderlessMatchIter(%v, %v, %v)", ExArrayToString(orderedComponents), ExArrayToString(this.ordered_lhs_components), this.pm)
-		}
 		// Generate next permutation, if any
 		mmi := &multiMatchIter{}
 		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
@@ -323,7 +320,7 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 			cont = !done
 			if ncIsMatchQ {
 				if this.cl.debugState {
-					this.cl.Infof("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
+					this.cl.Debugf("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
 				}
 				mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPm, true})
 			}

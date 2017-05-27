@@ -178,7 +178,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			}
 			if isDefined {
 				//fmt.Printf("%v, %v, %v\n", headStr, curr, theRes)
-				es.Infof("Def: %v ▶ %v ▶ using %v", currEx, theRes, def)
+				es.Infof("Def: %v ▶ %v ▶ using %v ▶ from %s head", currEx, theRes, def, headStr)
 				currEx = theRes
 			} else if hasLegacyEvalFn {
 				currEx = legacyEvalFn(curr, es)
