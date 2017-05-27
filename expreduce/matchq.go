@@ -311,8 +311,6 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 		if this.cl.debugState {
 			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
-		// TODO: CHANGEME
-		//ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
 		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
 		if this.cl.debugState {
 			this.cl.Infof("Trying NewNonOrderlessMatchIter(%v, %v, %v)", ExArrayToString(orderedComponents), ExArrayToString(this.ordered_lhs_components), this.pm)
@@ -330,7 +328,6 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 				mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPm, true})
 			}
 		}
-		// todo: return and set remainingiters somewhere
 		if (len(mmi.matchIters) > 0) {
 			matchq, newPd, done := mmi.next()
 			if !done {
@@ -457,7 +454,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					matchq, newPDs, done := nomi.next()
 					cont = !done
 					if seqMatches && matchq {
-						// TODO: set this to copy and then update
 						nextPm := CopyPD(newPDs)
 						nextPm.Update(newPDs)
 						matchedPattern := false
