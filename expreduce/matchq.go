@@ -1,5 +1,7 @@
 package expreduce
 
+//import "fmt"
+
 type matchIter interface {
 	reset()
 	// returns ismatch, pd, isdone
@@ -215,6 +217,7 @@ type orderlessMatchIter struct {
 	kConstant		int
 	contval			int
 	perm			[]int
+	remainingMatchIter matchIter
 }
 
 func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
@@ -285,6 +288,17 @@ func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, 
 // called until there is not a match to find all possible matches. It will
 // return false from then on.
 func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
+	// This block allows us to queue up match iters from the function.
+	//fmt.Println("1")
+	if this.remainingMatchIter != nil {
+		matchq, newPd, done := this.remainingMatchIter.next()
+		//fmt.Println("2")
+		if done {
+			this.remainingMatchIter = nil
+		}
+		return matchq, newPd, done && this.contval != 1
+	}
+	//fmt.Println("3")
 	for this.contval == 1 {
 		this.cl.Debugf("Using perm: %v\n", this.perm)
 
@@ -301,15 +315,25 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 		//ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
 		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
 		// Generate next permutation, if any
+		mmi := &multiMatchIter{}
 		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
 		if cont {
+			// TODO: update cont value and convert statement above to for statement
 			ncIsMatchQ, newPm, _ := nomi.next()
 			if ncIsMatchQ {
 				if this.cl.debugState {
 					this.cl.Infof("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
 				}
-				return true, newPm, false
+				mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPm, true})
 			}
+		}
+		// todo: return and set remainingiters somewhere
+		if (len(mmi.matchIters) > 0) {
+			matchq, newPd, done := mmi.next()
+			if !done {
+				this.remainingMatchIter = mmi
+			}
+			return matchq, newPd, done && this.contval != 1
 		}
 	}
 	this.cl.Debugf("OrderlessIsMatchQ failed. Context: %s", this.pm)
@@ -367,10 +391,14 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		if done {
 			this.remainingMatchIter = nil
 		}
+		if matchq {
+			this.cl.Infof("nonorder Returning a match at 5.")
+		}
 		return matchq, newPd, done
 	}
 	// A base case for the recursion
 	if len(this.components) == 0 && len(this.lhs_components) == 0 {
+		this.cl.Infof("nonorder Returning a match at 4: %v",this.pm)
 		return true, this.pm, true
 	}
 	for i := 0; i < Max(len(this.components), len(this.lhs_components)); i++ {
@@ -462,6 +490,9 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					if !done {
 						this.remainingMatchIter = mmi
 					}
+					if matchq {
+						this.cl.Infof("nonorder Returning a match at 3.")
+					}
 					return matchq, newPd, done
 				}
 			}
@@ -489,9 +520,13 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		if !done {
 			this.remainingMatchIter = mmi
 		}
+		if matchq {
+			this.cl.Infof("nonorder Returning a match at 2: %v", newPd)
+		}
 		return matchq, newPd, done
 	}
 	if this.progressI == len(this.lhs_components)-1 {
+		this.cl.Infof("nonorder Returning a match at 1.")
 		return true, this.pm, true
 	} else {
 		return false, this.pm, true
