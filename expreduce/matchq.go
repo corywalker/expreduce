@@ -24,6 +24,9 @@ type multiMatchIter struct {
 }
 
 func (this *multiMatchIter) next() (bool, *PDManager, bool) {
+	if this.i >= len(this.matchIters) {
+		return false, EmptyPD(), true
+	}
 	matchq, newPd, done := this.matchIters[this.i].next()
 	if done {
 		this.i += 1
@@ -323,6 +326,7 @@ type nonOrderlessMatchIter struct {
 	pm				*PDManager
 	cl				*CASLogger
 	progressI		int
+	remainingMatchIter matchIter
 }
 
 func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
@@ -349,6 +353,14 @@ func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManage
 // Everything is an iterator that maintains its state. I think its just
 // two other functions: NonOrderlessIsMatchQ and IsMatchQ. potentially need to convert consumers of these functions to use the iterator version.
 func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
+	// This block allows us to queue up match iters from the function.
+	if this.remainingMatchIter != nil {
+		matchq, newPd, done := this.remainingMatchIter.next()
+		if done {
+			this.remainingMatchIter = nil
+		}
+		return matchq, newPd, done
+	}
 	// A base case for the recursion
 	if len(this.components) == 0 && len(this.lhs_components) == 0 {
 		return true, this.pm, true
@@ -430,24 +442,33 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		if i >= len(this.components) {
 			return false, this.pm, true
 		}
-		ismatchq, toAdd := IsMatchQ(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
-		//matchiter, ok := NewMatchIter(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
+		//ismatchq, toAdd := IsMatchQ(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
+		mi, cont := NewMatchIter(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
+		this.cl.Infof("NewMatchIter(%v, %v)\n", this.components[i], this.lhs_components[i])
 		// Add multimatchiter here.
-		if ismatchq {
-			this.cl.Debugf("Returned True!\n")
-			updatedPm := CopyPD(this.pm)
-			updatedPm.Update(toAdd)
-			nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], updatedPm, this.cl)
-			if !ok {
-				return false, updatedPm, true
+		mmi := &multiMatchIter{}
+		for cont {
+			matchq, toAdd, done := mi.next()
+			cont = !done
+			if matchq {
+				//res.appendEx(newPd.Expression())
+
+				this.cl.Infof("Returned True!\n")
+				updatedPm := CopyPD(this.pm)
+				updatedPm.Update(toAdd)
+				nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], updatedPm, this.cl)
+				if ok {
+					mmi.matchIters = append(mmi.matchIters, nomi)
+				}
 			}
-			// Return the first match.
-			matchq, newPd, _ := nomi.next()
-			return matchq, newPd, true
-		} else {
-			this.cl.Debugf("NonOrderlessIsMatchQ failed. Context: %s", this.pm)
-			return false, this.pm, true
 		}
+		this.cl.Infof("len(mmi.matchIters.) = %d", len(mmi.matchIters))
+		matchq, newPd, done := mmi.next()
+		if !done {
+			this.remainingMatchIter = mmi
+			this.cl.Infof("setting remaining.")
+		}
+		return matchq, newPd, done
 	}
 	if this.progressI == len(this.lhs_components)-1 {
 		return true, this.pm, true
