@@ -73,6 +73,7 @@ func GetPatternDefinitions() (defs []Definition) {
 
 			&SameTest{"True", "MatchQ[mysolve[m*x + b == 0, x], mysolve[x_*__ + _ == _, x_]]"},
 			&SameTest{"False", "MatchQ[mysolve[m*x + b == 0, y], mysolve[x_*__ + _ == _, x_]]"},
+			&SameTest{"True", "MatchQ[mysolve[m*x+a, m], mysolve[x_*_+a, x_]]"},
 		},
 	})
 	defs = append(defs, Definition{

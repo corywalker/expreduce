@@ -297,15 +297,19 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 		if this.cl.debugState {
 			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
-		ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
-
+		// TODO: CHANGEME
+		//ncIsMatchQ, newPm := NonOrderlessIsMatchQ(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
+		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
 		// Generate next permutation, if any
 		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
-		if ncIsMatchQ {
-			if this.cl.debugState {
-				this.cl.Infof("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
+		if cont {
+			ncIsMatchQ, newPm, _ := nomi.next()
+			if ncIsMatchQ {
+				if this.cl.debugState {
+					this.cl.Infof("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
+				}
+				return true, newPm, false
 			}
-			return true, newPm, false
 		}
 	}
 	this.cl.Debugf("OrderlessIsMatchQ failed. Context: %s", this.pm)
@@ -421,10 +425,10 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				}
 				mmi := &multiMatchIter{}
-				//matchq, newPDs := NonOrderlessIsMatchQ(remainingComps, remainingLhs, this.pm, this.cl)
-				nomi, ok := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.pm, this.cl)
-				if ok {
-					matchq, newPDs, _ := nomi.next()
+				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.pm, this.cl)
+				for cont {
+					matchq, newPDs, done := nomi.next()
+					cont = !done
 					if seqMatches && matchq {
 						// TODO: set this to copy and then update
 						nextPm := CopyPD(newPDs)
@@ -528,6 +532,7 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) boo
 	toReturn := true
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog(false)
+		// TODO: CHANGEME
 		isMatch, _ := IsMatchQ(e, blank, EmptyPD(), &tmpEs.CASLogger)
 		cl.Debugf("%v %v %v", e, blank, isMatch)
 		toReturn = toReturn && isMatch
