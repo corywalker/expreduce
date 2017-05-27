@@ -420,25 +420,30 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				if this.cl.debugState {
 					this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				}
-				matchq, newPDs := NonOrderlessIsMatchQ(remainingComps, remainingLhs, this.pm, this.cl)
-				if seqMatches && matchq {
-					this.pm.Update(newPDs)
-					if isPat {
-						sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
-						if sAsSymbolOk {
-							toTryParts := []Ex{&Symbol{"Sequence"}}
-							toTryParts = append(toTryParts, seqToTry...)
-							target := NewExpression(toTryParts)
-							_, ispd := this.pm.patternDefined[sAsSymbol.Name]
-							if !ispd {
-								this.pm.patternDefined[sAsSymbol.Name] = target
-							}
-							if !IsSameQ(this.pm.patternDefined[sAsSymbol.Name], target, this.cl) {
-								return false, this.pm, true
+				//mmi := &multiMatchIter{}
+				//matchq, newPDs := NonOrderlessIsMatchQ(remainingComps, remainingLhs, this.pm, this.cl)
+				nomi, ok := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.pm, this.cl)
+				if ok {
+					matchq, newPDs, _ := nomi.next()
+					if seqMatches && matchq {
+						this.pm.Update(newPDs)
+						if isPat {
+							sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
+							if sAsSymbolOk {
+								toTryParts := []Ex{&Symbol{"Sequence"}}
+								toTryParts = append(toTryParts, seqToTry...)
+								target := NewExpression(toTryParts)
+								_, ispd := this.pm.patternDefined[sAsSymbol.Name]
+								if !ispd {
+									this.pm.patternDefined[sAsSymbol.Name] = target
+								}
+								if !IsSameQ(this.pm.patternDefined[sAsSymbol.Name], target, this.cl) {
+									return false, this.pm, true
+								}
 							}
 						}
+						return true, this.pm, true
 					}
-					return true, this.pm, true
 				}
 			}
 			return false, this.pm, true
