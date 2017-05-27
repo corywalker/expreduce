@@ -9,6 +9,7 @@ import (
 
 func TestIncludedModules(t *testing.T) {
 	defSets := GetAllDefinitions()
+	numTests := 0
 	var mockT testing.T
 	for _, defSet := range defSets {
 		fmt.Printf("Testing module %s\n", defSet.Name)
@@ -47,8 +48,10 @@ func TestIncludedModules(t *testing.T) {
 				test.Run(t, es, td)
 				i += 1
 			}*/
+			numTests += i
 		}
 	}
+	fmt.Printf("Ran %v module tests.\n", numTests)
 }
 
 func TestLowLevel(t *testing.T) {

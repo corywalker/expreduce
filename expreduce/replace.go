@@ -4,17 +4,6 @@ import (
 	"sort"
 )
 
-func IterableReplace(components *[]Ex, r *Expression, pm *PDManager, cl *CASLogger) {
-	pm = CopyPD(pm)
-	for i := range *components {
-		cl.Debugf("Attempting IsMatchQ(%s, %s, %s)", (*components)[i], r.Parts[1], pm)
-		if res, _ := IsMatchQ((*components)[i], r.Parts[1], pm, cl); res {
-			(*components)[i] = r.Parts[2].DeepCopy()
-			cl.Debugf("IsMatchQ succeeded, new components: %s", ExArrayToString(*components))
-		}
-	}
-}
-
 func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
 	cl.Debugf("Entering OrderlessReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))

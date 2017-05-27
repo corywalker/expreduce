@@ -68,9 +68,15 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"False", "MatchQ[foo[2*x, x], bar[matcha_Integer*matchx_, matchx_]]"},
 			&SameTest{"False", "MatchQ[foo[2*x, y], foo[matcha_Integer*matchx_, matchx_]]"},
 			&SameTest{"False", "MatchQ[foo[x, 2*y], foo[matcha_Integer*matchx_, matchx_]]"},
-		},
-		KnownFailures: []TestInstruction{
+
 			&SameTest{"True", "MatchQ[foo[2 * x,2], foo[(p_ * v_), v_]]"},
+
+			&SameTest{"True", "MatchQ[mysolve[m*x + b == 0, x], mysolve[x_*__ + _ == _, x_]]"},
+			&SameTest{"False", "MatchQ[mysolve[m*x + b == 0, y], mysolve[x_*__ + _ == _, x_]]"},
+			&SameTest{"True", "MatchQ[mysolve[m*x+a, m], mysolve[x_*_+a, x_]]"},
+			&SameTest{"True", "MatchQ[bar[foo[a + b] + c + d, c, d, a, b], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
+			&SameTest{"True", "MatchQ[bar[foo[a + b] + c + d, d, c, b, a], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
+			&SameTest{"False", "MatchQ[bar[foo[a + b] + c + d, d, a, b, c], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -393,6 +399,37 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "FreeQ[x^2, y^_Integer]"},
 			&SameTest{"False", "FreeQ[5*foo[x], foo]"},
 			&SameTest{"True", "FreeQ[5*foo[x], bar]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "ExpreduceAllMatches",
+		Usage: "`ExpreduceAllMatches[expr, form]` returns all the possible pattern matches of `form` on `expr`.",
+		ExpreduceSpecific: true,
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			res := NewExpression([]Ex{&Symbol{"List"}})
+			mi, cont := NewMatchIter(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger)
+			for cont {
+				matchq, newPd, done := mi.next()
+				es.Infof("%v %v %v\n", matchq, newPd, done)
+				cont = !done
+				if matchq {
+					res.appendEx(newPd.Expression())
+				}
+			}
+			return res
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[a+b,x_+y_]"},
+			&SameTest{"{{(\"j\") -> (b), (\"k\") -> (a)}}", "ExpreduceAllMatches[foo[a + b, b], foo[j_ + k_, j_]]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[foo[a+b],foo[x_+y_]]"},
+			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b), (\"z\") -> (c)}, {(\"x\") -> (b), (\"y\") -> (a), (\"z\") -> (c)}}", "ExpreduceAllMatches[bar[foo[a+b]+c],bar[foo[x_+y_]+z_]]"},
+			&SameTest{"{{(\"w\") -> (c), (\"x\") -> (d), (\"y\") -> (a), (\"z\") -> (b)}, {(\"w\") -> (c), (\"x\") -> (d), (\"y\") -> (b), (\"z\") -> (a)}, {(\"w\") -> (d), (\"x\") -> (c), (\"y\") -> (a), (\"z\") -> (b)}, {(\"w\") -> (d), (\"x\") -> (c), (\"y\") -> (b), (\"z\") -> (a)}}", "ExpreduceAllMatches[bar[foo[a+b]+c+d],bar[w_+x_+foo[y_+z_]]]"},
 		},
 	})
 	return

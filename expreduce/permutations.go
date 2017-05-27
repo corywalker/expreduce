@@ -15,6 +15,10 @@ func reverse(ar []int) {
 }
 
 func nextKPermutation(ar []int, n int, k int) int {
+	if (k <= 0) {
+		return 0
+	}
+
 	var i int
 	var j int
 	edge := k - 1
@@ -22,6 +26,7 @@ func nextKPermutation(ar []int, n int, k int) int {
 	if k < n {
 		j = k
 		// search for largest j such that a_j > a_edge (a is increasing for j>=k)
+		// This is the reason why k cannot be zero, since edge = k-1.
 		for j < n && ar[edge] >= ar[j] {
 			j++
 		}
