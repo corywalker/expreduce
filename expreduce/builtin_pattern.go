@@ -74,6 +74,9 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[mysolve[m*x + b == 0, x], mysolve[x_*__ + _ == _, x_]]"},
 			&SameTest{"False", "MatchQ[mysolve[m*x + b == 0, y], mysolve[x_*__ + _ == _, x_]]"},
 			&SameTest{"True", "MatchQ[mysolve[m*x+a, m], mysolve[x_*_+a, x_]]"},
+			&SameTest{"True", "MatchQ[bar[foo[a + b] + c + d, c, d, a, b], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
+			&SameTest{"True", "MatchQ[bar[foo[a + b] + c + d, d, c, b, a], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
+			&SameTest{"False", "MatchQ[bar[foo[a + b] + c + d, d, a, b, c], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -401,6 +404,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "ExpreduceAllMatches",
 		Usage: "`ExpreduceAllMatches[expr, form]` returns all the possible pattern matches of `form` on `expr`.",
+		ExpreduceSpecific: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -424,6 +428,8 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 		Tests: []TestInstruction{
 			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[foo[a+b],foo[x_+y_]]"},
+			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b), (\"z\") -> (c)}, {(\"x\") -> (b), (\"y\") -> (a), (\"z\") -> (c)}}", "ExpreduceAllMatches[bar[foo[a+b]+c],bar[foo[x_+y_]+z_]]"},
+			&SameTest{"{{(\"w\") -> (c), (\"x\") -> (d), (\"y\") -> (a), (\"z\") -> (b)}, {(\"w\") -> (c), (\"x\") -> (d), (\"y\") -> (b), (\"z\") -> (a)}, {(\"w\") -> (d), (\"x\") -> (c), (\"y\") -> (a), (\"z\") -> (b)}, {(\"w\") -> (d), (\"x\") -> (c), (\"y\") -> (b), (\"z\") -> (a)}}", "ExpreduceAllMatches[bar[foo[a+b]+c+d],bar[w_+x_+foo[y_+z_]]]"},
 		},
 	})
 	return
