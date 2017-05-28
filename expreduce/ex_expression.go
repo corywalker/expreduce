@@ -267,24 +267,29 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead stri
 		otherSym, otherSymOk := lhsExpr.Parts[0].(*Symbol)
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
-				if IsOrderless(thisSym) {
+				/*if IsOrderless(thisSym) {
 					cl.Debugf("r.Parts[1] is Orderless. Now running OrderlessReplace")
 					replaced := this.Parts[1:len(this.Parts)]
 					OrderlessReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], cl)
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
-				}
-				// I have a feeling that much of the logic in OrderlessReplace
-				// actually assumes Flat as well. This is because most of my
-				// testing was with Plus and Times, which happen to have both
-				// attributes. For now, I'll have two parallel functions, but
-				// later on I should factor out the common functionality and
-				// also see if I am making any assumptions about Flat in my
-				// OrderlessReplace.
-				if IsFlat(thisSym) {
-					cl.Debugf("r.Parts[1] is Flat. Now running OrderlessReplace")
+				} else if IsFlat(thisSym) {
+					// I have a feeling that much of the logic in OrderlessReplace
+					// actually assumes Flat as well. This is because most of my
+					// testing was with Plus and Times, which happen to have both
+					// attributes. For now, I'll have two parallel functions, but
+					// later on I should factor out the common functionality and
+					// also see if I am making any assumptions about Flat in my
+					// OrderlessReplace.
+					cl.Debugf("r.Parts[1] is Flat. Now running FlatReplace")
 					replaced := this.Parts[1:len(this.Parts)]
-					FlatReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], cl)
+					FlatReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], thisSym.Name, cl)
+					this.Parts = this.Parts[0:1]
+					this.Parts = append(this.Parts, replaced...)
+				}*/
+				if IsOrderless(thisSym) || IsFlat(thisSym) {
+					replaced := this.Parts[1:len(this.Parts)]
+					GeneralReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], IsOrderless(thisSym), IsFlat(thisSym), thisSym.Name, cl)
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
 				}
@@ -340,6 +345,12 @@ func IsOrderless(sym *Symbol) bool {
 		return true
 	} else if sym.Name == "Plus" {
 		return true
+	} else if sym.Name == "ExpreduceOrderlessFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlOrFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlOrOiFn" {
+		return true
 	}
 	return false
 }
@@ -348,6 +359,55 @@ func IsFlat(sym *Symbol) bool {
 	if sym.Name == "And" {
 		return true
 	} else if sym.Name == "Or" {
+		return true
+	} else if sym.Name == "Times" {
+		return true
+	} else if sym.Name == "Plus" {
+		return true
+	} else if sym.Name == "ExpreduceFlatFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlatFn2" {
+		return true
+	} else if sym.Name == "ExpreduceFlOrFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlOrOiFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlOiFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlOiFn2" {
+		return true
+	}
+	return false
+}
+
+func IsOneIdentity(sym *Symbol) bool {
+	if sym.Name == "Plus" {
+		return true
+	} else if sym.Name == "Times" {
+		return true
+	} else if sym.Name == "And" {
+		return true
+	} else if sym.Name == "Or" {
+		return true
+	} else if sym.Name == "Dot" {
+		return true
+	} else if sym.Name == "Power" {
+		return true
+	} else if sym.Name == "StringJoin" {
+		return true
+	} else if sym.Name == "ExpreduceFlOrOiFn" {
+		return true
+	} else if sym.Name == "ExpreduceOiFn" {
+		return true
+	} else if sym.Name == "ExpreduceOiFn2" {
+		return true
+	} else if sym.Name == "ExpreduceFlOiFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlOiFn2" {
+		return true
+	} else if sym.Name == "ExpreduceOneIdentityFn" {
+		return true
+	} else if sym.Name == "ExpreduceOneIdentityFn2" {
 		return true
 	}
 	return false

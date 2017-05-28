@@ -233,5 +233,38 @@ func GetExpressionDefinitions() (defs []Definition) {
 			&SameTest{"{-1, 1[{{1}, 2}], 3, 4}", "Flatten[{-1, {1[{{1}, 2}]}, 3, 4}, 999]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "Flat",
+		OmitDocumentation: true,
+		Tests: []TestInstruction{
+			&SameTest{"{ExpreduceFlatFn[a], ExpreduceFlatFn[b, c]}", "foo[ExpreduceFlatFn[a, b, c]] /. foo[ExpreduceFlatFn[x_, y_]] -> {x, y}"},
+			&SameTest{"foo[ExpreduceOrderlessFn[a, b, c]]", "foo[ExpreduceOrderlessFn[a, b, c]] /. foo[ExpreduceOrderlessFn[x_, y_]] -> {x, y}"},
+			&SameTest{"{x, y}", "foo[ExpreduceFlatFn[a, b, c]] /. foo[ExpreduceFlatFn[_, _]] -> {x, y}"},
+			&SameTest{"{a, b, c}", "foo[a + b + c] /. foo[x__ + y__] -> {x, y}"},
+			&SameTest{"{a, b + c}", "foo[a + b + c] /. foo[x_ + y_] -> {x, y}"},
+			&SameTest{"ExpreduceFlOiFn[{a, b}, c]", "ExpreduceFlOiFn[a, b, c] /. ExpreduceFlOiFn[x_Symbol, y_Symbol] -> {x, y}"},
+			&SameTest{"{a, ExpreduceFlOiFn[b, c]}", "ExpreduceFlOiFn[a, b, c] /. ExpreduceFlOiFn[x_Symbol, y_ExpreduceFlOiFn] -> {x, y}"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Orderless",
+		OmitDocumentation: true,
+		Tests: []TestInstruction{
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "OneIdentity",
+		OmitDocumentation: true,
+		Tests: []TestInstruction{
+			&SameTest{"False", "MatchQ[ExpreduceFlOrFn[a, a^(-1)], ExpreduceFlOrFn[a_, a_^-1, rest___]]"},
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, a^(-1)], ExpreduceFlOrOiFn[a_, a_^-1, rest___]]"},
+			&SameTest{"True", "MatchQ[foo[ExpreduceFlOiFn[ExpreduceFlOiFn2[a]], a], foo[ExpreduceFlOiFn[ExpreduceFlOiFn2[a_]], a_]]"},
+			&SameTest{"False", "MatchQ[foo[ExpreduceFlatFn[ExpreduceFlatFn2[a]], a], foo[ExpreduceFlatFn[ExpreduceFlatFn2[a_]], a_]]"},
+			&SameTest{"a", "ExpreduceFlOiFn[ExpreduceFlOiFn2[a]] /. ExpreduceFlOiFn[ExpreduceFlOiFn2[a_]] -> a"},
+			&SameTest{"ExpreduceFlatFn2[a]", "ExpreduceFlatFn[ExpreduceFlatFn2[a]] /. ExpreduceFlatFn[ExpreduceFlatFn2[a_]] -> a"},
+			&SameTest{"a", "ExpreduceOneIdentityFn[ExpreduceOneIdentityFn2[a]] /. ExpreduceOneIdentityFn[ExpreduceOneIdentityFn2[a_]] -> a"},
+			&SameTest{"True", "MatchQ[foo[ExpreduceFlOiFn[ExpreduceFlOiFn2[a]], a], foo[ExpreduceFlOiFn[ExpreduceFlOiFn2[a__]], a__]]"},
+		},
+	})
 	return
 }

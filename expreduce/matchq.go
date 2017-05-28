@@ -161,21 +161,28 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 		return &dummyMatchIter{false, EmptyPD(), true}, true
 	}
 
+	isFlat := false
+	isOrderless := false
+	sequenceHead := "Sequence"
 	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
 	bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
-			if IsOrderless(aExpressionSym) {
-				omi, ok := NewOrderlessMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
-				if !ok {
-					return &dummyMatchIter{false, pm, true}, true
-				}
-				return omi, true
-			}
+			isOrderless = IsOrderless(aExpressionSym)
+			isFlat = IsFlat(aExpressionSym)
+			sequenceHead = aExpressionSym.Name
 		}
 	}
 
-	nomi, ok := NewNonOrderlessMatchIter(aExpression.Parts, bExpression.Parts, pm, cl)
+	if isOrderless {
+		omi, ok := NewOrderlessMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], isFlat, sequenceHead, pm, cl)
+		if !ok {
+			return &dummyMatchIter{false, pm, true}, true
+		}
+		return omi, true
+	}
+
+	nomi, ok := NewNonOrderlessMatchIter(aExpression.Parts, bExpression.Parts, isFlat, sequenceHead, pm, cl)
 	if !ok {
 		return &dummyMatchIter{false, pm, true}, true
 	}
@@ -218,15 +225,19 @@ type orderlessMatchIter struct {
 	contval			int
 	perm			[]int
 	remainingMatchIter matchIter
+	isFlat			bool
+	sequenceHead	string
 }
 
-func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
+func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	omi := &orderlessMatchIter{}
 	omi.components = components
 	omi.lhs_components = lhs_components
 	// TODO: is copy needed?
 	omi.pm = CopyPD(pm)
 	omi.cl = cl
+	omi.isFlat = isFlat
+	omi.sequenceHead = sequenceHead
 
 	if cl.debugState {
 		cl.Debugf("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
@@ -234,7 +245,7 @@ func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, 
 	nonBS, bs := extractBlankSequences(lhs_components)
 	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
 	// though because MatchQ[a + b + c, c + __] == True.
-	if len(bs) == 0 && len(components) != len(lhs_components) {
+	if len(bs) == 0 && len(components) != len(lhs_components) && !isFlat {
 		cl.Debugf("len(components) != len(lhs_components). OrderlessMatchQ failed")
 		return omi, false
 	} else if len(nonBS) > len(components) {
@@ -311,7 +322,7 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 		if this.cl.debugState {
 			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
-		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
+		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.isFlat, this.sequenceHead, this.pm, this.cl)
 		// Generate next permutation, if any
 		mmi := &multiMatchIter{}
 		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
@@ -339,8 +350,8 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 
 func (this *orderlessMatchIter) reset() {}
 
-func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	omi, ok := NewOrderlessMatchIter(components, lhs_components, pm, cl)
+func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	omi, ok := NewOrderlessMatchIter(components, lhs_components, isFlat, sequenceHead, pm, cl)
 	if !ok {
 		return false, pm
 	}
@@ -356,18 +367,22 @@ type nonOrderlessMatchIter struct {
 	cl				*CASLogger
 	progressI		int
 	remainingMatchIter matchIter
+	isFlat			bool
+	sequenceHead	string
 }
 
-func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
+func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	nomi := &nonOrderlessMatchIter{}
 	nomi.components = components
 	nomi.lhs_components = lhs_components
 	nomi.pm = CopyPD(pm)
 	nomi.cl = cl
+	nomi.isFlat = isFlat
+	nomi.sequenceHead = sequenceHead
 
 	// This function is now recursive because of the existence of BlankSequence.
 	if nomi.cl.debugState {
-		nomi.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(nomi.components), ExArrayToString(nomi.lhs_components), nomi.pm)
+		nomi.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, isFlat: %v, pm: %s)", ExArrayToString(nomi.components), ExArrayToString(nomi.lhs_components), isFlat, nomi.pm)
 	}
 	if len(nomi.components) != 0 && len(nomi.lhs_components) == 0 {
 		return nomi, false
@@ -407,12 +422,15 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		pat, isPat := HeadAssertion(this.lhs_components[i], "Pattern")
 		bns, isBns := HeadAssertion(this.lhs_components[i], "BlankNullSequence")
 		bs, isBs := HeadAssertion(this.lhs_components[i], "BlankSequence")
+		blank, isBlank := HeadAssertion(this.lhs_components[i], "Blank")
 		if isPat {
 			bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
 			bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
+			blank, isBlank = HeadAssertion(pat.Parts[2], "Blank")
 		}
-		if isBns || isBs {
-			this.cl.Debugf("Encountered BS or BNS!")
+		isImpliedBs := isBlank && this.isFlat
+		if isBns || isBs || isImpliedBs {
+			this.cl.Debugf("Encountered BS, BNS, or implied BS!")
 			remainingLhs := make([]Ex, len(this.lhs_components)-i-1)
 			for k := i + 1; k < len(this.lhs_components); k++ {
 				remainingLhs[k-i-1] = this.lhs_components[k].DeepCopy()
@@ -420,7 +438,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			startI := 0
 			if isBns {
 				startI = i - 1
-			} else {
+			} else { // also includes implied blanksequence
 				startI = i
 			}
 			for j := startI; j < len(this.components); j++ {
@@ -433,9 +451,11 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				}
 				seqMatches := false
 				if isBns {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), this.cl)
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), "", this.cl)
+				} else if isImpliedBs {
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, blank, this.sequenceHead, this.cl)
 				} else {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), this.cl)
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.cl)
 				}
 				this.cl.Debugf("%v", seqMatches)
 				remainingComps := make([]Ex, len(this.components)-j-1)
@@ -446,7 +466,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				}
 				mmi := &multiMatchIter{}
-				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.pm, this.cl)
+				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, this.pm, this.cl)
 				for cont {
 					matchq, newPDs, done := nomi.next()
 					cont = !done
@@ -458,13 +478,22 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 							sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 							if sAsSymbolOk {
 								toTryParts := []Ex{&Symbol{"Sequence"}}
+								if isImpliedBs {
+									toTryParts = []Ex{&Symbol{this.sequenceHead}}
+								}
 								toTryParts = append(toTryParts, seqToTry...)
 								target := NewExpression(toTryParts)
+								var targetEx Ex = target
+								if isImpliedBs && len(target.Parts) == 2 {
+									if IsOneIdentity(target.Parts[0].(*Symbol)) {
+										targetEx = target.Parts[1]
+									}
+								}
 								_, ispd := nextPm.patternDefined[sAsSymbol.Name]
 								if !ispd {
-									nextPm.patternDefined[sAsSymbol.Name] = target
+									nextPm.patternDefined[sAsSymbol.Name] = targetEx
 								}
-								if !IsSameQ(nextPm.patternDefined[sAsSymbol.Name], target, this.cl) {
+								if !IsSameQ(nextPm.patternDefined[sAsSymbol.Name], targetEx, this.cl) {
 									//return false, this.pm, true
 									mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, nextPm, true})
 									matchedPattern = true
@@ -499,7 +528,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			if matchq {
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(toAdd)
-				nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], updatedPm, this.cl)
+				nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], this.isFlat, this.sequenceHead, updatedPm, this.cl)
 				if ok {
 					mmi.matchIters = append(mmi.matchIters, nomi)
 				}
@@ -520,8 +549,8 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 
 func (this *nonOrderlessMatchIter) reset() {}
 
-func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	nomi, ok := NewNonOrderlessMatchIter(components, lhs_components, pm, cl)
+func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	nomi, ok := NewNonOrderlessMatchIter(components, lhs_components, isFlat, sequenceHead, pm, cl)
 	if !ok {
 		return false, pm
 	}
@@ -548,8 +577,24 @@ func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
 	return
 }
 
-func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) bool {
+func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, sequenceHead string, cl *CASLogger) bool {
 	toReturn := true
+	if len(sequenceHead) > 0 {
+		minReq := 0
+		if IsOneIdentity(&Symbol{sequenceHead}) {
+			minReq = 1
+		}
+		if len(array) > minReq && len(blank.Parts) >= 2 {
+			sym, isSym := blank.Parts[1].(*Symbol)
+			cl.Infof("%v, %s, %s", blank, sym, sequenceHead)
+			if isSym {
+				if sym.Name != sequenceHead {
+					return false
+				}
+				return true
+			}
+		}
+	}
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog(false)
 		// TODO: CHANGEME

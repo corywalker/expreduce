@@ -2,9 +2,12 @@ package expreduce
 
 import (
 	"sort"
+	"math"
 )
 
 func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
+	GeneralReplace(components, lhs_components, rhs, true, false, "", cl)
+	return
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
 	cl.Debugf("Entering OrderlessReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	// Each permutation is a potential order of the Rule's LHS in which matches
@@ -67,12 +70,43 @@ func allRuns(totLength int) [][]int {
 	return res
 }
 
-func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
+func powerset(n int) [][]int {
+	p := make([][]int, 0)
+	c := int(math.Pow(2, float64(n)))
+	for j := 1; j < c; j++ {
+		ss := make([]int, 0)
+		for k := 0; k < n; k++ {
+			flag := 1 << uint(k)
+			if (j)&flag == flag {
+				ss = append(ss, k)
+			}
+		}
+		p = append(p, ss)
+	}
+	return p
+}
+
+func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, sequenceHead string, cl *CASLogger) {
+	GeneralReplace(components, lhs_components, rhs, false, true, sequenceHead, cl)
+}
+
+func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless bool, isFlat bool, sequenceHead string, cl *CASLogger) {
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	cl.Debugf("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
+	cl.Infof("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	//TODO: convert to a generator method?
-	runs := allRuns(len(*components))
-	cl.Debugf("Runs to try: %v\n", runs)
+	var runs [][]int
+	if isOrderless && isFlat {
+		runs = powerset(len(*components))
+	} else if isOrderless && !isFlat {
+		allIndices := []int{}
+		for i := 0; i < len(*components); i++ {
+			allIndices = append(allIndices, i)
+		}
+		runs = append(runs, allIndices)
+	} else {
+		runs = allRuns(len(*components))
+	}
+	cl.Infof("Runs to try: %v\n", runs)
 
 	for _, run := range runs {
 		thisComponents := make([]Ex, len(run))
@@ -80,11 +114,22 @@ func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, cl *CASLogger) {
 			thisComponents[tci] = (*components)[ci].DeepCopy()
 		}
 		pm := EmptyPD()
-		mq, matches := NonOrderlessIsMatchQ(thisComponents, lhs_components, pm, cl)
+		mq, matches := NonOrderlessIsMatchQ(thisComponents, lhs_components, isFlat, sequenceHead, pm, cl)
+		if isOrderless {
+			mq, matches = OrderlessIsMatchQ(thisComponents, lhs_components, isFlat, sequenceHead, pm, cl)
+		}
 		if mq {
-			copiedComponents := ExArrayDeepCopy((*components)[run[len(run)-1]+1:])
-			*components = append((*components)[:run[0]], []Ex{ReplacePD(rhs.DeepCopy(), cl, matches)}...)
-			*components = append(*components, copiedComponents...)
+			if isOrderless && isFlat {
+				sort.Ints(run)
+				for tdi, todelete := range run {
+					*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
+				}
+				*components = append(*components, []Ex{ReplacePD(rhs.DeepCopy(), cl, matches)}...)
+			} else {
+				copiedComponents := ExArrayDeepCopy((*components)[run[len(run)-1]+1:])
+				*components = append((*components)[:run[0]], []Ex{ReplacePD(rhs.DeepCopy(), cl, matches)}...)
+				*components = append(*components, copiedComponents...)
+			}
 			return
 		}
 		//cl.Debugf("Done checking. Context: %v\n", es)
@@ -166,7 +211,7 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager,
 			return this
 		} else {
 			// Continue recursion
-			cl.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
+			cl.Infof("ReplaceAll(%v, %v, es, %v)", this, r, pm)
 			return asExpression.ReplaceAll(r, cl, stopAtHead)
 		}
 	}
