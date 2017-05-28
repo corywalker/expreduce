@@ -466,7 +466,35 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 				}
 				mmi := &multiMatchIter{}
-				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, this.pm, this.cl)
+				tmpPm := CopyPD(this.pm)
+				if isPat {
+					sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
+					if sAsSymbolOk {
+						toTryParts := []Ex{&Symbol{"Sequence"}}
+						if isImpliedBs {
+							toTryParts = []Ex{&Symbol{this.sequenceHead}}
+						}
+						toTryParts = append(toTryParts, seqToTry...)
+						target := NewExpression(toTryParts)
+						var targetEx Ex = target
+						if isImpliedBs && len(target.Parts) == 2 {
+							if IsOneIdentity(target.Parts[0].(*Symbol)) {
+								targetEx = target.Parts[1]
+							}
+						}
+						_, ispd := tmpPm.patternDefined[sAsSymbol.Name]
+						if !ispd {
+							tmpPm.patternDefined[sAsSymbol.Name] = targetEx
+						}
+						// if !IsSameQ(tmpPm.patternDefined[sAsSymbol.Name], targetEx, this.cl) {
+						// 	//return false, this.pm, true
+						// 	mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, tmpPm, true})
+						// 	matchedPattern = true
+						// }
+					}
+				}
+				//Looking at the logs, this.pm is never updated!! It is only updated later. TODO fixme!
+				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, tmpPm, this.cl)
 				for cont {
 					matchq, newPDs, done := nomi.next()
 					cont = !done
