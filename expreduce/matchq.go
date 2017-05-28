@@ -467,6 +467,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				}
 				mmi := &multiMatchIter{}
 				tmpPm := CopyPD(this.pm)
+				failedPattern := false
 				if isPat {
 					sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 					if sAsSymbolOk {
@@ -486,51 +487,20 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 						if !ispd {
 							tmpPm.patternDefined[sAsSymbol.Name] = targetEx
 						}
-						// if !IsSameQ(tmpPm.patternDefined[sAsSymbol.Name], targetEx, this.cl) {
-						// 	//return false, this.pm, true
-						// 	mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, tmpPm, true})
-						// 	matchedPattern = true
-						// }
+						if !IsSameQ(tmpPm.patternDefined[sAsSymbol.Name], targetEx, this.cl) {
+							//return false, this.pm, true
+							//mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, tmpPm, true})
+							failedPattern = true
+						}
 					}
 				}
-				//Looking at the logs, this.pm is never updated!! It is only updated later. TODO fixme!
-				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, tmpPm, this.cl)
-				for cont {
-					matchq, newPDs, done := nomi.next()
-					cont = !done
-					if seqMatches && matchq {
-						nextPm := CopyPD(newPDs)
-						nextPm.Update(newPDs)
-						matchedPattern := false
-						if isPat {
-							sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
-							if sAsSymbolOk {
-								toTryParts := []Ex{&Symbol{"Sequence"}}
-								if isImpliedBs {
-									toTryParts = []Ex{&Symbol{this.sequenceHead}}
-								}
-								toTryParts = append(toTryParts, seqToTry...)
-								target := NewExpression(toTryParts)
-								var targetEx Ex = target
-								if isImpliedBs && len(target.Parts) == 2 {
-									if IsOneIdentity(target.Parts[0].(*Symbol)) {
-										targetEx = target.Parts[1]
-									}
-								}
-								_, ispd := nextPm.patternDefined[sAsSymbol.Name]
-								if !ispd {
-									nextPm.patternDefined[sAsSymbol.Name] = targetEx
-								}
-								if !IsSameQ(nextPm.patternDefined[sAsSymbol.Name], targetEx, this.cl) {
-									//return false, this.pm, true
-									mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, nextPm, true})
-									matchedPattern = true
-								}
-							}
-						}
-						//return true, this.pm, true
-						if !matchedPattern {
-							mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, nextPm, true})
+				if seqMatches {
+					nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, tmpPm, this.cl)
+					for cont {
+						matchq, newPDs, done := nomi.next()
+						cont = !done
+						if matchq {
+							mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{!failedPattern, newPDs, true})
 						}
 					}
 				}
