@@ -409,140 +409,134 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	if len(this.components) == 0 && len(this.lhs_components) == 0 {
 		return true, this.pm, true
 	}
-	for i := 0; i < Max(len(this.components), len(this.lhs_components)); i++ {
-		this.progressI = i
-		if i >= len(this.lhs_components) {
-			return false, this.pm, true
-		}
-		if i >= len(this.components) {
-			this.cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", this.lhs_components[i], i, this.pm)
-		} else {
-			this.cl.Debugf("Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", this.components[i], this.lhs_components[i], i, this.pm)
-		}
-		pat, isPat := HeadAssertion(this.lhs_components[i], "Pattern")
-		bns, isBns := HeadAssertion(this.lhs_components[i], "BlankNullSequence")
-		bs, isBs := HeadAssertion(this.lhs_components[i], "BlankSequence")
-		blank, isBlank := HeadAssertion(this.lhs_components[i], "Blank")
-		if isPat {
-			bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
-			bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
-			blank, isBlank = HeadAssertion(pat.Parts[2], "Blank")
-		}
-		isImpliedBs := isBlank && this.isFlat
-		if isBns || isBs || isImpliedBs {
-			this.cl.Debugf("Encountered BS, BNS, or implied BS!")
-			remainingLhs := make([]Ex, len(this.lhs_components)-i-1)
-			for k := i + 1; k < len(this.lhs_components); k++ {
-				remainingLhs[k-i-1] = this.lhs_components[k].DeepCopy()
-			}
-			startI := 0
-			if isBns {
-				startI = i - 1
-			} else { // also includes implied blanksequence
-				startI = i
-			}
-			for j := startI; j < len(this.components); j++ {
-				// This process involves a lot of extraneous copying. I should
-				// test to see how much of these arrays need to be copied from
-				// scratch on every iteration.
-				seqToTry := make([]Ex, j-i+1)
-				for k := i; k <= j; k++ {
-					seqToTry[k-i] = this.components[k].DeepCopy()
-				}
-				seqMatches := false
-				if isBns {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), "", this.cl)
-				} else if isImpliedBs {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, blank, this.sequenceHead, this.cl)
-				} else {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.cl)
-				}
-				this.cl.Debugf("%v", seqMatches)
-				remainingComps := make([]Ex, len(this.components)-j-1)
-				for k := j + 1; k < len(this.components); k++ {
-					remainingComps[k-j-1] = this.components[k].DeepCopy()
-				}
-				if this.cl.debugState {
-					this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
-				}
-				mmi := &multiMatchIter{}
-				tmpPm := CopyPD(this.pm)
-				failedPattern := false
-				if isPat {
-					sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
-					if sAsSymbolOk {
-						toTryParts := []Ex{&Symbol{"Sequence"}}
-						if isImpliedBs {
-							toTryParts = []Ex{&Symbol{this.sequenceHead}}
-						}
-						toTryParts = append(toTryParts, seqToTry...)
-						target := NewExpression(toTryParts)
-						var targetEx Ex = target
-						if isImpliedBs && len(target.Parts) == 2 {
-							if IsOneIdentity(target.Parts[0].(*Symbol)) {
-								targetEx = target.Parts[1]
-							}
-						}
-						_, ispd := tmpPm.patternDefined[sAsSymbol.Name]
-						if !ispd {
-							tmpPm.patternDefined[sAsSymbol.Name] = targetEx
-						}
-						if !IsSameQ(tmpPm.patternDefined[sAsSymbol.Name], targetEx, this.cl) {
-							//return false, this.pm, true
-							//mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, tmpPm, true})
-							failedPattern = true
-						}
-					}
-				}
-				if seqMatches && !failedPattern {
-					nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, tmpPm, this.cl)
-					for cont {
-						matchq, newPDs, done := nomi.next()
-						cont = !done
-						if matchq {
-							mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPDs, true})
-						}
-					}
-				}
-				if (len(mmi.matchIters) > 0) {
-					matchq, newPd, done := mmi.next()
-					if !done {
-						this.remainingMatchIter = mmi
-					}
-					return matchq, newPd, done
-				}
-			}
-			return false, this.pm, true
-		}
-		if i >= len(this.components) {
-			return false, this.pm, true
-		}
-		mi, cont := NewMatchIter(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
-		// Add multimatchiter here.
-		mmi := &multiMatchIter{}
-		for cont {
-			matchq, toAdd, done := mi.next()
-			cont = !done
-			if matchq {
-				updatedPm := CopyPD(this.pm)
-				updatedPm.Update(toAdd)
-				nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], this.isFlat, this.sequenceHead, updatedPm, this.cl)
-				if ok {
-					mmi.matchIters = append(mmi.matchIters, nomi)
-				}
-			}
-		}
-		matchq, newPd, done := mmi.next()
-		if !done {
-			this.remainingMatchIter = mmi
-		}
-		return matchq, newPd, done
-	}
-	if this.progressI == len(this.lhs_components)-1 {
-		return true, this.pm, true
-	} else {
+	i := 0
+	this.progressI = i
+	if i >= len(this.lhs_components) {
 		return false, this.pm, true
 	}
+	if i >= len(this.components) {
+		this.cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", this.lhs_components[i], i, this.pm)
+	} else {
+		this.cl.Debugf("Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", this.components[i], this.lhs_components[i], i, this.pm)
+	}
+	pat, isPat := HeadAssertion(this.lhs_components[i], "Pattern")
+	bns, isBns := HeadAssertion(this.lhs_components[i], "BlankNullSequence")
+	bs, isBs := HeadAssertion(this.lhs_components[i], "BlankSequence")
+	blank, isBlank := HeadAssertion(this.lhs_components[i], "Blank")
+	if isPat {
+		bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
+		bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
+		blank, isBlank = HeadAssertion(pat.Parts[2], "Blank")
+	}
+	isImpliedBs := isBlank && this.isFlat
+	if isBns || isBs || isImpliedBs {
+		this.cl.Debugf("Encountered BS, BNS, or implied BS!")
+		remainingLhs := make([]Ex, len(this.lhs_components)-i-1)
+		for k := i + 1; k < len(this.lhs_components); k++ {
+			remainingLhs[k-i-1] = this.lhs_components[k].DeepCopy()
+		}
+		startI := 0
+		if isBns {
+			startI = i - 1
+		} else { // also includes implied blanksequence
+			startI = i
+		}
+		for j := startI; j < len(this.components); j++ {
+			// This process involves a lot of extraneous copying. I should
+			// test to see how much of these arrays need to be copied from
+			// scratch on every iteration.
+			seqToTry := make([]Ex, j-i+1)
+			for k := i; k <= j; k++ {
+				seqToTry[k-i] = this.components[k].DeepCopy()
+			}
+			seqMatches := false
+			if isBns {
+				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), "", this.cl)
+			} else if isImpliedBs {
+				seqMatches = ExArrayTestRepeatingMatch(seqToTry, blank, this.sequenceHead, this.cl)
+			} else {
+				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.cl)
+			}
+			this.cl.Debugf("ExArrayTestRepeatingMatch(%v, %v) = %v", ExArrayToString(seqToTry), this.lhs_components[i], seqMatches)
+			remainingComps := make([]Ex, len(this.components)-j-1)
+			for k := j + 1; k < len(this.components); k++ {
+				remainingComps[k-j-1] = this.components[k].DeepCopy()
+			}
+			if this.cl.debugState {
+				this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
+			}
+			mmi := &multiMatchIter{}
+			tmpPm := CopyPD(this.pm)
+			failedPattern := false
+			if isPat {
+				sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
+				if sAsSymbolOk {
+					toTryParts := []Ex{&Symbol{"Sequence"}}
+					if isImpliedBs {
+						toTryParts = []Ex{&Symbol{this.sequenceHead}}
+					}
+					toTryParts = append(toTryParts, seqToTry...)
+					target := NewExpression(toTryParts)
+					var targetEx Ex = target
+					if isImpliedBs && len(target.Parts) == 2 {
+						if IsOneIdentity(target.Parts[0].(*Symbol)) {
+							targetEx = target.Parts[1]
+						}
+					}
+					_, ispd := tmpPm.patternDefined[sAsSymbol.Name]
+					if !ispd {
+						tmpPm.patternDefined[sAsSymbol.Name] = targetEx
+					}
+					if !IsSameQ(tmpPm.patternDefined[sAsSymbol.Name], targetEx, this.cl) {
+						//return false, this.pm, true
+						//mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, tmpPm, true})
+						failedPattern = true
+					}
+				}
+			}
+			if seqMatches && !failedPattern {
+				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, tmpPm, this.cl)
+				for cont {
+					matchq, newPDs, done := nomi.next()
+					cont = !done
+					if matchq {
+						mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPDs, true})
+					}
+				}
+			}
+			if (len(mmi.matchIters) > 0) {
+				matchq, newPd, done := mmi.next()
+				if !done {
+					this.remainingMatchIter = mmi
+				}
+				return matchq, newPd, done
+			}
+		}
+		return false, this.pm, true
+	}
+	if i >= len(this.components) {
+		return false, this.pm, true
+	}
+	mi, cont := NewMatchIter(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
+	// Add multimatchiter here.
+	mmi := &multiMatchIter{}
+	for cont {
+		matchq, toAdd, done := mi.next()
+		cont = !done
+		if matchq {
+			updatedPm := CopyPD(this.pm)
+			updatedPm.Update(toAdd)
+			nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], this.isFlat, this.sequenceHead, updatedPm, this.cl)
+			if ok {
+				mmi.matchIters = append(mmi.matchIters, nomi)
+			}
+		}
+	}
+	matchq, newPd, done := mmi.next()
+	if !done {
+		this.remainingMatchIter = mmi
+	}
+	return matchq, newPd, done
 }
 
 func (this *nonOrderlessMatchIter) reset() {}
