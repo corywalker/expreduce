@@ -95,15 +95,19 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	condition, isCond := HeadAssertion(b, "Condition")
 	if isCond {
 		if len(condition.Parts) == 3 {
-			matchq, newPD := IsMatchQ(a, condition.Parts[1], EmptyPD(), cl)
-			if matchq {
-				tmpEs := NewEvalStateNoLog(true)
-				res := condition.Parts[2].DeepCopy()
-				res = ReplacePD(res, cl, newPD).Eval(tmpEs)
-				resSymbol, resIsSymbol := res.(*Symbol)
-				if resIsSymbol {
-					if resSymbol.Name == "True" {
-						return &dummyMatchIter{true, newPD, true}, true
+			mi, cont := NewMatchIter(a, condition.Parts[1], EmptyPD(), cl)
+			for cont {
+				matchq, newPD, done := mi.next()
+				cont = !done
+				if matchq {
+					tmpEs := NewEvalStateNoLog(true)
+					res := condition.Parts[2].DeepCopy()
+					res = ReplacePD(res, cl, newPD).Eval(tmpEs)
+					resSymbol, resIsSymbol := res.(*Symbol)
+					if resIsSymbol {
+						if resSymbol.Name == "True" {
+							return &dummyMatchIter{true, newPD, true}, true
+						}
 					}
 				}
 			}
