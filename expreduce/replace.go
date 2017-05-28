@@ -92,7 +92,7 @@ func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, sequenceHead str
 
 func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless bool, isFlat bool, sequenceHead string, cl *CASLogger) {
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	cl.Infof("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
+	cl.Debugf("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	//TODO: convert to a generator method?
 	var runs [][]int
 	if isOrderless && isFlat {
@@ -106,7 +106,7 @@ func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless b
 	} else {
 		runs = allRuns(len(*components))
 	}
-	cl.Infof("Runs to try: %v\n", runs)
+	cl.Debugf("Runs to try: %v\n", runs)
 
 	for _, run := range runs {
 		thisComponents := make([]Ex, len(run))
@@ -211,7 +211,7 @@ func ReplaceAll(this Ex, r *Expression, cl *CASLogger, pm *PDManager,
 			return this
 		} else {
 			// Continue recursion
-			cl.Infof("ReplaceAll(%v, %v, es, %v)", this, r, pm)
+			cl.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
 			return asExpression.ReplaceAll(r, cl, stopAtHead)
 		}
 	}

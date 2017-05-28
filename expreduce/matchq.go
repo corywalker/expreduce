@@ -494,13 +494,13 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 						}
 					}
 				}
-				if seqMatches {
+				if seqMatches && !failedPattern {
 					nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, tmpPm, this.cl)
 					for cont {
 						matchq, newPDs, done := nomi.next()
 						cont = !done
 						if matchq {
-							mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{!failedPattern, newPDs, true})
+							mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPDs, true})
 						}
 					}
 				}
@@ -584,7 +584,6 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, sequenceHead strin
 		}
 		if len(array) > minReq && len(blank.Parts) >= 2 {
 			sym, isSym := blank.Parts[1].(*Symbol)
-			cl.Infof("%v, %s, %s", blank, sym, sequenceHead)
 			if isSym {
 				if sym.Name != sequenceHead {
 					return false
