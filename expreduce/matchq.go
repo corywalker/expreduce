@@ -435,6 +435,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		} else { // also includes implied blanksequence
 			startI = 0
 		}
+		mmi := &multiMatchIter{}
 		for j := startI; j < len(this.components); j++ {
 			// This process involves a lot of extraneous copying. I should
 			// test to see how much of these arrays need to be copied from
@@ -459,7 +460,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			if this.cl.debugState {
 				this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
 			}
-			mmi := &multiMatchIter{}
 			tmpPm := CopyPD(this.pm)
 			failedPattern := false
 			if isPat {
@@ -498,13 +498,13 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					}
 				}
 			}
-			if (len(mmi.matchIters) > 0) {
-				matchq, newPd, done := mmi.next()
-				if !done {
-					this.remainingMatchIter = mmi
-				}
-				return matchq, newPd, done
+		}
+		if (len(mmi.matchIters) > 0) {
+			matchq, newPd, done := mmi.next()
+			if !done {
+				this.remainingMatchIter = mmi
 			}
+			return matchq, newPd, done
 		}
 		return false, this.pm, true
 	}
