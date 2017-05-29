@@ -166,6 +166,14 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			if attrs.Orderless {
 				sort.Sort(curr)
 			}
+			if attrs.Listable {
+				changed := false
+				currEx, changed = ThreadExpr(curr)
+				if changed {
+					lastEx = currEx
+					continue
+				}
+			}
 			headStr := headSym.Name
 
 			theRes, isDefined, def := es.GetDef(headStr, curr)

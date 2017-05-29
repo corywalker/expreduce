@@ -372,5 +372,20 @@ func GetSystemDefinitions() (defs []Definition) {
 			&SameTest{"0.5", "N[1/2]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "Listable",
+		Usage: "`Listable` is an attribute that calls for functions to automatically map over lists.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{1, 1, 1, 0}", "Boole[{True, True, True, False}]"},
+			&SameTest{"{False, True, True}", "Positive[{-1, 4, 5}]"},
+			&SameTest{"{{False, True, True}}", "Positive[{{-1, 4, 5}}]"},
+			&SameTest{"{{False, True, True}, {True, False}}", "Positive[{{-1, 4, 5}, {6, -1}}]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{Positive[-1, 2], Positive[4, 2], Positive[5, 2]}", "Positive[{-1, 4, 5}, 2]"},
+			&SameTest{"Positive[{-1, 4, 5}, {1, 2}]", "Positive[{-1, 4, 5}, {1, 2}]"},
+			&SameTest{"{Positive[-1, 1], Positive[4, 2], Positive[5, 3]}", "Positive[{-1, 4, 5}, {1, 2, 3}]"},
+		},
+	})
 	return
 }
