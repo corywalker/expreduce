@@ -195,10 +195,6 @@ func getReplacementDefinitions() (defs []Definition) {
 			&SameTest{"1 && 2 && a && b && c", "And[1, 2, a, b, c] /. And[__Symbol, a, __Integer] -> Sequence[jjj, eee]"},
 			&SameTest{"1 && 2 && jjj && eee && b && c", "And[1, 2, a, b, c] /. And[___Symbol, a, ___Integer] -> Sequence[jjj, eee]"},
 		},
-		KnownFailures: []TestInstruction{
-			// Causes stack overflow
-			&SameTest{"98 + 98 * a + c", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch"},
-		},
 		KnownDangerous: []TestInstruction{
 			// Causes stack overflow
 			&SameTest{"99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d"},
