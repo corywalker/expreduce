@@ -208,11 +208,28 @@ func isMatchQRational(a *Rational, b *Expression, dm *DefMap, pm *PDManager, cl 
 		b, dm, pm, cl)
 }
 
-func ParseRepeated(e *Expression) (Ex, bool) {
-	if len(e.Parts) != 2 {
-		return nil, false
+func ParseRepeated(e *Expression) (Ex, int, int, bool) {
+	min, max := -1, -1
+	if len(e.Parts) < 2 {
+		return nil, min, max, false
 	}
-	return e.Parts[1], true
+	if len(e.Parts) >= 3 {
+		list, isList := HeadAssertion(e.Parts[2], "List")
+		if !isList {
+			return nil, min, max, false
+		}
+		if len(list.Parts) != 2 {
+			return nil, min, max, false
+		}
+		i, isInt := list.Parts[1].(*Integer)
+		if !isInt {
+			return nil, min, max, false
+		}
+		ival := i.Val.Int64()
+		min = int(ival)
+		max = min
+	}
+	return e.Parts[1], min, max, true
 }
 
 type orderlessMatchIter struct {
@@ -261,6 +278,15 @@ func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, isFlat bool, se
 
 	// These lines are causing MatchQ[a + b, a + b + x___Plus] == True to fail
 	for _, mustContain := range lhs_components {
+		pat, isPat := HeadAssertion(mustContain, "Pattern")
+		_, isRepeated := HeadAssertion(mustContain, "Repeated")
+		if isPat {
+			_, isRepeated = HeadAssertion(pat.Parts[2], "Repeated")
+		}
+		if isRepeated {
+			continue
+		}
+
 		if !MemberQ(components, mustContain, dm, cl) {
 			return omi, false
 		}
@@ -399,19 +425,40 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		repeated, isRepeated = HeadAssertion(pat.Parts[2], "Repeated")
 	}
 	isImpliedBs := isBlank && this.isFlat
+
+	startI := 1 // also includes implied blanksequence
+	if isBns {
+		startI = 0
+	}
+	// If we are on the last sequence in the LHS, try to fit everything
+	// else.
+	if len(this.lhs_components) == 1 {
+		startI = Max(len(this.components), startI)
+	}
+	endI := len(this.components)
+
+	var repPat Ex
+	if isRepeated {
+		newRepPat, repMin, repMax, repOk := ParseRepeated(repeated)
+		this.cl.Infof("Encountered repeated")
+		repPat = newRepPat
+		if (repOk) {
+			if repMin != -1 {
+				startI = repMin
+			}
+			if repMax != -1 {
+				endI = Min(repMax, len(this.components))
+			}
+			this.cl.Infof("repMin=%v, repMax=%v", repMin, repMax)
+		} else {
+			isRepeated = false
+		}
+	}
+
 	if isBns || isBs || isRepeated || isImpliedBs {
 		this.cl.Debugf("Encountered BS, BNS, or implied BS!")
-		startI := 1 // also includes implied blanksequence
-		if isBns {
-			startI = 0
-		}
-		// If we are on the last sequence in the LHS, try to fit everything
-		// else.
-		if len(this.lhs_components) == 1 {
-			startI = Max(len(this.components), startI)
-		}
 		mmi := &multiMatchIter{}
-		for j := startI; j < len(this.components)+1; j++ {
+		for j := startI; j <= endI; j++ {
 			seqToTry := this.components[0:j]
 			remainingComps := this.components[j:]
 
@@ -421,10 +468,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			} else if isImpliedBs {
 				seqMatches = ExArrayTestRepeatingMatch(seqToTry, blank, this.sequenceHead, this.dm, this.cl)
 			} else if isRepeated {
-				repPat, ok := ParseRepeated(repeated)
-				if (ok) {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, repPat, "", this.dm, this.cl)
-				}
+				seqMatches = ExArrayTestRepeatingMatch(seqToTry, repPat, "", this.dm, this.cl)
 			} else {
 				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.dm, this.cl)
 			}
@@ -536,7 +580,6 @@ func ExArrayTestRepeatingMatch(array []Ex, blank Ex, sequenceHead string, dm *De
 		// TODO: CHANGEME
 		isMatch, newPD := IsMatchQ(e, blank, dm, pd, &tmpEs.CASLogger)
 		pd = newPD
-		cl.Debugf("%v %v %v", e, blank, isMatch)
 		if !isMatch {
 			return false
 		}

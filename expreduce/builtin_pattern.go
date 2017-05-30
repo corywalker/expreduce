@@ -435,7 +435,7 @@ func GetPatternDefinitions() (defs []Definition) {
 		Name:       "Repeated",
 		Usage:      "`Repeated[p_]` matches a sequence of expressions that match the pattern `p`.",
 		Attributes: []string{"Protected"},
-		SimpleExamples: []TestInstruction{
+		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[foo[a, a], foo[Repeated[a]]]"},
 			&SameTest{"False", "MatchQ[foo[a, b], foo[Repeated[a]]]"},
 			&SameTest{"True", "MatchQ[foo[a], foo[Repeated[a]]]"},
@@ -446,6 +446,17 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"matches[1, 2, 3]", "foo[1, 2, 3] /. foo[a : (Repeated[_Integer])] -> matches[a]"},
 			&SameTest{"foo[1, 2, 3]", "foo[1, 2, 3] /. foo[a : (Repeated[k_Integer])] -> matches[a]"},
 			&SameTest{"matches[1, 1, 1]", "foo[1, 1, 1] /. foo[a : (Repeated[k_Integer])] -> matches[a]"},
+
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[b, {3}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[b, {a}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[b, {4}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[b, {2}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[_Integer, {2}]]]"},
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, 1, 2], ExpreduceFlOrOiFn[a, Repeated[_Integer, {2}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, 1, 2], ExpreduceFlOrOiFn[a, Repeated[k_Integer, {2}]]]"},
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, 2, 2], ExpreduceFlOrOiFn[a, Repeated[k_Integer, {2}]]]"},
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[___, Repeated[_Integer, {0}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[___, Repeated[_Integer, {-1}]]]"},
 		},
 	})
 	return
