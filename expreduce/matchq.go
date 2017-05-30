@@ -208,6 +208,13 @@ func isMatchQRational(a *Rational, b *Expression, dm *DefMap, pm *PDManager, cl 
 		b, dm, pm, cl)
 }
 
+func ParseRepeated(e *Expression) (Ex, bool) {
+	if len(e.Parts) != 2 {
+		return nil, false
+	}
+	return e.Parts[1], true
+}
+
 type orderlessMatchIter struct {
 	components		[]Ex
 	lhs_components	[]Ex
@@ -384,13 +391,15 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	bns, isBns := HeadAssertion(this.lhs_components[0], "BlankNullSequence")
 	bs, isBs := HeadAssertion(this.lhs_components[0], "BlankSequence")
 	blank, isBlank := HeadAssertion(this.lhs_components[0], "Blank")
+	repeated, isRepeated := HeadAssertion(this.lhs_components[0], "Repeated")
 	if isPat {
 		bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
 		bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
 		blank, isBlank = HeadAssertion(pat.Parts[2], "Blank")
+		repeated, isRepeated = HeadAssertion(pat.Parts[2], "Repeated")
 	}
 	isImpliedBs := isBlank && this.isFlat
-	if isBns || isBs || isImpliedBs {
+	if isBns || isBs || isRepeated || isImpliedBs {
 		this.cl.Debugf("Encountered BS, BNS, or implied BS!")
 		startI := 1 // also includes implied blanksequence
 		if isBns {
@@ -411,6 +420,11 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), "", this.dm, this.cl)
 			} else if isImpliedBs {
 				seqMatches = ExArrayTestRepeatingMatch(seqToTry, blank, this.sequenceHead, this.dm, this.cl)
+			} else if isRepeated {
+				repPat, ok := ParseRepeated(repeated)
+				if (ok) {
+					seqMatches = ExArrayTestRepeatingMatch(seqToTry, repPat, "", this.dm, this.cl)
+				}
 			} else {
 				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.dm, this.cl)
 			}
@@ -496,15 +510,18 @@ func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
 	return
 }
 
-func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, sequenceHead string, dm *DefMap, cl *CASLogger) bool {
-	toReturn := true
+func ExArrayTestRepeatingMatch(array []Ex, blank Ex, sequenceHead string, dm *DefMap, cl *CASLogger) bool {
 	if len(sequenceHead) > 0 {
 		minReq := 0
 		if (&Symbol{sequenceHead}).Attrs(dm).OneIdentity {
 			minReq = 1
 		}
-		if len(array) > minReq && len(blank.Parts) >= 2 {
-			sym, isSym := blank.Parts[1].(*Symbol)
+		blankExpr, isExpr := blank.(*Expression)
+		if !isExpr {
+			return false
+		}
+		if len(array) > minReq && len(blankExpr.Parts) >= 2 {
+			sym, isSym := blankExpr.Parts[1].(*Symbol)
 			if isSym {
 				if sym.Name != sequenceHead {
 					return false
@@ -513,12 +530,16 @@ func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, sequenceHead strin
 			}
 		}
 	}
+	pd := EmptyPD()
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog(false)
 		// TODO: CHANGEME
-		isMatch, _ := IsMatchQ(e, blank, dm, EmptyPD(), &tmpEs.CASLogger)
+		isMatch, newPD := IsMatchQ(e, blank, dm, pd, &tmpEs.CASLogger)
+		pd = newPD
 		cl.Debugf("%v %v %v", e, blank, isMatch)
-		toReturn = toReturn && isMatch
+		if !isMatch {
+			return false
+		}
 	}
-	return toReturn
+	return true
 }

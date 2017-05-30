@@ -400,6 +400,7 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		// TODO: Convert to ReplaceList
 		Name:  "ExpreduceAllMatches",
 		Usage: "`ExpreduceAllMatches[expr, form]` returns all the possible pattern matches of `form` on `expr`.",
 		ExpreduceSpecific: true,
@@ -428,6 +429,23 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[foo[a+b],foo[x_+y_]]"},
 			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b), (\"z\") -> (c)}, {(\"x\") -> (b), (\"y\") -> (a), (\"z\") -> (c)}}", "ExpreduceAllMatches[bar[foo[a+b]+c],bar[foo[x_+y_]+z_]]"},
 			&SameTest{"{{(\"w\") -> (c), (\"x\") -> (d), (\"y\") -> (a), (\"z\") -> (b)}, {(\"w\") -> (c), (\"x\") -> (d), (\"y\") -> (b), (\"z\") -> (a)}, {(\"w\") -> (d), (\"x\") -> (c), (\"y\") -> (a), (\"z\") -> (b)}, {(\"w\") -> (d), (\"x\") -> (c), (\"y\") -> (b), (\"z\") -> (a)}}", "ExpreduceAllMatches[bar[foo[a+b]+c+d],bar[w_+x_+foo[y_+z_]]]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "Repeated",
+		Usage:      "`Repeated[p_]` matches a sequence of expressions that match the pattern `p`.",
+		Attributes: []string{"Protected"},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"True", "MatchQ[foo[a, a], foo[Repeated[a]]]"},
+			&SameTest{"False", "MatchQ[foo[a, b], foo[Repeated[a]]]"},
+			&SameTest{"True", "MatchQ[foo[a], foo[Repeated[a]]]"},
+			&SameTest{"False", "MatchQ[foo[], foo[Repeated[a]]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[Repeated[_Integer]]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, a], foo[Repeated[_Integer]]]"},
+			&SameTest{"2", "foo[1, 2, 3] /. foo[a : (Repeated[_Integer])] -> 2"},
+			&SameTest{"matches[1, 2, 3]", "foo[1, 2, 3] /. foo[a : (Repeated[_Integer])] -> matches[a]"},
+			&SameTest{"foo[1, 2, 3]", "foo[1, 2, 3] /. foo[a : (Repeated[k_Integer])] -> matches[a]"},
+			&SameTest{"matches[1, 1, 1]", "foo[1, 1, 1] /. foo[a : (Repeated[k_Integer])] -> matches[a]"},
 		},
 	})
 	return
