@@ -31,7 +31,7 @@ func (this *multiMatchIter) next() (bool, *PDManager, bool) {
 	}
 	matchq, newPd, done := this.matchIters[this.i].next()
 	if done {
-		this.i += 1
+		this.i++
 	}
 	done = this.i >= len(this.matchIters)
 	return matchq, newPd, done
@@ -404,25 +404,15 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	isImpliedBs := isBlank && this.isFlat
 	if isBns || isBs || isImpliedBs {
 		this.cl.Debugf("Encountered BS, BNS, or implied BS!")
-		remainingLhs := make([]Ex, len(this.lhs_components)-1)
-		for k := 0; k < len(this.lhs_components)-1; k++ {
-			remainingLhs[k] = this.lhs_components[k+1].DeepCopy()
-		}
-		startI := 0
+		startI := 0 // also includes implied blanksequence
 		if isBns {
 			startI = -1
-		} else { // also includes implied blanksequence
-			startI = 0
 		}
 		mmi := &multiMatchIter{}
 		for j := startI; j < len(this.components); j++ {
-			// This process involves a lot of extraneous copying. I should
-			// test to see how much of these arrays need to be copied from
-			// scratch on every iteration.
-			seqToTry := make([]Ex, j+1)
-			for k := 0; k <= j; k++ {
-				seqToTry[k] = this.components[k].DeepCopy()
-			}
+			seqToTry := this.components[0:j+1]
+			remainingComps := this.components[j+1:]
+
 			seqMatches := false
 			if isBns {
 				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), "", this.cl)
@@ -432,13 +422,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.cl)
 			}
 			this.cl.Debugf("ExArrayTestRepeatingMatch(%v, %v) = %v", ExArrayToString(seqToTry), this.lhs_components[0], seqMatches)
-			remainingComps := make([]Ex, len(this.components)-j-1)
-			for k := j + 1; k < len(this.components); k++ {
-				remainingComps[k-j-1] = this.components[k].DeepCopy()
-			}
-			if this.cl.debugState {
-				this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
-			}
+
 			tmpPm := CopyPD(this.pm)
 			failedPattern := false
 			if isPat {
@@ -468,7 +452,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				}
 			}
 			if seqMatches && !failedPattern {
-				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.isFlat, this.sequenceHead, tmpPm, this.cl)
+				nomi, cont := NewNonOrderlessMatchIter(remainingComps, this.lhs_components[1:], this.isFlat, this.sequenceHead, tmpPm, this.cl)
 				for cont {
 					matchq, newPDs, done := nomi.next()
 					cont = !done
