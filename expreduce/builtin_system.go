@@ -387,5 +387,47 @@ func GetSystemDefinitions() (defs []Definition) {
 			&SameTest{"{Positive[-1, 1], Positive[4, 2], Positive[5, 3]}", "Positive[{-1, 4, 5}, {1, 2, 3}]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlatFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceOrderlessFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Orderless"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceOneIdentityFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"OneIdentity"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlatFn2",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlOrFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat", "Orderless"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlOiFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat", "OneIdentity"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlOrOiFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat", "Orderless", "OneIdentity"},
+	})
 	return
 }
