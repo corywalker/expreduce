@@ -362,10 +362,6 @@ func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, isFlat bool,
 	if nomi.cl.debugState {
 		nomi.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, isFlat: %v, pm: %s)", ExArrayToString(nomi.components), ExArrayToString(nomi.lhs_components), isFlat, nomi.pm)
 	}
-	if len(nomi.components) != 0 && len(nomi.lhs_components) == 0 {
-		return nomi, false
-	}
-
 	return nomi, true
 }
 
@@ -377,20 +373,10 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	// This block allows us to queue up match iters from the function.
 	if this.remainingMatchIter != nil {
 		matchq, newPd, done := this.remainingMatchIter.next()
-		if done {
-			this.remainingMatchIter = nil
-		}
 		return matchq, newPd, done
 	}
-	// A base case for the recursion
-	if len(this.components) == 0 && len(this.lhs_components) == 0 {
-		return true, this.pm, true
-	}
-	//i := 0
-	if len(this.components) == 0 {
-		this.cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). Current context: %v\n", this.lhs_components[0], this.pm)
-	} else {
-		this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], this.lhs_components[0], this.pm)
+	if len(this.lhs_components) == 0 {
+		return len(this.components) == 0, this.pm, true
 	}
 	pat, isPat := HeadAssertion(this.lhs_components[0], "Pattern")
 	bns, isBns := HeadAssertion(this.lhs_components[0], "BlankNullSequence")
@@ -404,14 +390,19 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	isImpliedBs := isBlank && this.isFlat
 	if isBns || isBs || isImpliedBs {
 		this.cl.Debugf("Encountered BS, BNS, or implied BS!")
-		startI := 0 // also includes implied blanksequence
+		startI := 1 // also includes implied blanksequence
 		if isBns {
-			startI = -1
+			startI = 0
 		}
+		// If we are on the last sequence in the LHS, try to fit everything
+		// else.
+		// if len(this.lhs_components) == 1 {
+		// 	startI = Max(len(this.components), startI)
+		// }
 		mmi := &multiMatchIter{}
-		for j := startI; j < len(this.components); j++ {
-			seqToTry := this.components[0:j+1]
-			remainingComps := this.components[j+1:]
+		for j := startI; j < len(this.components)+1; j++ {
+			seqToTry := this.components[0:j]
+			remainingComps := this.components[j:]
 
 			seqMatches := false
 			if isBns {
@@ -423,59 +414,44 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			}
 			this.cl.Debugf("ExArrayTestRepeatingMatch(%v, %v) = %v", ExArrayToString(seqToTry), this.lhs_components[0], seqMatches)
 
-			tmpPm := CopyPD(this.pm)
-			failedPattern := false
-			if isPat {
-				sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
-				if sAsSymbolOk {
-					toTryParts := []Ex{&Symbol{"Sequence"}}
-					if isImpliedBs {
-						toTryParts = []Ex{&Symbol{this.sequenceHead}}
-					}
-					toTryParts = append(toTryParts, seqToTry...)
-					target := NewExpression(toTryParts)
-					var targetEx Ex = target
-					if isImpliedBs && len(target.Parts) == 2 {
-						if IsOneIdentity(target.Parts[0].(*Symbol)) {
-							targetEx = target.Parts[1]
+			if seqMatches {
+				tmpPm := CopyPD(this.pm)
+				if isPat {
+					sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
+					if sAsSymbolOk {
+						toTryParts := []Ex{&Symbol{"Sequence"}}
+						if isImpliedBs {
+							toTryParts = []Ex{&Symbol{this.sequenceHead}}
 						}
-					}
-					_, ispd := tmpPm.patternDefined[sAsSymbol.Name]
-					if !ispd {
+						toTryParts = append(toTryParts, seqToTry...)
+						target := NewExpression(toTryParts)
+						var targetEx Ex = target
+						if isImpliedBs && len(target.Parts) == 2 {
+							if IsOneIdentity(target.Parts[0].(*Symbol)) {
+								targetEx = target.Parts[1]
+							}
+						}
+						defined, ispd := tmpPm.patternDefined[sAsSymbol.Name]
+						if ispd && !IsSameQ(defined, targetEx, this.cl) {
+							continue
+						}
 						tmpPm.patternDefined[sAsSymbol.Name] = targetEx
 					}
-					if !IsSameQ(tmpPm.patternDefined[sAsSymbol.Name], targetEx, this.cl) {
-						//return false, this.pm, true
-						//mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, tmpPm, true})
-						failedPattern = true
-					}
 				}
-			}
-			if seqMatches && !failedPattern {
 				nomi, cont := NewNonOrderlessMatchIter(remainingComps, this.lhs_components[1:], this.isFlat, this.sequenceHead, tmpPm, this.cl)
-				for cont {
-					matchq, newPDs, done := nomi.next()
-					cont = !done
-					if matchq {
-						mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPDs, true})
-					}
+				if cont {
+					mmi.matchIters = append(mmi.matchIters, nomi)
 				}
 			}
 		}
-		if (len(mmi.matchIters) > 0) {
-			matchq, newPd, done := mmi.next()
-			if !done {
-				this.remainingMatchIter = mmi
-			}
-			return matchq, newPd, done
-		}
-		return false, this.pm, true
+		this.remainingMatchIter = mmi
+		return false, this.pm, false
 	}
 	if len(this.components) == 0 {
 		return false, this.pm, true
 	}
-	mi, cont := NewMatchIter(this.components[0].DeepCopy(), this.lhs_components[0], this.pm, this.cl)
-	// Add multimatchiter here.
+	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], this.lhs_components[0], this.pm)
+	mi, cont := NewMatchIter(this.components[0], this.lhs_components[0], this.pm, this.cl)
 	mmi := &multiMatchIter{}
 	for cont {
 		matchq, toAdd, done := mi.next()
@@ -489,11 +465,8 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			}
 		}
 	}
-	matchq, newPd, done := mmi.next()
-	if !done {
-		this.remainingMatchIter = mmi
-	}
-	return matchq, newPd, done
+	this.remainingMatchIter = mmi
+	return false, this.pm, false
 }
 
 func (this *nonOrderlessMatchIter) reset() {}
