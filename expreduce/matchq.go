@@ -196,16 +196,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 // TODO: do not export this
 func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	mi, cont := NewMatchIter(a, b, pm, cl)
-	for cont {
-		matchq, newPd, done := mi.next()
-		cont = !done
-		// TODO: I could probably update my matchiters to only return if they
-		// have a match or are done.
-		if matchq {
-			return true, newPd
-		}
-	}
-	return false, pm
+	return GetMatchQ(mi, cont, pm)
 }
 
 func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
@@ -222,7 +213,6 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) 
 type orderlessMatchIter struct {
 	components		[]Ex
 	lhs_components	[]Ex
-	ordered_lhs_components	[]Ex
 	pm				*PDManager
 	cl				*CASLogger
 	kConstant		int
@@ -283,12 +273,6 @@ func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, isFlat bool, se
 		omi.perm[i] = i
 	}
 
-	// Order lhs_components because if we have len(bs) == 1, we will depend on
-	// the last n-k items to be orderless. This means that the BlankSequence
-	// must be at the end. Eventually this may not be needed once automatic
-	// sorting is implemented
-	omi.ordered_lhs_components = append(nonBS, bs...)
-
 	return omi, true
 }
 
@@ -304,16 +288,13 @@ func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, isFlat bool, se
 // return false from then on.
 func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 	// This block allows us to queue up match iters from the function.
-	//fmt.Println("1")
 	if this.remainingMatchIter != nil {
 		matchq, newPd, done := this.remainingMatchIter.next()
-		//fmt.Println("2")
 		if done {
 			this.remainingMatchIter = nil
 		}
 		return matchq, newPd, done && this.contval != 1
 	}
-	//fmt.Println("3")
 	for this.contval == 1 {
 		this.cl.Debugf("Using perm: %v\n", this.perm)
 
@@ -326,27 +307,13 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 		if this.cl.debugState {
 			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
-		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.isFlat, this.sequenceHead, this.pm, this.cl)
+		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.lhs_components, this.isFlat, this.sequenceHead, this.pm, this.cl)
 		// Generate next permutation, if any
-		mmi := &multiMatchIter{}
 		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
-		for cont {
-			ncIsMatchQ, newPm, done := nomi.next()
-			cont = !done
-			if ncIsMatchQ {
-				if this.cl.debugState {
-					this.cl.Debugf("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
-				}
-				mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPm, true})
-			}
+		if cont {
+			this.remainingMatchIter = nomi
 		}
-		if (len(mmi.matchIters) > 0) {
-			matchq, newPd, done := mmi.next()
-			if !done {
-				this.remainingMatchIter = mmi
-			}
-			return matchq, newPd, done && this.contval != 1
-		}
+		return false, this.pm, false
 	}
 	this.cl.Debugf("OrderlessIsMatchQ failed. Context: %s", this.pm)
 	return false, this.pm, true
@@ -354,14 +321,22 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 
 func (this *orderlessMatchIter) reset() {}
 
-func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	omi, ok := NewOrderlessMatchIter(components, lhs_components, isFlat, sequenceHead, pm, cl)
-	if !ok {
-		return false, pm
+func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
+	for cont {
+		matchq, newPd, done := mi.next()
+		cont = !done
+		// TODO: I could probably update my matchiters to only return if they
+		// have a match or are done.
+		if matchq {
+			return true, newPd
+		}
 	}
-	// Return the first match.
-	isMatch, newPm, _ := omi.next()
-	return isMatch, newPm
+	return false, pm
+}
+
+func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	omi, cont := NewOrderlessMatchIter(components, lhs_components, isFlat, sequenceHead, pm, cl)
+	return GetMatchQ(omi, cont, pm)
 }
 
 type nonOrderlessMatchIter struct {
@@ -540,13 +515,8 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 func (this *nonOrderlessMatchIter) reset() {}
 
 func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	nomi, ok := NewNonOrderlessMatchIter(components, lhs_components, isFlat, sequenceHead, pm, cl)
-	if !ok {
-		return false, pm
-	}
-	// Return the first match.
-	matchq, newPd, _ := nomi.next()
-	return matchq, newPd
+	nomi, cont := NewNonOrderlessMatchIter(components, lhs_components, isFlat, sequenceHead, pm, cl)
+	return GetMatchQ(nomi, cont, pm)
 }
 
 func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
