@@ -354,7 +354,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 				&Symbol{"ComplexInfinity"},
 			}),
 
-				&es.CASLogger)
+				&es.defined, &es.CASLogger)
 			for _, e := range multiplicands {
 				float, isFlt := e.(*Flt)
 				if isFlt {

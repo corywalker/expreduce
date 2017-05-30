@@ -7,11 +7,13 @@ import (
 	"strings"
 )
 
+type DefMap map[string]Def
+
 type EvalState struct {
 	// Embedded type for logging
 	CASLogger
 
-	defined map[string]Def
+	defined DefMap
 	trace   *Expression
 	NoInit  bool
 }
@@ -112,9 +114,9 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	for i := range this.defined[name].downvalues {
 	    def := this.defined[name].downvalues[i]
-		ismatchq, _ := IsMatchQ(lhs, def.Parts[1], EmptyPD(), &this.CASLogger)
+		ismatchq, _ := IsMatchQ(lhs, def.Parts[1], &this.defined, EmptyPD(), &this.CASLogger)
 		if ismatchq {
-			res := ReplaceAll(lhs, &def, &this.CASLogger, EmptyPD(), "")
+			res := ReplaceAll(lhs, &def, &this.defined, &this.CASLogger, EmptyPD(), "")
 			return res, true, &def
 		}
 	}

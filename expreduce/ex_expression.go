@@ -102,7 +102,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			headSym, headIsSym = curr.Parts[0].(*Symbol)
 		}
 		if headIsSym {
-			attrs = headSym.Attrs(es)
+			attrs = headSym.Attrs(&es.defined)
 		}
 		for i := range curr.Parts {
 			if headIsSym && i == 1 && attrs.HoldFirst {
@@ -235,7 +235,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 					arg,
 				}),
 
-				&es.CASLogger, EmptyPD(), "Function")
+				&es.defined, &es.CASLogger, EmptyPD(), "Function")
 		}
 		return toReturn
 	} else if len(this.Parts) == 3 {
@@ -251,18 +251,18 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 				args[0],
 			}),
 
-			&es.CASLogger, EmptyPD(), "Function")
+			&es.defined, &es.CASLogger, EmptyPD(), "Function")
 		return toReturn
 	}
 	return this
 }
 
-func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead string) Ex {
+func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead string, dm *DefMap) Ex {
 	cl.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	cl.Debugf("Rule r is: %s", r)
 
-	matchq, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), cl)
-	toreturn := ReplacePD(r.Parts[2].DeepCopy(), cl, matches)
+	matchq, matches := IsMatchQ(this, r.Parts[1], dm, EmptyPD(), cl)
+	toreturn := ReplacePD(r.Parts[2].DeepCopy(), dm, cl, matches)
 	if matchq {
 		cl.Debugf("After MatchQ, rule is: %s", r)
 		cl.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])
@@ -275,6 +275,7 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead stri
 		otherSym, otherSymOk := lhsExpr.Parts[0].(*Symbol)
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
+				attrs := thisSym.Attrs(dm)
 				/*if IsOrderless(thisSym) {
 					cl.Debugf("r.Parts[1] is Orderless. Now running OrderlessReplace")
 					replaced := this.Parts[1:len(this.Parts)]
@@ -295,9 +296,9 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead stri
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
 				}*/
-				if IsOrderless(thisSym) || IsFlat(thisSym) {
+				if attrs.Orderless || attrs.Flat {
 					replaced := this.Parts[1:len(this.Parts)]
-					GeneralReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], IsOrderless(thisSym), IsFlat(thisSym), thisSym.Name, cl)
+					GeneralReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], attrs.Orderless, attrs.Flat, thisSym.Name, dm, cl)
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
 				}
@@ -306,7 +307,7 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead stri
 	}
 
 	for i := range this.Parts {
-		this.Parts[i] = ReplaceAll(this.Parts[i], r, cl, EmptyPD(), stopAtHead)
+		this.Parts[i] = ReplaceAll(this.Parts[i], r, dm, cl, EmptyPD(), stopAtHead)
 	}
 	return this
 }
@@ -348,6 +349,7 @@ func (this *Expression) String() string {
 }
 
 // TODO: convert to a map
+/*
 func IsOrderless(sym *Symbol) bool {
 	if sym.Name == "Times" {
 		return true
@@ -358,6 +360,8 @@ func IsOrderless(sym *Symbol) bool {
 	} else if sym.Name == "ExpreduceFlOrFn" {
 		return true
 	} else if sym.Name == "ExpreduceFlOrOiFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlOrOiFn2" {
 		return true
 	}
 	return false
@@ -379,6 +383,8 @@ func IsFlat(sym *Symbol) bool {
 	} else if sym.Name == "ExpreduceFlOrFn" {
 		return true
 	} else if sym.Name == "ExpreduceFlOrOiFn" {
+		return true
+	} else if sym.Name == "ExpreduceFlOrOiFn2" {
 		return true
 	} else if sym.Name == "ExpreduceFlOiFn" {
 		return true
@@ -405,6 +411,8 @@ func IsOneIdentity(sym *Symbol) bool {
 		return true
 	} else if sym.Name == "ExpreduceFlOrOiFn" {
 		return true
+	} else if sym.Name == "ExpreduceFlOrOiFn2" {
+		return true
 	} else if sym.Name == "ExpreduceOiFn" {
 		return true
 	} else if sym.Name == "ExpreduceOiFn2" {
@@ -419,7 +427,7 @@ func IsOneIdentity(sym *Symbol) bool {
 		return true
 	}
 	return false
-}
+}*/
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
 	other, ok := otherEx.(*Expression)

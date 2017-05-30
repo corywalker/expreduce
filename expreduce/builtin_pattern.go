@@ -26,7 +26,7 @@ func GetPatternDefinitions() (defs []Definition) {
 				return this
 			}
 
-			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger); res {
+			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], &es.defined, EmptyPD(), &es.CASLogger); res {
 				return &Symbol{"True"}
 			} else {
 				return &Symbol{"False"}
@@ -409,7 +409,7 @@ func GetPatternDefinitions() (defs []Definition) {
 			}
 
 			res := NewExpression([]Ex{&Symbol{"List"}})
-			mi, cont := NewMatchIter(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger)
+			mi, cont := NewMatchIter(this.Parts[1], this.Parts[2], &es.defined, EmptyPD(), &es.CASLogger)
 			for cont {
 				matchq, newPd, done := mi.next()
 				es.Infof("%v %v %v\n", matchq, newPd, done)
