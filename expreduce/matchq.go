@@ -462,20 +462,20 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			seqToTry := this.components[0:j]
 			remainingComps := this.components[j:]
 
-			seqMatches := false
+			seqMatches, newPm := false, EmptyPD()
 			if isBns {
-				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), "", this.dm, this.cl)
+				seqMatches, newPm = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), "", this.dm, this.pm, this.cl)
 			} else if isImpliedBs {
-				seqMatches = ExArrayTestRepeatingMatch(seqToTry, blank, this.sequenceHead, this.dm, this.cl)
+				seqMatches, newPm = ExArrayTestRepeatingMatch(seqToTry, blank, this.sequenceHead, this.dm, this.pm, this.cl)
 			} else if isRepeated {
-				seqMatches = ExArrayTestRepeatingMatch(seqToTry, repPat, "", this.dm, this.cl)
+				seqMatches, newPm = ExArrayTestRepeatingMatch(seqToTry, repPat, "", this.dm, this.pm, this.cl)
 			} else {
-				seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.dm, this.cl)
+				seqMatches, newPm = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.dm, this.pm, this.cl)
 			}
 			this.cl.Debugf("ExArrayTestRepeatingMatch(%v, %v) = %v", ExArrayToString(seqToTry), this.lhs_components[0], seqMatches)
 
 			if seqMatches {
-				tmpPm := CopyPD(this.pm)
+				tmpPm := CopyPD(newPm)
 				if isPat {
 					sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 					if sAsSymbolOk {
@@ -554,7 +554,7 @@ func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
 	return
 }
 
-func ExArrayTestRepeatingMatch(array []Ex, blank Ex, sequenceHead string, dm *DefMap, cl *CASLogger) bool {
+func ExArrayTestRepeatingMatch(array []Ex, blank Ex, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	if len(sequenceHead) > 0 {
 		minReq := 0
 		if (&Symbol{sequenceHead}).Attrs(dm).OneIdentity {
@@ -562,27 +562,26 @@ func ExArrayTestRepeatingMatch(array []Ex, blank Ex, sequenceHead string, dm *De
 		}
 		blankExpr, isExpr := blank.(*Expression)
 		if !isExpr {
-			return false
+			return false, pm
 		}
 		if len(array) > minReq && len(blankExpr.Parts) >= 2 {
 			sym, isSym := blankExpr.Parts[1].(*Symbol)
 			if isSym {
 				if sym.Name != sequenceHead {
-					return false
+					return false, pm
 				}
-				return true
+				return true, pm
 			}
 		}
 	}
-	pd := EmptyPD()
 	for _, e := range array {
 		tmpEs := NewEvalStateNoLog(false)
 		// TODO: CHANGEME
-		isMatch, newPD := IsMatchQ(e, blank, dm, pd, &tmpEs.CASLogger)
-		pd = newPD
+		isMatch, newPD := IsMatchQ(e, blank, dm, pm, &tmpEs.CASLogger)
+		pm = newPD
 		if !isMatch {
-			return false
+			return false, pm
 		}
 	}
-	return true
+	return true, pm
 }

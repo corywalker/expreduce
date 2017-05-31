@@ -457,6 +457,8 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, 2, 2], ExpreduceFlOrOiFn[a, Repeated[k_Integer, {2}]]]"},
 			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[___, Repeated[_Integer, {0}]]]"},
 			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[___, Repeated[_Integer, {-1}]]]"},
+
+			&SameTest{"x", "foo[x, x] /. foo[Repeated[a_, {2}]] -> a"},
 		},
 	})
 	return
