@@ -9,7 +9,10 @@ parser.add_argument('--assert_str', dest='assert_str', action='store_true',
 
 args = parser.parse_args()
 
-p = re.compile(r'In\[(\d+)\]:= ([^\n]+)\n\n(?:Out\[\1\]= ([^\n]+)|)')
+# When copying directly:
+# p = re.compile(r'In\[(\d+)\]:= ([^\n]+)\n\n(?:Out\[\1\]= ([^\n]+)|)')
+# When copying as plain text
+p = re.compile(r'In\[(\d+)\]:= ([^\n]+)\n(?:Out\[\1\]= ([^\n]+)|)')
 test_str = sys.stdin.read()
 
 if args.assert_str:
