@@ -629,7 +629,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	}
 	mi, cont := NewMatchIter(this.components[0], form, this.dm, this.pm, this.cl)
 	for cont {
-		matchq, _, done := mi.next()
+		matchq, submatches, done := mi.next()
 		cont = !done
 		if matchq {
 			if (interesting) {
@@ -639,6 +639,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			if len(this.match_components)+1 >= startI {
 				// We're able to move onto the next lhs_component. Try this.
 				updatedPm := CopyPD(this.pm)
+				updatedPm.Update(submatches)
 				if isPat {
 					if !DefineSequence(pat, append(this.match_components, this.components[0]), isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl) {
 						continue
