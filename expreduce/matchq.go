@@ -399,6 +399,44 @@ func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, match_compon
 	return nomi, true
 }
 
+func DefineSequence(pat *Expression, sequence []Ex, isBlank bool, pm *PDManager, isImpliedBs bool, sequenceHead string, dm *DefMap, cl *CASLogger) bool {
+	sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
+	if sAsSymbolOk {
+		if isBlank {
+			if len(sequence) != 1 {
+				fmt.Println("Invalid blank components length!!")
+			}
+			defined, ispd := pm.patternDefined[sAsSymbol.Name]
+			if ispd && !IsSameQ(defined, sequence[0], cl) {
+				cl.Debugf("patterns do not match! continuing.")
+				return false
+			}
+			pm.patternDefined[sAsSymbol.Name] = sequence[0]
+		} else {
+			// otherwise must be sequence type.
+			toTryParts := []Ex{&Symbol{"Sequence"}}
+			if isImpliedBs {
+				toTryParts = []Ex{&Symbol{sequenceHead}}
+			}
+			toTryParts = append(toTryParts, sequence...)
+			target := NewExpression(toTryParts)
+			var targetEx Ex = target
+			if isImpliedBs && len(target.Parts) == 2 {
+				if (target.Parts[0].(*Symbol)).Attrs(dm).OneIdentity {
+					targetEx = target.Parts[1]
+				}
+			}
+			defined, ispd := pm.patternDefined[sAsSymbol.Name]
+			if ispd && !IsSameQ(defined, targetEx, cl) {
+				cl.Debugf("patterns do not match! continuing.")
+				return false
+			}
+			pm.patternDefined[sAsSymbol.Name] = targetEx
+		}
+	}
+	return true
+}
+
 // I think for this to work, I must convert all MatchQ functions to iterators in
 // the backend. Only the final MatchQ function should try the first match.
 // Everything is an iterator that maintains its state. I think its just
@@ -465,9 +503,16 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	mmi := &multiMatchIter{}
 	if startI == 0 && len(this.match_components) == 0 {
 		// Try matching nothing at all.
-		nomi, ok := NewNonOrderlessMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, this.pm, this.cl)
-		if ok {
-			mmi.matchIters = append(mmi.matchIters, nomi)
+		updatedPm := CopyPD(this.pm)
+		patOk := true
+		if isPat {
+			patOk = DefineSequence(pat, this.match_components, isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl)
+		}
+		if patOk {
+			nomi, ok := NewNonOrderlessMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+			if ok {
+				mmi.matchIters = append(mmi.matchIters, nomi)
+			}
 		}
 	}
 	if len(this.match_components) >= endI {
@@ -562,39 +607,8 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				// We're able to move onto the next lhs_component. Try this.
 				updatedPm := CopyPD(this.pm)
 				if isPat {
-					sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
-					if sAsSymbolOk {
-						if isBlank {
-							if len(this.match_components)+1 != 1 {
-								fmt.Println("Invalid blank components length!!")
-							}
-							defined, ispd := updatedPm.patternDefined[sAsSymbol.Name]
-							if ispd && !IsSameQ(defined, this.components[0], this.cl) {
-								this.cl.Debugf("patterns do not match! continuing.")
-								continue
-							}
-							updatedPm.patternDefined[sAsSymbol.Name] = this.components[0]
-						} else {
-							// otherwise must be sequence type.
-							toTryParts := []Ex{&Symbol{"Sequence"}}
-							if isImpliedBs {
-								toTryParts = []Ex{&Symbol{this.sequenceHead}}
-							}
-							toTryParts = append(toTryParts, append(this.match_components, this.components[0])...)
-							target := NewExpression(toTryParts)
-							var targetEx Ex = target
-							if isImpliedBs && len(target.Parts) == 2 {
-								if (target.Parts[0].(*Symbol)).Attrs(this.dm).OneIdentity {
-									targetEx = target.Parts[1]
-								}
-							}
-							defined, ispd := updatedPm.patternDefined[sAsSymbol.Name]
-							if ispd && !IsSameQ(defined, targetEx, this.cl) {
-								this.cl.Debugf("patterns do not match! continuing.")
-								continue
-							}
-							updatedPm.patternDefined[sAsSymbol.Name] = targetEx
-						}
+					if !DefineSequence(pat, append(this.match_components, this.components[0]), isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl) {
+						continue
 					}
 				}
 				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
