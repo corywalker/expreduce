@@ -452,7 +452,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			isRepeated = false
 		}
 	} else if isBns || isBs || isImpliedBs {
-		endI = len(this.components)
+		endI = len(this.match_components) + len(this.components)
 	}
 	if startI > len(this.components) {
 		// If our current lhs_component requires more components than we have
@@ -462,7 +462,15 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		this.cl.Infof("base case: this.components not long enough. Returning.")
 		return false, this.pm, true
 	}
-	if endI <= len(this.match_components) {
+	mmi := &multiMatchIter{}
+	if startI == 0 && len(this.match_components) == 0 {
+		// Try matching nothing at all.
+		nomi, ok := NewNonOrderlessMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, this.pm, this.cl)
+		if ok {
+			mmi.matchIters = append(mmi.matchIters, nomi)
+		}
+	}
+	if len(this.match_components) >= endI {
 		this.cl.Infof("base case: match_components too long. Should not happen. Returning.")
 		return false, this.pm, true
 	}
@@ -536,14 +544,15 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	}*/
 	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], form, this.pm)
 	mi, cont := NewMatchIter(this.components[0], form, this.dm, this.pm, this.cl)
-	mmi := &multiMatchIter{}
 	for cont {
 		matchq, _, done := mi.next()
 		cont = !done
 		if matchq {
 			if len(this.match_components)+1 < endI {
+				updatedPm := CopyPD(this.pm)
 				// Try continuing with the current sequence.
-				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components, append(this.match_components, this.components[0]), this.isFlat, this.sequenceHead, this.dm, this.pm, this.cl)
+				new_matched := append(ExArrayDeepCopy(this.match_components), this.components[0])
+				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components, new_matched, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 				if ok {
 					mmi.matchIters = append(mmi.matchIters, nomi)
 				}
@@ -561,17 +570,17 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 							}
 							defined, ispd := updatedPm.patternDefined[sAsSymbol.Name]
 							if ispd && !IsSameQ(defined, this.components[0], this.cl) {
+								this.cl.Debugf("patterns do not match! continuing.")
 								continue
 							}
 							updatedPm.patternDefined[sAsSymbol.Name] = this.components[0]
 						} else {
 							// otherwise must be sequence type.
-							/*
 							toTryParts := []Ex{&Symbol{"Sequence"}}
 							if isImpliedBs {
 								toTryParts = []Ex{&Symbol{this.sequenceHead}}
 							}
-							toTryParts = append(toTryParts, seqToTry...)
+							toTryParts = append(toTryParts, append(this.match_components, this.components[0])...)
 							target := NewExpression(toTryParts)
 							var targetEx Ex = target
 							if isImpliedBs && len(target.Parts) == 2 {
@@ -581,10 +590,10 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 							}
 							defined, ispd := updatedPm.patternDefined[sAsSymbol.Name]
 							if ispd && !IsSameQ(defined, targetEx, this.cl) {
+								this.cl.Debugf("patterns do not match! continuing.")
 								continue
 							}
 							updatedPm.patternDefined[sAsSymbol.Name] = targetEx
-							*/
 						}
 					}
 				}
