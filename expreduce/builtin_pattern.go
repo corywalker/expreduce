@@ -435,8 +435,12 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
 			&SameTest{"{{{},{a,b}},{{a},{b}},{{a,b},{}}}", "ReplaceList[foo[a,b],foo[a___,b___]->{{a},{b}}]"},
 			&SameTest{"{}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a:Repeated[b_,{2}],rest___]->{{a},{rest}}]"},
+			&SameTest{"{{c}}", "ReplaceList[foo[a,b,c],foo[___,a_]->{a}]"},
+			&SameTest{"{{a+b+c}}", "ReplaceList[a+b+c,a_->{a}]"},
+			&SameTest{"{{{},{a,b},{},{b,c}},{{},{a,b},{b},{c}},{{},{a,b},{b,c},{}},{{a},{b},{},{b,c}},{{a},{b},{b},{c}},{{a},{b},{b,c},{}},{{a,b},{},{},{b,c}},{{a,b},{},{b},{c}},{{a,b},{},{b,c},{}}}", "ReplaceList[foo[a,b,foo[b,c]],foo[a___,b___,foo[c___,d___]]->{{a},{b},{c},{d}}]"},
 		},
 		KnownFailures: []TestInstruction{
+			// Orderless has issues. Flat seems to work fine. regular ordered matching seems perfect.
 			&SameTest{"{{a+b+c},{b+c},{a+c},{a+b},{c},{b},{a}}", "ReplaceList[a+b+c,___+a_->{a}]"},
 			&SameTest{"{{{},{a,b}},{{a},{b}},{{b},{a}},{{a,b},{}}}", "ReplaceList[a+b,x___+y___->{{x},{y}}]"},
 			&SameTest{"{{{a},{b+c}},{{b},{a+c}},{{c},{a+b}},{{a+b},{c}},{{a+c},{b}},{{b+c},{a}}}", "ReplaceList[a+b+c,a_+b_->{{a},{b}}]"},
@@ -448,6 +452,13 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"{{{a,a},{b,b,c}},{{b,b},{a,a,c}}}", "ReplaceList[ExpreduceOrderlessFn[a,a,b,b,c],ExpreduceOrderlessFn[a:Repeated[b_,{2}],rest___]->{{a},{rest}}]"},
 			&SameTest{"{{{a,b},{c}},{{a,c},{b}},{{b,c},{a}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a:Repeated[_,{2}],rest___]->{{a},{rest}}]"},
 			&SameTest{"{{{a,b},{c,d}},{{a,c},{b,d}},{{a,d},{b,c}},{{b,c},{a,d}},{{b,d},{a,c}},{{c,d},{a,b}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c,d],ExpreduceOrderlessFn[a:Repeated[_,{2}],rest___]->{{a},{rest}}]"},
+
+
+			&SameTest{"{{a},{b},{c}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[___,a_]->{a}]"},
+			&SameTest{"{{a+b+c},{b+c},{a+c},{a+b},{c},{b},{a}}", "ReplaceList[a+b+c,___+a_->{a}]"},
+			&SameTest{"{{a,b,c},{b,c},{a,c},{a,b},{c},{b},{a},{}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a___,rest___]->{rest}]"},
+			&SameTest{"{{{},{a,b}},{{a},{b}},{{b},{a}},{{a,b},{}}}", "ReplaceList[ExpreduceOrderlessFn[a,b],ExpreduceOrderlessFn[a___,b___]->{{a},{b}}]"},
+			&SameTest{"{{{},{a,b},{},{c,d}},{{},{a,b},{c},{d}},{{},{a,b},{d},{c}},{{},{a,b},{c,d},{}},{{a},{b},{},{c,d}},{{a},{b},{c},{d}},{{a},{b},{d},{c}},{{a},{b},{c,d},{}},{{b},{a},{},{c,d}},{{b},{a},{c},{d}},{{b},{a},{d},{c}},{{b},{a},{c,d},{}},{{a,b},{},{},{c,d}},{{a,b},{},{c},{d}},{{a,b},{},{d},{c}},{{a,b},{},{c,d},{}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,ExpreduceOrderlessFn[c,d]],ExpreduceOrderlessFn[a___,b___,ExpreduceOrderlessFn[c___,d___]]->{{a},{b},{c},{d}}]"},
 		},
 	})
 	defs = append(defs, Definition{

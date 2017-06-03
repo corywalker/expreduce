@@ -258,7 +258,7 @@ func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, isFlat bool, se
 	omi.dm = dm
 
 	if cl.debugState {
-		cl.Debugf("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
+		cl.Infof("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
 	}
 	nonBS, bs := extractBlankSequences(lhs_components)
 	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
