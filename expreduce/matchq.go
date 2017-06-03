@@ -511,14 +511,20 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			}
 			if repMax != -1 {
 				endI = repMax
+			} else {
+				// an undefined end can match to the end of the sequence.
+				endI = len(this.match_components) + len(this.components)
 			}
 		} else {
 			isRepeated = false
 		}
+		this.cl.Debugf("test: Determined sequence startI = %v, endI = %v", startI, endI)
 	} else if isBns || isBs || isImpliedBs {
 		endI = len(this.match_components) + len(this.components)
 	}
-	if startI > len(this.components) {
+	this.cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
+
+	if (startI-len(this.match_components)) > len(this.components) {
 		// If our current lhs_component requires more components than we have
 		// available, return early. TODO: Perhaps also keep track of the min
 		// components for the other lhs components and return even earlier
@@ -555,7 +561,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			return false, this.pm, true
 		}
 	}
-	this.cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
 
 	form := this.lhs_components[0]
 	// These lines effectively strip out the pattern. Might want a refactor
