@@ -635,18 +635,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			if (interesting) {
 				this.cl.Infof("COOOOOL: actually found a match.")
 			}
-			if len(this.match_components)+1 < endI {
-				if (interesting) {
-					this.cl.Infof("COOOOOL: actually found a match.")
-				}
-				updatedPm := CopyPD(this.pm)
-				// Try continuing with the current sequence.
-				new_matched := append(ExArrayDeepCopy(this.match_components), this.components[0])
-				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components, new_matched, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
-				if ok {
-					mmi.matchIters = append(mmi.matchIters, nomi)
-				}
-			}
 
 			if len(this.match_components)+1 >= startI {
 				// We're able to move onto the next lhs_component. Try this.
@@ -657,6 +645,18 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					}
 				}
 				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+				if ok {
+					mmi.matchIters = append(mmi.matchIters, nomi)
+				}
+			}
+			if len(this.match_components)+1 < endI {
+				if (interesting) {
+					this.cl.Infof("COOOOOL: actually found a match.")
+				}
+				updatedPm := CopyPD(this.pm)
+				// Try continuing with the current sequence.
+				new_matched := append(ExArrayDeepCopy(this.match_components), this.components[0])
+				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components, new_matched, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 				if ok {
 					mmi.matchIters = append(mmi.matchIters, nomi)
 				}
