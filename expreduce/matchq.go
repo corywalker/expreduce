@@ -419,7 +419,7 @@ func NewNonOrderlessMatchIterDS(components []Ex, lhs_components []Ex, match_comp
 func DefineSequence(pat *Expression, sequence []Ex, isBlank bool, pm *PDManager, isImpliedBs bool, sequenceHead string, dm *DefMap, cl *CASLogger) bool {
 	sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 	if sAsSymbolOk {
-		if isBlank {
+		if isBlank && !isImpliedBs {
 			if len(sequence) != 1 {
 				fmt.Println("Invalid blank components length!!")
 			}
