@@ -382,6 +382,7 @@ type nonOrderlessMatchIter struct {
 	isFlat			bool
 	sequenceHead	string
 	dm				*DefMap
+	debugString		string
 }
 
 func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, match_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (matchIter, bool) {
@@ -394,6 +395,22 @@ func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, match_compon
 	nomi.isFlat = isFlat
 	nomi.sequenceHead = sequenceHead
 	nomi.dm = dm
+
+	// This function is now recursive because of the existence of BlankSequence.
+	return nomi, true
+}
+
+func NewNonOrderlessMatchIterDS(components []Ex, lhs_components []Ex, match_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger, ds string) (matchIter, bool) {
+	nomi := &nonOrderlessMatchIter{}
+	nomi.components = components
+	nomi.lhs_components = lhs_components
+	nomi.match_components = match_components
+	nomi.pm = CopyPD(pm)
+	nomi.cl = cl
+	nomi.isFlat = isFlat
+	nomi.sequenceHead = sequenceHead
+	nomi.dm = dm
+	nomi.debugString = ds
 
 	// This function is now recursive because of the existence of BlankSequence.
 	return nomi, true
@@ -451,8 +468,17 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		this.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, match_components: %s, isFlat: %v, pm: %s)", ExArrayToString(this.components), ExArrayToString(this.lhs_components), ExArrayToString(this.match_components), this.isFlat, this.pm)
 	}
 	if len(this.lhs_components) == 0 {
-		this.cl.Infof("base case: lhs_components is empty. This could mean a successful match. Returning.")
+		if len(this.components) == 0 {
+			this.cl.Debugf("base case: lhs_components is empty. SUCCESSFUL MATCH!!!! Returning.")
+		} else {
+			this.cl.Debugf("base case: lhs_components is empty. Not successful. Returning.")
+		}
 		return len(this.components) == 0, this.pm, true
+	}
+	interesting := false
+	if this.lhs_components[0].String() == "a___" && len(this.match_components) == 1 {
+		interesting = true
+		this.cl.Infof("COOOOOOOOLLLL!!!")
 	}
 
 	// Calculate the min and max elements this component can match.
@@ -503,21 +529,31 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	mmi := &multiMatchIter{}
 	if startI == 0 && len(this.match_components) == 0 {
 		// Try matching nothing at all.
+		this.cl.Infof("trying to match nothing at all.")
 		updatedPm := CopyPD(this.pm)
 		patOk := true
 		if isPat {
 			patOk = DefineSequence(pat, this.match_components, isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl)
+			this.cl.Infof("is pattern")
 		}
+		this.cl.Infof("patOk = %v", patOk)
 		if patOk {
 			nomi, ok := NewNonOrderlessMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 			if ok {
+				this.cl.Infof("appended NonOrderlessMatchIter(%v, %v, []Ex{}, %v) to matchiters", ExArrayToString(this.components), ExArrayToString(this.lhs_components[1:]), updatedPm)
 				mmi.matchIters = append(mmi.matchIters, nomi)
 			}
 		}
 	}
 	if len(this.match_components) >= endI {
+		this.cl.Infof("len(this.match_components) = %v, endI = %v", len(this.match_components), endI)
 		this.cl.Infof("base case: match_components too long. Should not happen. Returning.")
-		return false, this.pm, true
+		if len(mmi.matchIters) > 0 {
+			this.remainingMatchIter = mmi
+			return false, this.pm, false
+		} else {
+			return false, this.pm, true
+		}
 	}
 	this.cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
 
@@ -588,12 +624,21 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		return false, this.pm, false
 	}*/
 	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], form, this.pm)
+	if (interesting) {
+		this.cl.Infof("COOOOOL: the above line describes what we're trying.")
+	}
 	mi, cont := NewMatchIter(this.components[0], form, this.dm, this.pm, this.cl)
 	for cont {
 		matchq, _, done := mi.next()
 		cont = !done
 		if matchq {
+			if (interesting) {
+				this.cl.Infof("COOOOOL: actually found a match.")
+			}
 			if len(this.match_components)+1 < endI {
+				if (interesting) {
+					this.cl.Infof("COOOOOL: actually found a match.")
+				}
 				updatedPm := CopyPD(this.pm)
 				// Try continuing with the current sequence.
 				new_matched := append(ExArrayDeepCopy(this.match_components), this.components[0])
