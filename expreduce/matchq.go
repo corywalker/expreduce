@@ -660,6 +660,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					this.cl.Infof("COOOOOL: actually found a match.")
 				}
 				updatedPm := CopyPD(this.pm)
+				updatedPm.Update(submatches)
 				// Try continuing with the current sequence.
 				new_matched := append(ExArrayDeepCopy(this.match_components), this.components[0])
 				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components, new_matched, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
