@@ -437,37 +437,31 @@ func DefineSequence(pat *Expression, sequence []Ex, isBlank bool, pm *PDManager,
 	return true
 }
 
-func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
-	// This block allows us to queue up match iters from the function.
-	if this.remainingMatchIter != nil {
-		matchq, newPd, done := this.remainingMatchIter.next()
-		return matchq, newPd, done
-	}
-	if this.cl.debugState {
-		this.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, match_components: %s, isFlat: %v, pm: %s)", ExArrayToString(this.components), ExArrayToString(this.lhs_components), ExArrayToString(this.match_components), this.isFlat, this.pm)
-	}
-	if len(this.lhs_components) == 0 {
-		if len(this.components) == 0 {
-			this.cl.Debugf("base case: lhs_components is empty. SUCCESSFUL MATCH!!!! Returning.")
-		} else {
-			this.cl.Debugf("base case: lhs_components is empty. Not successful. Returning.")
-		}
-		return len(this.components) == 0, this.pm, true
-	}
+type parsedForm struct {
+	startI		int
+	endI		int
+	form		Ex
+	isPat		bool
+	isBlank		bool
+	isImpliedBs	bool
+	pat			*Expression
+	sequenceHeadAssert	bool
+}
 
+func ParseForm(lhs_component Ex, num_unmatched int, isFlat bool, sequenceHead string, cl *CASLogger) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
-	pat, isPat := HeadAssertion(this.lhs_components[0], "Pattern")
-	bns, isBns := HeadAssertion(this.lhs_components[0], "BlankNullSequence")
-	bs, isBs := HeadAssertion(this.lhs_components[0], "BlankSequence")
-	blank, isBlank := HeadAssertion(this.lhs_components[0], "Blank")
-	repeated, isRepeated := HeadAssertion(this.lhs_components[0], "Repeated")
+	pat, isPat := HeadAssertion(lhs_component, "Pattern")
+	bns, isBns := HeadAssertion(lhs_component, "BlankNullSequence")
+	bs, isBs := HeadAssertion(lhs_component, "BlankSequence")
+	blank, isBlank := HeadAssertion(lhs_component, "Blank")
+	repeated, isRepeated := HeadAssertion(lhs_component, "Repeated")
 	if isPat {
 		bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
 		bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
 		blank, isBlank = HeadAssertion(pat.Parts[2], "Blank")
 		repeated, isRepeated = HeadAssertion(pat.Parts[2], "Repeated")
 	}
-	isImpliedBs := isBlank && this.isFlat
+	isImpliedBs := isBlank && isFlat
 
 	startI := 1 // also includes implied blanksequence
 	if isBns {
@@ -486,26 +480,17 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				endI = repMax
 			} else {
 				// an undefined end can match to the end of the sequence.
-				endI = len(this.match_components) + len(this.components)
+				endI = num_unmatched
 			}
 		} else {
 			isRepeated = false
 		}
 	} else if isBns || isBs || isImpliedBs {
-		endI = len(this.match_components) + len(this.components)
+		endI = num_unmatched
 	}
-	this.cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
+	cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
 
-	if (startI-len(this.match_components)) > len(this.components) {
-		// If our current lhs_component requires more components than we have
-		// available, return early. TODO: Perhaps also keep track of the min
-		// components for the other lhs components and return even earlier
-		// if we detect a problem.
-		this.cl.Infof("base case: this.components not long enough. Returning.")
-		return false, this.pm, true
-	}
-
-	form := this.lhs_components[0]
+	form := lhs_component
 	// These lines effectively strip out the pattern. Might want a refactor
 	// later.
 	if isBns {
@@ -527,7 +512,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			if len(blankExpr.Parts) >= 2 {
 				sym, isSym := blankExpr.Parts[1].(*Symbol)
 				if isSym {
-					if sym.Name == this.sequenceHead {
+					if sym.Name == sequenceHead {
 						sequenceHeadAssert = true
 						form = NewExpression([]Ex{&Symbol{"Blank"}})
 					}
@@ -538,15 +523,56 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			}
 		}
 	}
-	this.cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
+	cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
+
+	res.startI = startI
+	res.endI = endI
+	res.form = form
+	res.isPat = isPat
+	res.isImpliedBs = isImpliedBs
+	res.pat = pat
+	res.isBlank = isBlank
+	res.sequenceHeadAssert = sequenceHeadAssert
+	return res
+}
+
+func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
+	// This block allows us to queue up match iters from the function.
+	if this.remainingMatchIter != nil {
+		matchq, newPd, done := this.remainingMatchIter.next()
+		return matchq, newPd, done
+	}
+	if this.cl.debugState {
+		this.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, match_components: %s, isFlat: %v, pm: %s)", ExArrayToString(this.components), ExArrayToString(this.lhs_components), ExArrayToString(this.match_components), this.isFlat, this.pm)
+	}
+	if len(this.lhs_components) == 0 {
+		if len(this.components) == 0 {
+			this.cl.Debugf("base case: lhs_components is empty. SUCCESSFUL MATCH!!!! Returning.")
+		} else {
+			this.cl.Debugf("base case: lhs_components is empty. Not successful. Returning.")
+		}
+		return len(this.components) == 0, this.pm, true
+	}
+
+	num_unmatched := len(this.match_components) + len(this.components)
+	formParsed := ParseForm(this.lhs_components[0], num_unmatched, this.isFlat, this.sequenceHead, this.cl)
+
+	if (formParsed.startI-num_unmatched) > 0 {
+		// If our current lhs_component requires more components than we have
+		// available, return early. TODO: Perhaps also keep track of the min
+		// components for the other lhs components and return even earlier
+		// if we detect a problem.
+		this.cl.Infof("base case: this.components not long enough. Returning.")
+		return false, this.pm, true
+	}
 
 	mmi := &multiMatchIter{}
-	if startI == 0 && len(this.match_components) == 0 {
+	if formParsed.startI == 0 && len(this.match_components) == 0 {
 		// Try matching nothing at all.
 		updatedPm := CopyPD(this.pm)
 		patOk := true
-		if isPat {
-			patOk = DefineSequence(pat, this.match_components, isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl)
+		if formParsed.isPat {
+			patOk = DefineSequence(formParsed.pat, this.match_components, formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
 		}
 		if patOk {
 			nomi, ok := NewNonOrderlessMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
@@ -555,8 +581,8 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			}
 		}
 	}
-	if len(this.match_components) >= endI {
-		this.cl.Infof("len(this.match_components) = %v, endI = %v", len(this.match_components), endI)
+	if len(this.match_components) >= formParsed.endI {
+		this.cl.Infof("len(this.match_components) = %v, formParsed.endI = %v", len(this.match_components), formParsed.endI)
 		this.cl.Infof("base case: match_components too long. Should not happen. Returning.")
 		if len(mmi.matchIters) > 0 {
 			this.remainingMatchIter = mmi
@@ -566,19 +592,19 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		}
 	}
 
-	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], form, this.pm)
-	mi, cont := NewMatchIter(this.components[0], form, this.dm, this.pm, this.cl)
+	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], formParsed.form, this.pm)
+	mi, cont := NewMatchIter(this.components[0], formParsed.form, this.dm, this.pm, this.cl)
 	for cont {
 		matchq, submatches, done := mi.next()
 		cont = !done
 		if matchq {
-			if (len(this.match_components)+1 >= startI) && (!sequenceHeadAssert || len(this.match_components) > 0) {
+			if (len(this.match_components)+1 >= formParsed.startI) && (!formParsed.sequenceHeadAssert || len(this.match_components) > 0) {
 				// We're able to move onto the next lhs_component. Try this.
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
 				passedDefine := true
-				if isPat {
-					passedDefine = DefineSequence(pat, append(this.match_components, this.components[0]), isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl)
+				if formParsed.isPat {
+					passedDefine = DefineSequence(formParsed.pat, append(this.match_components, this.components[0]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
 				}
 				if passedDefine {
 					nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
@@ -587,7 +613,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					}
 				}
 			}
-			if len(this.match_components)+1 < endI {
+			if len(this.match_components)+1 < formParsed.endI {
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
 				// Try continuing with the current sequence.
