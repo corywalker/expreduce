@@ -382,7 +382,6 @@ type nonOrderlessMatchIter struct {
 	isFlat			bool
 	sequenceHead	string
 	dm				*DefMap
-	debugString		string
 }
 
 func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, match_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (matchIter, bool) {
@@ -395,22 +394,6 @@ func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, match_compon
 	nomi.isFlat = isFlat
 	nomi.sequenceHead = sequenceHead
 	nomi.dm = dm
-
-	// This function is now recursive because of the existence of BlankSequence.
-	return nomi, true
-}
-
-func NewNonOrderlessMatchIterDS(components []Ex, lhs_components []Ex, match_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger, ds string) (matchIter, bool) {
-	nomi := &nonOrderlessMatchIter{}
-	nomi.components = components
-	nomi.lhs_components = lhs_components
-	nomi.match_components = match_components
-	nomi.pm = CopyPD(pm)
-	nomi.cl = cl
-	nomi.isFlat = isFlat
-	nomi.sequenceHead = sequenceHead
-	nomi.dm = dm
-	nomi.debugString = ds
 
 	// This function is now recursive because of the existence of BlankSequence.
 	return nomi, true
@@ -454,10 +437,6 @@ func DefineSequence(pat *Expression, sequence []Ex, isBlank bool, pm *PDManager,
 	return true
 }
 
-// I think for this to work, I must convert all MatchQ functions to iterators in
-// the backend. Only the final MatchQ function should try the first match.
-// Everything is an iterator that maintains its state. I think its just
-// two other functions: NonOrderlessIsMatchQ and IsMatchQ. potentially need to convert consumers of these functions to use the iterator version.
 func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	// This block allows us to queue up match iters from the function.
 	if this.remainingMatchIter != nil {
@@ -474,11 +453,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			this.cl.Debugf("base case: lhs_components is empty. Not successful. Returning.")
 		}
 		return len(this.components) == 0, this.pm, true
-	}
-	interesting := false
-	if this.lhs_components[0].String() == "a___" && len(this.match_components) == 1 {
-		interesting = true
-		this.cl.Infof("COOOOOOOOLLLL!!!")
 	}
 
 	// Calculate the min and max elements this component can match.
@@ -503,7 +477,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	var repPat Ex
 	if isRepeated {
 		newRepPat, repMin, repMax, repOk := ParseRepeated(repeated)
-		this.cl.Infof("Encountered repeated")
 		repPat = newRepPat
 		if (repOk) {
 			if repMin != -1 {
@@ -518,7 +491,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		} else {
 			isRepeated = false
 		}
-		this.cl.Debugf("test: Determined sequence startI = %v, endI = %v", startI, endI)
 	} else if isBns || isBs || isImpliedBs {
 		endI = len(this.match_components) + len(this.components)
 	}
@@ -567,45 +539,18 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		}
 	}
 	this.cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
-	/*
-	if isImpliedBs {
-		minReq := 0
-		if (&Symbol{this.sequenceHead}).Attrs(this.dm).OneIdentity {
-			minReq = 1
-		}
-		blankExpr, isExpr := form.(*Expression)
-		if !isExpr {
-			return false, this.pm, true
-			//return false, pm
-		}
-		// if candidate is larger than the minimum and the blank has an assertion
-		if len(this.match_components) > minReq && len(blankExpr.Parts) >= 2 {
-			sym, isSym := blankExpr.Parts[1].(*Symbol)
-			if isSym {
-				if sym.Name != this.sequenceHead {
-					return false, this.pm, true
-					//return false, pm
-				}
-				//return true, pm
-			}
-		}
-	}*/
 
 	mmi := &multiMatchIter{}
 	if startI == 0 && len(this.match_components) == 0 {
 		// Try matching nothing at all.
-		this.cl.Infof("trying to match nothing at all.")
 		updatedPm := CopyPD(this.pm)
 		patOk := true
 		if isPat {
 			patOk = DefineSequence(pat, this.match_components, isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl)
-			this.cl.Infof("is pattern")
 		}
-		this.cl.Infof("patOk = %v", patOk)
 		if patOk {
 			nomi, ok := NewNonOrderlessMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 			if ok {
-				this.cl.Infof("appended NonOrderlessMatchIter(%v, %v, []Ex{}, %v) to matchiters", ExArrayToString(this.components), ExArrayToString(this.lhs_components[1:]), updatedPm)
 				mmi.matchIters = append(mmi.matchIters, nomi)
 			}
 		}
@@ -621,71 +566,12 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		}
 	}
 
-
-	/*
-		mmi := &multiMatchIter{}
-		for j := startI; j <= endI; j++ {
-			seqToTry := this.components[0:j]
-			remainingComps := this.components[j:]
-
-			seqMatches, newPm := false, EmptyPD()
-			if isBns {
-				seqMatches, newPm = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), "", this.dm, this.pm, this.cl)
-			} else if isImpliedBs {
-				seqMatches, newPm = ExArrayTestRepeatingMatch(seqToTry, blank, this.sequenceHead, this.dm, this.pm, this.cl)
-			} else if isRepeated {
-				seqMatches, newPm = ExArrayTestRepeatingMatch(seqToTry, repPat, "", this.dm, this.pm, this.cl)
-			} else {
-				seqMatches, newPm = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), "", this.dm, this.pm, this.cl)
-			}
-			this.cl.Debugf("ExArrayTestRepeatingMatch(%v, %v) = %v", ExArrayToString(seqToTry), this.lhs_components[0], seqMatches)
-
-			if seqMatches {
-				tmpPm := CopyPD(newPm)
-				if isPat {
-					sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
-					if sAsSymbolOk {
-						toTryParts := []Ex{&Symbol{"Sequence"}}
-						if isImpliedBs {
-							toTryParts = []Ex{&Symbol{this.sequenceHead}}
-						}
-						toTryParts = append(toTryParts, seqToTry...)
-						target := NewExpression(toTryParts)
-						var targetEx Ex = target
-						if isImpliedBs && len(target.Parts) == 2 {
-							if (target.Parts[0].(*Symbol)).Attrs(this.dm).OneIdentity {
-								targetEx = target.Parts[1]
-							}
-						}
-						defined, ispd := tmpPm.patternDefined[sAsSymbol.Name]
-						if ispd && !IsSameQ(defined, targetEx, this.cl) {
-							continue
-						}
-						tmpPm.patternDefined[sAsSymbol.Name] = targetEx
-					}
-				}
-				nomi, cont := NewNonOrderlessMatchIter(remainingComps, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, tmpPm, this.cl)
-				if cont {
-					mmi.matchIters = append(mmi.matchIters, nomi)
-				}
-			}
-		}
-		this.remainingMatchIter = mmi
-		return false, this.pm, false
-	}*/
 	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], form, this.pm)
-	if (interesting) {
-		this.cl.Infof("COOOOOL: the above line describes what we're trying.")
-	}
 	mi, cont := NewMatchIter(this.components[0], form, this.dm, this.pm, this.cl)
 	for cont {
 		matchq, submatches, done := mi.next()
 		cont = !done
 		if matchq {
-			if (interesting) {
-				this.cl.Infof("COOOOOL: actually found a match.")
-			}
-
 			if (len(this.match_components)+1 >= startI) && (!sequenceHeadAssert || len(this.match_components) > 0) {
 				// We're able to move onto the next lhs_component. Try this.
 				updatedPm := CopyPD(this.pm)
@@ -702,13 +588,10 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				}
 			}
 			if len(this.match_components)+1 < endI {
-				if (interesting) {
-					this.cl.Infof("COOOOOL: actually found a match.")
-				}
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
 				// Try continuing with the current sequence.
-				new_matched := append(ExArrayDeepCopy(this.match_components), this.components[0])
+				new_matched := append(this.match_components, this.components[0])
 				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components, new_matched, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 				if ok {
 					mmi.matchIters = append(mmi.matchIters, nomi)
@@ -743,38 +626,4 @@ func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
 		}
 	}
 	return
-}
-
-func ExArrayTestRepeatingMatch(array []Ex, blank Ex, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	if len(sequenceHead) > 0 {
-		// basically, flat
-		minReq := 0
-		if (&Symbol{sequenceHead}).Attrs(dm).OneIdentity {
-			minReq = 1
-		}
-		blankExpr, isExpr := blank.(*Expression)
-		if !isExpr {
-			return false, pm
-		}
-		// if candidate is larger than the minimum and the blank has an assertion
-		if len(array) > minReq && len(blankExpr.Parts) >= 2 {
-			sym, isSym := blankExpr.Parts[1].(*Symbol)
-			if isSym {
-				if sym.Name != sequenceHead {
-					return false, pm
-				}
-				return true, pm
-			}
-		}
-	}
-	for _, e := range array {
-		tmpEs := NewEvalStateNoLog(false)
-		// TODO: CHANGEME
-		isMatch, newPD := IsMatchQ(e, blank, dm, pm, &tmpEs.CASLogger)
-		pm = newPD
-		if !isMatch {
-			return false, pm
-		}
-	}
-	return true, pm
 }
