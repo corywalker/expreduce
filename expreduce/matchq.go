@@ -180,7 +180,8 @@ func NewMatchIter(a Ex, b Ex, dm *DefMap, pm *PDManager, cl *CASLogger) (matchIt
 	}
 
 	if attrs.Orderless {
-		omi, ok := NewOrderlessMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], attrs.Flat, sequenceHead, dm, pm, cl)
+		//omi, ok := NewOrderlessMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], attrs.Flat, sequenceHead, dm, pm, cl)
+		omi, ok := NewSequenceMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], []Ex{}, attrs.Orderless, attrs.Flat, sequenceHead, dm, pm, cl)
 		if !ok {
 			return &dummyMatchIter{false, pm, true}, true
 		}
@@ -371,7 +372,7 @@ func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 }
 
 func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	omi, cont := NewOrderlessMatchIter(components, lhs_components, isFlat, sequenceHead, dm, pm, cl)
+	omi, cont := NewSequenceMatchIter(components, lhs_components, []Ex{}, true, isFlat, sequenceHead, dm, pm, cl)
 	return GetMatchQ(omi, cont, pm)
 }
 
@@ -553,7 +554,8 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 
 	mmi := &multiMatchIter{}
 	// We have 3 choices: Skip current form entirely, move on to the next form,
-	// or append to the current form.
+	// or append to the current form. I have a strong feeling this can be merged
+	// into two.
 	if formParsed.startI == 0 && len(this.match_components) == 0 {
 		// Try matching nothing at all. We can try this even if this.components
 		// is empty
@@ -573,39 +575,51 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 
 	// At this point we have a component left, and we want to attempt matching
 	// it with the current lhs_components[0] or the next one.
-	compI := 0
-	remainingComps := []Ex{}
-	remainingComps = append(remainingComps, this.components[:compI]...)
-	remainingComps = append(remainingComps, this.components[compI+1:]...)
-	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[compI], formParsed.form, this.pm)
-	mi, cont := NewMatchIter(this.components[compI], formParsed.form, this.dm, this.pm, this.cl)
-	for cont {
-		matchq, submatches, done := mi.next()
-		cont = !done
-		if matchq {
-			// As long as we've matched enough components, try moving on.
-			if len(this.match_components)+1 >= formParsed.startI {
-				// We're able to move onto the next lhs_component. Try this.
-				updatedPm := CopyPD(this.pm)
-				updatedPm.Update(submatches)
-				passedDefine := DefineSequence(this.lhs_components[0], append(this.match_components, this.components[compI]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
-				if passedDefine {
-					nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+	compEndI := 1
+	compStartI := 0
+	if this.isOrderless {
+		compEndI = len(this.components)
+		if len(this.match_components) > 0 {
+			last_mc := this.match_components[len(this.match_components)-1]
+			for compStartI < len(this.components) && ExOrder(last_mc, this.components[compStartI]) == -1 {
+				compStartI++
+			}
+		}
+	}
+	for compI := compStartI; compI < compEndI; compI++ {
+		remainingComps := []Ex{}
+		remainingComps = append(remainingComps, this.components[:compI]...)
+		remainingComps = append(remainingComps, this.components[compI+1:]...)
+		this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[compI], formParsed.form, this.pm)
+		mi, cont := NewMatchIter(this.components[compI], formParsed.form, this.dm, this.pm, this.cl)
+		for cont {
+			matchq, submatches, done := mi.next()
+			cont = !done
+			if matchq {
+				// As long as we've matched enough components, try moving on.
+				if len(this.match_components)+1 >= formParsed.startI {
+					// We're able to move onto the next lhs_component. Try this.
+					updatedPm := CopyPD(this.pm)
+					updatedPm.Update(submatches)
+					passedDefine := DefineSequence(this.lhs_components[0], append(this.match_components, this.components[compI]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
+					if passedDefine {
+						nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+						if ok {
+							mmi.matchIters = append(mmi.matchIters, nomi)
+						}
+					}
+				}
+				// As long as we haven't matched too many components, try using
+				// the same pattern.
+				if len(this.match_components)+1 < endI {
+					updatedPm := CopyPD(this.pm)
+					updatedPm.Update(submatches)
+					// Try continuing with the current sequence.
+					new_matched := append(this.match_components, this.components[compI])
+					nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 					if ok {
 						mmi.matchIters = append(mmi.matchIters, nomi)
 					}
-				}
-			}
-			// As long as we haven't matched too many components, try using
-			// the same pattern.
-			if len(this.match_components)+1 < endI {
-				updatedPm := CopyPD(this.pm)
-				updatedPm.Update(submatches)
-				// Try continuing with the current sequence.
-				new_matched := append(this.match_components, this.components[compI])
-				nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
-				if ok {
-					mmi.matchIters = append(mmi.matchIters, nomi)
 				}
 			}
 		}
