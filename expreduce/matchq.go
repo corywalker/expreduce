@@ -469,6 +469,8 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	form := lhs_component
 	startI := 1 // also includes implied blanksequence
 	endI := 1
+	sequenceHeadAssert := false
+
 	if isBns {
 		form = BlankNullSequenceToBlank(bns)
 		startI = 0
@@ -476,6 +478,18 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	} else if isImpliedBs {
 		form = blank
 		endI = MaxInt
+		if len(blank.Parts) >= 2 {
+			sym, isSym := blank.Parts[1].(*Symbol)
+			if isSym {
+				// If we have a pattern like k__Plus
+				if sym.Name == sequenceHead {
+					sequenceHeadAssert = true
+					form = NewExpression([]Ex{&Symbol{"Blank"}})
+				} else {
+					endI = 1
+				}
+			}
+		}
 	} else if isBlank {
 		form = blank
 	} else if isRepeated {
@@ -495,26 +509,6 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	} else if isBs {
 		form = BlankSequenceToBlank(bs)
 		endI = MaxInt
-	}
-	cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
-
-	sequenceHeadAssert := false
-	if isImpliedBs {
-		blankExpr, isExpr := form.(*Expression)
-		if isExpr {
-			if len(blankExpr.Parts) >= 2 {
-				sym, isSym := blankExpr.Parts[1].(*Symbol)
-				if isSym {
-					if sym.Name == sequenceHead {
-						sequenceHeadAssert = true
-						form = NewExpression([]Ex{&Symbol{"Blank"}})
-					}
-				}
-				if !sequenceHeadAssert {
-					endI = 1
-				}
-			}
-		}
 	}
 	cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
 
