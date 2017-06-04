@@ -445,7 +445,7 @@ func DefineSequence(pat *Expression, sequence []Ex, isBlank bool, pm *PDManager,
 			}
 			defined, ispd := pm.patternDefined[sAsSymbol.Name]
 			if ispd && !IsSameQ(defined, targetEx, cl) {
-				cl.Debugf("patterns do not match! continuing.")
+				cl.Debugf("patterns (def=%v, target=%v) do not match! continuing.", defined, targetEx)
 				return false
 			}
 			pm.patternDefined[sAsSymbol.Name] = targetEx
@@ -690,14 +690,15 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				// We're able to move onto the next lhs_component. Try this.
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
+				passedDefine := true
 				if isPat {
-					if !DefineSequence(pat, append(this.match_components, this.components[0]), isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl) {
-						continue
-					}
+					passedDefine = DefineSequence(pat, append(this.match_components, this.components[0]), isBlank, updatedPm, isImpliedBs, this.sequenceHead, this.dm, this.cl)
 				}
-				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
-				if ok {
-					mmi.matchIters = append(mmi.matchIters, nomi)
+				if passedDefine {
+					nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+					if ok {
+						mmi.matchIters = append(mmi.matchIters, nomi)
+					}
 				}
 			}
 			if len(this.match_components)+1 < endI {
