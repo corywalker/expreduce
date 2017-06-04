@@ -532,6 +532,65 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		this.cl.Infof("base case: this.components not long enough. Returning.")
 		return false, this.pm, true
 	}
+
+	form := this.lhs_components[0]
+	// These lines effectively strip out the pattern. Might want a refactor
+	// later.
+	if isBns {
+		form = BlankNullSequenceToBlank(bns)
+	} else if isImpliedBs {
+		form = blank
+	} else if isBlank {
+		form = blank
+	} else if isRepeated {
+		form = repPat
+	} else if isBs {
+		form = BlankSequenceToBlank(bs)
+	}
+
+	sequenceHeadAssert := false
+	if isImpliedBs {
+		blankExpr, isExpr := form.(*Expression)
+		if isExpr {
+			if len(blankExpr.Parts) >= 2 {
+				sym, isSym := blankExpr.Parts[1].(*Symbol)
+				if isSym {
+					if sym.Name == this.sequenceHead {
+						sequenceHeadAssert = true
+						form = NewExpression([]Ex{&Symbol{"Blank"}})
+					}
+				}
+				if !sequenceHeadAssert {
+					endI = 1
+				}
+			}
+		}
+	}
+	this.cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
+	/*
+	if isImpliedBs {
+		minReq := 0
+		if (&Symbol{this.sequenceHead}).Attrs(this.dm).OneIdentity {
+			minReq = 1
+		}
+		blankExpr, isExpr := form.(*Expression)
+		if !isExpr {
+			return false, this.pm, true
+			//return false, pm
+		}
+		// if candidate is larger than the minimum and the blank has an assertion
+		if len(this.match_components) > minReq && len(blankExpr.Parts) >= 2 {
+			sym, isSym := blankExpr.Parts[1].(*Symbol)
+			if isSym {
+				if sym.Name != this.sequenceHead {
+					return false, this.pm, true
+					//return false, pm
+				}
+				//return true, pm
+			}
+		}
+	}*/
+
 	mmi := &multiMatchIter{}
 	if startI == 0 && len(this.match_components) == 0 {
 		// Try matching nothing at all.
@@ -562,20 +621,6 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		}
 	}
 
-	form := this.lhs_components[0]
-	// These lines effectively strip out the pattern. Might want a refactor
-	// later.
-	if isBns {
-		form = BlankNullSequenceToBlank(bns)
-	} else if isImpliedBs {
-		form = blank
-	} else if isBlank {
-		form = blank
-	} else if isRepeated {
-		form = repPat
-	} else if isBs {
-		form = BlankSequenceToBlank(bs)
-	}
 
 	/*
 		mmi := &multiMatchIter{}
@@ -641,7 +686,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				this.cl.Infof("COOOOOL: actually found a match.")
 			}
 
-			if len(this.match_components)+1 >= startI {
+			if (len(this.match_components)+1 >= startI) && (!sequenceHeadAssert || len(this.match_components) > 0) {
 				// We're able to move onto the next lhs_component. Try this.
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
@@ -701,6 +746,7 @@ func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
 
 func ExArrayTestRepeatingMatch(array []Ex, blank Ex, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	if len(sequenceHead) > 0 {
+		// basically, flat
 		minReq := 0
 		if (&Symbol{sequenceHead}).Attrs(dm).OneIdentity {
 			minReq = 1
@@ -709,6 +755,7 @@ func ExArrayTestRepeatingMatch(array []Ex, blank Ex, sequenceHead string, dm *De
 		if !isExpr {
 			return false, pm
 		}
+		// if candidate is larger than the minimum and the blank has an assertion
 		if len(array) > minReq && len(blankExpr.Parts) >= 2 {
 			sym, isSym := blankExpr.Parts[1].(*Symbol)
 			if isSym {
