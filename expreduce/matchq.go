@@ -187,7 +187,7 @@ func NewMatchIter(a Ex, b Ex, dm *DefMap, pm *PDManager, cl *CASLogger) (matchIt
 		return omi, true
 	}
 
-	nomi, ok := NewNonOrderlessMatchIter(aExpression.Parts, bExpression.Parts, []Ex{}, attrs.Flat, sequenceHead, dm, pm, cl)
+	nomi, ok := NewSequenceMatchIter(aExpression.Parts, bExpression.Parts, []Ex{}, attrs.Orderless, attrs.Flat, sequenceHead, dm, pm, cl)
 	if !ok {
 		return &dummyMatchIter{false, pm, true}, true
 	}
@@ -343,7 +343,7 @@ func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
 		if this.cl.debugState {
 			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
 		}
-		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.lhs_components, []Ex{}, this.isFlat, this.sequenceHead, this.dm, this.pm, this.cl)
+		nomi, cont := NewSequenceMatchIter(orderedComponents, this.lhs_components, []Ex{}, false, this.isFlat, this.sequenceHead, this.dm, this.pm, this.cl)
 		// Generate next permutation, if any
 		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
 		if cont {
@@ -375,7 +375,7 @@ func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequen
 	return GetMatchQ(omi, cont, pm)
 }
 
-type nonOrderlessMatchIter struct {
+type sequenceMatchIter struct {
 	components		[]Ex
 	lhs_components	[]Ex
 	match_components	[]Ex
@@ -383,18 +383,20 @@ type nonOrderlessMatchIter struct {
 	cl				*CASLogger
 	remainingMatchIter matchIter
 	isFlat			bool
+	isOrderless		bool
 	sequenceHead	string
 	dm				*DefMap
 }
 
-func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, match_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (matchIter, bool) {
-	nomi := &nonOrderlessMatchIter{}
+func NewSequenceMatchIter(components []Ex, lhs_components []Ex, match_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (matchIter, bool) {
+	nomi := &sequenceMatchIter{}
 	nomi.components = components
 	nomi.lhs_components = lhs_components
 	nomi.match_components = match_components
 	nomi.pm = CopyPD(pm)
 	nomi.cl = cl
 	nomi.isFlat = isFlat
+	nomi.isOrderless = isOrderless
 	nomi.sequenceHead = sequenceHead
 	nomi.dm = dm
 
@@ -514,14 +516,14 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	return res
 }
 
-func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
+func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 	// This block allows us to queue up match iters from the function.
 	if this.remainingMatchIter != nil {
 		matchq, newPd, done := this.remainingMatchIter.next()
 		return matchq, newPd, done
 	}
 	if this.cl.debugState {
-		this.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, match_components: %s, isFlat: %v, pm: %s)", ExArrayToString(this.components), ExArrayToString(this.lhs_components), ExArrayToString(this.match_components), this.isFlat, this.pm)
+		this.cl.Debugf("Entering sequenceIsMatchQ(components: %s, lhs_components: %s, match_components: %s, isFlat: %v, pm: %s)", ExArrayToString(this.components), ExArrayToString(this.lhs_components), ExArrayToString(this.match_components), this.isFlat, this.pm)
 	}
 	if len(this.lhs_components) == 0 {
 		if len(this.components) == 0 {
@@ -558,7 +560,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		updatedPm := CopyPD(this.pm)
 		patOk := DefineSequence(this.lhs_components[0], this.match_components, formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
 		if patOk {
-			nomi, ok := NewNonOrderlessMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+			nomi, ok := NewSequenceMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 			if ok {
 				mmi.matchIters = append(mmi.matchIters, nomi)
 			}
@@ -584,7 +586,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				updatedPm.Update(submatches)
 				passedDefine := DefineSequence(this.lhs_components[0], append(this.match_components, this.components[0]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
 				if passedDefine {
-					nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+					nomi, ok := NewSequenceMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 					if ok {
 						mmi.matchIters = append(mmi.matchIters, nomi)
 					}
@@ -597,7 +599,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 				updatedPm.Update(submatches)
 				// Try continuing with the current sequence.
 				new_matched := append(this.match_components, this.components[0])
-				nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components, new_matched, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+				nomi, ok := NewSequenceMatchIter(this.components[1:], this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 				if ok {
 					mmi.matchIters = append(mmi.matchIters, nomi)
 				}
@@ -608,10 +610,10 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	return false, this.pm, false
 }
 
-func (this *nonOrderlessMatchIter) reset() {}
+func (this *sequenceMatchIter) reset() {}
 
 func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	nomi, cont := NewNonOrderlessMatchIter(components, lhs_components, []Ex{}, isFlat, sequenceHead, dm, pm, cl)
+	nomi, cont := NewSequenceMatchIter(components, lhs_components, []Ex{}, false, isFlat, sequenceHead, dm, pm, cl)
 	return GetMatchQ(nomi, cont, pm)
 }
 
