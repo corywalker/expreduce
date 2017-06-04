@@ -586,6 +586,7 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 			}
 		}
 	}
+	endMatchIters := []matchIter{}
 	for compI := compStartI; compI < compEndI; compI++ {
 		remainingComps := []Ex{}
 		remainingComps = append(remainingComps, this.components[:compI]...)
@@ -618,12 +619,13 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 					new_matched := append(this.match_components, this.components[compI])
 					nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 					if ok {
-						mmi.matchIters = append(mmi.matchIters, nomi)
+						endMatchIters = append(endMatchIters, nomi)
 					}
 				}
 			}
 		}
 	}
+	mmi.matchIters = append(mmi.matchIters, endMatchIters...)
 	this.remainingMatchIter = mmi
 	return false, this.pm, false
 }
