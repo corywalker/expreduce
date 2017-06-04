@@ -402,39 +402,35 @@ func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, match_compon
 	return nomi, true
 }
 
-func DefineSequence(pat *Expression, sequence []Ex, isBlank bool, pm *PDManager, isImpliedBs bool, sequenceHead string, dm *DefMap, cl *CASLogger) bool {
+func DefineSequence(lhs_component Ex, sequence []Ex, isBlank bool, pm *PDManager, isImpliedBs bool, sequenceHead string, dm *DefMap, cl *CASLogger) bool {
+	pat, isPat := HeadAssertion(lhs_component, "Pattern")
+	if !isPat {
+		return true
+	}
 	sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
+	var attemptDefine Ex = nil
 	if sAsSymbolOk {
-		if isBlank && !isImpliedBs {
+		sequenceHeadSym := &Symbol{sequenceHead}
+		oneIdent := sequenceHeadSym.Attrs(dm).OneIdentity
+		if len(sequence) == 1 && (isBlank || oneIdent) {
 			if len(sequence) != 1 {
 				fmt.Println("Invalid blank components length!!")
 			}
+			attemptDefine = sequence[0]
+		} else if isImpliedBs {
+			attemptDefine = NewExpression(append([]Ex{sequenceHeadSym}, sequence...))
+		} else {
+			head := &Symbol{"Sequence"}
+			attemptDefine = NewExpression(append([]Ex{head}, sequence...))
+		}
+
+		if attemptDefine != nil {
 			defined, ispd := pm.patternDefined[sAsSymbol.Name]
-			if ispd && !IsSameQ(defined, sequence[0], cl) {
+			if ispd && !IsSameQ(defined, attemptDefine, cl) {
 				cl.Debugf("patterns do not match! continuing.")
 				return false
 			}
-			pm.patternDefined[sAsSymbol.Name] = sequence[0]
-		} else {
-			// otherwise must be sequence type.
-			toTryParts := []Ex{&Symbol{"Sequence"}}
-			if isImpliedBs {
-				toTryParts = []Ex{&Symbol{sequenceHead}}
-			}
-			toTryParts = append(toTryParts, sequence...)
-			target := NewExpression(toTryParts)
-			var targetEx Ex = target
-			if isImpliedBs && len(target.Parts) == 2 {
-				if (target.Parts[0].(*Symbol)).Attrs(dm).OneIdentity {
-					targetEx = target.Parts[1]
-				}
-			}
-			defined, ispd := pm.patternDefined[sAsSymbol.Name]
-			if ispd && !IsSameQ(defined, targetEx, cl) {
-				cl.Debugf("patterns (def=%v, target=%v) do not match! continuing.", defined, targetEx)
-				return false
-			}
-			pm.patternDefined[sAsSymbol.Name] = targetEx
+			pm.patternDefined[sAsSymbol.Name] = attemptDefine
 		}
 	}
 	return true
@@ -444,11 +440,8 @@ type parsedForm struct {
 	startI		int
 	endI		int
 	form		Ex
-	isPat		bool
 	isBlank		bool
 	isImpliedBs	bool
-	pat			*Expression
-	sequenceHeadAssert	bool
 }
 
 func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger) (res parsedForm) {
@@ -465,11 +458,12 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 		repeated, isRepeated = HeadAssertion(pat.Parts[2], "Repeated")
 	}
 	isImpliedBs := isBlank && isFlat
+	// Ensure isBlank is exclusive from isImpliedBs
+	isBlank = isBlank && !isImpliedBs
 
 	form := lhs_component
 	startI := 1 // also includes implied blanksequence
 	endI := 1
-	sequenceHeadAssert := false
 
 	if isBns {
 		form = BlankNullSequenceToBlank(bns)
@@ -483,8 +477,8 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 			if isSym {
 				// If we have a pattern like k__Plus
 				if sym.Name == sequenceHead {
-					sequenceHeadAssert = true
 					form = NewExpression([]Ex{&Symbol{"Blank"}})
+					startI = 2
 				} else {
 					endI = 1
 				}
@@ -515,11 +509,8 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	res.startI = startI
 	res.endI = endI
 	res.form = form
-	res.isPat = isPat
 	res.isImpliedBs = isImpliedBs
-	res.pat = pat
 	res.isBlank = isBlank
-	res.sequenceHeadAssert = sequenceHeadAssert
 	return res
 }
 
@@ -559,13 +550,13 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 	}
 
 	mmi := &multiMatchIter{}
+	// We have 3 choices: Skip current form entirely, move on to the next form,
+	// or append to the current form.
 	if formParsed.startI == 0 && len(this.match_components) == 0 {
-		// Try matching nothing at all.
+		// Try matching nothing at all. We can try this even if this.components
+		// is empty
 		updatedPm := CopyPD(this.pm)
-		patOk := true
-		if formParsed.isPat {
-			patOk = DefineSequence(formParsed.pat, this.match_components, formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
-		}
+		patOk := DefineSequence(this.lhs_components[0], this.match_components, formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
 		if patOk {
 			nomi, ok := NewNonOrderlessMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 			if ok {
@@ -573,31 +564,25 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			}
 		}
 	}
-	if len(this.match_components) >= endI {
-		this.cl.Infof("len(this.match_components) = %v, endI = %v", len(this.match_components), endI)
-		this.cl.Infof("base case: match_components too long. Should not happen. Returning.")
-		if len(mmi.matchIters) > 0 {
-			this.remainingMatchIter = mmi
-			return false, this.pm, false
-		} else {
-			return false, this.pm, true
-		}
+	if len(this.components) == 0 {
+		this.remainingMatchIter = mmi
+		return false, this.pm, false
 	}
 
+	// At this point we have a component left, and we want to attempt matching
+	// it with the current lhs_components[0] or the next one.
 	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], formParsed.form, this.pm)
 	mi, cont := NewMatchIter(this.components[0], formParsed.form, this.dm, this.pm, this.cl)
 	for cont {
 		matchq, submatches, done := mi.next()
 		cont = !done
 		if matchq {
-			if (len(this.match_components)+1 >= formParsed.startI) && (!formParsed.sequenceHeadAssert || len(this.match_components) > 0) {
+			// As long as we've matched enough components, try moving on.
+			if len(this.match_components)+1 >= formParsed.startI {
 				// We're able to move onto the next lhs_component. Try this.
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
-				passedDefine := true
-				if formParsed.isPat {
-					passedDefine = DefineSequence(formParsed.pat, append(this.match_components, this.components[0]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
-				}
+				passedDefine := DefineSequence(this.lhs_components[0], append(this.match_components, this.components[0]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
 				if passedDefine {
 					nomi, ok := NewNonOrderlessMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 					if ok {
@@ -605,6 +590,8 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					}
 				}
 			}
+			// As long as we haven't matched too many components, try using
+			// the same pattern.
 			if len(this.match_components)+1 < endI {
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
