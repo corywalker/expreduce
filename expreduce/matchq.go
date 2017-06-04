@@ -2,6 +2,9 @@ package expreduce
 
 import "fmt"
 
+const MaxUint = ^uint(0) 
+const MaxInt = int(MaxUint >> 1)
+
 type matchIter interface {
 	reset()
 	// returns ismatch, pd, isdone
@@ -448,7 +451,7 @@ type parsedForm struct {
 	sequenceHeadAssert	bool
 }
 
-func ParseForm(lhs_component Ex, num_unmatched int, isFlat bool, sequenceHead string, cl *CASLogger) (res parsedForm) {
+func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	pat, isPat := HeadAssertion(lhs_component, "Pattern")
 	bns, isBns := HeadAssertion(lhs_component, "BlankNullSequence")
@@ -463,15 +466,20 @@ func ParseForm(lhs_component Ex, num_unmatched int, isFlat bool, sequenceHead st
 	}
 	isImpliedBs := isBlank && isFlat
 
+	form := lhs_component
 	startI := 1 // also includes implied blanksequence
-	if isBns {
-		startI = 0
-	}
 	endI := 1
-	var repPat Ex
-	if isRepeated {
-		newRepPat, repMin, repMax, repOk := ParseRepeated(repeated)
-		repPat = newRepPat
+	if isBns {
+		form = BlankNullSequenceToBlank(bns)
+		startI = 0
+		endI = MaxInt
+	} else if isImpliedBs {
+		form = blank
+		endI = MaxInt
+	} else if isBlank {
+		form = blank
+	} else if isRepeated {
+		repPat, repMin, repMax, repOk := ParseRepeated(repeated)
 		if (repOk) {
 			if repMin != -1 {
 				startI = repMin
@@ -480,30 +488,15 @@ func ParseForm(lhs_component Ex, num_unmatched int, isFlat bool, sequenceHead st
 				endI = repMax
 			} else {
 				// an undefined end can match to the end of the sequence.
-				endI = num_unmatched
+				endI = MaxInt
 			}
-		} else {
-			isRepeated = false
+			form = repPat
 		}
-	} else if isBns || isBs || isImpliedBs {
-		endI = num_unmatched
-	}
-	cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
-
-	form := lhs_component
-	// These lines effectively strip out the pattern. Might want a refactor
-	// later.
-	if isBns {
-		form = BlankNullSequenceToBlank(bns)
-	} else if isImpliedBs {
-		form = blank
-	} else if isBlank {
-		form = blank
-	} else if isRepeated {
-		form = repPat
 	} else if isBs {
 		form = BlankSequenceToBlank(bs)
+		endI = MaxInt
 	}
+	cl.Debugf("Determined sequence startI = %v, endI = %v", startI, endI)
 
 	sequenceHeadAssert := false
 	if isImpliedBs {
@@ -554,10 +547,15 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 		return len(this.components) == 0, this.pm, true
 	}
 
-	num_unmatched := len(this.match_components) + len(this.components)
-	formParsed := ParseForm(this.lhs_components[0], num_unmatched, this.isFlat, this.sequenceHead, this.cl)
+	formParsed := ParseForm(this.lhs_components[0], this.isFlat, this.sequenceHead, this.cl)
 
-	if (formParsed.startI-num_unmatched) > 0 {
+	num_unmatched := len(this.match_components) + len(this.components)
+	endI := formParsed.endI
+	if endI > num_unmatched {
+		endI = num_unmatched
+	}
+
+	if formParsed.startI > num_unmatched {
 		// If our current lhs_component requires more components than we have
 		// available, return early. TODO: Perhaps also keep track of the min
 		// components for the other lhs components and return even earlier
@@ -581,8 +579,8 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 			}
 		}
 	}
-	if len(this.match_components) >= formParsed.endI {
-		this.cl.Infof("len(this.match_components) = %v, formParsed.endI = %v", len(this.match_components), formParsed.endI)
+	if len(this.match_components) >= endI {
+		this.cl.Infof("len(this.match_components) = %v, endI = %v", len(this.match_components), endI)
 		this.cl.Infof("base case: match_components too long. Should not happen. Returning.")
 		if len(mmi.matchIters) > 0 {
 			this.remainingMatchIter = mmi
@@ -613,7 +611,7 @@ func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
 					}
 				}
 			}
-			if len(this.match_components)+1 < formParsed.endI {
+			if len(this.match_components)+1 < endI {
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
 				// Try continuing with the current sequence.
