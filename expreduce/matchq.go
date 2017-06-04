@@ -573,8 +573,12 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 
 	// At this point we have a component left, and we want to attempt matching
 	// it with the current lhs_components[0] or the next one.
-	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[0], formParsed.form, this.pm)
-	mi, cont := NewMatchIter(this.components[0], formParsed.form, this.dm, this.pm, this.cl)
+	compI := 0
+	remainingComps := []Ex{}
+	remainingComps = append(remainingComps, this.components[:compI]...)
+	remainingComps = append(remainingComps, this.components[compI+1:]...)
+	this.cl.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[compI], formParsed.form, this.pm)
+	mi, cont := NewMatchIter(this.components[compI], formParsed.form, this.dm, this.pm, this.cl)
 	for cont {
 		matchq, submatches, done := mi.next()
 		cont = !done
@@ -584,9 +588,9 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 				// We're able to move onto the next lhs_component. Try this.
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
-				passedDefine := DefineSequence(this.lhs_components[0], append(this.match_components, this.components[0]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
+				passedDefine := DefineSequence(this.lhs_components[0], append(this.match_components, this.components[compI]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
 				if passedDefine {
-					nomi, ok := NewSequenceMatchIter(this.components[1:], this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+					nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 					if ok {
 						mmi.matchIters = append(mmi.matchIters, nomi)
 					}
@@ -598,8 +602,8 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 				updatedPm := CopyPD(this.pm)
 				updatedPm.Update(submatches)
 				// Try continuing with the current sequence.
-				new_matched := append(this.match_components, this.components[0])
-				nomi, ok := NewSequenceMatchIter(this.components[1:], this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
+				new_matched := append(this.match_components, this.components[compI])
+				nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 				if ok {
 					mmi.matchIters = append(mmi.matchIters, nomi)
 				}
