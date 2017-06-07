@@ -612,6 +612,15 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 				}
 				// As long as we haven't matched too many components, try using
 				// the same pattern.
+				// This will increase the size of the match for the current form.
+				// Right now I save these up until the end, but I think I should
+				// go even further than that. I think there should be some sort
+				// of shared match stack. I can pass the pointer down through
+				// the recursive calls. Reasoning?
+				// ReplaceList[a + b + c, a___ + b___ -> {{a}, {b}, {c}}]
+				// The last match needs to be {{a, b, c}, {}, {c}}}, aka where
+				// the first form has the longest possible length. It should
+				// be that forms at the beginning are most reluctant to add components.
 				if len(this.match_components)+1 < endI {
 					updatedPm := CopyPD(this.pm)
 					updatedPm.Update(submatches)
