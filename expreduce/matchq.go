@@ -2,7 +2,7 @@ package expreduce
 
 import "fmt"
 
-const MaxUint = ^uint(0) 
+const MaxUint = ^uint(0)
 const MaxInt = int(MaxUint >> 1)
 
 type matchIter interface {
@@ -451,6 +451,8 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 		}
 	}
 	endMatchIters := []matchIter{}
+	canMoveOn := len(this.match_components)+1 >= formParsed.startI
+	canAdd := len(this.match_components)+1 < endI
 	for compI := compStartI; compI < compEndI; compI++ {
 		remainingComps := []Ex{}
 		remainingComps = append(remainingComps, this.components[:compI]...)
@@ -461,12 +463,15 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 			matchq, submatches, done := mi.next()
 			cont = !done
 			if matchq {
+				new_matched := []Ex{}
+				new_matched = append(new_matched, this.match_components...)
+				new_matched = append(new_matched, this.components[compI])
 				// As long as we've matched enough components, try moving on.
-				if len(this.match_components)+1 >= formParsed.startI {
+				if canMoveOn {
 					// We're able to move onto the next lhs_component. Try this.
 					updatedPm := CopyPD(this.pm)
 					updatedPm.Update(submatches)
-					passedDefine := DefineSequence(this.lhs_components[0], append(this.match_components, this.components[compI]), formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
+					passedDefine := DefineSequence(this.lhs_components[0], new_matched, formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.dm, this.cl)
 					if passedDefine {
 						nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 						if ok {
@@ -485,11 +490,10 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 				// The last match needs to be {{a, b, c}, {}, {c}}}, aka where
 				// the first form has the longest possible length. It should
 				// be that forms at the beginning are most reluctant to add components.
-				if len(this.match_components)+1 < endI {
+				if canAdd {
 					updatedPm := CopyPD(this.pm)
 					updatedPm.Update(submatches)
 					// Try continuing with the current sequence.
-					new_matched := append(this.match_components, this.components[compI])
 					nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, this.dm, updatedPm, this.cl)
 					if ok {
 						endMatchIters = append(endMatchIters, nomi)
