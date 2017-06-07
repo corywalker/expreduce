@@ -179,15 +179,6 @@ func NewMatchIter(a Ex, b Ex, dm *DefMap, pm *PDManager, cl *CASLogger) (matchIt
 		}
 	}
 
-	if attrs.Orderless {
-		//omi, ok := NewOrderlessMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], attrs.Flat, sequenceHead, dm, pm, cl)
-		omi, ok := NewSequenceMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], []Ex{}, attrs.Orderless, attrs.Flat, sequenceHead, dm, pm, cl)
-		if !ok {
-			return &dummyMatchIter{false, pm, true}, true
-		}
-		return omi, true
-	}
-
 	nomi, ok := NewSequenceMatchIter(aExpression.Parts, bExpression.Parts, []Ex{}, attrs.Orderless, attrs.Flat, sequenceHead, dm, pm, cl)
 	if !ok {
 		return &dummyMatchIter{false, pm, true}, true
@@ -236,128 +227,6 @@ func ParseRepeated(e *Expression) (Ex, int, int, bool) {
 	return e.Parts[1], min, max, true
 }
 
-type orderlessMatchIter struct {
-	components		[]Ex
-	lhs_components	[]Ex
-	pm				*PDManager
-	dm				*DefMap
-	cl				*CASLogger
-	kConstant		int
-	contval			int
-	perm			[]int
-	remainingMatchIter matchIter
-	isFlat			bool
-	sequenceHead	string
-}
-
-func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (matchIter, bool) {
-	omi := &orderlessMatchIter{}
-	omi.components = components
-	omi.lhs_components = lhs_components
-	// TODO: is copy needed?
-	omi.pm = CopyPD(pm)
-	omi.cl = cl
-	omi.isFlat = isFlat
-	omi.sequenceHead = sequenceHead
-	omi.dm = dm
-
-	if cl.debugState {
-		cl.Infof("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
-	}
-	nonBS, bs := extractBlankSequences(lhs_components)
-	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
-	// though because MatchQ[a + b + c, c + __] == True.
-	if len(bs) == 0 && len(components) != len(lhs_components) && !isFlat {
-		cl.Debugf("len(components) != len(lhs_components). OrderlessMatchQ failed")
-		return omi, false
-	} else if len(nonBS) > len(components) {
-		cl.Debugf("len(nonBS) > len(components). OrderlessMatchQ failed")
-		return omi, false
-	}
-
-	// After determining that there is a blanksequence, I should go through
-	// Each element of the pattern to be matched to see if it even exists within
-	// components. I should use MemberQ for this. This can avoid the time-
-	// consuming algorithms below
-
-	// These lines are causing MatchQ[a + b, a + b + x___Plus] == True to fail
-	for _, mustContain := range lhs_components {
-		pat, isPat := HeadAssertion(mustContain, "Pattern")
-		_, isRepeated := HeadAssertion(mustContain, "Repeated")
-		if isPat {
-			_, isRepeated = HeadAssertion(pat.Parts[2], "Repeated")
-		}
-		if isRepeated {
-			continue
-		}
-
-		if !MemberQ(components, mustContain, dm, cl) {
-			return omi, false
-		}
-	}
-
-	omi.kConstant = len(components)
-	if len(bs) == 1 {
-		// This is probably the most common case. It would be rare for us to
-		// have multiple BlankSequences in the same LHS. It saves us a lot of
-		// time by doing this
-		omi.kConstant = len(nonBS)
-	}
-
-	// Start iterating through each permutation of LHS expressions
-	omi.perm, omi.contval = make([]int, len(components)), 1
-	for i := range omi.perm {
-		omi.perm[i] = i
-	}
-
-	return omi, true
-}
-
-// Should a MatchQ call do:
-// 1. Modify pm directly <- bad idea. If we attempt a match and it partially
-//    matches, we'll have to restore pm from a snapshot
-// 2. Return a modified pm <- probably simplest
-// 3. Return a pm with fields to add <- would be most efficient, but complicated
-//    and could easily be incorrectly used.
-// See IsBlankCapturing for a good example of good use.
-// Returns if there is a match and the pm that results. This method can be
-// called until there is not a match to find all possible matches. It will
-// return false from then on.
-func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
-	// This block allows us to queue up match iters from the function.
-	if this.remainingMatchIter != nil {
-		matchq, newPd, done := this.remainingMatchIter.next()
-		if done {
-			this.remainingMatchIter = nil
-		}
-		return matchq, newPd, done && this.contval != 1
-	}
-	for this.contval == 1 {
-		this.cl.Debugf("Using perm: %v\n", this.perm)
-
-		// Build a version of components with the correct order. Can I do this
-		// more efficiently with a slice notation? Let's copy for now.
-		orderedComponents := make([]Ex, len(this.components))
-		for oci, ci := range this.perm {
-			orderedComponents[oci] = this.components[ci]
-		}
-		if this.cl.debugState {
-			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
-		}
-		nomi, cont := NewSequenceMatchIter(orderedComponents, this.lhs_components, []Ex{}, false, this.isFlat, this.sequenceHead, this.dm, this.pm, this.cl)
-		// Generate next permutation, if any
-		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
-		if cont {
-			this.remainingMatchIter = nomi
-		}
-		return false, this.pm, false
-	}
-	this.cl.Debugf("OrderlessIsMatchQ failed. Context: %s", this.pm)
-	return false, this.pm, true
-}
-
-func (this *orderlessMatchIter) reset() {}
-
 func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 	for cont {
 		matchq, newPd, done := mi.next()
@@ -369,11 +238,6 @@ func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 		}
 	}
 	return false, pm
-}
-
-func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	omi, cont := NewSequenceMatchIter(components, lhs_components, []Ex{}, true, isFlat, sequenceHead, dm, pm, cl)
-	return GetMatchQ(omi, cont, pm)
 }
 
 type sequenceMatchIter struct {
@@ -641,25 +505,7 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 
 func (this *sequenceMatchIter) reset() {}
 
-func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	nomi, cont := NewSequenceMatchIter(components, lhs_components, []Ex{}, false, isFlat, sequenceHead, dm, pm, cl)
-	return GetMatchQ(nomi, cont, pm)
-}
-
-func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
-	for _, c := range components {
-		pat, isPat := HeadAssertion(c, "Pattern")
-		_, isBns := HeadAssertion(c, "BlankNullSequence")
-		_, isBs := HeadAssertion(c, "BlankSequence")
-		if isPat {
-			_, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
-			_, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
-		}
-		if isBs || isBns {
-			bs = append(bs, c)
-		} else {
-			nonBS = append(nonBS, c)
-		}
-	}
-	return
+func ComponentsIsMatchQ(components []Ex, lhs_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, dm *DefMap, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+	omi, cont := NewSequenceMatchIter(components, lhs_components, []Ex{}, isOrderless, isFlat, sequenceHead, dm, pm, cl)
+	return GetMatchQ(omi, cont, pm)
 }

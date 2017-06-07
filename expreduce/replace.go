@@ -114,10 +114,7 @@ func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless b
 			thisComponents[tci] = (*components)[ci].DeepCopy()
 		}
 		pm := EmptyPD()
-		mq, matches := NonOrderlessIsMatchQ(thisComponents, lhs_components, isFlat, sequenceHead, dm, pm, cl)
-		if isOrderless {
-			mq, matches = OrderlessIsMatchQ(thisComponents, lhs_components, isFlat, sequenceHead, dm, pm, cl)
-		}
+		mq, matches := ComponentsIsMatchQ(thisComponents, lhs_components, isOrderless, isFlat, sequenceHead, dm, pm, cl)
 		if mq {
 			if isOrderless && isFlat {
 				sort.Ints(run)
