@@ -235,7 +235,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 					arg,
 				}),
 
-				&es.defined, &es.CASLogger, EmptyPD(), "Function")
+				es, EmptyPD(), "Function")
 		}
 		return toReturn
 	} else if len(this.Parts) == 3 {
@@ -251,21 +251,21 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 				args[0],
 			}),
 
-			&es.defined, &es.CASLogger, EmptyPD(), "Function")
+			es, EmptyPD(), "Function")
 		return toReturn
 	}
 	return this
 }
 
-func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead string, dm *DefMap) Ex {
-	cl.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
-	cl.Debugf("Rule r is: %s", r)
+func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalState) Ex {
+	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
+	es.Debugf("Rule r is: %s", r)
 
-	matchq, matches := IsMatchQ(this, r.Parts[1], dm, EmptyPD(), cl)
-	toreturn := ReplacePD(r.Parts[2].DeepCopy(), dm, cl, matches)
+	matchq, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es)
+	toreturn := ReplacePD(r.Parts[2].DeepCopy(), es, matches)
 	if matchq {
-		cl.Debugf("After MatchQ, rule is: %s", r)
-		cl.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])
+		es.Debugf("After MatchQ, rule is: %s", r)
+		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])
 		return toreturn
 	}
 
@@ -275,11 +275,11 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead stri
 		otherSym, otherSymOk := lhsExpr.Parts[0].(*Symbol)
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
-				attrs := thisSym.Attrs(dm)
+				attrs := thisSym.Attrs(&es.defined)
 				/*if IsOrderless(thisSym) {
-					cl.Debugf("r.Parts[1] is Orderless. Now running OrderlessReplace")
+					es.Debugf("r.Parts[1] is Orderless. Now running OrderlessReplace")
 					replaced := this.Parts[1:len(this.Parts)]
-					OrderlessReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], cl)
+					OrderlessReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], es)
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
 				} else if IsFlat(thisSym) {
@@ -290,15 +290,15 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead stri
 					// later on I should factor out the common functionality and
 					// also see if I am making any assumptions about Flat in my
 					// OrderlessReplace.
-					cl.Debugf("r.Parts[1] is Flat. Now running FlatReplace")
+					es.Debugf("r.Parts[1] is Flat. Now running FlatReplace")
 					replaced := this.Parts[1:len(this.Parts)]
-					FlatReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], thisSym.Name, cl)
+					FlatReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], thisSym.Name, es)
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
 				}*/
 				if attrs.Orderless || attrs.Flat {
 					replaced := this.Parts[1:len(this.Parts)]
-					GeneralReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], attrs.Orderless, attrs.Flat, thisSym.Name, dm, cl)
+					GeneralReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], attrs.Orderless, attrs.Flat, thisSym.Name, es)
 					this.Parts = this.Parts[0:1]
 					this.Parts = append(this.Parts, replaced...)
 				}
@@ -307,7 +307,7 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead stri
 	}
 
 	for i := range this.Parts {
-		this.Parts[i] = ReplaceAll(this.Parts[i], r, dm, cl, EmptyPD(), stopAtHead)
+		this.Parts[i] = ReplaceAll(this.Parts[i], r, es, EmptyPD(), stopAtHead)
 	}
 	return this
 }

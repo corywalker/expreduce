@@ -5,11 +5,11 @@ import (
 	"math"
 )
 
-func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, dm *DefMap, cl *CASLogger) {
-	GeneralReplace(components, lhs_components, rhs, true, false, "", dm, cl)
+func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
+	GeneralReplace(components, lhs_components, rhs, true, false, "", es)
 	return
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	cl.Debugf("Entering OrderlessReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
+	es.Debugf("Entering OrderlessReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	// Each permutation is a potential order of the Rule's LHS in which matches
 	// may occur in components.
 	toPermute := make([]int, len(*components))
@@ -18,16 +18,16 @@ func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, dm *DefMap,
 	}
 	//TODO: convert this to nextKPermutation?
 	perms := permutations(toPermute, len(lhs_components))
-	cl.Debugf("Permutations to try: %v\n", perms)
+	es.Debugf("Permutations to try: %v\n", perms)
 
 	for _, perm := range perms {
 		used := make([]int, len(perm))
 		pi := 0
 		pm := EmptyPD()
-		//cl.Debugf("Before snapshot. Context: %v\n", es)
+		//es.Debugf("Before snapshot. Context: %v\n", es)
 		for i := range perm {
-			//cl.Debugf("%s %s\n", (*components)[perm[i]], lhs_components[i])
-			mq, matches := IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], dm, pm, cl)
+			//es.Debugf("%s %s\n", (*components)[perm[i]], lhs_components[i])
+			mq, matches := IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], pm, es)
 			if mq {
 				pm.Update(matches)
 				used[pi] = perm[i]
@@ -35,23 +35,23 @@ func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, dm *DefMap,
 
 				if pi == len(perm) {
 					sort.Ints(used)
-					cl.Debugf("About to delete components matching lhs.")
-					cl.Debugf("components before: %s", ExArrayToString(*components))
+					es.Debugf("About to delete components matching lhs.")
+					es.Debugf("components before: %s", ExArrayToString(*components))
 					for tdi, todelete := range used {
 						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 					}
-					cl.Debugf("components after: %s", ExArrayToString(*components))
-					cl.Debugf("Appending %s\n", rhs)
-					//cl.Debugf("Context: %v\n", es)
-					*components = append(*components, []Ex{ReplacePD(rhs.DeepCopy(), dm, cl, matches)}...)
-					cl.Debugf("components after append: %s", ExArrayToString(*components))
-					//cl.Debugf("After clear. Context: %v\n", es)
+					es.Debugf("components after: %s", ExArrayToString(*components))
+					es.Debugf("Appending %s\n", rhs)
+					//es.Debugf("Context: %v\n", es)
+					*components = append(*components, []Ex{ReplacePD(rhs.DeepCopy(), es, matches)}...)
+					es.Debugf("components after append: %s", ExArrayToString(*components))
+					//es.Debugf("After clear. Context: %v\n", es)
 					return
 				}
 			}
-			//cl.Debugf("Done checking. Context: %v\n", es)
+			//es.Debugf("Done checking. Context: %v\n", es)
 		}
-		//cl.Debugf("After clear. Context: %v\n", es)
+		//es.Debugf("After clear. Context: %v\n", es)
 	}
 }
 
@@ -86,13 +86,13 @@ func powerset(n int) [][]int {
 	return p
 }
 
-func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, sequenceHead string, dm *DefMap, cl *CASLogger) {
-	GeneralReplace(components, lhs_components, rhs, false, true, sequenceHead, dm, cl)
+func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, sequenceHead string, es *EvalState) {
+	GeneralReplace(components, lhs_components, rhs, false, true, sequenceHead, es)
 }
 
-func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless bool, isFlat bool, sequenceHead string, dm *DefMap, cl *CASLogger) {
+func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless bool, isFlat bool, sequenceHead string, es *EvalState) {
 	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	cl.Debugf("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
+	es.Debugf("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
 	//TODO: convert to a generator method?
 	var runs [][]int
 	if isOrderless && isFlat {
@@ -106,7 +106,7 @@ func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless b
 	} else {
 		runs = allRuns(len(*components))
 	}
-	cl.Debugf("Runs to try: %v\n", runs)
+	es.Debugf("Runs to try: %v\n", runs)
 
 	for _, run := range runs {
 		thisComponents := make([]Ex, len(run))
@@ -114,27 +114,27 @@ func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless b
 			thisComponents[tci] = (*components)[ci].DeepCopy()
 		}
 		pm := EmptyPD()
-		mq, matches := ComponentsIsMatchQ(thisComponents, lhs_components, isOrderless, isFlat, sequenceHead, dm, pm, cl)
+		mq, matches := ComponentsIsMatchQ(thisComponents, lhs_components, isOrderless, isFlat, sequenceHead, pm, es)
 		if mq {
 			if isOrderless && isFlat {
 				sort.Ints(run)
 				for tdi, todelete := range run {
 					*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
 				}
-				*components = append(*components, []Ex{ReplacePD(rhs.DeepCopy(), dm, cl, matches)}...)
+				*components = append(*components, []Ex{ReplacePD(rhs.DeepCopy(), es, matches)}...)
 			} else {
 				copiedComponents := ExArrayDeepCopy((*components)[run[len(run)-1]+1:])
-				*components = append((*components)[:run[0]], []Ex{ReplacePD(rhs.DeepCopy(), dm, cl, matches)}...)
+				*components = append((*components)[:run[0]], []Ex{ReplacePD(rhs.DeepCopy(), es, matches)}...)
 				*components = append(*components, copiedComponents...)
 			}
 			return
 		}
-		//cl.Debugf("Done checking. Context: %v\n", es)
+		//es.Debugf("Done checking. Context: %v\n", es)
 	}
 }
 
-func ReplacePD(this Ex, dm *DefMap, cl *CASLogger, pm *PDManager) Ex {
-	cl.Debugf("In ReplacePD(%v, pm=%v)", this, pm)
+func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
+	es.Debugf("In ReplacePD(%v, pm=%v)", this, pm)
 	toReturn := this.DeepCopy()
 	// In Golang, map iterations present random order. In rare circumstances,
 	// this can lead to different return expressions for the same inputs
@@ -167,7 +167,7 @@ func ReplacePD(this Ex, dm *DefMap, cl *CASLogger, pm *PDManager) Ex {
 				&Symbol{"UniqueDefined`" + nameStr},
 			}),
 
-			dm, cl, EmptyPD(), "")
+			es, EmptyPD(), "")
 	}
 	for _, nameStr := range keys {
 		def := pm.patternDefined[nameStr]
@@ -178,9 +178,9 @@ func ReplacePD(this Ex, dm *DefMap, cl *CASLogger, pm *PDManager) Ex {
 				def,
 			}),
 
-			dm, cl, EmptyPD(), "")
+			es, EmptyPD(), "")
 	}
-	cl.Debugf("Finished ReplacePD with toReturn=%v", toReturn)
+	es.Debugf("Finished ReplacePD with toReturn=%v", toReturn)
 	return toReturn
 }
 
@@ -188,7 +188,7 @@ func ReplacePD(this Ex, dm *DefMap, cl *CASLogger, pm *PDManager) Ex {
 // RHS upon successful matches. We will NOT substitute any named patterns in
 // the RHS. We will merely make sure that the named patterns are added to pm.
 // Final named pattern substitution will occur at the last possible time.
-func ReplaceAll(this Ex, r *Expression, dm *DefMap, cl *CASLogger, pm *PDManager,
+func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
                 stopAtHead string) Ex {
 	_, isFlt := this.(*Flt)
 	_, isInteger := this.(*Integer)
@@ -198,8 +198,8 @@ func ReplaceAll(this Ex, r *Expression, dm *DefMap, cl *CASLogger, pm *PDManager
 	_, isRational := this.(*Rational)
 
 	if isFlt || isInteger || isString || isSymbol || isRational {
-		if res, matches := IsMatchQ(this, r.Parts[1], dm, pm, cl); res {
-			return ReplacePD(r.Parts[2], dm, cl, matches)
+		if res, matches := IsMatchQ(this, r.Parts[1], pm, es); res {
+			return ReplacePD(r.Parts[2], es, matches)
 		}
 		return this
 	} else if isExpression {
@@ -208,8 +208,8 @@ func ReplaceAll(this Ex, r *Expression, dm *DefMap, cl *CASLogger, pm *PDManager
 			return this
 		} else {
 			// Continue recursion
-			cl.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
-			return asExpression.ReplaceAll(r, cl, stopAtHead, dm)
+			es.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
+			return asExpression.ReplaceAll(r, stopAtHead, es)
 		}
 	}
 	return &Symbol{"$ReplaceAllFailed"}

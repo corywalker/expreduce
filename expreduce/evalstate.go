@@ -114,9 +114,9 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	for i := range this.defined[name].downvalues {
 	    def := this.defined[name].downvalues[i]
-		ismatchq, _ := IsMatchQ(lhs, def.Parts[1], &this.defined, EmptyPD(), &this.CASLogger)
+		ismatchq, _ := IsMatchQ(lhs, def.Parts[1], EmptyPD(), this)
 		if ismatchq {
-			res := ReplaceAll(lhs, &def, &this.defined, &this.CASLogger, EmptyPD(), "")
+			res := ReplaceAll(lhs, &def, this, EmptyPD(), "")
 			return res, true, &def
 		}
 	}

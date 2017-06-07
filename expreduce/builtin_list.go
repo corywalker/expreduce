@@ -19,9 +19,9 @@ func (this *Expression) ToStringList(form string) (bool, string) {
 	return true, buffer.String()
 }
 
-func MemberQ(components []Ex, item Ex, dm *DefMap, cl *CASLogger) bool {
+func MemberQ(components []Ex, item Ex, es *EvalState) bool {
 	for _, part := range components {
-		if matchq, _ := IsMatchQ(part, item, dm, EmptyPD(), cl); matchq {
+		if matchq, _ := IsMatchQ(part, item, EmptyPD(), es); matchq {
 			return true
 		}
 	}
@@ -201,7 +201,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
-				if MemberQ(expr.Parts[1:], this.Parts[2], &es.defined, &es.CASLogger) {
+				if MemberQ(expr.Parts[1:], this.Parts[2], es) {
 					return &Symbol{"True"}
 				}
 			}
@@ -251,7 +251,7 @@ func GetListDefinitions() (defs []Definition) {
 				toReturn := NewExpression([]Ex{&Symbol{"List"}})
 
 				for i := 1; i < len(expr.Parts); i++ {
-					if matchq, _ := IsMatchQ(expr.Parts[i], this.Parts[2], &es.defined, EmptyPD(), &es.CASLogger); matchq {
+					if matchq, _ := IsMatchQ(expr.Parts[i], this.Parts[2], EmptyPD(), es); matchq {
 						toReturn.Parts = append(toReturn.Parts, expr.Parts[i])
 					}
 				}
