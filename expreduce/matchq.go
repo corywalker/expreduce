@@ -244,7 +244,7 @@ func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 
 type sequenceMatchIter struct {
 	components		[]Ex
-	lhs_components	[]Ex
+	lhs_components	[]parsedForm
 	match_components	[]Ex
 	pm				*PDManager
 	remainingMatchIter matchIter
@@ -255,6 +255,14 @@ type sequenceMatchIter struct {
 }
 
 func NewSequenceMatchIter(components []Ex, lhs_components []Ex, match_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
+	fp_components := make([]parsedForm, len(lhs_components))
+	for i, comp := range lhs_components {
+		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, &es.CASLogger)
+	}
+	return NewSequenceMatchIterPreparsed(components, fp_components, match_components, isOrderless, isFlat, sequenceHead, pm, es)
+}
+
+func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm, match_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
 	nomi := &sequenceMatchIter{}
 	nomi.components = components
 	nomi.lhs_components = lhs_components
@@ -266,8 +274,7 @@ func NewSequenceMatchIter(components []Ex, lhs_components []Ex, match_components
 	nomi.es = es
 
 	for _, mustContain := range lhs_components {
-		formParsed := ParseForm(mustContain, isFlat, sequenceHead, &es.CASLogger)
-		if formParsed.startI > 0 && !MemberQ(components, formParsed.form, es) {
+		if mustContain.startI > 0 && !MemberQ(components, mustContain.form, es) {
 			return nomi, false
 		}
 	}
@@ -314,6 +321,7 @@ type parsedForm struct {
 	startI		int
 	endI		int
 	form		Ex
+	origForm	Ex
 	isBlank		bool
 	isImpliedBs	bool
 	formHasPattern	bool
@@ -384,6 +392,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	res.startI = startI
 	res.endI = endI
 	res.form = form
+	res.origForm = lhs_component
 	_, res.formHasPattern = HeadAssertion(form, "Pattern")
 	res.isImpliedBs = isImpliedBs
 	res.isBlank = isBlank
@@ -397,7 +406,7 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 		return matchq, newPd, done
 	}
 	if this.es.debugState {
-		this.es.Debugf("Entering sequenceIsMatchQ(components: %s, lhs_components: %s, match_components: %s, isFlat: %v, pm: %s)", ExArrayToString(this.components), ExArrayToString(this.lhs_components), ExArrayToString(this.match_components), this.isFlat, this.pm)
+		this.es.Debugf("Entering sequenceIsMatchQ(components: %s, lhs_components: %s, match_components: %s, isFlat: %v, pm: %s)", ExArrayToString(this.components), PFArrayToString(this.lhs_components), ExArrayToString(this.match_components), this.isFlat, this.pm)
 	}
 	if len(this.lhs_components) == 0 {
 		if len(this.components) == 0 {
@@ -408,15 +417,15 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 		return len(this.components) == 0, this.pm, true
 	}
 
-	formParsed := ParseForm(this.lhs_components[0], this.isFlat, this.sequenceHead, &this.es.CASLogger)
+	lhs := this.lhs_components[0]
 
 	num_unmatched := len(this.match_components) + len(this.components)
-	endI := formParsed.endI
+	endI := lhs.endI
 	if endI > num_unmatched {
 		endI = num_unmatched
 	}
 
-	if formParsed.startI > num_unmatched {
+	if lhs.startI > num_unmatched {
 		// If our current lhs_component requires more components than we have
 		// available, return early. TODO: Perhaps also keep track of the min
 		// components for the other lhs components and return even earlier
@@ -425,12 +434,12 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 		return false, this.pm, true
 	}
 
-	_, lhsCompIsPat := HeadAssertion(this.lhs_components[0], "Pattern")
+	_, lhsCompIsPat := HeadAssertion(lhs.origForm, "Pattern")
 	mmi := &multiMatchIter{}
 	// We have 3 choices: Skip current form entirely, move on to the next form,
 	// or append to the current form. I have a strong feeling this can be merged
 	// into two.
-	if formParsed.startI == 0 && len(this.match_components) == 0 {
+	if lhs.startI == 0 && len(this.match_components) == 0 {
 		// Try matching nothing at all. We can try this even if this.components
 		// is empty
 		var updatedPm *PDManager
@@ -439,9 +448,9 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 		} else {
 			updatedPm = this.pm
 		}
-		patOk := DefineSequence(this.lhs_components[0], this.match_components, formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.es)
+		patOk := DefineSequence(lhs.origForm, this.match_components, lhs.isBlank, updatedPm, lhs.isImpliedBs, this.sequenceHead, this.es)
 		if patOk {
-			nomi, ok := NewSequenceMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
+			nomi, ok := NewSequenceMatchIterPreparsed(this.components, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
 			if ok {
 				mmi.matchIters = append(mmi.matchIters, nomi)
 			}
@@ -466,14 +475,14 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 		}
 	}
 	endMatchIters := []matchIter{}
-	canMoveOn := len(this.match_components)+1 >= formParsed.startI
+	canMoveOn := len(this.match_components)+1 >= lhs.startI
 	canAdd := len(this.match_components)+1 < endI
 	for compI := compStartI; compI < compEndI; compI++ {
 		remainingComps := []Ex{}
 		remainingComps = append(remainingComps, this.components[:compI]...)
 		remainingComps = append(remainingComps, this.components[compI+1:]...)
-		this.es.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[compI], formParsed.form, this.pm)
-		mi, cont := NewMatchIter(this.components[compI], formParsed.form, this.pm, this.es)
+		this.es.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[compI], lhs.form, this.pm)
+		mi, cont := NewMatchIter(this.components[compI], lhs.form, this.pm, this.es)
 		for cont {
 			matchq, submatches, done := mi.next()
 			cont = !done
@@ -486,9 +495,9 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 					// We're able to move onto the next lhs_component. Try this.
 					updatedPm := CopyPD(this.pm)
 					updatedPm.Update(submatches)
-					passedDefine := DefineSequence(this.lhs_components[0], new_matched, formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.es)
+					passedDefine := DefineSequence(lhs.origForm, new_matched, lhs.isBlank, updatedPm, lhs.isImpliedBs, this.sequenceHead, this.es)
 					if passedDefine {
-						nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
+						nomi, ok := NewSequenceMatchIterPreparsed(remainingComps, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
 						if ok {
 							mmi.matchIters = append(mmi.matchIters, nomi)
 						}
@@ -507,14 +516,14 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 				// be that forms at the beginning are most reluctant to add components.
 				if canAdd {
 					var updatedPm *PDManager
-					if formParsed.formHasPattern {
+					if lhs.formHasPattern {
 						updatedPm = CopyPD(this.pm)
 						updatedPm.Update(submatches)
 					} else {
 						updatedPm = this.pm
 					}
 					// Try continuing with the current sequence.
-					nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
+					nomi, ok := NewSequenceMatchIterPreparsed(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
 					if ok {
 						endMatchIters = append(endMatchIters, nomi)
 					}
