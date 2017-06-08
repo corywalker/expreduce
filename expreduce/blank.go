@@ -22,7 +22,6 @@ func IsBlankTypeOnly(e Ex) bool {
 func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
-	pm = CopyPD(pm)
 	asPattern, patternOk := HeadAssertion(e, "Pattern")
 	if patternOk {
 		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")

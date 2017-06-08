@@ -121,7 +121,6 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	}
 
 	// Continue normally
-	pm = CopyPD(pm)
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
@@ -260,7 +259,7 @@ func NewSequenceMatchIter(components []Ex, lhs_components []Ex, match_components
 	nomi.components = components
 	nomi.lhs_components = lhs_components
 	nomi.match_components = match_components
-	nomi.pm = CopyPD(pm)
+	nomi.pm = pm
 	nomi.isFlat = isFlat
 	nomi.isOrderless = isOrderless
 	nomi.sequenceHead = sequenceHead
@@ -317,6 +316,7 @@ type parsedForm struct {
 	form		Ex
 	isBlank		bool
 	isImpliedBs	bool
+	formHasPattern	bool
 }
 
 func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger) (res parsedForm) {
@@ -384,6 +384,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	res.startI = startI
 	res.endI = endI
 	res.form = form
+	_, res.formHasPattern = HeadAssertion(form, "Pattern")
 	res.isImpliedBs = isImpliedBs
 	res.isBlank = isBlank
 	return res
@@ -424,6 +425,7 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 		return false, this.pm, true
 	}
 
+	_, lhsCompIsPat := HeadAssertion(this.lhs_components[0], "Pattern")
 	mmi := &multiMatchIter{}
 	// We have 3 choices: Skip current form entirely, move on to the next form,
 	// or append to the current form. I have a strong feeling this can be merged
@@ -431,7 +433,12 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 	if formParsed.startI == 0 && len(this.match_components) == 0 {
 		// Try matching nothing at all. We can try this even if this.components
 		// is empty
-		updatedPm := CopyPD(this.pm)
+		var updatedPm *PDManager
+		if lhsCompIsPat {
+			updatedPm = CopyPD(this.pm)
+		} else {
+			updatedPm = this.pm
+		}
 		patOk := DefineSequence(this.lhs_components[0], this.match_components, formParsed.isBlank, updatedPm, formParsed.isImpliedBs, this.sequenceHead, this.es)
 		if patOk {
 			nomi, ok := NewSequenceMatchIter(this.components, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
@@ -499,8 +506,13 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 				// the first form has the longest possible length. It should
 				// be that forms at the beginning are most reluctant to add components.
 				if canAdd {
-					updatedPm := CopyPD(this.pm)
-					updatedPm.Update(submatches)
+					var updatedPm *PDManager
+					if formParsed.formHasPattern {
+						updatedPm = CopyPD(this.pm)
+						updatedPm.Update(submatches)
+					} else {
+						updatedPm = this.pm
+					}
 					// Try continuing with the current sequence.
 					nomi, ok := NewSequenceMatchIter(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
 					if ok {
