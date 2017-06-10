@@ -172,16 +172,18 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 
 	attrs := Attributes{}
 	sequenceHead := "Sequence"
+	startI := 0
 	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
 	bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
 			attrs = aExpressionSym.Attrs(&es.defined)
 			sequenceHead = aExpressionSym.Name
+			startI = 1
 		}
 	}
 
-	nomi, ok := NewSequenceMatchIter(aExpression.Parts, bExpression.Parts, []Ex{}, attrs.Orderless, attrs.Flat, sequenceHead, pm, es)
+	nomi, ok := NewSequenceMatchIter(aExpression.Parts[startI:], bExpression.Parts[startI:], []Ex{}, attrs.Orderless, attrs.Flat, sequenceHead, pm, es)
 	if !ok {
 		return &dummyMatchIter{false, pm, true}, true
 	}
