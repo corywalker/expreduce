@@ -293,13 +293,16 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Print",
-		Usage: "`Print[expr]` prints the string representation of `expr` to the console and returns `Null`.",
+		Usage: "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+			if len(this.Parts) < 2 {
 				return this
 			}
 
-			fmt.Printf("%s\n", this.Parts[1].String())
+			for i := 1; i < len(this.Parts); i++ {
+				fmt.Printf("%s", this.Parts[i].String())
+			}
+			fmt.Printf("\n")
 			return &Symbol{"Null"}
 		},
 	})
