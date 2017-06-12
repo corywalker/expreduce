@@ -43,6 +43,16 @@ func TestAllocations(t *testing.T) {
 	assert.Equal(t, false, ai.next())
 
 	forms = []parsedForm{
+		newPf(1, 1),
+		newPf(1, 1),
+		newPf(0, 99999),
+	}
+	ai = NewAllocIter(4, forms)
+	assert.Equal(t, true, ai.next())
+	assert.Equal(t, []int{1, 1, 2}, ai.alloc)
+	assert.Equal(t, false, ai.next())
+
+	forms = []parsedForm{
 		newPf(0, 99999),
 		newPf(1, 1),
 		newPf(0, 99999),
@@ -100,8 +110,18 @@ func TestAllocations(t *testing.T) {
 	}
 	ai = NewAllocIter(800000, forms)
 	num := 0
-	for ai.next() {
-		num++
-	}
+	for num = 0; ai.next(); num++ {}
 	assert.Equal(t, 800000, num)
+
+	// should be 1/2 n (1+n)/.n->(ncomps-1)
+	forms = []parsedForm{
+		newPf(0, 999999),
+		newPf(1, 1),
+		newPf(0, 999999),
+		newPf(1, 1),
+		newPf(0, 999999),
+	}
+	ai = NewAllocIter(1400, forms)
+	for num = 0; ai.next(); num++ {}
+	assert.Equal(t, 979300, num)
 }
