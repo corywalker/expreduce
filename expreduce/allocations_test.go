@@ -94,14 +94,14 @@ func TestAllocations(t *testing.T) {
 	assert.Equal(t, false, ai.next())
 
 	forms = []parsedForm{
-		newPf(0, 99999),
+		newPf(0, 999999),
 		newPf(1, 1),
-		newPf(0, 99999),
+		newPf(0, 999999),
 	}
-	ai = NewAllocIter(40000, forms)
+	ai = NewAllocIter(800000, forms)
 	num := 0
 	for ai.next() {
 		num++
 	}
-	assert.Equal(t, 40000, num)
+	assert.Equal(t, 800000, num)
 }

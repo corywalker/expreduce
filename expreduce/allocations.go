@@ -24,13 +24,15 @@ func (ai *allocIter) next() bool {
 		if p.currForm >= len(ai.forms) {
 			return true
 		}
-		for i := Min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
-			if p.currForm+1 >= len(ai.forms) {
-				if p.remaining-i == 0 {
-					ai.stack = append(ai.stack, allocIterState{
-					p.currForm+1, p.remaining-i, i})
-				}
-			} else {
+		// If we are on the last form, we can check directly if the last form
+		// can accomodate the remaining components.
+		if p.currForm+1 >= len(ai.forms) {
+			if (ai.forms[p.currForm].startI <= p.remaining) && (p.remaining <= ai.forms[p.currForm].endI) {
+				ai.stack = append(ai.stack, allocIterState{
+				p.currForm+1, 0, p.remaining})
+			}
+		} else {
+			for i := Min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
 				if p.remaining-i >= 0 {
 					ai.stack = append(ai.stack, allocIterState{
 					p.currForm+1, p.remaining-i, i})
