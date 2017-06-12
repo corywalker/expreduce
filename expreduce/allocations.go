@@ -24,7 +24,7 @@ func (ai *allocIter) next() bool {
 		if p.currForm >= len(ai.forms) {
 			return true
 		}
-		for i := ai.forms[p.currForm].endI; i >= ai.forms[p.currForm].startI; i-- {
+		for i := Min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
 			if p.currForm+1 >= len(ai.forms) {
 				if p.remaining-i == 0 {
 					ai.stack = append(ai.stack, allocIterState{
