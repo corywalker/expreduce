@@ -1,5 +1,7 @@
 package expreduce
 
+import "fmt"
+
 type allocIterState struct {
 	currForm int
 	remaining int
@@ -51,4 +53,62 @@ func NewAllocIter(l int, forms []parsedForm) allocIter {
 		allocIterState{0, l, 0},
 	}
 	return ai
+}
+
+type assnIter struct {
+	forms []parsedForm
+	assnData []int
+	assns [][]int
+	orderless bool
+	taken []bool
+}
+
+func (asi *assnIter) pOrderless(form int, formPart int, lastTaken int) {
+	if form >= len(asi.assns) {
+		fmt.Println(asi.assns)
+		return
+	}
+	if formPart >= len(asi.assns[form]) {
+		asi.pOrderless(form+1, 0, -1)
+		return
+	}
+	for i := lastTaken+1; i < len(asi.taken); i++ {
+		if !asi.taken[i] {
+			asi.taken[i] = true
+			asi.assns[form][formPart] = i
+			asi.pOrderless(form, formPart+1, i)
+			asi.taken[i] = false
+		}
+	}
+}
+
+func (asi *assnIter) p() {
+	ai := NewAllocIter(len(asi.assnData), asi.forms)
+	for i := range asi.assnData {
+		asi.assnData[i] = i
+	}
+	for ai.next() {
+		// Create slices against assnData.
+		lasti := 0
+		for i := range asi.assns {
+			asi.assns[i] = asi.assnData[lasti:lasti+ai.alloc[i]]
+			lasti += ai.alloc[i]
+		}
+		if !asi.orderless {
+			fmt.Println(ai.alloc)
+			fmt.Println(asi.assns)
+		} else {
+			asi.pOrderless(0, 0, -1)
+		}
+	}
+}
+
+func NewAssnIter(l int, forms []parsedForm, orderless bool) assnIter {
+	asi := assnIter{}
+	asi.forms = forms
+	asi.assnData = make([]int, l)
+	asi.assns = make([][]int, len(forms))
+	asi.orderless = orderless
+	asi.taken = make([]bool, l)
+	return asi
 }

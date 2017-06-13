@@ -125,3 +125,15 @@ func TestAllocations(t *testing.T) {
 	for num = 0; ai.next(); num++ {}
 	assert.Equal(t, 979300, num)
 }
+
+func TestAssignments(t *testing.T) {
+	fmt.Println("Testing assignments")
+
+	forms := []parsedForm{
+		newPf(1, 1),
+		newPf(1, 1),
+		newPf(0, 99999),
+	}
+	ai := NewAssnIter(4, forms, true)
+	ai.p()
+}
