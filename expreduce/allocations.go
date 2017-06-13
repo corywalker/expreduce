@@ -55,30 +55,39 @@ func NewAllocIter(l int, forms []parsedForm) allocIter {
 	return ai
 }
 
+type assnIterState struct {
+	form int
+	formPart int
+	lastTaken int
+}
+
 type assnIter struct {
 	forms []parsedForm
 	assnData []int
 	assns [][]int
 	orderless bool
 	taken []bool
+	stack []assnIterState
 }
 
-func (asi *assnIter) pOrderless(form int, formPart int, lastTaken int) {
-	if form >= len(asi.assns) {
+func (asi *assnIter) pOrderless(form int, formPart int, lastTaken int, formDataI int) {
+	if lastTaken > -1 && formDataI > 0 {
+		asi.taken[lastTaken] = true
+		asi.assnData[formDataI-1] = lastTaken
+	}
+	if formDataI >= len(asi.assnData) {
 		fmt.Println(asi.assns)
-		return
-	}
-	if formPart >= len(asi.assns[form]) {
-		asi.pOrderless(form+1, 0, -1)
-		return
-	}
-	for i := lastTaken+1; i < len(asi.taken); i++ {
-		if !asi.taken[i] {
-			asi.taken[i] = true
-			asi.assns[form][formPart] = i
-			asi.pOrderless(form, formPart+1, i)
-			asi.taken[i] = false
+	} else if formPart >= len(asi.assns[form]) {
+		asi.pOrderless(form+1, 0, -1, formDataI)
+	} else {
+		for i := lastTaken+1; i < len(asi.taken); i++ {
+			if !asi.taken[i] {
+				asi.pOrderless(form, formPart+1, i, formDataI+1)
+			}
 		}
+	}
+	if lastTaken > -1 && formDataI > 0 {
+		asi.taken[lastTaken] = false
 	}
 }
 
@@ -98,7 +107,7 @@ func (asi *assnIter) p() {
 			fmt.Println(ai.alloc)
 			fmt.Println(asi.assns)
 		} else {
-			asi.pOrderless(0, 0, -1)
+			asi.pOrderless(0, 0, -1, 0)
 		}
 	}
 }
