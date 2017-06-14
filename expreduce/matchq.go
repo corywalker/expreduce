@@ -254,6 +254,7 @@ type sequenceMatchIter struct {
 	isOrderless		bool
 	sequenceHead	string
 	es				*EvalState
+	ai				assnIter
 }
 
 func NewSequenceMatchIter(components []Ex, lhs_components []Ex, match_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
@@ -280,6 +281,8 @@ func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm,
 			return nomi, false
 		}
 	}
+
+	nomi.ai = NewAssnIter(len(components), lhs_components, nomi.isOrderless)
 
 	// This function is now recursive because of the existence of BlankSequence.
 	return nomi, true
@@ -402,140 +405,29 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 }
 
 func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
-	// This block allows us to queue up match iters from the function.
-	if this.remainingMatchIter != nil {
-		matchq, newPd, done := this.remainingMatchIter.next()
-		return matchq, newPd, done
-	}
-	if this.es.debugState {
-		this.es.Debugf("Entering sequenceIsMatchQ(components: %s, lhs_components: %s, match_components: %s, isFlat: %v, pm: %s)", ExArrayToString(this.components), PFArrayToString(this.lhs_components), ExArrayToString(this.match_components), this.isFlat, this.pm)
-	}
-	if len(this.lhs_components) == 0 {
-		if len(this.components) == 0 {
-			this.es.Debugf("base case: lhs_components is empty. SUCCESSFUL MATCH!!!! Returning.")
-		} else {
-			this.es.Debugf("base case: lhs_components is empty. Not successful. Returning.")
-		}
-		return len(this.components) == 0, this.pm, true
-	}
-
-	lhs := this.lhs_components[0]
-
-	num_unmatched := len(this.match_components) + len(this.components)
-	endI := lhs.endI
-	if endI > num_unmatched {
-		endI = num_unmatched
-	}
-
-	if lhs.startI > num_unmatched {
-		// If our current lhs_component requires more components than we have
-		// available, return early. TODO: Perhaps also keep track of the min
-		// components for the other lhs components and return even earlier
-		// if we detect a problem.
-		this.es.Infof("base case: this.components not long enough. Returning.")
+	if !this.ai.next() {
 		return false, this.pm, true
 	}
-
-	_, lhsCompIsPat := HeadAssertion(lhs.origForm, "Pattern")
-	mmi := &multiMatchIter{}
-	// We have 3 choices: Skip current form entirely, move on to the next form,
-	// or append to the current form. I have a strong feeling this can be merged
-	// into two.
-	if lhs.startI == 0 && len(this.match_components) == 0 {
-		// Try matching nothing at all. We can try this even if this.components
-		// is empty
-		var updatedPm *PDManager
-		if lhsCompIsPat {
-			updatedPm = CopyPD(this.pm)
-		} else {
-			updatedPm = this.pm
-		}
-		patOk := DefineSequence(lhs.origForm, this.match_components, lhs.isBlank, updatedPm, lhs.isImpliedBs, this.sequenceHead, this.es)
-		if patOk {
-			nomi, ok := NewSequenceMatchIterPreparsed(this.components, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
-			if ok {
-				mmi.matchIters = append(mmi.matchIters, nomi)
+	updatedPm := CopyPD(this.pm)
+	for formI, formAssn := range this.ai.assns {
+		lhs := this.lhs_components[formI]
+		seq := make([]Ex, len(formAssn))
+		for assnI, assn := range formAssn {
+			comp := this.components[assn]
+			matches, newPm := IsMatchQ(comp, lhs.form, updatedPm, this.es)
+			if !matches {
+				return false, this.pm, false
 			}
+			updatedPm.Update(newPm)
+			seq[assnI] = comp
 		}
-	}
-	if len(this.components) == 0 {
-		this.remainingMatchIter = mmi
-		return false, this.pm, false
+		patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, updatedPm, lhs.isImpliedBs, this.sequenceHead, this.es)
+		if !patOk {
+			return false, this.pm, false
+		}
 	}
 
-	// At this point we have a component left, and we want to attempt matching
-	// it with the current lhs_components[0] or the next one.
-	compEndI := 1
-	compStartI := 0
-	if this.isOrderless {
-		compEndI = len(this.components)
-		if len(this.match_components) > 0 {
-			last_mc := this.match_components[len(this.match_components)-1]
-			for compStartI < len(this.components) && ExOrder(last_mc, this.components[compStartI]) == -1 {
-				compStartI++
-			}
-		}
-	}
-	endMatchIters := []matchIter{}
-	canMoveOn := len(this.match_components)+1 >= lhs.startI
-	canAdd := len(this.match_components)+1 < endI
-	for compI := compStartI; compI < compEndI; compI++ {
-		remainingComps := []Ex{}
-		remainingComps = append(remainingComps, this.components[:compI]...)
-		remainingComps = append(remainingComps, this.components[compI+1:]...)
-		this.es.Debugf("Checking if IsMatchQ(%s, %s). Current context: %v\n", this.components[compI], lhs.form, this.pm)
-		mi, cont := NewMatchIter(this.components[compI], lhs.form, this.pm, this.es)
-		for cont {
-			matchq, submatches, done := mi.next()
-			cont = !done
-			if matchq {
-				new_matched := []Ex{}
-				new_matched = append(new_matched, this.match_components...)
-				new_matched = append(new_matched, this.components[compI])
-				// As long as we've matched enough components, try moving on.
-				if canMoveOn {
-					// We're able to move onto the next lhs_component. Try this.
-					updatedPm := CopyPD(this.pm)
-					updatedPm.Update(submatches)
-					passedDefine := DefineSequence(lhs.origForm, new_matched, lhs.isBlank, updatedPm, lhs.isImpliedBs, this.sequenceHead, this.es)
-					if passedDefine {
-						nomi, ok := NewSequenceMatchIterPreparsed(remainingComps, this.lhs_components[1:], []Ex{}, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
-						if ok {
-							mmi.matchIters = append(mmi.matchIters, nomi)
-						}
-					}
-				}
-				// As long as we haven't matched too many components, try using
-				// the same pattern.
-				// This will increase the size of the match for the current form.
-				// Right now I save these up until the end, but I think I should
-				// go even further than that. I think there should be some sort
-				// of shared match stack. I can pass the pointer down through
-				// the recursive calls. Reasoning?
-				// ReplaceList[a + b + c, a___ + b___ -> {{a}, {b}, {c}}]
-				// The last match needs to be {{a, b, c}, {}, {c}}}, aka where
-				// the first form has the longest possible length. It should
-				// be that forms at the beginning are most reluctant to add components.
-				if canAdd {
-					var updatedPm *PDManager
-					if lhs.formHasPattern {
-						updatedPm = CopyPD(this.pm)
-						updatedPm.Update(submatches)
-					} else {
-						updatedPm = this.pm
-					}
-					// Try continuing with the current sequence.
-					nomi, ok := NewSequenceMatchIterPreparsed(remainingComps, this.lhs_components, new_matched, this.isOrderless, this.isFlat, this.sequenceHead, updatedPm, this.es)
-					if ok {
-						endMatchIters = append(endMatchIters, nomi)
-					}
-				}
-			}
-		}
-	}
-	mmi.matchIters = append(mmi.matchIters, endMatchIters...)
-	this.remainingMatchIter = mmi
-	return false, this.pm, false
+	return true, updatedPm, false
 }
 
 func (this *sequenceMatchIter) reset() {}
