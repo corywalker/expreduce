@@ -56,9 +56,9 @@ func NewAllocIter(l int, forms []parsedForm) allocIter {
 }
 
 type assnIterState struct {
-	form int
-	formPart int
 	lastTaken int
+	formDataI int
+	crossedBoundary bool
 }
 
 type assnIter struct {
@@ -70,12 +70,19 @@ type assnIter struct {
 	stack []assnIterState
 }
 
-func (asi *assnIter) pOrderless(lastTaken int, formDataI int, crossedBoundary bool) {
+func (asi *assnIter) pOrderless(lastTaken int, formDataI int, crossedBoundary bool, toFree int) {
+	if toFree > -1 {
+		asi.taken[toFree] = false
+		return
+	}
 	if formDataI > 0 {
 		asi.taken[lastTaken] = true
 		asi.assnData[formDataI-1] = lastTaken
 	}
 	if formDataI >= len(asi.assnData) {
+		if formDataI > 0 {
+			asi.pOrderless(-1, 0, true, lastTaken)
+		}
 		fmt.Println(asi.assns)
 	} else {
 		// Determine if we crossed an allocation boundary.
@@ -91,12 +98,12 @@ func (asi *assnIter) pOrderless(lastTaken int, formDataI int, crossedBoundary bo
 		}
 		for i := startI; i < len(asi.taken); i++ {
 			if !asi.taken[i] {
-				asi.pOrderless(i, formDataI+1, willCrossBoundary)
+				asi.pOrderless(i, formDataI+1, willCrossBoundary, -1)
 			}
 		}
-	}
-	if formDataI > 0 {
-		asi.taken[lastTaken] = false
+		if formDataI > 0 {
+			asi.pOrderless(-1, 0, true, lastTaken)
+		}
 	}
 }
 
@@ -116,7 +123,7 @@ func (asi *assnIter) p() {
 			fmt.Println(ai.alloc)
 			fmt.Println(asi.assns)
 		} else {
-			asi.pOrderless(-1, 0, true)
+			asi.pOrderless(-1, 0, true, -1)
 		}
 	}
 }
