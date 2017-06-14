@@ -130,10 +130,12 @@ func TestAssignments(t *testing.T) {
 	fmt.Println("Testing assignments")
 
 	forms := []parsedForm{
-		newPf(1, 1),
+		newPf(0, 1),
 		newPf(1, 1),
 		newPf(0, 99999),
 	}
-	ai := NewAssnIter(4, forms, true)
-	ai.p()
+	ai := NewAssnIter(3, forms, true)
+	for ai.next() {
+		fmt.Println(ai.assns)
+	}
 }

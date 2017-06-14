@@ -1,7 +1,5 @@
 package expreduce
 
-import "fmt"
-
 type allocIterState struct {
 	currForm int
 	remaining int
@@ -69,9 +67,11 @@ type assnIter struct {
 	orderless bool
 	taken []bool
 	stack []assnIterState
+	iteratingOrderless bool
+	ai allocIter
 }
 
-func (asi *assnIter) pOrderless() bool {
+func (asi *assnIter) nextOrderless() bool {
 	for len(asi.stack) > 0 {
 		var p assnIterState
 		l := len(asi.stack)
@@ -120,31 +120,28 @@ func (asi *assnIter) pOrderless() bool {
 	return false
 }
 
-func (asi *assnIter) p() {
-	ai := NewAllocIter(len(asi.assnData), asi.forms)
-	for i := range asi.assnData {
-		asi.assnData[i] = i
+func (asi *assnIter) next() bool {
+	if asi.iteratingOrderless && asi.nextOrderless() {
+		return true
 	}
-	for ai.next() {
+	asi.iteratingOrderless = false
+	if asi.ai.next() {
 		// Create slices against assnData.
 		lasti := 0
 		for i := range asi.assns {
-			asi.assns[i] = asi.assnData[lasti:lasti+ai.alloc[i]]
-			lasti += ai.alloc[i]
+			asi.assns[i] = asi.assnData[lasti:lasti+asi.ai.alloc[i]]
+			lasti += asi.ai.alloc[i]
 		}
-		if !asi.orderless {
-			// This is also always equal to the first result of an orderless
-			// variant. Perhaps we want to merge these at some point?
-			fmt.Println(asi.assns)
-		} else {
+		if asi.orderless {
 			asi.stack = append(asi.stack, assnIterState{
 				-1, 0, true, -1,
 			})
-			for asi.pOrderless() {
-				fmt.Println(asi.assns)
-			}
+			asi.nextOrderless()
+			asi.iteratingOrderless = true
 		}
+		return true
 	}
+	return false
 }
 
 func NewAssnIter(l int, forms []parsedForm, orderless bool) assnIter {
@@ -154,5 +151,11 @@ func NewAssnIter(l int, forms []parsedForm, orderless bool) assnIter {
 	asi.assns = make([][]int, len(forms))
 	asi.orderless = orderless
 	asi.taken = make([]bool, l)
+
+	asi.ai = NewAllocIter(len(asi.assnData), asi.forms)
+	for i := range asi.assnData {
+		asi.assnData[i] = i
+	}
+
 	return asi
 }
