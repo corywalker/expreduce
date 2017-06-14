@@ -1,17 +1,26 @@
 package expreduce
 
 import (
+	"flag"
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
+	"regexp"
 )
 
+var testmodules = flag.String("testmodules", "",
+	"A regexp of modules to test, otherwise test all modules.")
+
 func TestIncludedModules(t *testing.T) {
+	var testModEx = regexp.MustCompile(*testmodules)
 	defSets := GetAllDefinitions()
 	numTests := 0
 	var mockT testing.T
 	for _, defSet := range defSets {
+		if !testModEx.MatchString(defSet.Name) {
+			continue
+		}
 		fmt.Printf("Testing module %s\n", defSet.Name)
 		for _, def := range defSet.Defs {
 			td := TestDesc{
