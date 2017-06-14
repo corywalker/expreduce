@@ -76,44 +76,43 @@ func (asi *assnIter) pOrderless() bool {
 		var p assnIterState
 		l := len(asi.stack)
 		asi.stack, p = asi.stack[:l-1], asi.stack[l-1]
-		lastTaken, formDataI, crossedBoundary, toFree := p.lastTaken, p.formDataI, p.crossedBoundary, p.toFree
 
-		if toFree > -1 {
-			asi.taken[toFree] = false
+		if p.toFree > -1 {
+			asi.taken[p.toFree] = false
 			continue
 		}
-		if formDataI > 0 {
-			asi.taken[lastTaken] = true
-			asi.assnData[formDataI-1] = lastTaken
+		if p.formDataI > 0 {
+			asi.taken[p.lastTaken] = true
+			asi.assnData[p.formDataI-1] = p.lastTaken
 		}
-		if formDataI >= len(asi.assnData) {
-			if formDataI > 0 {
+		if p.formDataI >= len(asi.assnData) {
+			if p.formDataI > 0 {
 				asi.stack = append(asi.stack, assnIterState{
-					-1, 0, true, lastTaken,
+					-1, 0, true, p.lastTaken,
 				})
 			}
 			return true
 		}
 		// Determine if we crossed an allocation boundary.
 		totComps := 0
-		for i := 0; i < len(asi.assns) && totComps < formDataI+1; i++ {
+		for i := 0; i < len(asi.assns) && totComps < p.formDataI+1; i++ {
 			totComps += len(asi.assns[i])
 		}
-		willCrossBoundary := formDataI+1 == totComps
+		willCrossBoundary := p.formDataI+1 == totComps
 
-		startI := lastTaken+1
-		if crossedBoundary {
+		startI := p.lastTaken+1
+		if p.crossedBoundary {
 			startI = 0
 		}
-		if formDataI > 0 {
+		if p.formDataI > 0 {
 			asi.stack = append(asi.stack, assnIterState{
-				-1, 0, true, lastTaken,
+				-1, 0, true, p.lastTaken,
 			})
 		}
 		for i := len(asi.taken)-1; i >= startI; i-- {
 			if !asi.taken[i] {
 				asi.stack = append(asi.stack, assnIterState{
-					i, formDataI+1, willCrossBoundary, -1,
+					i, p.formDataI+1, willCrossBoundary, -1,
 				})
 			}
 		}
@@ -134,7 +133,8 @@ func (asi *assnIter) p() {
 			lasti += ai.alloc[i]
 		}
 		if !asi.orderless {
-			fmt.Println(ai.alloc)
+			// This is also always equal to the first result of an orderless
+			// variant. Perhaps we want to merge these at some point?
 			fmt.Println(asi.assns)
 		} else {
 			asi.stack = append(asi.stack, assnIterState{
