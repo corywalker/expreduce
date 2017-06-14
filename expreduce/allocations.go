@@ -59,6 +59,7 @@ type assnIterState struct {
 	lastTaken int
 	formDataI int
 	crossedBoundary bool
+	toFree int
 }
 
 type assnIter struct {
@@ -70,21 +71,29 @@ type assnIter struct {
 	stack []assnIterState
 }
 
-func (asi *assnIter) pOrderless(lastTaken int, formDataI int, crossedBoundary bool, toFree int) {
-	if toFree > -1 {
-		asi.taken[toFree] = false
-		return
-	}
-	if formDataI > 0 {
-		asi.taken[lastTaken] = true
-		asi.assnData[formDataI-1] = lastTaken
-	}
-	if formDataI >= len(asi.assnData) {
-		if formDataI > 0 {
-			asi.pOrderless(-1, 0, true, lastTaken)
+func (asi *assnIter) pOrderless() bool {
+	for len(asi.stack) > 0 {
+		var p assnIterState
+		l := len(asi.stack)
+		asi.stack, p = asi.stack[:l-1], asi.stack[l-1]
+		lastTaken, formDataI, crossedBoundary, toFree := p.lastTaken, p.formDataI, p.crossedBoundary, p.toFree
+
+		if toFree > -1 {
+			asi.taken[toFree] = false
+			continue
 		}
-		fmt.Println(asi.assns)
-	} else {
+		if formDataI > 0 {
+			asi.taken[lastTaken] = true
+			asi.assnData[formDataI-1] = lastTaken
+		}
+		if formDataI >= len(asi.assnData) {
+			if formDataI > 0 {
+				asi.stack = append(asi.stack, assnIterState{
+					-1, 0, true, lastTaken,
+				})
+			}
+			return true
+		}
 		// Determine if we crossed an allocation boundary.
 		totComps := 0
 		for i := 0; i < len(asi.assns) && totComps < formDataI+1; i++ {
@@ -96,15 +105,20 @@ func (asi *assnIter) pOrderless(lastTaken int, formDataI int, crossedBoundary bo
 		if crossedBoundary {
 			startI = 0
 		}
-		for i := startI; i < len(asi.taken); i++ {
+		if formDataI > 0 {
+			asi.stack = append(asi.stack, assnIterState{
+				-1, 0, true, lastTaken,
+			})
+		}
+		for i := len(asi.taken)-1; i >= startI; i-- {
 			if !asi.taken[i] {
-				asi.pOrderless(i, formDataI+1, willCrossBoundary, -1)
+				asi.stack = append(asi.stack, assnIterState{
+					i, formDataI+1, willCrossBoundary, -1,
+				})
 			}
 		}
-		if formDataI > 0 {
-			asi.pOrderless(-1, 0, true, lastTaken)
-		}
 	}
+	return false
 }
 
 func (asi *assnIter) p() {
@@ -123,7 +137,12 @@ func (asi *assnIter) p() {
 			fmt.Println(ai.alloc)
 			fmt.Println(asi.assns)
 		} else {
-			asi.pOrderless(-1, 0, true, -1)
+			asi.stack = append(asi.stack, assnIterState{
+				-1, 0, true, -1,
+			})
+			for asi.pOrderless() {
+				fmt.Println(asi.assns)
+			}
 		}
 	}
 }
