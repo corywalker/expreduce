@@ -240,28 +240,28 @@ func (ami *assignedMatchIter) next() bool {
 		//matches, newPm := IsMatchQ(comp, lhs.form, p.pm, ami.es)
 		//if matches {
 		comp := ami.components[ami.assn[p.formI][p.assnI]]
-		toAddReversed := []assignedIterState{}
-		matchIndex := 0
+		toAddReversed := []*PDManager{}
 		mi, cont := NewMatchIter(comp, lhs.form, p.pm, ami.es)
 		for cont {
 			matchq, submatches, done := mi.next()
 			cont = !done
 			if matchq {
-				updatedPm := p.pm
-				// If we have submatches, we definitely want to update. We only
-				// want to copy the PD if matchIndex > 0, though.
-				if submatches.Len() > 0 {
-					updatedPm = CopyPD(p.pm)
-					updatedPm.Update(submatches)
-				}
-				toAddReversed = append(toAddReversed, assignedIterState{
-					p.formI, p.assnI+1, updatedPm,
-				})
-				matchIndex++
+				// TODO: Perhaps check if submatches are different before
+				// adding?
+				toAddReversed = append(toAddReversed, submatches)
 			}
 		}
 		for i := len(toAddReversed)-1; i >= 0; i-- {
-			ami.stack = append(ami.stack, toAddReversed[i])
+			updatedPm := p.pm
+			if toAddReversed[i].Len() > 0 {
+				if len(toAddReversed) > 1 {
+					updatedPm = CopyPD(p.pm)
+				}
+				updatedPm.Update(toAddReversed[i])
+			}
+			ami.stack = append(ami.stack, assignedIterState{
+				p.formI, p.assnI+1, updatedPm,
+			})
 		}
 	}
 	return false
