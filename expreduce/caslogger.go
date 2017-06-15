@@ -32,6 +32,10 @@ func (this *CASLogger) Infof(fmt string, args ...interface{}) {
 	}
 }
 
+func (this *CASLogger) Errorf(fmt string, args ...interface{}) {
+	this._log.Errorf(fmt, args...)
+}
+
 func (this *CASLogger) DebugOn(level logging.Level) {
 	this.leveled.SetLevel(level, "")
 	this.debugState = true
