@@ -180,6 +180,52 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, es *EvalState) 
 		b, pm, es)
 }
 
+type assignedMatchIter struct {
+	assn			[][]int
+
+	// Inherited from sequenceMatchIter
+	components		[]Ex
+	lhs_components	[]parsedForm
+	pm				*PDManager
+	sequenceHead	string
+	es				*EvalState
+}
+
+func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIter {
+	ami := assignedMatchIter{}
+	ami.assn = assn
+	ami.components = smi.components
+	ami.lhs_components = smi.lhs_components
+	ami.pm = smi.pm
+	ami.sequenceHead = smi.sequenceHead
+	ami.es = smi.es
+	return ami
+}
+
+func (ami *assignedMatchIter) next() bool {
+	updatedPm := CopyPD(ami.pm)
+	for formI, formAssn := range ami.assn {
+		lhs := ami.lhs_components[formI]
+		seq := make([]Ex, len(formAssn))
+		for assnI, assn := range formAssn {
+			comp := ami.components[assn]
+			matches, newPm := IsMatchQ(comp, lhs.form, updatedPm, ami.es)
+			if !matches {
+				return false
+			}
+			updatedPm.Update(newPm)
+			seq[assnI] = comp
+		}
+		patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, updatedPm, lhs.isImpliedBs, ami.sequenceHead, ami.es)
+		if !patOk {
+			return false
+		}
+	}
+
+	ami.pm = updatedPm
+	return true
+}
+
 type sequenceMatchIter struct {
 	components		[]Ex
 	lhs_components	[]parsedForm
@@ -213,44 +259,18 @@ func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm,
 
 	nomi.ai = NewAssnIter(len(components), lhs_components, isOrderless)
 
-	// This function is now recursive because of the existence of BlankSequence.
 	return nomi, true
 }
-
-/*type assnMatchIter struct {
-	components		[]Ex
-	lhs_components	[]parsedForm
-	pm				*PDManager
-	sequenceHead	string
-	es				*EvalState
-}*/
-
-// TODO: create an assnMatchIter that takes an assn as a parameter. It returns "cont", and if true, then a pdmanager is valid.
 
 func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 	if !this.ai.next() {
 		return false, this.pm, true
 	}
-	updatedPm := CopyPD(this.pm)
-	for formI, formAssn := range this.ai.assns {
-		lhs := this.lhs_components[formI]
-		seq := make([]Ex, len(formAssn))
-		for assnI, assn := range formAssn {
-			comp := this.components[assn]
-			matches, newPm := IsMatchQ(comp, lhs.form, updatedPm, this.es)
-			if !matches {
-				return false, this.pm, false
-			}
-			updatedPm.Update(newPm)
-			seq[assnI] = comp
-		}
-		patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, updatedPm, lhs.isImpliedBs, this.sequenceHead, this.es)
-		if !patOk {
-			return false, this.pm, false
-		}
+	ami := NewAssignedMatchIter(this.ai.assns, this)
+	if ami.next() {
+		return true, ami.pm, false
 	}
-
-	return true, updatedPm, false
+	return false, this.pm, false
 }
 
 func (this *sequenceMatchIter) reset() {}
