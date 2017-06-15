@@ -30,6 +30,10 @@ func (this *PDManager) Update(toAdd *PDManager) {
 	}
 }
 
+func (this *PDManager) Len() int {
+	return len(this.patternDefined)
+}
+
 func (this *PDManager) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
@@ -96,14 +100,12 @@ func DefineSequence(lhs_component Ex, sequence []Ex, isBlank bool, pm *PDManager
 			attemptDefine = NewExpression(append([]Ex{head}, sequence...))
 		}
 
-		if attemptDefine != nil {
-			defined, ispd := pm.patternDefined[sAsSymbol.Name]
-			if ispd && !IsSameQ(defined, attemptDefine, &es.CASLogger) {
-				es.Debugf("patterns do not match! continuing.")
-				return false
-			}
-			pm.patternDefined[sAsSymbol.Name] = attemptDefine
+		defined, ispd := pm.patternDefined[sAsSymbol.Name]
+		if ispd && !IsSameQ(defined, attemptDefine, &es.CASLogger) {
+			es.Debugf("patterns do not match! continuing.")
+			return false
 		}
+		pm.patternDefined[sAsSymbol.Name] = attemptDefine
 	}
 	return true
 }

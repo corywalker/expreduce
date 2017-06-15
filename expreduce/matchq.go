@@ -228,11 +228,10 @@ func (ami *assignedMatchIter) next() bool {
 			for i, assignedComp := range ami.assn[p.formI] {
 				seq[i] = ami.components[assignedComp]
 			}
-			updatedPm := CopyPD(p.pm)
-			patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, updatedPm, lhs.isImpliedBs, ami.sequenceHead, ami.es)
+			patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, p.pm, lhs.isImpliedBs, ami.sequenceHead, ami.es)
 			if patOk {
 				ami.stack = append(ami.stack, assignedIterState{
-					p.formI+1, 0, updatedPm,
+					p.formI+1, 0, p.pm,
 				})
 			}
 			continue
@@ -242,16 +241,23 @@ func (ami *assignedMatchIter) next() bool {
 		//if matches {
 		comp := ami.components[ami.assn[p.formI][p.assnI]]
 		toAddReversed := []assignedIterState{}
+		matchIndex := 0
 		mi, cont := NewMatchIter(comp, lhs.form, p.pm, ami.es)
 		for cont {
 			matchq, submatches, done := mi.next()
 			cont = !done
 			if matchq {
-				updatedPm := CopyPD(p.pm)
-				updatedPm.Update(submatches)
+				updatedPm := p.pm
+				// If we have submatches, we definitely want to update. We only
+				// want to copy the PD if matchIndex > 0, though.
+				if submatches.Len() > 0 {
+					updatedPm = CopyPD(p.pm)
+					updatedPm.Update(submatches)
+				}
 				toAddReversed = append(toAddReversed, assignedIterState{
 					p.formI, p.assnI+1, updatedPm,
 				})
+				matchIndex++
 			}
 		}
 		for i := len(toAddReversed)-1; i >= 0; i-- {
