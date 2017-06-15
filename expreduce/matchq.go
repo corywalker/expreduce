@@ -241,14 +241,24 @@ func (ami *assignedMatchIter) next() bool {
 			continue
 		}
 
-		updatedPm := CopyPD(p.pm)
+		//matches, newPm := IsMatchQ(comp, lhs.form, p.pm, ami.es)
+		//if matches {
 		comp := ami.components[ami.assn[p.formI][p.assnI]]
-		matches, newPm := IsMatchQ(comp, lhs.form, updatedPm, ami.es)
-		updatedPm.Update(newPm)
-		if matches {
-			ami.stack = append(ami.stack, assignedIterState{
-				p.formI, p.assnI+1, updatedPm,
-			})
+		toAddReversed := []assignedIterState{}
+		mi, cont := NewMatchIter(comp, lhs.form, p.pm, ami.es)
+		for cont {
+			matchq, submatches, done := mi.next()
+			cont = !done
+			if matchq {
+				updatedPm := CopyPD(p.pm)
+				updatedPm.Update(submatches)
+				toAddReversed = append(toAddReversed, assignedIterState{
+					p.formI, p.assnI+1, updatedPm,
+				})
+			}
+		}
+		for i := len(toAddReversed)-1; i >= 0; i-- {
+			ami.stack = append(ami.stack, toAddReversed[i])
 		}
 	}
 	return false
@@ -261,6 +271,8 @@ type sequenceMatchIter struct {
 	sequenceHead	string
 	es				*EvalState
 	ai				assnIter
+	iteratingAmi	bool
+	ami				assignedMatchIter
 }
 
 func NewSequenceMatchIter(components []Ex, lhs_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
@@ -291,13 +303,15 @@ func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm,
 }
 
 func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
+	if this.iteratingAmi && this.ami.next() {
+		return true, this.ami.pm, false
+	}
+	this.iteratingAmi = false
 	if !this.ai.next() {
 		return false, this.pm, true
 	}
-	ami := NewAssignedMatchIter(this.ai.assns, this)
-	if ami.next() {
-		return true, ami.pm, false
-	}
+	this.ami = NewAssignedMatchIter(this.ai.assns, this)
+	this.iteratingAmi = true
 	return false, this.pm, false
 }
 
