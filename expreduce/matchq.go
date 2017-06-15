@@ -4,7 +4,6 @@ const MaxUint = ^uint(0)
 const MaxInt = int(MaxUint >> 1)
 
 type matchIter interface {
-	reset()
 	// returns ismatch, pd, isdone
 	next() (bool, *PDManager, bool)
 }
@@ -18,8 +17,6 @@ type dummyMatchIter struct {
 func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
 	return this.isMatchQ, this.pm, this.isDone
 }
-
-func (this *dummyMatchIter) reset() {}
 
 func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	// Special case for Except
@@ -303,19 +300,19 @@ func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm,
 }
 
 func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
-	if this.iteratingAmi && this.ami.next() {
-		return true, this.ami.pm, false
+	for {
+		if this.iteratingAmi && this.ami.next() {
+			return true, this.ami.pm, false
+		}
+		this.iteratingAmi = false
+		if !this.ai.next() {
+			break
+		}
+		this.ami = NewAssignedMatchIter(this.ai.assns, this)
+		this.iteratingAmi = true
 	}
-	this.iteratingAmi = false
-	if !this.ai.next() {
-		return false, this.pm, true
-	}
-	this.ami = NewAssignedMatchIter(this.ai.assns, this)
-	this.iteratingAmi = true
-	return false, this.pm, false
+	return false, this.pm, true
 }
-
-func (this *sequenceMatchIter) reset() {}
 
 // HELPER FUNCTIONS
 
