@@ -180,6 +180,12 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, es *EvalState) 
 		b, pm, es)
 }
 
+type assignedIterState struct {
+	formI int
+	assnI int
+	pm *PDManager
+}
+
 type assignedMatchIter struct {
 	assn			[][]int
 
@@ -189,6 +195,7 @@ type assignedMatchIter struct {
 	pm				*PDManager
 	sequenceHead	string
 	es				*EvalState
+	stack			[]assignedIterState
 }
 
 func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIter {
@@ -199,31 +206,52 @@ func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIte
 	ami.pm = smi.pm
 	ami.sequenceHead = smi.sequenceHead
 	ami.es = smi.es
+	ami.stack = []assignedIterState{
+		assignedIterState{0, 0, CopyPD(ami.pm)},
+	}
 	return ami
 }
 
 func (ami *assignedMatchIter) next() bool {
-	updatedPm := CopyPD(ami.pm)
-	for formI, formAssn := range ami.assn {
-		lhs := ami.lhs_components[formI]
-		seq := make([]Ex, len(formAssn))
-		for assnI, assn := range formAssn {
-			comp := ami.components[assn]
-			matches, newPm := IsMatchQ(comp, lhs.form, updatedPm, ami.es)
-			if !matches {
-				return false
-			}
-			updatedPm.Update(newPm)
-			seq[assnI] = comp
+	for len(ami.stack) > 0 {
+		var p assignedIterState
+		l := len(ami.stack)
+		ami.stack, p = ami.stack[:l-1], ami.stack[l-1]
+
+		if p.formI >= len(ami.assn) {
+			// We found a sequence match!
+			ami.pm = p.pm
+			return true
 		}
-		patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, updatedPm, lhs.isImpliedBs, ami.sequenceHead, ami.es)
-		if !patOk {
-			return false
+		lhs := ami.lhs_components[p.formI]
+		if p.assnI >= len(ami.assn[p.formI]) {
+			// Reached end of form. Attempt to define the sequence and continue
+			// on success.
+			seq := make([]Ex, len(ami.assn[p.formI]))
+			for i, assignedComp := range ami.assn[p.formI] {
+				seq[i] = ami.components[assignedComp]
+			}
+			updatedPm := CopyPD(p.pm)
+			patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, updatedPm, lhs.isImpliedBs, ami.sequenceHead, ami.es)
+			if patOk {
+				ami.stack = append(ami.stack, assignedIterState{
+					p.formI+1, 0, updatedPm,
+				})
+			}
+			continue
+		}
+
+		updatedPm := CopyPD(p.pm)
+		comp := ami.components[ami.assn[p.formI][p.assnI]]
+		matches, newPm := IsMatchQ(comp, lhs.form, updatedPm, ami.es)
+		updatedPm.Update(newPm)
+		if matches {
+			ami.stack = append(ami.stack, assignedIterState{
+				p.formI, p.assnI+1, updatedPm,
+			})
 		}
 	}
-
-	ami.pm = updatedPm
-	return true
+	return false
 }
 
 type sequenceMatchIter struct {
