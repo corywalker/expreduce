@@ -78,6 +78,18 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:              "ExpreduceDefinitionTimes",
+		Usage:             "`ExpreduceDefinitionTimes[]` prints the time in seconds evaluating various definitions.",
+		Details:           "For timing information to record, debug mode must be enabled through `ExpreduceSetLogging`.",
+		ExpreduceSpecific: true,
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			fmt.Println(es.lhsDefTimeCounter.String())
+			fmt.Println(es.defTimeCounter.String())
+
+			return &Symbol{"Null"}
+		},
+	})
+	defs = append(defs, Definition{
 		Name:       "Attributes",
 		Usage:      "`Attributes[sym]` returns a `List` of attributes for `sym`.",
 		Attributes: []string{"HoldAll", "Listable"},

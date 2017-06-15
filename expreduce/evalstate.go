@@ -5,6 +5,7 @@ import (
 	"log"
 	"sort"
 	"strings"
+	"time"
 )
 
 type DefMap map[string]Def
@@ -16,6 +17,8 @@ type EvalState struct {
 	defined DefMap
 	trace   *Expression
 	NoInit  bool
+	defTimeCounter TimeCounter
+	lhsDefTimeCounter TimeCounter
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -67,6 +70,8 @@ func InitCAS(es *EvalState) {
 
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string]Def)
+	es.lhsDefTimeCounter.Init()
+	es.defTimeCounter.Init()
 
 	es.NoInit = !loadAllDefs
 	if !es.NoInit {
@@ -114,10 +119,25 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	for i := range this.defined[name].downvalues {
 	    def := this.defined[name].downvalues[i]
+
+		defStr, lhsDefStr := "", ""
+		started := int64(0)
+		if this.debugState {
+			defStr = def.String()
+			lhsDefStr = lhs.String() + defStr
+			started = time.Now().UnixNano()
+		}
+
 		ismatchq, _ := IsMatchQ(lhs, def.Parts[1], EmptyPD(), this)
 		if ismatchq {
 			res := ReplaceAll(lhs, &def, this, EmptyPD(), "")
 			return res, true, &def
+		}
+
+		if this.debugState {
+			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
+			this.defTimeCounter.AddTime(defStr, elapsed)
+			this.lhsDefTimeCounter.AddTime(lhsDefStr, elapsed)
 		}
 	}
 	return nil, false, nil
