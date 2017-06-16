@@ -3,13 +3,15 @@
 
 This software is experimental quality and is not currently intended for serious use. There are plenty of more mature open source computer algebra systems to use instead.
 
-Expreduce is a language with specialized constructs for term rewriting. It is a neat language for a computer algebra system because it is able to express expression manipulation steps in a form very similar to standard math equations. For example, the product rule in calculus can be expressed as:
+Expreduce implements a language with specialized constructs for term rewriting. It is a neat language for a computer algebra system because it is able to express expression manipulation steps in a form very similar to standard math equations. For example, the product rule in calculus can be expressed as:
 
 ```
 D[a_*b_,x_] := D[a,x]*b + a*D[b,x]
 ```
 
-The term rewriting system and pattern matching engine is fairly advanced. The computer algebra system at this stage is extremely limited, but fairly simple calculus and algebraic manipulation is certainly supported (see examples below). If you are looking for a more mature computer algebra system, please consider using Mathematica (proprietary) or Mathics (open source, Sympy-backed).
+Now that the kernel understands the product rule, when it later encounters a pattern matching the above LHS, it will recursively apply the product rule until the expression stabilizes.
+
+The term rewriting system and pattern matching engine is fairly advanced. The computer algebra system at this stage is extremely limited, but simple calculus and algebraic manipulation is certainly supported (see examples below). If you are looking for a more mature computer algebra system, please consider using Mathematica (proprietary) or Mathics (open source, Sympy-backed).
 
 ## Documentation
 
@@ -64,7 +66,7 @@ Expreduce is indeed very similar to Mathics, a similar term rewriting system tha
 
 # Current limitations
 
-When the engine applies rules for a given symbol, it tries to match the most "specific" rules first. The current definition of specificity is fairly basic now, but can certainly be improved upon. It works in most cases but I can envision cases where it will be wrong. Right now there is no way to override the order of rule application, but it should be fairly simple to add in the future.
+When the engine applies rules for a given symbol, it tries to match the most "specific" rules first. The current definition of specificity is basic now, but can certainly be improved upon. It works in most cases but I can envision cases where it will be wrong. Right now there is no way to override the order of rule application, but it should be simple to add in the future.
 
 The pattern matching system can be very slow, especially when working with `Orderless` expressions with many terms. This is because correctly matching such terms often involves checking many different permutations of a pattern until one finds a match. My theory right now is that the current matching system is behaving naively and that it can be modified to speed things up.
 
