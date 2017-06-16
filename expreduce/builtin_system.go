@@ -78,6 +78,18 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:              "ExpreduceDefinitionTimes",
+		Usage:             "`ExpreduceDefinitionTimes[]` prints the time in seconds evaluating various definitions.",
+		Details:           "For timing information to record, debug mode must be enabled through `ExpreduceSetLogging`.",
+		ExpreduceSpecific: true,
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			fmt.Println(es.lhsDefTimeCounter.String())
+			fmt.Println(es.defTimeCounter.String())
+
+			return &Symbol{"Null"}
+		},
+	})
+	defs = append(defs, Definition{
 		Name:       "Attributes",
 		Usage:      "`Attributes[sym]` returns a `List` of attributes for `sym`.",
 		Attributes: []string{"HoldAll", "Listable"},
@@ -293,13 +305,16 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Print",
-		Usage: "`Print[expr]` prints the string representation of `expr` to the console and returns `Null`.",
+		Usage: "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+			if len(this.Parts) < 2 {
 				return this
 			}
 
-			fmt.Printf("%s\n", this.Parts[1].String())
+			for i := 1; i < len(this.Parts); i++ {
+				fmt.Printf("%s", this.Parts[i].String())
+			}
+			fmt.Printf("\n")
 			return &Symbol{"Null"}
 		},
 	})
@@ -371,6 +386,63 @@ func GetSystemDefinitions() (defs []Definition) {
 			&SameTest{"2.", "N[2]"},
 			&SameTest{"0.5", "N[1/2]"},
 		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Listable",
+		Usage: "`Listable` is an attribute that calls for functions to automatically map over lists.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{1, 1, 1, 0}", "Boole[{True, True, True, False}]"},
+			&SameTest{"{False, True, True}", "Positive[{-1, 4, 5}]"},
+			&SameTest{"{{False, True, True}}", "Positive[{{-1, 4, 5}}]"},
+			&SameTest{"{{False, True, True}, {True, False}}", "Positive[{{-1, 4, 5}, {6, -1}}]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{Positive[-1, 2], Positive[4, 2], Positive[5, 2]}", "Positive[{-1, 4, 5}, 2]"},
+			&SameTest{"Positive[{-1, 4, 5}, {1, 2}]", "Positive[{-1, 4, 5}, {1, 2}]"},
+			&SameTest{"{Positive[-1, 1], Positive[4, 2], Positive[5, 3]}", "Positive[{-1, 4, 5}, {1, 2, 3}]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlatFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceOrderlessFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Orderless"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceOneIdentityFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"OneIdentity"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlatFn2",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlOrFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat", "Orderless"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlOiFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat", "OneIdentity"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceFlOrOiFn",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat", "Orderless", "OneIdentity"},
 	})
 	return
 }

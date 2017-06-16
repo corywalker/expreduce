@@ -19,9 +19,9 @@ func (this *Expression) ToStringList(form string) (bool, string) {
 	return true, buffer.String()
 }
 
-func MemberQ(components []Ex, item Ex, cl *CASLogger) bool {
+func MemberQ(components []Ex, item Ex, es *EvalState) bool {
 	for _, part := range components {
-		if matchq, _ := IsMatchQ(part, item, EmptyPD(), cl); matchq {
+		if matchq, _ := IsMatchQ(part, item, EmptyPD(), es); matchq {
 			return true
 		}
 	}
@@ -71,6 +71,41 @@ func applyIndex(ex Ex, index Ex) (Ex, bool) {
 		}
 	}
 	return nil, false
+}
+
+func ThreadExpr(expr *Expression) (*Expression, bool) {
+	lengths := []int{}
+	for i := 1; i < len(expr.Parts); i++ {
+		list, isList := HeadAssertion(expr.Parts[i], "List")
+		if isList {
+			lengths = append(lengths, len(list.Parts) - 1)
+		}
+	}
+	if len(lengths) == 0 {
+		return expr, false
+	}
+	allSame := true
+	for i := range lengths {
+		allSame = allSame && (lengths[0] == lengths[i])
+	}
+	if !allSame {
+		return expr, false
+	}
+	listLen := lengths[0]
+	toReturn := NewExpression([]Ex{&Symbol{"List"}})
+	for listI := 0; listI < listLen; listI++ {
+		thisExpr := NewExpression([]Ex{expr.Parts[0].DeepCopy()})
+		for i := 1; i < len(expr.Parts); i++ {
+			list, isList := HeadAssertion(expr.Parts[i], "List")
+			if isList {
+				thisExpr.Parts = append(thisExpr.Parts, list.Parts[listI+1])
+			} else {
+				thisExpr.Parts = append(thisExpr.Parts, expr.Parts[i])
+			}
+		}
+		toReturn.Parts = append(toReturn.Parts, thisExpr)
+	}
+	return toReturn, true
 }
 
 func GetListDefinitions() (defs []Definition) {
@@ -166,7 +201,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
-				if MemberQ(expr.Parts[1:], this.Parts[2], &es.CASLogger) {
+				if MemberQ(expr.Parts[1:], this.Parts[2], es) {
 					return &Symbol{"True"}
 				}
 			}
@@ -216,7 +251,7 @@ func GetListDefinitions() (defs []Definition) {
 				toReturn := NewExpression([]Ex{&Symbol{"List"}})
 
 				for i := 1; i < len(expr.Parts); i++ {
-					if matchq, _ := IsMatchQ(expr.Parts[i], this.Parts[2], EmptyPD(), &es.CASLogger); matchq {
+					if matchq, _ := IsMatchQ(expr.Parts[i], this.Parts[2], EmptyPD(), es); matchq {
 						toReturn.Parts = append(toReturn.Parts, expr.Parts[i])
 					}
 				}
@@ -381,6 +416,36 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"{{1, 4, 9, 16, 25}, {2, 8, 18, 32, 50}, {3, 12, 27, 48, 75}, {4, 16, 36, 64, 100}, {5, 20, 45, 80, 125}}", "mat = Table[Table[a*b^2, {b, 5}], {a, 5}]"},
 			&TestComment{"Use `All` to select along the entire dimension:"},
 			&SameTest{"{5, 20, 45, 80, 125}", "mat[[5, All]]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Thread",
+		Usage: "`Thread[f[a1, a2, ...}]]` applies f over the arguments, expanding out any lists.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			expr, isExpr := this.Parts[1].(*Expression)
+			if !isExpr {
+				return this.Parts[1]
+			}
+			newExpr, _ := ThreadExpr(expr)
+			return newExpr
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{f[x], f[y], f[z]}", "Thread[f[{x, y, z}]]"},
+			&SameTest{"{f[x, b], f[y, b], f[z, b]}", "Thread[f[{x, y, z}, b]]"},
+			&SameTest{"f[{x, y, z}, {b}]", "Thread[f[{x, y, z}, {b}]]"},
+			&SameTest{"{f[{x, y, z}, b]}", "Thread[f[{{x, y, z}}, {b}]]"},
+			&SameTest{"{f[{x, y, z}, b]}", "Thread[f[{{x, y, z}}, b]]"},
+			&SameTest{"{f[x, b, a], f[y, b, b], f[z, b, c]}", "Thread[f[{x, y, z}, b, {a, b, c}]]"},
+			&SameTest{"{mypos[-1], mypos[4], mypos[5]}", "Thread[mypos[{-1, 4, 5}]]"},
+			&SameTest{"f[a, b, c]", "Thread[f[a, b, c]]"},
+			&SameTest{"{f[1]}", "Thread[f[{1}]]"},
+			&SameTest{"{0, 1, 2}", "Thread[{0, 1, 2}]"},
+			&SameTest{"{{0, a}, {1, a}, {2, a}}", "Thread[{{0, 1, 2}, a}]"},
+			&SameTest{"a", "Thread[a]"},
+			&SameTest{"Thread[]", "Thread[]"},
 		},
 	})
 	return

@@ -135,6 +135,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 \/@ return MAPSYM /* Map */
 \? return PATTESTSYM /* PatternTest */
 \| return ALTSYM /* Alternatives */
+: return COLONSYM /* Pattern */
 \|\| return ORSYM /* Or */
 && return ANDSYM /* And */
 :: return MESSAGENAMESYM /* MessageName */

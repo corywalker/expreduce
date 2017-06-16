@@ -102,7 +102,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			headSym, headIsSym = curr.Parts[0].(*Symbol)
 		}
 		if headIsSym {
-			attrs = headSym.Attrs(es)
+			attrs = headSym.Attrs(&es.defined)
 		}
 		for i := range curr.Parts {
 			if headIsSym && i == 1 && attrs.HoldFirst {
@@ -166,6 +166,14 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			if attrs.Orderless {
 				sort.Sort(curr)
 			}
+			if attrs.Listable {
+				changed := false
+				currEx, changed = ThreadExpr(curr)
+				if changed {
+					lastEx = currEx
+					continue
+				}
+			}
 			headStr := headSym.Name
 
 			theRes, isDefined, def := es.GetDef(headStr, curr)
@@ -227,7 +235,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 					arg,
 				}),
 
-				&es.CASLogger, EmptyPD(), "Function")
+				es, EmptyPD(), "Function")
 		}
 		return toReturn
 	} else if len(this.Parts) == 3 {
@@ -243,21 +251,21 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 				args[0],
 			}),
 
-			&es.CASLogger, EmptyPD(), "Function")
+			es, EmptyPD(), "Function")
 		return toReturn
 	}
 	return this
 }
 
-func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead string) Ex {
-	cl.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
-	cl.Debugf("Rule r is: %s", r)
+func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalState) Ex {
+	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
+	es.Debugf("Rule r is: %s", r)
 
-	matchq, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), cl)
-	toreturn := ReplacePD(r.Parts[2].DeepCopy(), cl, matches)
+	matchq, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es)
+	toreturn := ReplacePD(r.Parts[2].DeepCopy(), es, matches)
 	if matchq {
-		cl.Debugf("After MatchQ, rule is: %s", r)
-		cl.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])
+		es.Debugf("After MatchQ, rule is: %s", r)
+		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])
 		return toreturn
 	}
 
@@ -267,33 +275,16 @@ func (this *Expression) ReplaceAll(r *Expression, cl *CASLogger, stopAtHead stri
 		otherSym, otherSymOk := lhsExpr.Parts[0].(*Symbol)
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
-				if IsOrderless(thisSym) {
-					cl.Debugf("r.Parts[1] is Orderless. Now running OrderlessReplace")
-					replaced := this.Parts[1:len(this.Parts)]
-					OrderlessReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], cl)
-					this.Parts = this.Parts[0:1]
-					this.Parts = append(this.Parts, replaced...)
-				}
-				// I have a feeling that much of the logic in OrderlessReplace
-				// actually assumes Flat as well. This is because most of my
-				// testing was with Plus and Times, which happen to have both
-				// attributes. For now, I'll have two parallel functions, but
-				// later on I should factor out the common functionality and
-				// also see if I am making any assumptions about Flat in my
-				// OrderlessReplace.
-				if IsFlat(thisSym) {
-					cl.Debugf("r.Parts[1] is Flat. Now running OrderlessReplace")
-					replaced := this.Parts[1:len(this.Parts)]
-					FlatReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], cl)
-					this.Parts = this.Parts[0:1]
-					this.Parts = append(this.Parts, replaced...)
+				attrs := thisSym.Attrs(&es.defined)
+				if attrs.Flat {
+					FlatReplace(this, lhsExpr, r.Parts[2], attrs.Orderless, es)
 				}
 			}
 		}
 	}
 
 	for i := range this.Parts {
-		this.Parts[i] = ReplaceAll(this.Parts[i], r, cl, EmptyPD(), stopAtHead)
+		this.Parts[i] = ReplaceAll(this.Parts[i], r, es, EmptyPD(), stopAtHead)
 	}
 	return this
 }
@@ -332,25 +323,6 @@ func (this *Expression) StringForm(form string) string {
 
 func (this *Expression) String() string {
 	return this.StringForm("InputForm")
-}
-
-// TODO: convert to a map
-func IsOrderless(sym *Symbol) bool {
-	if sym.Name == "Times" {
-		return true
-	} else if sym.Name == "Plus" {
-		return true
-	}
-	return false
-}
-
-func IsFlat(sym *Symbol) bool {
-	if sym.Name == "And" {
-		return true
-	} else if sym.Name == "Or" {
-		return true
-	}
-	return false
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {

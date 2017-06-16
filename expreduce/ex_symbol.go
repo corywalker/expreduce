@@ -73,8 +73,8 @@ type Attributes struct {
 	Stub            bool
 }
 
-func (this *Symbol) Attrs(es *EvalState) Attributes {
-	def, isDef := es.defined[this.Name]
+func (this *Symbol) Attrs(dm *DefMap) Attributes {
+	def, isDef := (*dm)[this.Name]
 	if !isDef {
 		return Attributes{}
 	}

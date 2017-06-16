@@ -1,9 +1,9 @@
 package expreduce
 
-//import "fmt"
+const MaxUint = ^uint(0)
+const MaxInt = int(MaxUint >> 1)
 
 type matchIter interface {
-	reset()
 	// returns ismatch, pd, isdone
 	next() (bool, *PDManager, bool)
 }
@@ -18,38 +18,17 @@ func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
 	return this.isMatchQ, this.pm, this.isDone
 }
 
-func (this *dummyMatchIter) reset() {}
-
-type multiMatchIter struct {
-	matchIters	[]matchIter
-	i			int
-}
-
-func (this *multiMatchIter) next() (bool, *PDManager, bool) {
-	if this.i >= len(this.matchIters) {
-		return false, EmptyPD(), true
-	}
-	matchq, newPd, done := this.matchIters[this.i].next()
-	if done {
-		this.i += 1
-	}
-	done = this.i >= len(this.matchIters)
-	return matchq, newPd, done
-}
-
-func (this *multiMatchIter) reset() {}
-
-func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
+func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	// Special case for Except
 	except, isExcept := HeadAssertion(b, "Except")
 	if isExcept {
 		if len(except.Parts) == 2 {
-			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), cl)
+			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), es)
 			return &dummyMatchIter{!matchq, pm, true}, true
 		} else if len(except.Parts) == 3 {
-			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), cl)
+			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), es)
 			if !matchq {
-				matchqb, newPm := IsMatchQ(a, except.Parts[2], pm, cl)
+				matchqb, newPm := IsMatchQ(a, except.Parts[2], pm, es)
 				return &dummyMatchIter{matchqb, newPm, true}, true
 			}
 			return &dummyMatchIter{false, pm, true}, true
@@ -63,7 +42,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 			// because MatchQ[{a, b}, {a_, k | a_}] was returning True, causing
 			// problems in some of the boolean patterns. Might need to make
 			// similar changes to the other pattern clauses.
-			matchq, newPD := IsMatchQ(a, alt, pm, cl)
+			matchq, newPD := IsMatchQ(a, alt, pm, es)
 			if matchq {
 				return &dummyMatchIter{matchq, newPD, true}, true
 			}
@@ -74,13 +53,16 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	patternTest, isPT := HeadAssertion(b, "PatternTest")
 	if isPT {
 		if len(patternTest.Parts) == 3 {
-			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), cl)
+			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), es)
 			if matchq {
-				tmpEs := NewEvalStateNoLog(true)
+				// I used to create a NewEvalState here, but I have evidence
+				// that the same evalstate is used:
+				// MatchQ[1, a_?((mytestval = 999; NumberQ[#]) &)] // Timing
+				//tmpEs := NewEvalStateNoLog(true)
 				res := (NewExpression([]Ex{
 					patternTest.Parts[2],
 					a,
-				})).Eval(tmpEs)
+				})).Eval(es)
 				resSymbol, resIsSymbol := res.(*Symbol)
 				if resIsSymbol {
 					if resSymbol.Name == "True" {
@@ -95,15 +77,19 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	condition, isCond := HeadAssertion(b, "Condition")
 	if isCond {
 		if len(condition.Parts) == 3 {
-			matchq, newPD := IsMatchQ(a, condition.Parts[1], EmptyPD(), cl)
-			if matchq {
-				tmpEs := NewEvalStateNoLog(true)
-				res := condition.Parts[2].DeepCopy()
-				res = ReplacePD(res, cl, newPD).Eval(tmpEs)
-				resSymbol, resIsSymbol := res.(*Symbol)
-				if resIsSymbol {
-					if resSymbol.Name == "True" {
-						return &dummyMatchIter{true, newPD, true}, true
+			mi, cont := NewMatchIter(a, condition.Parts[1], EmptyPD(), es)
+			for cont {
+				matchq, newPD, done := mi.next()
+				cont = !done
+				if matchq {
+					//tmpEs := NewEvalStateNoLog(true)
+					res := condition.Parts[2].DeepCopy()
+					res = ReplacePD(res, es, newPD).Eval(es)
+					resSymbol, resIsSymbol := res.(*Symbol)
+					if resIsSymbol {
+						if resSymbol.Name == "True" {
+							return &dummyMatchIter{true, newPD, true}, true
+						}
 					}
 				}
 			}
@@ -111,7 +97,6 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	}
 
 	// Continue normally
-	pm = CopyPD(pm)
 	_, aIsFlt := a.(*Flt)
 	_, aIsInteger := a.(*Integer)
 	_, aIsString := a.(*String)
@@ -139,7 +124,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 	}
 
 	if IsBlankTypeOnly(b) {
-		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headStr, pm, cl)
+		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headStr, pm, &es.CASLogger)
 		if ibtc {
 			return &dummyMatchIter{true, ibtcNewPDs, true}, true
 		}
@@ -148,43 +133,201 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
 
 	// Handle special case for matching Rational[a_Integer, b_Integer]
 	if aIsRational && bIsExpression {
-		matchq, newPm := isMatchQRational(aRational, bExpression, pm, cl)
+		matchq, newPm := isMatchQRational(aRational, bExpression, pm, es)
 		return &dummyMatchIter{matchq, newPm, true}, true
 	} else if aIsExpression && bIsRational {
-		matchq, newPm := isMatchQRational(bRational, aExpression, pm, cl)
+		matchq, newPm := isMatchQRational(bRational, aExpression, pm, es)
 		return &dummyMatchIter{matchq, newPm, true}, true
 	}
 
 	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-		return &dummyMatchIter{IsSameQ(a, b, cl), EmptyPD(), true}, true
+		return &dummyMatchIter{IsSameQ(a, b, &es.CASLogger), EmptyPD(), true}, true
 	} else if !(aIsExpression && bIsExpression) {
 		return &dummyMatchIter{false, EmptyPD(), true}, true
 	}
 
+	attrs := Attributes{}
+	sequenceHead := "Sequence"
+	startI := 0
 	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
 	bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
-			if IsOrderless(aExpressionSym) {
-				omi, ok := NewOrderlessMatchIter(aExpression.Parts[1:len(aExpression.Parts)], bExpression.Parts[1:len(bExpression.Parts)], pm, cl)
-				if !ok {
-					return &dummyMatchIter{false, pm, true}, true
-				}
-				return omi, true
-			}
+			attrs = aExpressionSym.Attrs(&es.defined)
+			sequenceHead = aExpressionSym.Name
+			startI = 1
 		}
 	}
 
-	nomi, ok := NewNonOrderlessMatchIter(aExpression.Parts, bExpression.Parts, pm, cl)
+	nomi, ok := NewSequenceMatchIter(aExpression.Parts[startI:], bExpression.Parts[startI:], attrs.Orderless, attrs.Flat, sequenceHead, pm, es)
 	if !ok {
 		return &dummyMatchIter{false, pm, true}, true
 	}
 	return nomi, true
 }
 
-// TODO: do not export this
-func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	mi, cont := NewMatchIter(a, b, pm, cl)
+func isMatchQRational(a *Rational, b *Expression, pm *PDManager, es *EvalState) (bool, *PDManager) {
+	return IsMatchQ(
+		NewExpression([]Ex{
+			&Symbol{"Rational"},
+			&Integer{a.Num},
+			&Integer{a.Den},
+		}),
+
+		b, pm, es)
+}
+
+type assignedIterState struct {
+	formI int
+	assnI int
+	pm *PDManager
+}
+
+type assignedMatchIter struct {
+	assn			[][]int
+
+	// Inherited from sequenceMatchIter
+	components		[]Ex
+	lhs_components	[]parsedForm
+	pm				*PDManager
+	sequenceHead	string
+	es				*EvalState
+	stack			[]assignedIterState
+}
+
+func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIter {
+	ami := assignedMatchIter{}
+	ami.assn = assn
+	ami.components = smi.components
+	ami.lhs_components = smi.lhs_components
+	ami.pm = smi.pm
+	ami.sequenceHead = smi.sequenceHead
+	ami.es = smi.es
+	ami.stack = []assignedIterState{
+		assignedIterState{0, 0, CopyPD(ami.pm)},
+	}
+	return ami
+}
+
+func (ami *assignedMatchIter) next() bool {
+	for len(ami.stack) > 0 {
+		var p assignedIterState
+		l := len(ami.stack)
+		ami.stack, p = ami.stack[:l-1], ami.stack[l-1]
+
+		if p.formI >= len(ami.assn) {
+			// We found a sequence match!
+			ami.pm = p.pm
+			return true
+		}
+		lhs := ami.lhs_components[p.formI]
+		if p.assnI >= len(ami.assn[p.formI]) {
+			// Reached end of form. Attempt to define the sequence and continue
+			// on success.
+			seq := make([]Ex, len(ami.assn[p.formI]))
+			for i, assignedComp := range ami.assn[p.formI] {
+				seq[i] = ami.components[assignedComp]
+			}
+			patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, p.pm, lhs.isImpliedBs, ami.sequenceHead, ami.es)
+			if patOk {
+				ami.stack = append(ami.stack, assignedIterState{
+					p.formI+1, 0, p.pm,
+				})
+			}
+			continue
+		}
+
+		//matches, newPm := IsMatchQ(comp, lhs.form, p.pm, ami.es)
+		//if matches {
+		comp := ami.components[ami.assn[p.formI][p.assnI]]
+		toAddReversed := []*PDManager{}
+		mi, cont := NewMatchIter(comp, lhs.form, p.pm, ami.es)
+		for cont {
+			matchq, submatches, done := mi.next()
+			cont = !done
+			if matchq {
+				// TODO: Perhaps check if submatches are different before
+				// adding?
+				toAddReversed = append(toAddReversed, submatches)
+			}
+		}
+		for i := len(toAddReversed)-1; i >= 0; i-- {
+			updatedPm := p.pm
+			if toAddReversed[i].Len() > 0 {
+				if len(toAddReversed) > 1 {
+					updatedPm = CopyPD(p.pm)
+				}
+				updatedPm.Update(toAddReversed[i])
+			}
+			ami.stack = append(ami.stack, assignedIterState{
+				p.formI, p.assnI+1, updatedPm,
+			})
+		}
+	}
+	return false
+}
+
+type sequenceMatchIter struct {
+	components		[]Ex
+	lhs_components	[]parsedForm
+	pm				*PDManager
+	sequenceHead	string
+	es				*EvalState
+	ai				assnIter
+	iteratingAmi	bool
+	ami				assignedMatchIter
+}
+
+func NewSequenceMatchIter(components []Ex, lhs_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
+	fp_components := make([]parsedForm, len(lhs_components))
+	for i, comp := range lhs_components {
+		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, &es.CASLogger)
+	}
+	return NewSequenceMatchIterPreparsed(components, fp_components, isOrderless, sequenceHead, pm, es)
+}
+
+func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm, isOrderless bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
+	nomi := &sequenceMatchIter{}
+	nomi.components = components
+	nomi.lhs_components = lhs_components
+	nomi.pm = pm
+	nomi.sequenceHead = sequenceHead
+	nomi.es = es
+
+	for _, mustContain := range lhs_components {
+		if mustContain.startI > 0 && !MemberQ(components, mustContain.form, es) {
+			return nomi, false
+		}
+	}
+
+	nomi.ai = NewAssnIter(len(components), lhs_components, isOrderless)
+
+	return nomi, true
+}
+
+func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
+	for {
+		if this.iteratingAmi && this.ami.next() {
+			return true, this.ami.pm, false
+		}
+		this.iteratingAmi = false
+		if !this.ai.next() {
+			break
+		}
+		this.ami = NewAssignedMatchIter(this.ai.assns, this)
+		this.iteratingAmi = true
+	}
+	return false, this.pm, true
+}
+
+// HELPER FUNCTIONS
+
+func ComponentsIsMatchQ(components []Ex, lhs_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (bool, *PDManager) {
+	omi, cont := NewSequenceMatchIter(components, lhs_components, isOrderless, isFlat, sequenceHead, pm, es)
+	return GetMatchQ(omi, cont, pm)
+}
+
+func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 	for cont {
 		matchq, newPd, done := mi.next()
 		cont = !done
@@ -197,365 +340,8 @@ func IsMatchQ(a Ex, b Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	return false, pm
 }
 
-func isMatchQRational(a *Rational, b *Expression, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	return IsMatchQ(
-		NewExpression([]Ex{
-			&Symbol{"Rational"},
-			&Integer{a.Num},
-			&Integer{a.Den},
-		}),
-
-		b, pm, cl)
-}
-
-type orderlessMatchIter struct {
-	components		[]Ex
-	lhs_components	[]Ex
-	ordered_lhs_components	[]Ex
-	pm				*PDManager
-	cl				*CASLogger
-	kConstant		int
-	contval			int
-	perm			[]int
-	remainingMatchIter matchIter
-}
-
-func NewOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
-	omi := &orderlessMatchIter{}
-	omi.components = components
-	omi.lhs_components = lhs_components
-	// TODO: is copy needed?
-	omi.pm = CopyPD(pm)
-	omi.cl = cl
-
-	if cl.debugState {
-		cl.Debugf("Entering OrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(components), ExArrayToString(lhs_components), pm)
-	}
-	nonBS, bs := extractBlankSequences(lhs_components)
-	// This is because MatchQ[a + b + c, b + c] == False. We should be careful
-	// though because MatchQ[a + b + c, c + __] == True.
-	if len(bs) == 0 && len(components) != len(lhs_components) {
-		cl.Debugf("len(components) != len(lhs_components). OrderlessMatchQ failed")
-		return omi, false
-	} else if len(nonBS) > len(components) {
-		cl.Debugf("len(nonBS) > len(components). OrderlessMatchQ failed")
-		return omi, false
-	}
-
-	// After determining that there is a blanksequence, I should go through
-	// Each element of the pattern to be matched to see if it even exists within
-	// components. I should use MemberQ for this. This can avoid the time-
-	// consuming algorithms below
-
-	// These lines are causing MatchQ[a + b, a + b + x___Plus] == True to fail
-	for _, mustContain := range lhs_components {
-		if !MemberQ(components, mustContain, cl) {
-			return omi, false
-		}
-	}
-
-	omi.kConstant = len(components)
-	if len(bs) == 1 {
-		// This is probably the most common case. It would be rare for us to
-		// have multiple BlankSequences in the same LHS. It saves us a lot of
-		// time by doing this
-		omi.kConstant = len(nonBS)
-	}
-
-	// Start iterating through each permutation of LHS expressions
-	omi.perm, omi.contval = make([]int, len(components)), 1
-	for i := range omi.perm {
-		omi.perm[i] = i
-	}
-
-	// Order lhs_components because if we have len(bs) == 1, we will depend on
-	// the last n-k items to be orderless. This means that the BlankSequence
-	// must be at the end. Eventually this may not be needed once automatic
-	// sorting is implemented
-	omi.ordered_lhs_components = append(nonBS, bs...)
-
-	return omi, true
-}
-
-// Should a MatchQ call do:
-// 1. Modify pm directly <- bad idea. If we attempt a match and it partially
-//    matches, we'll have to restore pm from a snapshot
-// 2. Return a modified pm <- probably simplest
-// 3. Return a pm with fields to add <- would be most efficient, but complicated
-//    and could easily be incorrectly used.
-// See IsBlankCapturing for a good example of good use.
-// Returns if there is a match and the pm that results. This method can be
-// called until there is not a match to find all possible matches. It will
-// return false from then on.
-func (this *orderlessMatchIter) next() (bool, *PDManager, bool) {
-	// This block allows us to queue up match iters from the function.
-	//fmt.Println("1")
-	if this.remainingMatchIter != nil {
-		matchq, newPd, done := this.remainingMatchIter.next()
-		//fmt.Println("2")
-		if done {
-			this.remainingMatchIter = nil
-		}
-		return matchq, newPd, done && this.contval != 1
-	}
-	//fmt.Println("3")
-	for this.contval == 1 {
-		this.cl.Debugf("Using perm: %v\n", this.perm)
-
-		// Build a version of components with the correct order. Can I do this
-		// more efficiently with a slice notation? Let's copy for now.
-		orderedComponents := make([]Ex, len(this.components))
-		for oci, ci := range this.perm {
-			orderedComponents[oci] = this.components[ci].DeepCopy()
-		}
-		if this.cl.debugState {
-			this.cl.Debugf("%s", ExArrayToString(orderedComponents))
-		}
-		nomi, cont := NewNonOrderlessMatchIter(orderedComponents, this.ordered_lhs_components, this.pm, this.cl)
-		// Generate next permutation, if any
-		mmi := &multiMatchIter{}
-		this.contval = nextKPermutation(this.perm, len(this.components), this.kConstant)
-		for cont {
-			ncIsMatchQ, newPm, done := nomi.next()
-			cont = !done
-			if ncIsMatchQ {
-				if this.cl.debugState {
-					this.cl.Debugf("OrderlessIsMatchQ(%s, %s) succeeded. New pm: %v", ExArrayToString(this.components), ExArrayToString(this.lhs_components), newPm)
-				}
-				mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, newPm, true})
-			}
-		}
-		if (len(mmi.matchIters) > 0) {
-			matchq, newPd, done := mmi.next()
-			if !done {
-				this.remainingMatchIter = mmi
-			}
-			return matchq, newPd, done && this.contval != 1
-		}
-	}
-	this.cl.Debugf("OrderlessIsMatchQ failed. Context: %s", this.pm)
-	return false, this.pm, true
-}
-
-func (this *orderlessMatchIter) reset() {}
-
-func OrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	omi, ok := NewOrderlessMatchIter(components, lhs_components, pm, cl)
-	if !ok {
-		return false, pm
-	}
-	// Return the first match.
-	isMatch, newPm, _ := omi.next()
-	return isMatch, newPm
-}
-
-type nonOrderlessMatchIter struct {
-	components		[]Ex
-	lhs_components	[]Ex
-	pm				*PDManager
-	cl				*CASLogger
-	progressI		int
-	remainingMatchIter matchIter
-}
-
-func NewNonOrderlessMatchIter(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (matchIter, bool) {
-	nomi := &nonOrderlessMatchIter{}
-	nomi.components = components
-	nomi.lhs_components = lhs_components
-	nomi.pm = CopyPD(pm)
-	nomi.cl = cl
-
-	// This function is now recursive because of the existence of BlankSequence.
-	if nomi.cl.debugState {
-		nomi.cl.Debugf("Entering NonOrderlessIsMatchQ(components: %s, lhs_components: %s, pm: %s)", ExArrayToString(nomi.components), ExArrayToString(nomi.lhs_components), nomi.pm)
-	}
-	if len(nomi.components) != 0 && len(nomi.lhs_components) == 0 {
-		return nomi, false
-	}
-
-	nomi.progressI = 0
-	return nomi, true
-}
-
-// I think for this to work, I must convert all MatchQ functions to iterators in
-// the backend. Only the final MatchQ function should try the first match.
-// Everything is an iterator that maintains its state. I think its just
-// two other functions: NonOrderlessIsMatchQ and IsMatchQ. potentially need to convert consumers of these functions to use the iterator version.
-func (this *nonOrderlessMatchIter) next() (bool, *PDManager, bool) {
-	// This block allows us to queue up match iters from the function.
-	if this.remainingMatchIter != nil {
-		matchq, newPd, done := this.remainingMatchIter.next()
-		if done {
-			this.remainingMatchIter = nil
-		}
-		return matchq, newPd, done
-	}
-	// A base case for the recursion
-	if len(this.components) == 0 && len(this.lhs_components) == 0 {
-		return true, this.pm, true
-	}
-	for i := 0; i < Max(len(this.components), len(this.lhs_components)); i++ {
-		this.progressI = i
-		if i >= len(this.lhs_components) {
-			return false, this.pm, true
-		}
-		if i >= len(this.components) {
-			this.cl.Debugf("Checking if IsMatchQ(INDEX_ERROR, %s). i=%d, Current context: %v\n", this.lhs_components[i], i, this.pm)
-		} else {
-			this.cl.Debugf("Checking if IsMatchQ(%s, %s). i=%d, Current context: %v\n", this.components[i], this.lhs_components[i], i, this.pm)
-		}
-		pat, isPat := HeadAssertion(this.lhs_components[i], "Pattern")
-		bns, isBns := HeadAssertion(this.lhs_components[i], "BlankNullSequence")
-		bs, isBs := HeadAssertion(this.lhs_components[i], "BlankSequence")
-		if isPat {
-			bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
-			bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
-		}
-		if isBns || isBs {
-			this.cl.Debugf("Encountered BS or BNS!")
-			remainingLhs := make([]Ex, len(this.lhs_components)-i-1)
-			for k := i + 1; k < len(this.lhs_components); k++ {
-				remainingLhs[k-i-1] = this.lhs_components[k].DeepCopy()
-			}
-			startI := 0
-			if isBns {
-				startI = i - 1
-			} else {
-				startI = i
-			}
-			for j := startI; j < len(this.components); j++ {
-				// This process involves a lot of extraneous copying. I should
-				// test to see how much of these arrays need to be copied from
-				// scratch on every iteration.
-				seqToTry := make([]Ex, j-i+1)
-				for k := i; k <= j; k++ {
-					seqToTry[k-i] = this.components[k].DeepCopy()
-				}
-				seqMatches := false
-				if isBns {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankNullSequenceToBlank(bns), this.cl)
-				} else {
-					seqMatches = ExArrayTestRepeatingMatch(seqToTry, BlankSequenceToBlank(bs), this.cl)
-				}
-				this.cl.Debugf("%v", seqMatches)
-				remainingComps := make([]Ex, len(this.components)-j-1)
-				for k := j + 1; k < len(this.components); k++ {
-					remainingComps[k-j-1] = this.components[k].DeepCopy()
-				}
-				if this.cl.debugState {
-					this.cl.Debugf("%d %s %s %s", j, ExArrayToString(seqToTry), ExArrayToString(remainingComps), ExArrayToString(remainingLhs))
-				}
-				mmi := &multiMatchIter{}
-				nomi, cont := NewNonOrderlessMatchIter(remainingComps, remainingLhs, this.pm, this.cl)
-				for cont {
-					matchq, newPDs, done := nomi.next()
-					cont = !done
-					if seqMatches && matchq {
-						nextPm := CopyPD(newPDs)
-						nextPm.Update(newPDs)
-						matchedPattern := false
-						if isPat {
-							sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
-							if sAsSymbolOk {
-								toTryParts := []Ex{&Symbol{"Sequence"}}
-								toTryParts = append(toTryParts, seqToTry...)
-								target := NewExpression(toTryParts)
-								_, ispd := nextPm.patternDefined[sAsSymbol.Name]
-								if !ispd {
-									nextPm.patternDefined[sAsSymbol.Name] = target
-								}
-								if !IsSameQ(nextPm.patternDefined[sAsSymbol.Name], target, this.cl) {
-									//return false, this.pm, true
-									mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{false, nextPm, true})
-									matchedPattern = true
-								}
-							}
-						}
-						//return true, this.pm, true
-						if !matchedPattern {
-							mmi.matchIters = append(mmi.matchIters, &dummyMatchIter{true, nextPm, true})
-						}
-					}
-				}
-				if (len(mmi.matchIters) > 0) {
-					matchq, newPd, done := mmi.next()
-					if !done {
-						this.remainingMatchIter = mmi
-					}
-					return matchq, newPd, done
-				}
-			}
-			return false, this.pm, true
-		}
-		if i >= len(this.components) {
-			return false, this.pm, true
-		}
-		mi, cont := NewMatchIter(this.components[i].DeepCopy(), this.lhs_components[i], this.pm, this.cl)
-		// Add multimatchiter here.
-		mmi := &multiMatchIter{}
-		for cont {
-			matchq, toAdd, done := mi.next()
-			cont = !done
-			if matchq {
-				updatedPm := CopyPD(this.pm)
-				updatedPm.Update(toAdd)
-				nomi, ok := NewNonOrderlessMatchIter(this.components[i+1:], this.lhs_components[i+1:], updatedPm, this.cl)
-				if ok {
-					mmi.matchIters = append(mmi.matchIters, nomi)
-				}
-			}
-		}
-		matchq, newPd, done := mmi.next()
-		if !done {
-			this.remainingMatchIter = mmi
-		}
-		return matchq, newPd, done
-	}
-	if this.progressI == len(this.lhs_components)-1 {
-		return true, this.pm, true
-	} else {
-		return false, this.pm, true
-	}
-}
-
-func (this *nonOrderlessMatchIter) reset() {}
-
-func NonOrderlessIsMatchQ(components []Ex, lhs_components []Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
-	nomi, ok := NewNonOrderlessMatchIter(components, lhs_components, pm, cl)
-	if !ok {
-		return false, pm
-	}
-	// Return the first match.
-	matchq, newPd, _ := nomi.next()
-	return matchq, newPd
-}
-
-func extractBlankSequences(components []Ex) (nonBS []Ex, bs []Ex) {
-	for _, c := range components {
-		pat, isPat := HeadAssertion(c, "Pattern")
-		_, isBns := HeadAssertion(c, "BlankNullSequence")
-		_, isBs := HeadAssertion(c, "BlankSequence")
-		if isPat {
-			_, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
-			_, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
-		}
-		if isBs || isBns {
-			bs = append(bs, c)
-		} else {
-			nonBS = append(nonBS, c)
-		}
-	}
-	return
-}
-
-func ExArrayTestRepeatingMatch(array []Ex, blank *Expression, cl *CASLogger) bool {
-	toReturn := true
-	for _, e := range array {
-		tmpEs := NewEvalStateNoLog(false)
-		// TODO: CHANGEME
-		isMatch, _ := IsMatchQ(e, blank, EmptyPD(), &tmpEs.CASLogger)
-		cl.Debugf("%v %v %v", e, blank, isMatch)
-		toReturn = toReturn && isMatch
-	}
-	return toReturn
+// TODO: do not export this
+func IsMatchQ(a Ex, b Ex, pm *PDManager, es *EvalState) (bool, *PDManager) {
+	mi, cont := NewMatchIter(a, b, pm, es)
+	return GetMatchQ(mi, cont, pm)
 }

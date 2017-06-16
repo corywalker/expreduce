@@ -26,7 +26,7 @@ func GetPatternDefinitions() (defs []Definition) {
 				return this
 			}
 
-			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger); res {
+			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), es); res {
 				return &Symbol{"True"}
 			} else {
 				return &Symbol{"False"}
@@ -356,8 +356,6 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[5, y_Integer /; True]"},
 			&SameTest{"False", "MatchQ[5, y_ /; y == 0]"},
 			&SameTest{"True", "MatchQ[5, y_ /; y == 5]"},
-		},
-		KnownFailures: []TestInstruction{
 			&SameTest{"{1,2,3,5}", "{3, 5, 2, 1} //. {x___, y_, z_, k___} /; (Order[y, z] == -1) -> {x, z, y, k}"},
 		},
 	})
@@ -402,34 +400,96 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "ExpreduceAllMatches",
-		Usage: "`ExpreduceAllMatches[expr, form]` returns all the possible pattern matches of `form` on `expr`.",
-		ExpreduceSpecific: true,
+		Name:  "ReplaceList",
+		Usage: "`ReplaceList[expr, rule]` returns all the possible replacements using `rule` on `expr`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
 
+			rule, isRule := HeadAssertion(this.Parts[2], "Rule")
+			if !isRule {
+				return this
+			}
 			res := NewExpression([]Ex{&Symbol{"List"}})
-			mi, cont := NewMatchIter(this.Parts[1], this.Parts[2], EmptyPD(), &es.CASLogger)
+			mi, cont := NewMatchIter(this.Parts[1], rule.Parts[1], EmptyPD(), es)
 			for cont {
 				matchq, newPd, done := mi.next()
-				es.Infof("%v %v %v\n", matchq, newPd, done)
 				cont = !done
 				if matchq {
-					res.appendEx(newPd.Expression())
+					res.appendEx(ReplacePD(rule.Parts[2], es, newPd))
 				}
 			}
 			return res
 		},
 		SimpleExamples: []TestInstruction{
-			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[a+b,x_+y_]"},
-			&SameTest{"{{(\"j\") -> (b), (\"k\") -> (a)}}", "ExpreduceAllMatches[foo[a + b, b], foo[j_ + k_, j_]]"},
+			&SameTest{"{{a, b}, {b, a}}", "ReplaceList[a + b, x_ + y_ -> {x, y}]"},
+			&SameTest{"{{b, a}}", "ReplaceList[foo[a + b, b], foo[j_ + k_, j_] -> {j, k}]"},
+			&SameTest{"{{a, b}, {b, a}}", "ReplaceList[foo[a + b], foo[x_ + y_] -> {x, y}]"},
+			&SameTest{"{{a, b, c}, {b, a, c}}", "ReplaceList[bar[foo[a + b] + c], bar[foo[x_ + y_] + z_] -> {x, y, z}]"},
+			&SameTest{"{{c, d, a, b}, {c, d, b, a}, {d, c, a, b}, {d, c, b, a}}", "ReplaceList[bar[foo[a + b] + c + d], bar[w_ + x_ + foo[y_ + z_]] -> {w, x, y, z}]"},
+			&SameTest{"{}", "ReplaceList[foo[a + b, c], foo[j_ + k_, j_] -> {j, k}]"},
 		},
 		Tests: []TestInstruction{
-			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b)}, {(\"x\") -> (b), (\"y\") -> (a)}}", "ExpreduceAllMatches[foo[a+b],foo[x_+y_]]"},
-			&SameTest{"{{(\"x\") -> (a), (\"y\") -> (b), (\"z\") -> (c)}, {(\"x\") -> (b), (\"y\") -> (a), (\"z\") -> (c)}}", "ExpreduceAllMatches[bar[foo[a+b]+c],bar[foo[x_+y_]+z_]]"},
-			&SameTest{"{{(\"w\") -> (c), (\"x\") -> (d), (\"y\") -> (a), (\"z\") -> (b)}, {(\"w\") -> (c), (\"x\") -> (d), (\"y\") -> (b), (\"z\") -> (a)}, {(\"w\") -> (d), (\"x\") -> (c), (\"y\") -> (a), (\"z\") -> (b)}, {(\"w\") -> (d), (\"x\") -> (c), (\"y\") -> (b), (\"z\") -> (a)}}", "ExpreduceAllMatches[bar[foo[a+b]+c+d],bar[w_+x_+foo[y_+z_]]]"},
+			&SameTest{"{{{a},{b}},{{b},{a}}}", "ReplaceList[a+b,x__+y__->{{x},{y}}]"},
+			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
+			&SameTest{"{{{},{a,b}},{{a},{b}},{{a,b},{}}}", "ReplaceList[foo[a,b],foo[a___,b___]->{{a},{b}}]"},
+			&SameTest{"{}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a:Repeated[b_,{2}],rest___]->{{a},{rest}}]"},
+			&SameTest{"{{c}}", "ReplaceList[foo[a,b,c],foo[___,a_]->{a}]"},
+			&SameTest{"{{a+b+c}}", "ReplaceList[a+b+c,a_->{a}]"},
+			&SameTest{"{{{},{a,b},{},{b,c}},{{},{a,b},{b},{c}},{{},{a,b},{b,c},{}},{{a},{b},{},{b,c}},{{a},{b},{b},{c}},{{a},{b},{b,c},{}},{{a,b},{},{},{b,c}},{{a,b},{},{b},{c}},{{a,b},{},{b,c},{}}}", "ReplaceList[foo[a,b,foo[b,c]],foo[a___,b___,foo[c___,d___]]->{{a},{b},{c},{d}}]"},
+
+			&SameTest{"{{a+b+c},{b+c},{a+c},{a+b},{c},{b},{a}}", "ReplaceList[a+b+c,___+a_->{a}]"},
+			&SameTest{"{{{},{a,b}},{{a},{b}},{{b},{a}},{{a,b},{}}}", "ReplaceList[a+b,x___+y___->{{x},{y}}]"},
+			&SameTest{"{{{a},{b+c}},{{b},{a+c}},{{c},{a+b}},{{a+b},{c}},{{a+c},{b}},{{b+c},{a}}}", "ReplaceList[a+b+c,a_+b_->{{a},{b}}]"},
+			&SameTest{"{{{a},{b,c}},{{b},{a,c}},{{c},{a,b}},{{a,b},{c}},{{a,c},{b}},{{b,c},{a}}}", "ReplaceList[a+b+c,a__+b__->{{a},{b}}]"},
+			&SameTest{"{{{a},{b,c}},{{b},{a,c}},{{c},{a,b}},{{a,b},{c}},{{a,c},{b}},{{b,c},{a}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a__,b__]->{{a},{b}}]"},
+			&SameTest{"{{{a,b},{c}},{{a,c},{b}},{{b,c},{a}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a:Repeated[_,{2}],rest___]->{{a},{rest}}]"},
+			&SameTest{"{{{a,b},{c}},{{a,c},{b}},{{b,c},{a}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a:Repeated[_,{2}],rest___]->{{a},{rest}}]"},
+			&SameTest{"{{{a,b},{c,d}},{{a,c},{b,d}},{{a,d},{b,c}},{{b,c},{a,d}},{{b,d},{a,c}},{{c,d},{a,b}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c,d],ExpreduceOrderlessFn[a:Repeated[_,{2}],rest___]->{{a},{rest}}]"},
+
+			&SameTest{"{{a+b+c},{b+c},{a+c},{a+b},{c},{b},{a}}", "ReplaceList[a+b+c,___+a_->{a}]"},
+			&SameTest{"{{{},{a,b}},{{a},{b}},{{b},{a}},{{a,b},{}}}", "ReplaceList[ExpreduceOrderlessFn[a,b],ExpreduceOrderlessFn[a___,b___]->{{a},{b}}]"},
+
+			&SameTest{"{{{a},{b},{c}},{{a},{c},{b}},{{b},{a},{c}},{{b},{c},{a}},{{c},{a},{b}},{{c},{b},{a}},{{a},{b+c},{}},{{b},{a+c},{}},{{c},{a+b},{}},{{a+b},{c},{}},{{a+c},{b},{}},{{b+c},{a},{}}}", "ReplaceList[a+b+c,a_+b_+rest___->{{a},{b},{rest}}]"},
+			&SameTest{"{{{},{a,b,c}},{{a},{b,c}},{{b},{a,c}},{{c},{a,b}},{{a,b},{c}},{{a,c},{b}},{{b,c},{a}},{{a,b,c},{}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a___,b___]->{{a},{b}}]"},
+			&SameTest{"{{{a,a},{b,b,c}},{{b,b},{a,a,c}}}", "ReplaceList[ExpreduceOrderlessFn[a,a,b,b,c],ExpreduceOrderlessFn[a:Repeated[b_,{2}],rest___]->{{a},{rest}}]"},
+			&SameTest{"{{a,b,c},{b,c},{a,c},{a,b},{c},{b},{a},{}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a___,rest___]->{rest}]"},
+			&SameTest{"{{{},{a,b},{},{c,d}},{{},{a,b},{c},{d}},{{},{a,b},{d},{c}},{{},{a,b},{c,d},{}},{{a},{b},{},{c,d}},{{a},{b},{c},{d}},{{a},{b},{d},{c}},{{a},{b},{c,d},{}},{{b},{a},{},{c,d}},{{b},{a},{c},{d}},{{b},{a},{d},{c}},{{b},{a},{c,d},{}},{{a,b},{},{},{c,d}},{{a,b},{},{c},{d}},{{a,b},{},{d},{c}},{{a,b},{},{c,d},{}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,ExpreduceOrderlessFn[c,d]],ExpreduceOrderlessFn[a___,b___,ExpreduceOrderlessFn[c___,d___]]->{{a},{b},{c},{d}}]"},
+		},
+		KnownFailures: []TestInstruction{
+			// Orderless has issues. Flat seems to work fine. regular ordered matching seems perfect.
+			&SameTest{"{{a},{b},{c}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[___,a_]->{a}]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "Repeated",
+		Usage:      "`Repeated[p_]` matches a sequence of expressions that match the pattern `p`.",
+		Attributes: []string{"Protected"},
+		Tests: []TestInstruction{
+			&SameTest{"True", "MatchQ[foo[a, a], foo[Repeated[a]]]"},
+			&SameTest{"False", "MatchQ[foo[a, b], foo[Repeated[a]]]"},
+			&SameTest{"True", "MatchQ[foo[a], foo[Repeated[a]]]"},
+			&SameTest{"False", "MatchQ[foo[], foo[Repeated[a]]]"},
+			&SameTest{"True", "MatchQ[foo[1, 2, 3], foo[Repeated[_Integer]]]"},
+			&SameTest{"False", "MatchQ[foo[1, 2, a], foo[Repeated[_Integer]]]"},
+			&SameTest{"2", "foo[1, 2, 3] /. foo[a : (Repeated[_Integer])] -> 2"},
+			&SameTest{"matches[1, 2, 3]", "foo[1, 2, 3] /. foo[a : (Repeated[_Integer])] -> matches[a]"},
+			&SameTest{"foo[1, 2, 3]", "foo[1, 2, 3] /. foo[a : (Repeated[k_Integer])] -> matches[a]"},
+			&SameTest{"matches[1, 1, 1]", "foo[1, 1, 1] /. foo[a : (Repeated[k_Integer])] -> matches[a]"},
+
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[b, {3}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[b, {a}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[b, {4}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[b, {2}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[a, Repeated[_Integer, {2}]]]"},
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, 1, 2], ExpreduceFlOrOiFn[a, Repeated[_Integer, {2}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, 1, 2], ExpreduceFlOrOiFn[a, Repeated[k_Integer, {2}]]]"},
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, 2, 2], ExpreduceFlOrOiFn[a, Repeated[k_Integer, {2}]]]"},
+			&SameTest{"True", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[___, Repeated[_Integer, {0}]]]"},
+			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[___, Repeated[_Integer, {-1}]]]"},
+
+			&SameTest{"x", "foo[x, x] /. foo[Repeated[a_, {2}]] -> a"},
 		},
 	})
 	return

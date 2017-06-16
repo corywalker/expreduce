@@ -30,6 +30,10 @@ func (this *PDManager) Update(toAdd *PDManager) {
 	}
 }
 
+func (this *PDManager) Len() int {
+	return len(this.patternDefined)
+}
+
 func (this *PDManager) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
@@ -72,4 +76,36 @@ func (this *PDManager) Expression() Ex {
 		}))
 	}
 	return res
+}
+
+func DefineSequence(lhs_component Ex, sequence []Ex, isBlank bool, pm *PDManager, isImpliedBs bool, sequenceHead string, es *EvalState) bool {
+	pat, isPat := HeadAssertion(lhs_component, "Pattern")
+	if !isPat {
+		return true
+	}
+	sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
+	var attemptDefine Ex = nil
+	if sAsSymbolOk {
+		sequenceHeadSym := &Symbol{sequenceHead}
+		oneIdent := sequenceHeadSym.Attrs(&es.defined).OneIdentity
+		if len(sequence) == 1 && (isBlank || oneIdent) {
+			if len(sequence) != 1 {
+				es.Errorf("Invalid blank components length!!")
+			}
+			attemptDefine = sequence[0]
+		} else if isImpliedBs {
+			attemptDefine = NewExpression(append([]Ex{sequenceHeadSym}, sequence...))
+		} else {
+			head := &Symbol{"Sequence"}
+			attemptDefine = NewExpression(append([]Ex{head}, sequence...))
+		}
+
+		defined, ispd := pm.patternDefined[sAsSymbol.Name]
+		if ispd && !IsSameQ(defined, attemptDefine, &es.CASLogger) {
+			es.Debugf("patterns do not match! continuing.")
+			return false
+		}
+		pm.patternDefined[sAsSymbol.Name] = attemptDefine
+	}
+	return true
 }

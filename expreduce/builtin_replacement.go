@@ -21,7 +21,7 @@ func getReplacementDefinitions() (defs []Definition) {
 				rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
 			}
 			if ok {
-				newEx := ReplaceAll(this.Parts[1], rulesRule, &es.CASLogger, EmptyPD(), "")
+				newEx := ReplaceAll(this.Parts[1], rulesRule, es, EmptyPD(), "")
 				return newEx.Eval(es)
 			}
 
@@ -35,7 +35,7 @@ func getReplacementDefinitions() (defs []Definition) {
 						rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
 					}
 					if ok {
-						toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, &es.CASLogger, EmptyPD(), "")
+						toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, es, EmptyPD(), "")
 					}
 				}
 				return toReturn.Eval(es)
@@ -194,10 +194,9 @@ func getReplacementDefinitions() (defs []Definition) {
 			&SameTest{"Sequence[jjj, eee]", "And[1, 2, a, b, c] /. And[__Integer, a, __Symbol] -> Sequence[jjj, eee]"},
 			&SameTest{"1 && 2 && a && b && c", "And[1, 2, a, b, c] /. And[__Symbol, a, __Integer] -> Sequence[jjj, eee]"},
 			&SameTest{"1 && 2 && jjj && eee && b && c", "And[1, 2, a, b, c] /. And[___Symbol, a, ___Integer] -> Sequence[jjj, eee]"},
-		},
-		KnownFailures: []TestInstruction{
-			// Causes stack overflow
-			&SameTest{"98 + 98 * a + c", "a + b + c + d /. (dmatch_Symbol + cmatch_Symbol) -> cmatch*dmatch"},
+
+			//&SameTest{"ExpreduceFlOrOiFn[a, a, c, ExpreduceFlOrOiFn2[x, x, z]]", "ExpreduceFlOrOiFn[a, c, a, ExpreduceFlOrOiFn2[x, x, z]] /. ExpreduceFlOrOiFn[a_, a_, ExpreduceFlOrOiFn2[b_, b_]] -> ExpreduceFlOrOiFn[2*a]"},
+			//&SameTest{"ExpreduceFlOrOiFn[2 a, c]", "ExpreduceFlOrOiFn[a, c, a, ExpreduceFlOrOiFn2[x, x, z]] /. ExpreduceFlOrOiFn[a_, a_, ExpreduceFlOrOiFn2[b_, x_]] -> ExpreduceFlOrOiFn[2*a]"},
 		},
 		KnownDangerous: []TestInstruction{
 			// Causes stack overflow

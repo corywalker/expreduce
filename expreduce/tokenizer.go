@@ -201,7 +201,7 @@ yystate10:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule48
+		goto yyrule49
 	case c == '$' || c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate10
 	case c == '_':
@@ -214,7 +214,7 @@ yystate11:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule47
+		goto yyrule48
 	case c == '$' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate12
 	case c == '_':
@@ -225,7 +225,7 @@ yystate12:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule47
+		goto yyrule48
 	case c == '$' || c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate12
 	case c == '`':
@@ -245,7 +245,7 @@ yystate14:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule47
+		goto yyrule48
 	case c == '$' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate12
 	case c == '_':
@@ -256,7 +256,7 @@ yystate15:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule47
+		goto yyrule48
 	case c == '$' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate12
 	}
@@ -281,7 +281,7 @@ yystate17:
 
 yystate18:
 	c = y.getc()
-	goto yyrule45
+	goto yyrule46
 
 yystate19:
 	c = y.getc()
@@ -389,7 +389,7 @@ yystate35:
 	c = y.getc()
 	switch {
 	default:
-		goto yyabort
+		goto yyrule44
 	case c == ':':
 		goto yystate36
 	case c == '=':
@@ -400,7 +400,7 @@ yystate35:
 
 yystate36:
 	c = y.getc()
-	goto yyrule46
+	goto yyrule47
 
 yystate37:
 	c = y.getc()
@@ -521,7 +521,7 @@ yystate56:
 
 yystate57:
 	c = y.getc()
-	goto yyrule44
+	goto yyrule45
 
 yystate58:
 	c = y.getc()
@@ -716,19 +716,23 @@ yyrule43: // \|
 	{
 		return ALTSYM /* Alternatives */
 	}
-yyrule44: // \|\|
+yyrule44: // :
+	{
+		return COLONSYM /* Pattern */
+	}
+yyrule45: // \|\|
 	{
 		return ORSYM /* Or */
 	}
-yyrule45: // &&
+yyrule46: // &&
 	{
 		return ANDSYM /* And */
 	}
-yyrule46: // ::
+yyrule47: // ::
 	{
 		return MESSAGENAMESYM /* MessageName */
 	}
-yyrule47: // {pattern}
+yyrule48: // {pattern}
 	{
 
 		delim := "_"
@@ -765,7 +769,7 @@ yyrule47: // {pattern}
 		lval.val = NewExpression([]Ex{&Symbol{"Error"}, &String{"Pattern parse error."}})
 		return PATTERN
 	}
-yyrule48: // {contextedIdent}
+yyrule49: // {contextedIdent}
 	{
 
 		lval.val = &Symbol{string(y.buf)}

@@ -8,16 +8,21 @@ func getComparisonDefinitions() (defs []Definition) {
 			return ToStringInfixAdvanced(this.Parts[1:], " == ", true, "", "", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+			if len(this.Parts) < 1 {
 				return this
 			}
 
-			var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
-			if isequal == "EQUAL_UNK" {
-				return this
-			} else if isequal == "EQUAL_TRUE" {
+			isequal := true
+			for i := 2; i < len(this.Parts); i++ {
+				var equalstr string = this.Parts[1].IsEqual(this.Parts[i], &es.CASLogger)
+				if equalstr == "EQUAL_UNK" {
+					return this
+				}
+				isequal = isequal && (equalstr == "EQUAL_TRUE")
+			}
+			if isequal {
 				return &Symbol{"True"}
-			} else if isequal == "EQUAL_FALSE" {
+			} else {
 				return &Symbol{"False"}
 			}
 
@@ -89,6 +94,8 @@ func getComparisonDefinitions() (defs []Definition) {
 			&StringTest{"(foo[x, y, z]) == (foo[x, y, 1])", "foo[x, y, z] == foo[x, y, 1]"},
 			&SameTest{"True", "foo[x, y, 1] == foo[x, y, 1]"},
 			&SameTest{"True", "foo[x, y, 1.] == foo[x, y, 1]"},
+			&SameTest{"True", "Equal[test]"},
+			&SameTest{"True", "Equal[]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -137,11 +144,14 @@ func getComparisonDefinitions() (defs []Definition) {
 			return ToStringInfixAdvanced(this.Parts[1:], " === ", true, "", "", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+			if len(this.Parts) < 1 {
 				return this
 			}
 
-			var issame bool = IsSameQ(this.Parts[1], this.Parts[2], &es.CASLogger)
+			issame := true
+			for i := 2; i < len(this.Parts); i++ {
+				issame = issame && IsSameQ(this.Parts[1], this.Parts[i], &es.CASLogger)
+			}
 			if issame {
 				return &Symbol{"True"}
 			} else {
@@ -190,6 +200,8 @@ func getComparisonDefinitions() (defs []Definition) {
 			&SameTest{"False", "foo[x, y, z] === foo[x, y, 1]"},
 			&SameTest{"True", "foo[x, y, 1] === foo[x, y, 1]"},
 			&SameTest{"False", "foo[x, y, 1.] === foo[x, y, 1]"},
+			&SameTest{"True", "SameQ[test]"},
+			&SameTest{"True", "SameQ[]"},
 		},
 	})
 	defs = append(defs, Definition{

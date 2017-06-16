@@ -43,6 +43,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			// For some reason, this messes up the Infinity - Infinity rule
 			{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
 			{"Plus[a_, a_, rest___]", "2*a + rest"},
+			//{"Plus[Repeated[a_, {2}], rest___]", "2*a + rest"},
 			////"((c1_Integer*a_) + a_)": "(c1+1)*a",
 			{"Plus[c1_Real*a_, c2_Integer*a_, rest___]", "(c1+c2)*a + rest"},
 			// I have a feeling that these can be combined into a more general
@@ -255,7 +256,6 @@ func getArithmeticDefinitions() (defs []Definition) {
 
 			// More complicated term combining
 			&SameTest{"-3 * m - 10 * n", "-9 * n - n - 3 * m"},
-			&SameTest{"50*a", "a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a"},
 
 			&SameTest{"7*a * b - 2*a * c", "3*a*b - 2*a*c + 4*a*b"},
 			&SameTest{"-3*a - 2*b + 3*a*b", "2*a - 4*b + 3*a*b - 5*a + 2*b"},
@@ -268,10 +268,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&SameTest{"-4 s + 4 r s - 3 (1 + r s)", "4 r*s - 2 s - 3 (r*s + 1) - 2 s"},
 			&SameTest{"7 y - z + 3 y z", "8 y - 2 z - (y - z) + 3 y*z"},
 		},
-		KnownFailures: []TestInstruction{
-			&SameTest{"-2 + x (3 - 2 y) - 6 y", "2 (x*y - 1) + 3 (x - 2 y) - 4 x*y // BasicSimplify"},
-			&SameTest{"-3 + (-4 + r) s", "4 r*s - 2 s - 3 (r*s + 1) - 2 s // BasicSimplify"},
-			&SameTest{"-z + y (7 + 3 z)", "8 y - 2 z - (y - z) + 3 y*z // BasicSimplify"},
+		KnownDangerous: []TestInstruction{
+			&SameTest{"50*a", "a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -357,9 +355,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 				&Symbol{"Alternatives"},
 				&Symbol{"Infinity"},
 				&Symbol{"ComplexInfinity"},
-			}),
-
-				&es.CASLogger)
+			}), es)
 			for _, e := range multiplicands {
 				float, isFlt := e.(*Flt)
 				if isFlt {

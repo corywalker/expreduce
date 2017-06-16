@@ -215,6 +215,7 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"ComplexInfinity", "0^(-1)"},
 		},
 		KnownFailures: []TestInstruction{
+			// Fix these when I have Abs functionality
 			&StringTest{"2.975379863266329e+1589", "39^999."},
 			&StringTest{"3.360915398890324e-1590", "39^-999."},
 			&StringTest{"1.9950631168791027e+3010", ".5^-10000."},
@@ -321,7 +322,7 @@ func GetPowerDefinitions() (defs []Definition) {
 		Rules: []Rule{
 			{"PolynomialQ[p_Plus,v_]", "AllTrue[List@@p,(PolynomialQ[#,v])&]"},
 			// TODO: Should probably assert that the integers are positive.
-			{"PolynomialQ[p_*v_^_Integer,v_]", "If[FreeQ[p,v],True,False]"},
+			{"PolynomialQ[p_*v_^exp_Integer,v_]", "If[FreeQ[p,v]&&Positive[exp],True,False]"},
 			{"PolynomialQ[_,v_Integer]", "True"},
 			{"PolynomialQ[v_,v_]", "True"},
 			{"PolynomialQ[p_*v_,v_]", "If[FreeQ[p,v],True,False]"},
@@ -330,6 +331,8 @@ func GetPowerDefinitions() (defs []Definition) {
 		Tests: []TestInstruction{
 			&SameTest{"True", "PolynomialQ[2x^2-3x+2, x]"},
 			&SameTest{"True", "PolynomialQ[2x^2, x]"},
+			&SameTest{"False", "PolynomialQ[2x^-2, x]"},
+			&SameTest{"True", "PolynomialQ[2x^0, x]"},
 			&SameTest{"False", "PolynomialQ[2x^y, x]"},
 			&SameTest{"True", "PolynomialQ[-3x, x]"},
 			&SameTest{"True", "PolynomialQ[2, x]"},
@@ -358,8 +361,6 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"True", "PolynomialQ[x^y, z]"},
 			&SameTest{"True", "PolynomialQ[x^y, 1]"},
 			&SameTest{"True", "PolynomialQ[2.5x^2-3x+2.5, 2.5]"},
-		},
-		KnownFailures: []TestInstruction{
 			&SameTest{"True", "PolynomialQ[2x^2-x*Cos[y], x]"},
 		},
 	})

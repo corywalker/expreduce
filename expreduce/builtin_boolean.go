@@ -157,5 +157,23 @@ func GetBooleanDefinitions() (defs []Definition) {
 			{"LogicalExpand[exp_]", "exp //. {And[begin___,e_,!e_,end___]:>And[begin, end]}"},
 		},
 	})*/
+	defs = append(defs, Definition{
+		Name:  "Boole",
+		Usage:  "`Boole[e]` returns 0 if `e` is False and 1 if `e` is True.",
+		Attributes: []string{"Listable"},
+		Rules: []Rule{
+			{"Boole[True]", "1"},
+			{"Boole[False]", "0"},
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"1", "Boole[True]"},
+			&SameTest{"0", "Boole[False]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"Boole[1]", "Boole[1]"},
+			&SameTest{"Boole[a]", "Boole[a]"},
+			&SameTest{"Boole[False,False]", "Boole[False, False]"},
+		},
+	})
 	return
 }

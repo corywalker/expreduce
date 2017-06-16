@@ -17,6 +17,19 @@ func ExArrayToString(exArray []Ex) string {
 	return buffer.String()
 }
 
+func PFArrayToString(pfArray []parsedForm) string {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	for i, e := range pfArray {
+		buffer.WriteString(e.origForm.String())
+		if i != len(pfArray)-1 {
+			buffer.WriteString(", ")
+		}
+	}
+	buffer.WriteString("}")
+	return buffer.String()
+}
+
 func ExArrayDeepCopy(exArray []Ex) []Ex {
 	res := make([]Ex, len(exArray))
 	for i, e := range exArray {
