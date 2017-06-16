@@ -6,7 +6,7 @@ This software is experimental quality and is not currently intended for serious 
 Expreduce is a language with specialized constructs for term rewriting. It is a neat language for a computer algebra system because it is able to express expression manipulation steps in a form very similar to standard math equations. For example, the product rule in calculus can be expressed as:
 
 ```
-D[a_*b__,x_] := D[a,x]*b + a*D[Times[b],x]
+D[a_*b_,x_] := D[a,x]*b + a*D[b,x]
 ```
 
 The term rewriting system and pattern matching engine is fairly advanced. The computer algebra system at this stage is extremely limited, but fairly simple calculus and algebraic manipulation is certainly supported (see examples below). If you are looking for a more mature computer algebra system, please consider using Mathematica (proprietary) or Mathics (open source, Sympy-backed).
