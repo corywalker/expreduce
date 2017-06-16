@@ -276,31 +276,8 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalSta
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
 				attrs := thisSym.Attrs(&es.defined)
-				/*if IsOrderless(thisSym) {
-					es.Debugf("r.Parts[1] is Orderless. Now running OrderlessReplace")
-					replaced := this.Parts[1:len(this.Parts)]
-					OrderlessReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], es)
-					this.Parts = this.Parts[0:1]
-					this.Parts = append(this.Parts, replaced...)
-				} else if IsFlat(thisSym) {
-					// I have a feeling that much of the logic in OrderlessReplace
-					// actually assumes Flat as well. This is because most of my
-					// testing was with Plus and Times, which happen to have both
-					// attributes. For now, I'll have two parallel functions, but
-					// later on I should factor out the common functionality and
-					// also see if I am making any assumptions about Flat in my
-					// OrderlessReplace.
-					es.Debugf("r.Parts[1] is Flat. Now running FlatReplace")
-					replaced := this.Parts[1:len(this.Parts)]
-					FlatReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], thisSym.Name, es)
-					this.Parts = this.Parts[0:1]
-					this.Parts = append(this.Parts, replaced...)
-				}*/
-				if attrs.Orderless || attrs.Flat {
-					replaced := this.Parts[1:len(this.Parts)]
-					GeneralReplace(&replaced, lhsExpr.Parts[1:len(lhsExpr.Parts)], r.Parts[2], attrs.Orderless, attrs.Flat, thisSym.Name, es)
-					this.Parts = this.Parts[0:1]
-					this.Parts = append(this.Parts, replaced...)
+				if attrs.Flat {
+					FlatReplace(this, lhsExpr, r.Parts[2], attrs.Orderless, es)
 				}
 			}
 		}

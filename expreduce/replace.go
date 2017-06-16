@@ -2,134 +2,45 @@ package expreduce
 
 import (
 	"sort"
-	"math"
 )
 
-func OrderlessReplace(components *[]Ex, lhs_components []Ex, rhs Ex, es *EvalState) {
-	GeneralReplace(components, lhs_components, rhs, true, false, "", es)
-	return
-	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	es.Debugf("Entering OrderlessReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
-	// Each permutation is a potential order of the Rule's LHS in which matches
-	// may occur in components.
-	toPermute := make([]int, len(*components))
-	for i := range toPermute {
-		toPermute[i] = i
+// This function assumes e and lhs have the same head and that the head is Flat.
+func FlatReplace(e *Expression, lhs *Expression, rhs Ex, orderless bool, es *EvalState) {
+	looseLhs := NewExpression([]Ex{})
+	looseLhs.Parts = append(looseLhs.Parts, lhs.Parts[0])
+	if !orderless {
+		looseLhs.Parts = append(looseLhs.Parts, NewExpression([]Ex{
+			&Symbol{"Pattern"},
+			&Symbol{"Expreduce`start"},
+			NewExpression([]Ex{&Symbol{"BlankNullSequence"}}),
+		}))
 	}
-	//TODO: convert this to nextKPermutation?
-	perms := permutations(toPermute, len(lhs_components))
-	es.Debugf("Permutations to try: %v\n", perms)
-
-	for _, perm := range perms {
-		used := make([]int, len(perm))
-		pi := 0
-		pm := EmptyPD()
-		//es.Debugf("Before snapshot. Context: %v\n", es)
-		for i := range perm {
-			//es.Debugf("%s %s\n", (*components)[perm[i]], lhs_components[i])
-			mq, matches := IsMatchQ((*components)[perm[i]].DeepCopy(), lhs_components[i], pm, es)
-			if mq {
-				pm.Update(matches)
-				used[pi] = perm[i]
-				pi = pi + 1
-
-				if pi == len(perm) {
-					sort.Ints(used)
-					es.Debugf("About to delete components matching lhs.")
-					es.Debugf("components before: %s", ExArrayToString(*components))
-					for tdi, todelete := range used {
-						*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
-					}
-					es.Debugf("components after: %s", ExArrayToString(*components))
-					es.Debugf("Appending %s\n", rhs)
-					//es.Debugf("Context: %v\n", es)
-					*components = append(*components, []Ex{ReplacePD(rhs.DeepCopy(), es, matches)}...)
-					es.Debugf("components after append: %s", ExArrayToString(*components))
-					//es.Debugf("After clear. Context: %v\n", es)
-					return
-				}
-			}
-			//es.Debugf("Done checking. Context: %v\n", es)
+	looseLhs.Parts = append(looseLhs.Parts, lhs.Parts[1:]...)
+	looseLhs.Parts = append(looseLhs.Parts, NewExpression([]Ex{
+		&Symbol{"Pattern"},
+		&Symbol{"Expreduce`end"},
+		NewExpression([]Ex{&Symbol{"BlankNullSequence"}}),
+	}))
+	pm := EmptyPD()
+	matchq, newPd := IsMatchQ(e, looseLhs, pm, es)
+	if matchq {
+		var tmpEx Ex
+		if orderless {
+			tmpEx = ReplacePD(NewExpression([]Ex{
+				e.Parts[0],
+				rhs,
+				&Symbol{"Expreduce`end"},
+			}), es, newPd)
+		} else {
+			tmpEx = ReplacePD(NewExpression([]Ex{
+				e.Parts[0],
+				&Symbol{"Expreduce`start"},
+				rhs,
+				&Symbol{"Expreduce`end"},
+			}), es, newPd)
 		}
-		//es.Debugf("After clear. Context: %v\n", es)
-	}
-}
-
-func allRuns(totLength int) [][]int {
-	// Example: allRuns(3) == [[0 1 2] [0 1] [1 2] [0] [1] [2]]
-	res := make([][]int, 0)
-	for thisLen := totLength; thisLen > 0; thisLen -= 1 {
-		for startI := 0; startI <= (totLength-thisLen); startI += 1 {
-			thisRun := []int{}
-			for i := 0; i < thisLen; i++ {
-				thisRun = append(thisRun, i+startI)
-			}
-			res = append(res, thisRun)
-		}
-	}
-	return res
-}
-
-func powerset(n int) [][]int {
-	p := make([][]int, 0)
-	c := int(math.Pow(2, float64(n)))
-	for j := 1; j < c; j++ {
-		ss := make([]int, 0)
-		for k := 0; k < n; k++ {
-			flag := 1 << uint(k)
-			if (j)&flag == flag {
-				ss = append(ss, k)
-			}
-		}
-		p = append(p, ss)
-	}
-	return p
-}
-
-func FlatReplace(components *[]Ex, lhs_components []Ex, rhs Ex, sequenceHead string, es *EvalState) {
-	GeneralReplace(components, lhs_components, rhs, false, true, sequenceHead, es)
-}
-
-func GeneralReplace(components *[]Ex, lhs_components []Ex, rhs Ex, isOrderless bool, isFlat bool, sequenceHead string, es *EvalState) {
-	// TODO: Doesn't take a PDManager as an input right now. Will add this later.
-	es.Debugf("Entering FlatReplace(components: *%s, lhs_components: %s)", ExArrayToString(*components), ExArrayToString(lhs_components))
-	//TODO: convert to a generator method?
-	var runs [][]int
-	if isOrderless && isFlat {
-		runs = powerset(len(*components))
-	} else if isOrderless && !isFlat {
-		allIndices := []int{}
-		for i := 0; i < len(*components); i++ {
-			allIndices = append(allIndices, i)
-		}
-		runs = append(runs, allIndices)
-	} else {
-		runs = allRuns(len(*components))
-	}
-	es.Debugf("Runs to try: %v\n", runs)
-
-	for _, run := range runs {
-		thisComponents := make([]Ex, len(run))
-		for tci, ci := range run {
-			thisComponents[tci] = (*components)[ci].DeepCopy()
-		}
-		pm := EmptyPD()
-		mq, matches := ComponentsIsMatchQ(thisComponents, lhs_components, isOrderless, isFlat, sequenceHead, pm, es)
-		if mq {
-			if isOrderless && isFlat {
-				sort.Ints(run)
-				for tdi, todelete := range run {
-					*components = append((*components)[:todelete-tdi], (*components)[todelete-tdi+1:]...)
-				}
-				*components = append(*components, []Ex{ReplacePD(rhs.DeepCopy(), es, matches)}...)
-			} else {
-				copiedComponents := ExArrayDeepCopy((*components)[run[len(run)-1]+1:])
-				*components = append((*components)[:run[0]], []Ex{ReplacePD(rhs.DeepCopy(), es, matches)}...)
-				*components = append(*components, copiedComponents...)
-			}
-			return
-		}
-		//es.Debugf("Done checking. Context: %v\n", es)
+		tmpExpr := tmpEx.(*Expression)
+		e.Parts = tmpExpr.Parts
 	}
 }
 
@@ -213,68 +124,4 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
 		}
 	}
 	return &Symbol{"$ReplaceAllFailed"}
-}
-
-func permutations(iterable []int, r int) [][]int {
-	res := make([][]int, 0)
-	pool := iterable
-	n := len(pool)
-
-	if r > n {
-		return res
-	}
-
-	indices := make([]int, n)
-	for i := range indices {
-		indices[i] = i
-	}
-
-	cycles := make([]int, r)
-	for i := range cycles {
-		cycles[i] = n - i
-	}
-
-	result := make([]int, r)
-	for i, el := range indices[:r] {
-		result[i] = pool[el]
-	}
-
-	c := make([]int, len(result))
-	copy(c, result)
-	res = append(res, c)
-
-	for n > 0 {
-		i := r - 1
-		for ; i >= 0; i -= 1 {
-			cycles[i] -= 1
-			if cycles[i] == 0 {
-				index := indices[i]
-				for j := i; j < n-1; j += 1 {
-					indices[j] = indices[j+1]
-				}
-				indices[n-1] = index
-				cycles[i] = n - i
-			} else {
-				j := cycles[i]
-				indices[i], indices[n-j] = indices[n-j], indices[i]
-
-				for k := i; k < r; k += 1 {
-					result[k] = pool[indices[k]]
-				}
-
-				c := make([]int, len(result))
-				copy(c, result)
-				res = append(res, c)
-
-				break
-			}
-		}
-
-		if i < 0 {
-			return res
-		}
-
-	}
-	return res
-
 }
