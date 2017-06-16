@@ -3,13 +3,26 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+	"runtime/pprof"
+	"log"
 	"github.com/corywalker/expreduce/expreduce"
 	"gopkg.in/readline.v1"
 )
 
+var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
+var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+
 func main() {
-	var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
 	flag.Parse()
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+	}
 
 	rl, err := readline.NewEx(&readline.Config{
 		HistoryFile:         "/tmp/readline.tmp",
