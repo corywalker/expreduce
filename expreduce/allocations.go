@@ -63,7 +63,9 @@ type assnIterState struct {
 type assnIter struct {
 	forms []parsedForm
 	assnData []int
+	assnIndices []int
 	assns [][]int
+	formMatches [][]bool
 	orderless bool
 	taken []bool
 	stack []assnIterState
@@ -94,11 +96,11 @@ func (asi *assnIter) nextOrderless() bool {
 			return true
 		}
 		// Determine if we crossed an allocation boundary.
-		totComps := 0
-		for i := 0; i < len(asi.assns) && totComps < p.formDataI+1; i++ {
-			totComps += len(asi.assns[i])
+		formI := asi.assnIndices[p.formDataI]
+		willCrossBoundary := false
+		if p.formDataI+1 < len(asi.assnIndices) {
+			willCrossBoundary = formI != asi.assnIndices[p.formDataI+1]
 		}
-		willCrossBoundary := p.formDataI+1 == totComps
 
 		startI := p.lastTaken+1
 		if p.crossedBoundary {
@@ -110,7 +112,7 @@ func (asi *assnIter) nextOrderless() bool {
 			})
 		}
 		for i := len(asi.taken)-1; i >= startI; i-- {
-			if !asi.taken[i] {
+			if !asi.taken[i] && asi.formMatches[formI][i] {
 				asi.stack = append(asi.stack, assnIterState{
 					i, p.formDataI+1, willCrossBoundary, -1,
 				})
@@ -127,9 +129,14 @@ func (asi *assnIter) next() bool {
 	asi.iteratingOrderless = false
 	if asi.ai.next() {
 		// Create slices against assnData.
+		// TODO: non-orderless needs to support formMatches as well.
+		// ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//pm,b//pm,y___//pm]->{{x},{y}}]
 		lasti := 0
 		for i := range asi.assns {
 			asi.assns[i] = asi.assnData[lasti:lasti+asi.ai.alloc[i]]
+			for j := lasti; j < lasti+asi.ai.alloc[i]; j++ {
+				asi.assnIndices[j] = i
+			}
 			lasti += asi.ai.alloc[i]
 		}
 		if asi.orderless {
@@ -144,13 +151,15 @@ func (asi *assnIter) next() bool {
 	return false
 }
 
-func NewAssnIter(l int, forms []parsedForm, orderless bool) assnIter {
+func NewAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool) assnIter {
 	asi := assnIter{}
 	asi.forms = forms
 	asi.assnData = make([]int, l)
+	asi.assnIndices = make([]int, l)
 	asi.assns = make([][]int, len(forms))
 	asi.orderless = orderless
 	asi.taken = make([]bool, l)
+	asi.formMatches = formMatches
 
 	asi.ai = NewAllocIter(len(asi.assnData), asi.forms)
 	for i := range asi.assnData {
