@@ -16,6 +16,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			{"Power[Power[a_,b_Real],c_Integer]", "a^(b*c)"},
 			{"Power[Power[a_,b_Symbol],c_Integer]", "a^(b*c)"},
 
+			{"Power[Infinity, -1]", "0"},
+
 			// Power definitions
 			{"(Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_]", "first^pow * Times[inner]^pow"},
 			{"(first_ * inner___)^Except[_Symbol, pow_]", "first^pow * Times[inner]^pow"},

@@ -176,7 +176,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			}
 			headStr := headSym.Name
 
-			theRes, isDefined, def := es.GetDef(headStr, curr)
 			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, *EvalState) Ex)(nil), false
 			if _, inDefined := es.defined[headStr]; inDefined {
 				if es.defined[headStr].legacyEvalFn != nil {
@@ -184,12 +183,19 @@ func (this *Expression) Eval(es *EvalState) Ex {
 					legacyEvalFn = es.defined[headStr].legacyEvalFn
 				}
 			}
-			if isDefined {
-				//fmt.Printf("%v, %v, %v\n", headStr, curr, theRes)
-				es.Infof("Def: %v ▶ %v ▶ using %v ▶ from %s head", currEx, theRes, def, headStr)
-				currEx = theRes
-			} else if hasLegacyEvalFn {
+			unchanged := true
+			if hasLegacyEvalFn {
 				currEx = legacyEvalFn(curr, es)
+				// TODO: I could potentially have the legacyevalfn return this.
+				unchanged = IsSameQ(currEx, curr, &es.CASLogger)
+			}
+			if unchanged {
+				theRes, isDefined, def := es.GetDef(headStr, curr)
+				if isDefined {
+					//fmt.Printf("%v, %v, %v\n", headStr, curr, theRes)
+					es.Infof("Def: %v ▶ %v ▶ using %v ▶ from %s head", currEx, theRes, def, headStr)
+					currEx = theRes
+				}
 			}
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
