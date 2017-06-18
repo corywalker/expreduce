@@ -126,6 +126,35 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:       "Default",
+		Usage:      "`Default[sym]` returns the default value of `sym` when used as an `Optional` pattern without a default specified.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			sym, isSym := this.Parts[1].(*Symbol)
+			if !isSym {
+				return this
+			}
+
+			def, isDef := es.defined[sym.Name]
+			if isDef {
+				if def.defaultExpr != nil {
+					return def.defaultExpr
+				}
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"1", "Default[Times]"},
+			&SameTest{"0", "Default[Plus]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"Default[foo]", "Default[foo]"},
+		},
+	})
+	defs = append(defs, Definition{
 		Name:       "Clear",
 		Usage:      "`Clear[sym1, sym2, ...]` clears the symbol definitions from the evaluation context.",
 		Attributes: []string{"HoldAll"},

@@ -5,6 +5,7 @@ import "bytes"
 type Def struct {
 	downvalues []Expression
 	attributes Attributes
+	defaultExpr Ex
 
 	// A function defined here will override downvalues.
 	legacyEvalFn (func(*Expression, *EvalState) Ex)

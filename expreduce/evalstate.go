@@ -57,6 +57,9 @@ func (this *EvalState) Load(def Definition) {
 	}
 	protectedAttrs := append(def.Attributes, "Protected")
 	newDef.attributes = stringsToAttributes(protectedAttrs)
+	if def.Default != "" {
+		newDef.defaultExpr = Interp(def.Default)
+	}
 	if def.toString != nil {
 		// Global so that standard String() interface can access these
 		toStringFns[def.Name] = def.toString

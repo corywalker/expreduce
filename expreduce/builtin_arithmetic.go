@@ -36,6 +36,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Name:       "Plus",
 		Usage:      "`(e1 + e2 + ...)` computes the sum of all expressions in the function.",
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
+		Default:	"0",
 		Rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
 			{"Plus[c1_Integer*a__, c2_Integer*a__, rest___]", "((c1+c2)*a + rest)"},
@@ -303,6 +304,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Name:       "Times",
 		Usage:      "`(e1 * e2 * ...)` computes the product of all expressions in the function.",
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
+		Default:	"1",
 		Rules: []Rule{
 			{"Times[a_, a_, rest___]", "a^2 * rest"},
 			{"Times[a_^n_, a_, rest___]", "a^(n+1) * rest"},

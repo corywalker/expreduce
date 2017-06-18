@@ -32,6 +32,7 @@ type Definition struct {
 	toString ToStringFnType
 
 	Attributes []string
+	Default string
 }
 
 type NamedDefSet struct {
