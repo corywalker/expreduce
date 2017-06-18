@@ -80,10 +80,10 @@ func (this *PDManager) Expression() Ex {
 
 func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead string, es *EvalState) bool {
 	pat, isPat := HeadAssertion(lhs.origForm, "Pattern")
-	//optional, isOptional := HeadAssertion(lhs.origForm, "Optional")
-	//if isOptional {
-		//pat, isPat = HeadAssertion(optional.Parts[1], "Pattern")
-	//}
+	optional, isOptional := HeadAssertion(lhs.origForm, "Optional")
+	if isOptional {
+		pat, isPat = HeadAssertion(optional.Parts[1], "Pattern")
+	}
 	if !isPat {
 		return true
 	}
@@ -92,7 +92,7 @@ func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead s
 	if sAsSymbolOk {
 		sequenceHeadSym := &Symbol{sequenceHead}
 		oneIdent := sequenceHeadSym.Attrs(&es.defined).OneIdentity
-		if len(sequence) == 1 && (lhs.isBlank || oneIdent) {
+		if len(sequence) == 1 && (lhs.isBlank || oneIdent || lhs.isOptional) {
 			attemptDefine = sequence[0]
 		} else if len(sequence) == 0 && lhs.isOptional && lhs.defaultExpr != nil {
 			attemptDefine = lhs.defaultExpr
