@@ -126,7 +126,7 @@ const CalcEofCode = 1
 const CalcErrCode = 2
 const CalcInitialStackSize = 16
 
-//line interp.y:259
+//line interp.y:265
 
 /*  start  of  programs  */
 
@@ -988,89 +988,93 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
 		//line interp.y:186
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Pattern"}, CalcDollar[1].val, CalcDollar[3].val})
+			if _, isPat := HeadAssertion(CalcDollar[1].val, "Pattern"); isPat {
+				CalcVAL.val = NewExpression([]Ex{&Symbol{"Optional"}, CalcDollar[1].val, CalcDollar[3].val})
+			} else {
+				CalcVAL.val = NewExpression([]Ex{&Symbol{"Pattern"}, CalcDollar[1].val, CalcDollar[3].val})
+			}
 		}
 	case 34:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:188
+		//line interp.y:194
 		{
 			CalcVAL.val = NewExpression([]Ex{&Symbol{"Set"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 35:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:190
+		//line interp.y:196
 		{
 			CalcVAL.val = NewExpression([]Ex{&Symbol{"SetDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 36:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:192
+		//line interp.y:198
 		{
 			CalcVAL.val = fullyAssoc("SameQ", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 37:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:194
+		//line interp.y:200
 		{
 			CalcVAL.val = fullyAssoc("Equal", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 38:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:196
+		//line interp.y:202
 		{
 			CalcVAL.val = fullyAssoc("Unequal", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 39:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:198
+		//line interp.y:204
 		{
 			CalcVAL.val = fullyAssoc("Less", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 40:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:200
+		//line interp.y:206
 		{
 			CalcVAL.val = fullyAssoc("LessEqual", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 41:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:202
+		//line interp.y:208
 		{
 			CalcVAL.val = fullyAssoc("Greater", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 42:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:204
+		//line interp.y:210
 		{
 			CalcVAL.val = fullyAssoc("GreaterEqual", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 43:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:206
+		//line interp.y:212
 		{
 			CalcVAL.val = fullyAssoc("Span", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 44:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:208
+		//line interp.y:214
 		{
 			CalcVAL.val = fullyAssoc("Dot", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 45:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:210
+		//line interp.y:216
 		{
 			CalcVAL.val = fullyAssoc("And", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 46:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:212
+		//line interp.y:218
 		{
 			CalcVAL.val = fullyAssoc("Or", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 47:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:214
+		//line interp.y:220
 		{
 			if integer, isInteger := CalcDollar[2].val.(*Integer); isInteger {
 				CalcVAL.val = &Integer{integer.Val.Neg(integer.Val)}
@@ -1082,19 +1086,19 @@ Calcdefault:
 		}
 	case 48:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:224
+		//line interp.y:230
 		{
 			CalcVAL.val = NewExpression([]Ex{&Symbol{"Slot"}, &Integer{big.NewInt(1)}})
 		}
 	case 49:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:226
+		//line interp.y:232
 		{
 			CalcVAL.val = NewExpression([]Ex{&Symbol{"Slot"}, CalcDollar[2].val})
 		}
 	case 50:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:228
+		//line interp.y:234
 		{
 			if sym, isSym := CalcDollar[3].val.(*Symbol); isSym {
 				CalcVAL.val = fullyAssoc("MessageName", CalcDollar[1].val, &String{sym.Name})
@@ -1104,61 +1108,61 @@ Calcdefault:
 		}
 	case 51:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:236
+		//line interp.y:242
 		{
 			CalcVAL.val = fullyAssoc("StringJoin", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 52:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:238
+		//line interp.y:244
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 53:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:240
+		//line interp.y:246
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 54:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:242
+		//line interp.y:248
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 55:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:244
+		//line interp.y:250
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 56:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:246
+		//line interp.y:252
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 57:
 		CalcDollar = CalcS[Calcpt-0 : Calcpt+1]
-		//line interp.y:250
+		//line interp.y:256
 		{
 			CalcVAL.valSeq = []Ex{}
 		}
 	case 58:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:252
+		//line interp.y:258
 		{
 			CalcVAL.valSeq = append(CalcVAL.valSeq, CalcDollar[1].val)
 		}
 	case 59:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:254
+		//line interp.y:260
 		{
 			CalcVAL.valSeq = append(CalcVAL.valSeq, CalcDollar[3].val)
 		}
 	case 60:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:256
+		//line interp.y:262
 		{
 			CalcVAL.valSeq = append(CalcVAL.valSeq, &Symbol{"Null"})
 		}

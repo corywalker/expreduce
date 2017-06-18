@@ -183,7 +183,13 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr CONDITIONSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"Condition"}, $1, $3}) }
 	|    expr COLONSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"Pattern"}, $1, $3}) }
+		{ 
+			if _, isPat := HeadAssertion($1, "Pattern"); isPat {
+				$$  =  NewExpression([]Ex{&Symbol{"Optional"}, $1, $3})
+			} else {
+				$$  =  NewExpression([]Ex{&Symbol{"Pattern"}, $1, $3})
+			}
+		}
 	|    expr SETSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"Set"}, $1, $3}) }
 	|    expr SETDELAYEDSYM expr
