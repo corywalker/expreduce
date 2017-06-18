@@ -7,7 +7,9 @@ type parsedForm struct {
 	origForm	Ex
 	isBlank		bool
 	isImpliedBs	bool
+	isOptional	bool
 	formHasPattern	bool
+	defaultExpr	Ex
 }
 
 func ParseRepeated(e *Expression) (Ex, int, int, bool) {
@@ -34,18 +36,22 @@ func ParseRepeated(e *Expression) (Ex, int, int, bool) {
 	return e.Parts[1], min, max, true
 }
 
-func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger) (res parsedForm) {
+func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault Ex, cl *CASLogger) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	pat, isPat := HeadAssertion(lhs_component, "Pattern")
 	bns, isBns := HeadAssertion(lhs_component, "BlankNullSequence")
 	bs, isBs := HeadAssertion(lhs_component, "BlankSequence")
 	blank, isBlank := HeadAssertion(lhs_component, "Blank")
 	repeated, isRepeated := HeadAssertion(lhs_component, "Repeated")
+	repeatedNull, isRepeatedNull := HeadAssertion(lhs_component, "RepeatedNull")
+	optional, isOptional := HeadAssertion(lhs_component, "Optional")
 	if isPat {
 		bns, isBns = HeadAssertion(pat.Parts[2], "BlankNullSequence")
 		bs, isBs = HeadAssertion(pat.Parts[2], "BlankSequence")
 		blank, isBlank = HeadAssertion(pat.Parts[2], "Blank")
 		repeated, isRepeated = HeadAssertion(pat.Parts[2], "Repeated")
+		repeatedNull, isRepeatedNull = HeadAssertion(pat.Parts[2], "RepeatedNull")
+		optional, isOptional = HeadAssertion(pat.Parts[2], "Optional")
 	}
 	isImpliedBs := isBlank && isFlat
 	// Ensure isBlank is exclusive from isImpliedBs
@@ -54,6 +60,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	form := lhs_component
 	startI := 1 // also includes implied blanksequence
 	endI := 1
+	var defaultExpr Ex
 
 	if isBns {
 		form = BlankNullSequenceToBlank(bns)
@@ -90,6 +97,26 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 			}
 			form = repPat
 		}
+	} else if isRepeatedNull {
+		if len(repeatedNull.Parts) == 2 {
+			startI = 0
+			endI = MaxInt
+			form = repeatedNull.Parts[1]
+		}
+	} else if isOptional {
+		defaultToUse := headDefault
+		if len(optional.Parts) >= 3 {
+			defaultToUse = optional.Parts[2]
+		}
+		if len(optional.Parts) >= 2 {
+			startI = 0
+			if defaultToUse == nil {
+				startI = 1
+			}
+			endI = 1
+			form = optional.Parts[1]
+			defaultExpr = defaultToUse
+		}
 	} else if isBs {
 		form = BlankSequenceToBlank(bs)
 		endI = MaxInt
@@ -99,9 +126,11 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, cl *CASLogger
 	res.startI = startI
 	res.endI = endI
 	res.form = form
+	res.defaultExpr = defaultExpr
 	res.origForm = lhs_component
 	_, res.formHasPattern = HeadAssertion(form, "Pattern")
 	res.isImpliedBs = isImpliedBs
+	res.isOptional = isOptional
 	res.isBlank = isBlank
 	return res
 }

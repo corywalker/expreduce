@@ -484,7 +484,6 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Repeated",
 		Usage:      "`Repeated[p_]` matches a sequence of expressions that match the pattern `p`.",
-		Attributes: []string{"Protected"},
 		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[foo[a, a], foo[Repeated[a]]]"},
 			&SameTest{"False", "MatchQ[foo[a, b], foo[Repeated[a]]]"},
@@ -509,6 +508,25 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[___, Repeated[_Integer, {-1}]]]"},
 
 			&SameTest{"x", "foo[x, x] /. foo[Repeated[a_, {2}]] -> a"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "Optional",
+		Usage:      "`Optional[pat, default]` attempts to match `pat` but uses `default` if not present.",
+		Tests: []TestInstruction{
+			&SameTest{"foo[a]", "foo[a]/.foo[a,b_.]->{a,b}"},
+			&SameTest{"{a,b}", "foo[a,b]/.foo[a,b_.]->{a,b}"},
+			&SameTest{"{a,c}", "foo[a]/.foo[a,b_:c]->{a,b}"},
+			&SameTest{"{a,b}", "foo[a,b]/.foo[a,b_:c]->{a,b}"},
+			&SameTest{"{{a},{b}}", "foo[a,b]/.foo[a___,b_.]->{{a},{b}}"},
+			&SameTest{"{{a},{b}}", "foo[a,b]/.foo[a___,b_:c]->{{a},{b}}"},
+			&SameTest{"{{},{a},{b}}", "foo[a,b]/.foo[a___,b_:c,d_:e]->{{a},{b},{d}}"},
+			&SameTest{"{{x},{y},{z}}", "foo[x]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
+			&SameTest{"foo[]", "foo[]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
+			&SameTest{"{{x},{i},{j}}", "foo[x,i,j]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"foo[a,b]", "foo[a,b]/.foo[a___,b_.,d_.]->{{a},{b},{d}}"},
 		},
 	})
 	return

@@ -37,6 +37,8 @@ import (
 %left CONDITIONSYM
 %left COLONSYM
 %left ALTSYM
+%left REPEATEDSYM
+%left REPEATEDNULLSYM
 %left ORSYM
 %left ANDSYM
 %left SAMESYM
@@ -168,6 +170,10 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"PatternTest"}, $1, $3}) }
 	|    expr ALTSYM expr
 		{ $$  =  fullyAssoc("Alternatives", $1, $3) }
+	|    expr REPEATEDSYM
+		{ $$  =  NewExpression([]Ex{&Symbol{"Repeated"}, $1}) }
+	|    expr REPEATEDNULLSYM
+		{ $$  =  NewExpression([]Ex{&Symbol{"RepeatedNull"}, $1}) }
 	|    expr APPLYSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"Apply"}, $1, $3}) }
 	|    expr MAPSYM expr

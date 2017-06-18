@@ -63,7 +63,8 @@ L [A-Za-z$]
 ident {L}({L}|{D})*
 contextedIdent ({ident}"`")*{ident}
 blanks ___|__|_
-pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIdent}{blanks}{contextedIdent}
+dot "."
+pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{blanks}{dot}|{contextedIdent}{blanks}{contextedIdent}|{contextedIdent}{blanks}{dot}
 
 %%
     y.buf = y.buf[:0]
@@ -121,7 +122,9 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
 \< return LESSSYM /* Less */
 >= return GREATEREQUALSYM /* GreaterEqual */
 \<= return LESSEQUALSYM /* LessEqual */
-\. return DOTSYM /* Dot */
+\. return DOTSYM /* Dot, Optional */
+\.\. return REPEATEDSYM /* Repeated */
+\.\.\. return REPEATEDNULLSYM /* RepeatedNull */
 ! return EXCLAMATIONSYM /* Factorial, Not */
 & return FUNCTIONSYM /* Factorial */
 != return UNEQUALSYM /* Unequal */
@@ -159,6 +162,8 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
         if parts[0] == "" {
             if parts[1] == "" {
                 lval.val = NewExpression([]Ex{blankType})
+            } else if delim == "_" && parts[1] == "." {
+                lval.val = NewExpression([]Ex{&Symbol{"Optional"}, NewExpression([]Ex{blankType})})
             } else {
                 lval.val = NewExpression([]Ex{blankType, &Symbol{parts[1]}})
             }
@@ -166,6 +171,8 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{contextedIde
         } else {
             if parts[1] == "" {
                 lval.val = NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
+            } else if delim == "_" && parts[1] == "." {
+                lval.val = NewExpression([]Ex{&Symbol{"Optional"}, NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})})
             } else {
                 lval.val = NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType, &Symbol{parts[1]}})})
             }

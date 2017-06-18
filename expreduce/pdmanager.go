@@ -78,8 +78,12 @@ func (this *PDManager) Expression() Ex {
 	return res
 }
 
-func DefineSequence(lhs_component Ex, sequence []Ex, isBlank bool, pm *PDManager, isImpliedBs bool, sequenceHead string, es *EvalState) bool {
-	pat, isPat := HeadAssertion(lhs_component, "Pattern")
+func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead string, es *EvalState) bool {
+	pat, isPat := HeadAssertion(lhs.origForm, "Pattern")
+	//optional, isOptional := HeadAssertion(lhs.origForm, "Optional")
+	//if isOptional {
+		//pat, isPat = HeadAssertion(optional.Parts[1], "Pattern")
+	//}
 	if !isPat {
 		return true
 	}
@@ -88,12 +92,11 @@ func DefineSequence(lhs_component Ex, sequence []Ex, isBlank bool, pm *PDManager
 	if sAsSymbolOk {
 		sequenceHeadSym := &Symbol{sequenceHead}
 		oneIdent := sequenceHeadSym.Attrs(&es.defined).OneIdentity
-		if len(sequence) == 1 && (isBlank || oneIdent) {
-			if len(sequence) != 1 {
-				es.Errorf("Invalid blank components length!!")
-			}
+		if len(sequence) == 1 && (lhs.isBlank || oneIdent) {
 			attemptDefine = sequence[0]
-		} else if isImpliedBs {
+		} else if len(sequence) == 0 && lhs.isOptional && lhs.defaultExpr != nil {
+			attemptDefine = lhs.defaultExpr
+		} else if lhs.isImpliedBs {
 			attemptDefine = NewExpression(append([]Ex{sequenceHeadSym}, sequence...))
 		} else {
 			head := &Symbol{"Sequence"}

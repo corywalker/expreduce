@@ -228,7 +228,7 @@ func (ami *assignedMatchIter) next() bool {
 			for i, assignedComp := range ami.assn[p.formI] {
 				seq[i] = ami.components[assignedComp]
 			}
-			patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, p.pm, lhs.isImpliedBs, ami.sequenceHead, ami.es)
+			patOk := DefineSequence(lhs, seq, p.pm, ami.sequenceHead, ami.es)
 			if patOk {
 				ami.stack = append(ami.stack, assignedIterState{
 					p.formI+1, 0, p.pm,
@@ -279,9 +279,10 @@ type sequenceMatchIter struct {
 }
 
 func NewSequenceMatchIter(components []Ex, lhs_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
+	headDefault := (&Symbol{sequenceHead}).Default(&es.defined)
 	fp_components := make([]parsedForm, len(lhs_components))
 	for i, comp := range lhs_components {
-		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, &es.CASLogger)
+		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, headDefault, &es.CASLogger)
 	}
 	return NewSequenceMatchIterPreparsed(components, fp_components, isOrderless, sequenceHead, pm, es)
 }

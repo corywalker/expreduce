@@ -138,11 +138,9 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			def, isDef := es.defined[sym.Name]
-			if isDef {
-				if def.defaultExpr != nil {
-					return def.defaultExpr
-				}
+			def := sym.Default(&es.defined)
+			if def != nil {
+				return def
 			}
 			return this
 		},
