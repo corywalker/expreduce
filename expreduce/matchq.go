@@ -294,13 +294,21 @@ func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm,
 	nomi.sequenceHead = sequenceHead
 	nomi.es = es
 
-	for _, mustContain := range lhs_components {
-		if mustContain.startI > 0 && !MemberQ(components, mustContain.form, es) {
-			return nomi, false
+	origFrozen := es.IsFrozen()
+	es.SetFrozen(true)
+	formMatches := make([][]bool, len(lhs_components))
+	for i, mustContain := range lhs_components {
+		// Right now I have this strange definition of "form". It's basically where I convert blank sequences to blanks at the bottom level. What if I did this at all levels and perhaps did something with patterns?
+		// TODO: prevent the checks here from modifying state so I can use the "rm" function.
+		formMatches[i] = make([]bool, len(components))
+		for j, part := range components {
+			matchq, _ := IsMatchQ(part, mustContain.form, EmptyPD(), es)
+			formMatches[i][j] = matchq
 		}
 	}
+	es.SetFrozen(origFrozen)
 
-	nomi.ai = NewAssnIter(len(components), lhs_components, isOrderless)
+	nomi.ai = NewAssnIter(len(components), lhs_components, formMatches, isOrderless)
 
 	return nomi, true
 }

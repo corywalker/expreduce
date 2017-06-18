@@ -77,6 +77,25 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[bar[foo[a + b] + c + d, c, d, a, b], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
 			&SameTest{"True", "MatchQ[bar[foo[a + b] + c + d, d, c, b, a], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
 			&SameTest{"False", "MatchQ[bar[foo[a + b] + c + d, d, a, b, c], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]"},
+
+			// Test order of pattern checking
+			&SameTest{"Null", "rm[pattern_]:=pattern?((pats=Append[pats,{pattern[[1]],#}];True)&);"},
+			&SameTest{"True", "pats={};MatchQ[foo[a,b,c],foo[x_//rm,y_//rm,z_//rm]]"},
+			&SameTest{"{{x,a},{y,b},{z,c}}", "pats"},
+
+			// Test pinning in flat
+			&SameTest{"{{{a},{c}}}", "pats={};ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
+			&SameTest{"{{x,a},{b[[1]],b},{y,c}}", "pats"},
+		},
+		KnownFailures: []TestInstruction{
+			// Test order of pattern checking
+			// These probably fail because of my formparsing of PatternTest.
+			// Try these without the //rm. They will most likely work.
+			&SameTest{"{{{a,a,c}},{{a,a,c}},{{a,a,c}},{{a,a,c}}}", "pats={};ReplaceList[ExpreduceFlOrOiFn[a,a,c],ExpreduceFlOrOiFn[b___//rm,c//rm,a___//rm]->{{a,b,c}}]"},
+			&SameTest{"{{c[[1]],c},{b,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{a,a}}", "pats"},
+			// Test pinning in orderless
+			&SameTest{"{{{},{a,c}},{{a},{c}},{{c},{a}},{{a,c},{}}}", "pats={};ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
+			&SameTest{"{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}", "pats"},
 		},
 	})
 	defs = append(defs, Definition{

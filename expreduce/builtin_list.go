@@ -448,5 +448,24 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"Thread[]", "Thread[]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "Append",
+		Usage: "`Append[list, e]` appends `e` to `list`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			expr, isExpr := this.Parts[1].(*Expression)
+			if !isExpr {
+				return this
+			}
+			expr.Parts = append(expr.Parts, this.Parts[2])
+			return expr
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{a,b,c}", "Append[{a,b},c]"},
+			&SameTest{"foo[a,b,c]", "Append[foo[a,b],c]"},
+		},
+	})
 	return
 }

@@ -55,7 +55,11 @@ func NewAllocIter(l int, forms []parsedForm) allocIter {
 
 type assnIterState struct {
 	lastTaken int
-	formDataI int
+	// For example, if we have the orderless sequence {a, b}, and we are trying
+	// to do all asignments of it to two BlankNullSequences, we have an
+	// underlying data structure called assnData which could contain {0, 1} or
+	// {1, 0} in the case where the assignment was {{1}, {0}}.
+	assnDataI int
 	crossedBoundary bool
 	toFree int
 }
@@ -63,7 +67,9 @@ type assnIterState struct {
 type assnIter struct {
 	forms []parsedForm
 	assnData []int
+	assnIndices []int
 	assns [][]int
+	formMatches [][]bool
 	orderless bool
 	taken []bool
 	stack []assnIterState
@@ -81,12 +87,12 @@ func (asi *assnIter) nextOrderless() bool {
 			asi.taken[p.toFree] = false
 			continue
 		}
-		if p.formDataI > 0 {
+		if p.assnDataI > 0 {
 			asi.taken[p.lastTaken] = true
-			asi.assnData[p.formDataI-1] = p.lastTaken
+			asi.assnData[p.assnDataI-1] = p.lastTaken
 		}
-		if p.formDataI >= len(asi.assnData) {
-			if p.formDataI > 0 {
+		if p.assnDataI >= len(asi.assnData) {
+			if p.assnDataI > 0 {
 				asi.stack = append(asi.stack, assnIterState{
 					-1, 0, true, p.lastTaken,
 				})
@@ -94,25 +100,25 @@ func (asi *assnIter) nextOrderless() bool {
 			return true
 		}
 		// Determine if we crossed an allocation boundary.
-		totComps := 0
-		for i := 0; i < len(asi.assns) && totComps < p.formDataI+1; i++ {
-			totComps += len(asi.assns[i])
+		formI := asi.assnIndices[p.assnDataI]
+		willCrossBoundary := false
+		if p.assnDataI+1 < len(asi.assnIndices) {
+			willCrossBoundary = formI != asi.assnIndices[p.assnDataI+1]
 		}
-		willCrossBoundary := p.formDataI+1 == totComps
 
 		startI := p.lastTaken+1
 		if p.crossedBoundary {
 			startI = 0
 		}
-		if p.formDataI > 0 {
+		if p.assnDataI > 0 {
 			asi.stack = append(asi.stack, assnIterState{
 				-1, 0, true, p.lastTaken,
 			})
 		}
 		for i := len(asi.taken)-1; i >= startI; i-- {
-			if !asi.taken[i] {
+			if !asi.taken[i] && asi.formMatches[formI][i] {
 				asi.stack = append(asi.stack, assnIterState{
-					i, p.formDataI+1, willCrossBoundary, -1,
+					i, p.assnDataI+1, willCrossBoundary, -1,
 				})
 			}
 		}
@@ -127,16 +133,26 @@ func (asi *assnIter) next() bool {
 	asi.iteratingOrderless = false
 	if asi.ai.next() {
 		// Create slices against assnData.
+		// TODO: non-orderless needs to support formMatches as well.
+		// ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//pm,b//pm,y___//pm]->{{x},{y}}]
 		lasti := 0
 		for i := range asi.assns {
 			asi.assns[i] = asi.assnData[lasti:lasti+asi.ai.alloc[i]]
+			for j := lasti; j < lasti+asi.ai.alloc[i]; j++ {
+				asi.assnIndices[j] = i
+			}
 			lasti += asi.ai.alloc[i]
 		}
 		if asi.orderless {
 			asi.stack = append(asi.stack, assnIterState{
 				-1, 0, true, -1,
 			})
-			asi.nextOrderless()
+			if !asi.nextOrderless() {
+				// I used to not have this, but this can trigger now that we
+				// have formMatches. Now, MatchQ[ExpreduceOrderlessFn[a,b],ExpreduceOrderlessFn[b,b]]
+				// can actually fail before creating any orderless assignments.
+				return false
+			}
 			asi.iteratingOrderless = true
 		}
 		return true
@@ -144,13 +160,15 @@ func (asi *assnIter) next() bool {
 	return false
 }
 
-func NewAssnIter(l int, forms []parsedForm, orderless bool) assnIter {
+func NewAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool) assnIter {
 	asi := assnIter{}
 	asi.forms = forms
 	asi.assnData = make([]int, l)
+	asi.assnIndices = make([]int, l)
 	asi.assns = make([][]int, len(forms))
 	asi.orderless = orderless
 	asi.taken = make([]bool, l)
+	asi.formMatches = formMatches
 
 	asi.ai = NewAllocIter(len(asi.assnData), asi.forms)
 	for i := range asi.assnData {

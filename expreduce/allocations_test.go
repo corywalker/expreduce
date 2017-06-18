@@ -136,6 +136,17 @@ func TestAllocations(t *testing.T) {
 	assert.Equal(t, 979300, num)
 }
 
+func allMatch(nComps int, nForms int) [][]bool {
+	formMatches := make([][]bool, nForms)
+	for i := 0; i < nForms; i++ {
+		formMatches[i] = make([]bool, nComps)
+		for j := 0; j < nComps; j++ {
+			formMatches[i][j] = true
+		}
+	}
+	return formMatches
+}
+
 func TestAssignments(t *testing.T) {
 	fmt.Println("Testing assignments")
 
@@ -144,7 +155,8 @@ func TestAssignments(t *testing.T) {
 		newPf(1, 1),
 		newPf(0, 99999),
 	}
-	ai := NewAssnIter(3, forms, true)
+	nComps := 3
+	ai := NewAssnIter(nComps, forms, allMatch(nComps, len(forms)), true)
 	assert.Equal(t, true, ai.next())
 	assert.Equal(t, [][]int{[]int{}, []int{0}, []int{1, 2}}, ai.assns)
 	assert.Equal(t, true, ai.next())
@@ -165,11 +177,30 @@ func TestAssignments(t *testing.T) {
 	assert.Equal(t, [][]int{[]int{2}, []int{1}, []int{0}}, ai.assns)
 	assert.Equal(t, false, ai.next())
 
-	ai = NewAssnIter(3, forms, false)
+	ai = NewAssnIter(nComps, forms, allMatch(nComps, len(forms)), false)
 	assert.Equal(t, true, ai.next())
 	assert.Equal(t, [][]int{[]int{}, []int{0}, []int{1, 2}}, ai.assns)
 	assert.Equal(t, true, ai.next())
 	assert.Equal(t, [][]int{[]int{0}, []int{1}, []int{2}}, ai.assns)
+	assert.Equal(t, false, ai.next())
+
+	// Test pinning a form to particular components.
+	forms = []parsedForm{
+		newPf(1, 1),
+		newPf(1, 1),
+		newPf(1, 1),
+	}
+	nComps = 3
+	formMatches := [][]bool{
+		[]bool{true, true, true},
+		[]bool{false, true, false},
+		[]bool{true, true, true},
+	}
+	ai = NewAssnIter(nComps, forms, formMatches, true)
+	assert.Equal(t, true, ai.next())
+	assert.Equal(t, [][]int{[]int{0}, []int{1}, []int{2}}, ai.assns)
+	assert.Equal(t, true, ai.next())
+	assert.Equal(t, [][]int{[]int{2}, []int{1}, []int{0}}, ai.assns)
 	assert.Equal(t, false, ai.next())
 
 	// should be 1/2 n (1+n)/.n->(ncomps-1)
@@ -180,12 +211,14 @@ func TestAssignments(t *testing.T) {
 		newPf(1, 1),
 		newPf(0, 999999),
 	}
-	ai = NewAssnIter(1400, forms, false)
+	nComps = 1400
+	ai = NewAssnIter(nComps, forms, allMatch(nComps, len(forms)), false)
 	num := 0
 	for num = 0; ai.next(); num++ {}
 	assert.Equal(t, 979300, num)
 
-	ai = NewAssnIter(8, forms, true)
+	nComps = 8
+	ai = NewAssnIter(nComps, forms, allMatch(nComps, len(forms)), true)
 	for num = 0; ai.next(); num++ {}
 	assert.Equal(t, 40824, num)
 }
