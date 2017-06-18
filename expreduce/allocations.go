@@ -55,7 +55,11 @@ func NewAllocIter(l int, forms []parsedForm) allocIter {
 
 type assnIterState struct {
 	lastTaken int
-	formDataI int
+	// For example, if we have the orderless sequence {a, b}, and we are trying
+	// to do all asignments of it to two BlankNullSequences, we have an
+	// underlying data structure called assnData which could contain {0, 1} or
+	// {1, 0} in the case where the assignment was {{1}, {0}}.
+	assnDataI int
 	crossedBoundary bool
 	toFree int
 }
@@ -83,12 +87,12 @@ func (asi *assnIter) nextOrderless() bool {
 			asi.taken[p.toFree] = false
 			continue
 		}
-		if p.formDataI > 0 {
+		if p.assnDataI > 0 {
 			asi.taken[p.lastTaken] = true
-			asi.assnData[p.formDataI-1] = p.lastTaken
+			asi.assnData[p.assnDataI-1] = p.lastTaken
 		}
-		if p.formDataI >= len(asi.assnData) {
-			if p.formDataI > 0 {
+		if p.assnDataI >= len(asi.assnData) {
+			if p.assnDataI > 0 {
 				asi.stack = append(asi.stack, assnIterState{
 					-1, 0, true, p.lastTaken,
 				})
@@ -96,17 +100,17 @@ func (asi *assnIter) nextOrderless() bool {
 			return true
 		}
 		// Determine if we crossed an allocation boundary.
-		formI := asi.assnIndices[p.formDataI]
+		formI := asi.assnIndices[p.assnDataI]
 		willCrossBoundary := false
-		if p.formDataI+1 < len(asi.assnIndices) {
-			willCrossBoundary = formI != asi.assnIndices[p.formDataI+1]
+		if p.assnDataI+1 < len(asi.assnIndices) {
+			willCrossBoundary = formI != asi.assnIndices[p.assnDataI+1]
 		}
 
 		startI := p.lastTaken+1
 		if p.crossedBoundary {
 			startI = 0
 		}
-		if p.formDataI > 0 {
+		if p.assnDataI > 0 {
 			asi.stack = append(asi.stack, assnIterState{
 				-1, 0, true, p.lastTaken,
 			})
@@ -114,7 +118,7 @@ func (asi *assnIter) nextOrderless() bool {
 		for i := len(asi.taken)-1; i >= startI; i-- {
 			if !asi.taken[i] && asi.formMatches[formI][i] {
 				asi.stack = append(asi.stack, assnIterState{
-					i, p.formDataI+1, willCrossBoundary, -1,
+					i, p.assnDataI+1, willCrossBoundary, -1,
 				})
 			}
 		}
@@ -143,7 +147,12 @@ func (asi *assnIter) next() bool {
 			asi.stack = append(asi.stack, assnIterState{
 				-1, 0, true, -1,
 			})
-			asi.nextOrderless()
+			if !asi.nextOrderless() {
+				// I used to not have this, but this can trigger now that we
+				// have formMatches. Now, MatchQ[ExpreduceOrderlessFn[a,b],ExpreduceOrderlessFn[b,b]]
+				// can actually fail before creating any orderless assignments.
+				return false
+			}
 			asi.iteratingOrderless = true
 		}
 		return true
