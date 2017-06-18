@@ -80,7 +80,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if !isExpr {
 			toReturn := currEx.Eval(es)
 			// Handle tracing
-			if es.trace != nil {
+			if es.trace != nil && !es.IsFrozen() {
 				toAppend := NewExpression([]Ex{
 					&Symbol{"HoldForm"},
 					toReturn.DeepCopy(),
@@ -117,11 +117,11 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 			// Handle tracing
 			traceBak := es.trace
-			if es.trace != nil {
+			if es.trace != nil && !es.IsFrozen() {
 				es.trace = NewExpression([]Ex{&Symbol{"List"}})
 			}
 			curr.Parts[i] = curr.Parts[i].Eval(es)
-			if es.trace != nil {
+			if es.trace != nil && !es.IsFrozen() {
 				if len(es.trace.Parts) > 2 {
 					// The DeepCopy here doesn't seem to affect anything, but
 					// should be good to have.
@@ -133,7 +133,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 
 		// Handle tracing
-		if es.trace != nil {
+		if es.trace != nil && !es.IsFrozen() {
 			toAppend := NewExpression([]Ex{
 				&Symbol{"HoldForm"},
 				currEx.DeepCopy(),
@@ -197,19 +197,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if IsSameQ(currEx, lastEx, &es.CASLogger) {
 			shouldEval = false
 		} else {
-			// Handle tracing
-			/*
-				if es.trace != nil {
-					toAppend := NewExpression([]Ex{
-						&Symbol{"HoldForm"},
-						currEx.DeepCopy(),
-					})
-					fmt.Printf("Change: appending %v\n", toAppend.StringForm("FullForm"))
-					es.trace.Parts = append(
-						es.trace.Parts,
-						toAppend,
-					)
-				}*/
 		}
 		if !needsEval && shouldEval {
 			//fmt.Printf("this.NeedsEval() is %v but should be %v. (last: %v, curr: %v)\n", this.NeedsEval(), shouldEval, lastEx, currEx)

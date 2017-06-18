@@ -253,6 +253,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&SameTest{"((5 * c^a) + (3 * d))", "(a+b)-(a+b)+c-c+2*c^a+2*d+5*d+d-5*d+3*c^a"},
 			&SameTest{"87.5 + 3 * x", "((x + 80. + 3. + x) + 2. + x + 2.5)"},
 			&SameTest{"87.5 + (7. * x)", "((x + 80. + 3. + x) + 2. + (x * 2. * 2.) + (0. * 3. * x) + x + 2.5)"},
+			&SameTest{"50*a", "a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a"},
 
 			// More complicated term combining
 			&SameTest{"-3 * m - 10 * n", "-9 * n - n - 3 * m"},
@@ -267,9 +268,6 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&SameTest{"3 (x - 2 y) - 4 x y + 2 (-1 + x y)", "2 (x*y - 1) + 3 (x - 2 y) - 4 x*y"},
 			&SameTest{"-4 s + 4 r s - 3 (1 + r s)", "4 r*s - 2 s - 3 (r*s + 1) - 2 s"},
 			&SameTest{"7 y - z + 3 y z", "8 y - 2 z - (y - z) + 3 y*z"},
-		},
-		KnownDangerous: []TestInstruction{
-			&SameTest{"50*a", "a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a+a"},
 		},
 	})
 	defs = append(defs, Definition{

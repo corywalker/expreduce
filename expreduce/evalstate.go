@@ -19,6 +19,7 @@ type EvalState struct {
 	NoInit  bool
 	defTimeCounter TimeCounter
 	lhsDefTimeCounter TimeCounter
+	freeze bool
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -144,6 +145,9 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 }
 
 func (this *EvalState) Define(lhs Ex, rhs Ex) {
+	if this.IsFrozen() {
+		return
+	}
 	// This function used to require a name as a parameter. Centralize the logic
 	// here.
 	name := ""
@@ -236,4 +240,12 @@ func (this *EvalState) String() string {
 	}
 	buffer.WriteString("}")
 	return buffer.String()
+}
+
+func (this *EvalState) IsFrozen() bool {
+	return this.freeze
+}
+
+func (this *EvalState) SetFrozen(frozen bool) {
+	this.freeze = frozen
 }
