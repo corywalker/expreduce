@@ -140,10 +140,37 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		return &dummyMatchIter{matchq, newPm, true}, true
 	}
 
-	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-		return &dummyMatchIter{IsSameQ(a, b, &es.CASLogger), EmptyPD(), true}, true
-	} else if !(aIsExpression && bIsExpression) {
-		return &dummyMatchIter{false, EmptyPD(), true}, true
+	// Handle special case where MatchQ[a,a+c_.] is True
+	assumingHead := false
+	if bIsExpression && !aIsExpression {
+		// Normally this would always fail, but if the conditions are right,
+		// let's configure the variables such that we at least try for a
+		// sequence match.
+		bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
+		if bExpressionSymOk {
+			oneIdentity := bExpressionSym.Attrs(&es.defined).OneIdentity
+			hasDefaultExpr := bExpressionSym.Default(&es.defined) != nil
+			containsOptional := false
+			for _, part := range bExpression.Parts[1:] {
+				if _, isOpt := HeadAssertion(part, "Optional"); isOpt {
+					containsOptional = true
+					break
+				}
+			}
+			if oneIdentity && hasDefaultExpr && containsOptional {
+				assumingHead = true
+				aIsExpression = true
+				aExpression = NewExpression([]Ex{bExpressionSym, a})
+			}
+		}
+	}
+
+	if !assumingHead {
+		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
+			return &dummyMatchIter{IsSameQ(a, b, &es.CASLogger), EmptyPD(), true}, true
+		} else if !(aIsExpression && bIsExpression) {
+			return &dummyMatchIter{false, EmptyPD(), true}, true
+		}
 	}
 
 	attrs := Attributes{}

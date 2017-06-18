@@ -111,8 +111,19 @@ func GetPatternDefinitions() (defs []Definition) {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			buffer.WriteString(this.Parts[1].StringForm(form))
-			buffer.WriteString(this.Parts[2].StringForm(form))
+			_, blankOk := HeadAssertion(this.Parts[2], "Blank")
+			_, bsOk := HeadAssertion(this.Parts[2], "BlankSequence")
+			_, bnsOk := HeadAssertion(this.Parts[2], "BlankNullSequence")
+			if blankOk || bsOk || bnsOk {
+				buffer.WriteString(this.Parts[1].StringForm(form))
+				buffer.WriteString(this.Parts[2].StringForm(form))
+			} else {
+				buffer.WriteString("(")
+				buffer.WriteString(this.Parts[1].StringForm(form))
+				buffer.WriteString(") : (")
+				buffer.WriteString(this.Parts[2].StringForm(form))
+				buffer.WriteString(")")
+			}
 			return true, buffer.String()
 		},
 		SimpleExamples: []TestInstruction{
@@ -524,6 +535,16 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"{{x},{y},{z}}", "foo[x]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
 			&SameTest{"foo[]", "foo[]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
 			&SameTest{"{{x},{i},{j}}", "foo[x,i,j]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
+
+			&SameTest{"a", "a /. foo[a, c_.] -> {{c}}"},
+			// This match succeeds because Plus has both a Default and has
+			// OneIdentity
+			&SameTest{"{{0}}", "a /. a + c_. -> {{c}}"},
+			&SameTest{"False", "MatchQ[a,foo[a,c_.]]"},
+			&SameTest{"True", "MatchQ[a,a+c_.]"},
+			&SameTest{"False", "MatchQ[foo[a],a+c_.]"},
+			&SameTest{"{{0},{0}}", "a/.a+c_.+d_.->{{c},{d}}"},
+			&SameTest{"{{0},{5}}", "a/.a+c_.+d_:5->{{c},{d}}"},
 		},
 		KnownFailures: []TestInstruction{
 			&SameTest{"foo[a,b]", "foo[a,b]/.foo[a___,b_.,d_.]->{{a},{b},{d}}"},
