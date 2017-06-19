@@ -85,18 +85,19 @@ func GetPatternDefinitions() (defs []Definition) {
 
 			// Test pinning in flat
 			&SameTest{"{{{a},{c}}}", "pats={};ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
-			&SameTest{"{{x,a},{b[[1]],b},{y,c}}", "pats"},
 
 			&SameTest{"{{{a,a,c}},{{a,a,c}},{{a,a,c}},{{a,a,c}}}", "pats={};ReplaceList[ExpreduceFlOrOiFn[a,a,c],ExpreduceFlOrOiFn[b___//rm,c//rm,a___//rm]->{{a,b,c}}]"},
 			&SameTest{"{{{},{a,c}},{{a},{c}},{{c},{a}},{{a,c},{}}}", "pats={};ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
+
+			// Test pinning in orderless
+			&SameTest{"{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}", "pats"},
 		},
 		KnownFailures: []TestInstruction{
 			// Test order of pattern checking
 			// These probably fail because of my formparsing of PatternTest.
 			// Try these without the //rm. They will most likely work.
 			&SameTest{"{{c[[1]],c},{b,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{a,a}}", "pats"},
-			// Test pinning in orderless
-			&SameTest{"{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}", "pats"},
+			&SameTest{"{{x,a},{b[[1]],b},{y,c}}", "pats"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -553,6 +554,11 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[foo[1,2],foo[c1__?NumberQ]]"},
 			&SameTest{"False", "MatchQ[foo[1,2],foo[Optional[c1__?NumberQ]]]"},
 			&SameTest{"True", "MatchQ[foo[1],foo[Optional[c1__?NumberQ]]]"},
+
+			// Ensure that we attempt to fill optionals before using the
+			// default.
+			&SameTest{"{{{a},{b,c}},{{5},{a,b,c}}}", "ReplaceList[{a,b,c},{a_:5,b__}->{{a},{b}}]"},
+			&SameTest{"{{{a},{b},{c}},{{a},{6},{b,c}},{{5},{a},{b,c}},{{5},{6},{a,b,c}}}", "ReplaceList[{a,b,c},{a_:5,b_:6,c___}->{{a},{b},{c}}]"},
 		},
 		KnownFailures: []TestInstruction{
 			&SameTest{"foo[a,b]", "foo[a,b]/.foo[a___,b_.,d_.]->{{a},{b},{d}}"},

@@ -32,10 +32,22 @@ func (ai *allocIter) next() bool {
 				p.currForm+1, 0, p.remaining})
 			}
 		} else {
-			for i := Min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
-				if p.remaining-i >= 0 {
-					ai.stack = append(ai.stack, allocIterState{
-					p.currForm+1, p.remaining-i, i})
+			// Optional forms fill eagerly instead of lazily.
+			// TODO: clean up this code and determine if we ever need to handle
+			// an optional form without a startI == 0 and endI == 1.
+			if ai.forms[p.currForm].isOptional {
+				for i := ai.forms[p.currForm].startI; i <= Min(ai.forms[p.currForm].endI, p.remaining); i++ {
+					if p.remaining-i >= 0 {
+						ai.stack = append(ai.stack, allocIterState{
+						p.currForm+1, p.remaining-i, i})
+					}
+				}
+			} else {
+				for i := Min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
+					if p.remaining-i >= 0 {
+						ai.stack = append(ai.stack, allocIterState{
+						p.currForm+1, p.remaining-i, i})
+					}
 				}
 			}
 		}

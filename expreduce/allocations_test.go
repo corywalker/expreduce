@@ -63,6 +63,24 @@ func TestAllocations(t *testing.T) {
 	assert.Equal(t, false, ai.next())
 
 	forms = []parsedForm{
+		newPf(0, 1),
+		newPf(0, 1),
+		newPf(0, 99999),
+	}
+	forms[0].isOptional = true
+	forms[1].isOptional = true
+	ai = NewAllocIter(3, forms)
+	assert.Equal(t, true, ai.next())
+	assert.Equal(t, []int{1, 1, 1}, ai.alloc)
+	assert.Equal(t, true, ai.next())
+	assert.Equal(t, []int{1, 0, 2}, ai.alloc)
+	assert.Equal(t, true, ai.next())
+	assert.Equal(t, []int{0, 1, 2}, ai.alloc)
+	assert.Equal(t, true, ai.next())
+	assert.Equal(t, []int{0, 0, 3}, ai.alloc)
+	assert.Equal(t, false, ai.next())
+
+	forms = []parsedForm{
 		newPf(0, 99999),
 		newPf(1, 1),
 		newPf(0, 99999),
