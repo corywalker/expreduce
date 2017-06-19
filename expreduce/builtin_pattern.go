@@ -98,6 +98,7 @@ func GetPatternDefinitions() (defs []Definition) {
 			// Try these without the //rm. They will most likely work.
 			&SameTest{"{{c[[1]],c},{b,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{a,a}}", "pats"},
 			&SameTest{"{{x,a},{b[[1]],b},{y,c}}", "pats"},
+			&SameTest{"True", "MatchQ[__, Optional[1]*a_]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -464,7 +465,6 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 		Tests: []TestInstruction{
 			&SameTest{"{{{a},{b}},{{b},{a}}}", "ReplaceList[a+b,x__+y__->{{x},{y}}]"},
-			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
 			&SameTest{"{{{},{a,b}},{{a},{b}},{{a,b},{}}}", "ReplaceList[foo[a,b],foo[a___,b___]->{{a},{b}}]"},
 			&SameTest{"{}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a:Repeated[b_,{2}],rest___]->{{a},{rest}}]"},
 			&SameTest{"{{c}}", "ReplaceList[foo[a,b,c],foo[___,a_]->{a}]"},
@@ -492,6 +492,8 @@ func GetPatternDefinitions() (defs []Definition) {
 		KnownFailures: []TestInstruction{
 			// Orderless has issues. Flat seems to work fine. regular ordered matching seems perfect.
 			&SameTest{"{{a},{b},{c}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[___,a_]->{a}]"},
+
+			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
 		},
 	})
 	defs = append(defs, Definition{

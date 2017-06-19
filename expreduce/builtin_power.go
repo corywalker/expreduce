@@ -10,6 +10,7 @@ func GetPowerDefinitions() (defs []Definition) {
 		Name:       "Power",
 		Usage:      "`base^exp` finds `base` raised to the power of `exp`.",
 		Attributes: []string{"Listable", "NumericFunction", "OneIdentity"},
+		Default:	"1",
 		Rules: []Rule{
 			// Simplify nested exponents
 			{"Power[Power[a_,b_Integer],c_Integer]", "a^(b*c)"},
@@ -215,6 +216,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"m^4.", "(m^2.)^2"},
 
 			&SameTest{"ComplexInfinity", "0^(-1)"},
+
+			&SameTest{"{1}", "ReplaceAll[a, a^p_. -> {p}]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Fix these when I have Abs functionality
