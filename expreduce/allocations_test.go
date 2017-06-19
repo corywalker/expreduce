@@ -10,7 +10,7 @@ func newPf(startI int, endI int) parsedForm {
 	return parsedForm{
 		startI, endI,
 		nil, nil,
-		false, false, false, false, nil,
+		false, false, false, nil, false, nil,
 	}
 }
 

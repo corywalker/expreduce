@@ -79,17 +79,8 @@ func (this *PDManager) Expression() Ex {
 }
 
 func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead string, es *EvalState) bool {
-	pat, isPat := HeadAssertion(lhs.origForm, "Pattern")
-	optional, isOptional := HeadAssertion(lhs.origForm, "Optional")
-	if isOptional {
-		pat, isPat = HeadAssertion(optional.Parts[1], "Pattern")
-	}
-	if !isPat {
-		return true
-	}
-	sAsSymbol, sAsSymbolOk := pat.Parts[1].(*Symbol)
 	var attemptDefine Ex = nil
-	if sAsSymbolOk {
+	if lhs.hasPat {
 		sequenceHeadSym := &Symbol{sequenceHead}
 		oneIdent := sequenceHeadSym.Attrs(&es.defined).OneIdentity
 		if len(sequence) == 1 && (lhs.isBlank || oneIdent || lhs.isOptional) {
@@ -103,12 +94,12 @@ func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead s
 			attemptDefine = NewExpression(append([]Ex{head}, sequence...))
 		}
 
-		defined, ispd := pm.patternDefined[sAsSymbol.Name]
+		defined, ispd := pm.patternDefined[lhs.patSym.Name]
 		if ispd && !IsSameQ(defined, attemptDefine, &es.CASLogger) {
 			es.Debugf("patterns do not match! continuing.")
 			return false
 		}
-		pm.patternDefined[sAsSymbol.Name] = attemptDefine
+		pm.patternDefined[lhs.patSym.Name] = attemptDefine
 	}
 	return true
 }

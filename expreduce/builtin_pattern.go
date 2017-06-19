@@ -86,15 +86,16 @@ func GetPatternDefinitions() (defs []Definition) {
 			// Test pinning in flat
 			&SameTest{"{{{a},{c}}}", "pats={};ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
 			&SameTest{"{{x,a},{b[[1]],b},{y,c}}", "pats"},
+
+			&SameTest{"{{{a,a,c}},{{a,a,c}},{{a,a,c}},{{a,a,c}}}", "pats={};ReplaceList[ExpreduceFlOrOiFn[a,a,c],ExpreduceFlOrOiFn[b___//rm,c//rm,a___//rm]->{{a,b,c}}]"},
+			&SameTest{"{{{},{a,c}},{{a},{c}},{{c},{a}},{{a,c},{}}}", "pats={};ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Test order of pattern checking
 			// These probably fail because of my formparsing of PatternTest.
 			// Try these without the //rm. They will most likely work.
-			&SameTest{"{{{a,a,c}},{{a,a,c}},{{a,a,c}},{{a,a,c}}}", "pats={};ReplaceList[ExpreduceFlOrOiFn[a,a,c],ExpreduceFlOrOiFn[b___//rm,c//rm,a___//rm]->{{a,b,c}}]"},
 			&SameTest{"{{c[[1]],c},{b,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{a,a}}", "pats"},
 			// Test pinning in orderless
-			&SameTest{"{{{},{a,c}},{{a},{c}},{{c},{a}},{{a,c},{}}}", "pats={};ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
 			&SameTest{"{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}", "pats"},
 		},
 	})
@@ -545,6 +546,13 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"False", "MatchQ[foo[a],a+c_.]"},
 			&SameTest{"{{0},{0}}", "a/.a+c_.+d_.->{{c},{d}}"},
 			&SameTest{"{{0},{5}}", "a/.a+c_.+d_:5->{{c},{d}}"},
+			&SameTest{"{{5},{a}}", "5*a/.Optional[c1_?NumberQ]*a_->{{c1},{a}}"},
+			&SameTest{"{{1},{a}}", "a/.Optional[c1_?NumberQ]*a_->{{c1},{a}}"},
+
+			&SameTest{"False", "MatchQ[foo[a,b],foo[c1__?NumberQ]]"},
+			&SameTest{"True", "MatchQ[foo[1,2],foo[c1__?NumberQ]]"},
+			&SameTest{"False", "MatchQ[foo[1,2],foo[Optional[c1__?NumberQ]]]"},
+			&SameTest{"True", "MatchQ[foo[1],foo[Optional[c1__?NumberQ]]]"},
 		},
 		KnownFailures: []TestInstruction{
 			&SameTest{"foo[a,b]", "foo[a,b]/.foo[a___,b_.,d_.]->{{a},{b},{d}}"},

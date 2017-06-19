@@ -39,6 +39,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Default:	"0",
 		Rules: []Rule{
 			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
+
+			//{"Plus[Optional[c1_?NumberQ]*a_, Optional[c2_?NumberQ]*a_, rest___]", "(c1+c2)*a+rest"},
+
 			{"Plus[c1_Integer*a__, c2_Integer*a__, rest___]", "((c1+c2)*a + rest)"},
 			{"Plus[c1_Rational*a__, c2_Rational*a__, rest___]", "((c1+c2)*a + rest)"},
 			// For some reason, this messes up the Infinity - Infinity rule
