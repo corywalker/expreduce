@@ -86,6 +86,10 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 				startI = 1
 			}
 			endI = 1
+			// I think the !isPatTest part might be a hack.
+			if isImpliedBs && !isPatTest {
+				endI = MaxInt
+			}
 			//form = optional.Parts[1]
 			defaultExpr = defaultToUse
 		}

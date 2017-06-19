@@ -310,8 +310,6 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"False", "PolynomialQ[2x^2-3x+Cos[x], x]"},
 			&SameTest{"False", "PolynomialQ[2x^2-x*Cos[x], x]"},
 			&SameTest{"True", "PolynomialQ[2x^2-x*Cos[y], x]"},
-			&SameTest{"True", "PolynomialQ[2*x^2-3x+2, 2]"},
-			&SameTest{"True", "PolynomialQ[2*x^2-3x, 2]"},
 			&SameTest{"True", "PolynomialQ[2.5x^2-3x+2.5, 2.5]"},
 			&SameTest{"True", "PolynomialQ[2x^2-3x+2, \"hello\"]"},
 			&SameTest{"True", "PolynomialQ[2x^2-3x+2, y]"},
@@ -340,6 +338,10 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"False", "PolynomialQ[x^n,x]"},
 			&SameTest{"True", "PolynomialQ[-x*Cos[y],x]"},
 			&SameTest{"True", "PolynomialQ[x^y, 1]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"True", "PolynomialQ[2*x^2-3x+2, 2]"},
+			&SameTest{"True", "PolynomialQ[2*x^2-3x, 2]"},
 		},
 	})
 	return

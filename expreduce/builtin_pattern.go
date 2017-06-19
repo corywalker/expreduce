@@ -91,6 +91,8 @@ func GetPatternDefinitions() (defs []Definition) {
 
 			// Test pinning in orderless
 			&SameTest{"{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}", "pats"},
+
+			&SameTest{"True", "MatchQ[__, Optional[1]*a_]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Test order of pattern checking
@@ -98,7 +100,6 @@ func GetPatternDefinitions() (defs []Definition) {
 			// Try these without the //rm. They will most likely work.
 			&SameTest{"{{c[[1]],c},{b,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{a,a}}", "pats"},
 			&SameTest{"{{x,a},{b[[1]],b},{y,c}}", "pats"},
-			&SameTest{"True", "MatchQ[__, Optional[1]*a_]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -488,12 +489,13 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"{{{a,a},{b,b,c}},{{b,b},{a,a,c}}}", "ReplaceList[ExpreduceOrderlessFn[a,a,b,b,c],ExpreduceOrderlessFn[a:Repeated[b_,{2}],rest___]->{{a},{rest}}]"},
 			&SameTest{"{{a,b,c},{b,c},{a,c},{a,b},{c},{b},{a},{}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a___,rest___]->{rest}]"},
 			&SameTest{"{{{},{a,b},{},{c,d}},{{},{a,b},{c},{d}},{{},{a,b},{d},{c}},{{},{a,b},{c,d},{}},{{a},{b},{},{c,d}},{{a},{b},{c},{d}},{{a},{b},{d},{c}},{{a},{b},{c,d},{}},{{b},{a},{},{c,d}},{{b},{a},{c},{d}},{{b},{a},{d},{c}},{{b},{a},{c,d},{}},{{a,b},{},{},{c,d}},{{a,b},{},{c},{d}},{{a,b},{},{d},{c}},{{a,b},{},{c,d},{}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,ExpreduceOrderlessFn[c,d]],ExpreduceOrderlessFn[a___,b___,ExpreduceOrderlessFn[c___,d___]]->{{a},{b},{c},{d}}]"},
+
+			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Orderless has issues. Flat seems to work fine. regular ordered matching seems perfect.
 			&SameTest{"{{a},{b},{c}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[___,a_]->{a}]"},
 
-			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -562,6 +564,9 @@ func GetPatternDefinitions() (defs []Definition) {
 			// default.
 			&SameTest{"{{{a},{b,c}},{{5},{a,b,c}}}", "ReplaceList[{a,b,c},{a_:5,b__}->{{a},{b}}]"},
 			&SameTest{"{{{a},{b},{c}},{{a},{6},{b,c}},{{5},{a},{b,c}},{{5},{6},{a,b,c}}}", "ReplaceList[{a,b,c},{a_:5,b_:6,c___}->{{a},{b},{c}}]"},
+
+			&SameTest{"True", "MatchQ[-x,p_.]"},
+			&SameTest{"True", "MatchQ[-x*a,p_.*a]"},
 		},
 		KnownFailures: []TestInstruction{
 			&SameTest{"foo[a,b]", "foo[a,b]/.foo[a___,b_.,d_.]->{{a},{b},{d}}"},

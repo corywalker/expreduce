@@ -95,6 +95,16 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			}
 		}
 	}
+	// Special case for Optional
+	optional, isOptional := HeadAssertion(b, "Optional")
+	if isOptional {
+		if len(optional.Parts) == 2 {
+			matchq, newPD := IsMatchQ(a, optional.Parts[1], pm, es)
+			if matchq {
+				return &dummyMatchIter{matchq, newPD, true}, true
+			}
+		}
+	}
 
 	// Continue normally
 	_, aIsFlt := a.(*Flt)
