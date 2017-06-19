@@ -315,7 +315,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			//"Times[a_^b_, Power[a_^c_, -1], rest___]": "a^(b-c) * rest",
 			//"Times[a_^b_, Power[a_, Power[c_, -1]], rest___]": "a^(b-c) * rest",
 			{"(1/Infinity)", "0"},
-			{"Times[ComplexInfinity, (_?(Function[AtomQ[#] == False]))|(_Symbol), rest___]", "ComplexInfinity * rest"},
+			{"Times[ComplexInfinity, rest___]", "ComplexInfinity"},
 		},
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " * ", form)
