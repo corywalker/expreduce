@@ -548,6 +548,7 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[a,a+c_.]"},
 			&SameTest{"False", "MatchQ[foo[a],a+c_.]"},
 			&SameTest{"{{0},{0}}", "a/.a+c_.+d_.->{{c},{d}}"},
+			&SameTest{"{{0},{0}}", "Cos[x]/.(_+c_.+d_.)->{{c},{d}}"},
 			&SameTest{"{{0},{5}}", "a/.a+c_.+d_:5->{{c},{d}}"},
 			&SameTest{"{{5},{a}}", "5*a/.Optional[c1_?NumberQ]*a_->{{c1},{a}}"},
 			&SameTest{"{{1},{a}}", "a/.Optional[c1_?NumberQ]*a_->{{c1},{a}}"},

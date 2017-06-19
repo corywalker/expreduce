@@ -140,12 +140,9 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		return &dummyMatchIter{matchq, newPm, true}, true
 	}
 
-	// Handle special case where MatchQ[a,a+c_.] is True
+	canAssumeHead := false
 	assumingHead := false
-	if bIsExpression && !aIsExpression {
-		// Normally this would always fail, but if the conditions are right,
-		// let's configure the variables such that we at least try for a
-		// sequence match.
+	if bIsExpression {
 		bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
 		if bExpressionSymOk {
 			oneIdentity := bExpressionSym.Attrs(&es.defined).OneIdentity
@@ -158,9 +155,27 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 				}
 			}
 			if oneIdentity && hasDefaultExpr && containsOptional {
-				assumingHead = true
-				aIsExpression = true
-				aExpression = NewExpression([]Ex{bExpressionSym, a})
+				canAssumeHead = true
+			}
+		}
+
+		// Handle special case where MatchQ[a,a+c_.] is True
+		if canAssumeHead && !aIsExpression {
+			// Normally this would always fail, but if the conditions are right,
+			// let's configure the variables such that we at least try for a
+			// sequence match.
+			assumingHead = true
+			aIsExpression = true
+			aExpression = NewExpression([]Ex{bExpressionSym, a})
+		}
+		if aIsExpression {
+			aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
+			if canAssumeHead && aExpressionSymOk {
+				if aExpressionSym.Name != bExpressionSym.Name {
+					assumingHead = true
+					aIsExpression = true
+					aExpression = NewExpression([]Ex{bExpressionSym, a})
+				}
 			}
 		}
 	}
