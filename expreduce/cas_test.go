@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"github.com/op/go-logging"
 	"math/big"
 	"testing"
 	"regexp"
@@ -13,11 +14,17 @@ var testmodules = flag.String("testmodules", "",
 	"A regexp of modules to test, otherwise test all modules.")
 var verbosetest = flag.Bool("verbosetest", false,
 	"Print every test case that runs.")
+var deftimings = flag.Bool("deftimings", false,
+	"Show the time consuption aggregations for each definition.")
 
 func TestIncludedModules(t *testing.T) {
 	var testModEx = regexp.MustCompile(*testmodules)
 	defSets := GetAllDefinitions()
 	numTests := 0
+	lhsDefTimeCounter := TimeCounter{}
+	lhsDefTimeCounter.Init()
+	defTimeCounter := TimeCounter{}
+	defTimeCounter.Init()
 	var mockT testing.T
 	for _, defSet := range defSets {
 		if !testModEx.MatchString(defSet.Name) {
@@ -30,6 +37,9 @@ func TestIncludedModules(t *testing.T) {
 				def:    def,
 			}
 			es := NewEvalState()
+			if *deftimings {
+				es.DebugOn(logging.ERROR)
+			}
 			i := 0
 			for _, test := range def.SimpleExamples {
 				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)
@@ -71,10 +81,18 @@ func TestIncludedModules(t *testing.T) {
 				test.Run(t, es, td)
 				i += 1
 			}*/
+			if *deftimings {
+				lhsDefTimeCounter.Update(&es.lhsDefTimeCounter)
+				defTimeCounter.Update(&es.defTimeCounter)
+			}
 			numTests += i
 		}
 	}
 	fmt.Printf("Ran %v module tests.\n", numTests)
+	if *deftimings {
+		fmt.Println(lhsDefTimeCounter.String())
+		fmt.Println(defTimeCounter.String())
+	}
 }
 
 func TestLowLevel(t *testing.T) {
