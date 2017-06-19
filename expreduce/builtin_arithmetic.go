@@ -43,7 +43,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			{"Plus[c1_Rational*a__, c2_Rational*a__, rest___]", "((c1+c2)*a + rest)"},
 			// For some reason, this messes up the Infinity - Infinity rule
 			{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
-			{"Plus[a_, a_, rest___]", "2*a + rest"},
+			{"Plus[Repeated[a_, {2}], rest___]", "2*a + rest"},
 			//{"Plus[Repeated[a_, {2}], rest___]", "2*a + rest"},
 			////"((c1_Integer*a_) + a_)": "(c1+1)*a",
 			{"Plus[c1_Real*a_, c2_Integer*a_, rest___]", "(c1+c2)*a + rest"},
