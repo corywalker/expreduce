@@ -10,6 +10,7 @@ func GetPowerDefinitions() (defs []Definition) {
 		Name:       "Power",
 		Usage:      "`base^exp` finds `base` raised to the power of `exp`.",
 		Attributes: []string{"Listable", "NumericFunction", "OneIdentity"},
+		Default:	"1",
 		Rules: []Rule{
 			// Simplify nested exponents
 			{"Power[Power[a_,b_Integer],c_Integer]", "a^(b*c)"},
@@ -215,6 +216,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"m^4.", "(m^2.)^2"},
 
 			&SameTest{"ComplexInfinity", "0^(-1)"},
+
+			&SameTest{"{1}", "ReplaceAll[a, a^p_. -> {p}]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Fix these when I have Abs functionality
@@ -277,18 +280,24 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "PolynomialQ",
 		Usage:  "`PolynomialQ[e, var]` returns True if `e` is a polynomial in `var`.",
+		//Rules: []Rule{
+			//{"PolynomialQ[p_Plus,v_]", "AllTrue[List@@p,(PolynomialQ[#,v])&]"},
+			//// TODO: Should probably assert that the integers are positive.
+			//{"PolynomialQ[p_*v_^exp_Integer,v_]", "If[FreeQ[p,v]&&Positive[exp],True,False]"},
+			//{"PolynomialQ[_,v_Integer]", "True"},
+			//{"PolynomialQ[v_,v_]", "True"},
+			//{"PolynomialQ[p_*v_,v_]", "If[FreeQ[p,v],True,False]"},
+			//{"PolynomialQ[p_,v_]", "If[FreeQ[p,v],True,False]"},
+		//},
 		Rules: []Rule{
 			{"PolynomialQ[p_Plus,v_]", "AllTrue[List@@p,(PolynomialQ[#,v])&]"},
-			// TODO: Should probably assert that the integers are positive.
-			{"PolynomialQ[p_*v_^exp_Integer,v_]", "If[FreeQ[p,v]&&Positive[exp],True,False]"},
-			{"PolynomialQ[_,v_Integer]", "True"},
-			{"PolynomialQ[v_,v_]", "True"},
-			{"PolynomialQ[p_*v_,v_]", "If[FreeQ[p,v],True,False]"},
+			{"PolynomialQ[p_.*v_^Optional[exp_Integer],v_]", "If[FreeQ[p,v]&&Positive[exp],True,False]"},
 			{"PolynomialQ[p_,v_]", "If[FreeQ[p,v],True,False]"},
 		},
 		Tests: []TestInstruction{
 			&SameTest{"True", "PolynomialQ[2x^2-3x+2, x]"},
 			&SameTest{"True", "PolynomialQ[2x^2, x]"},
+			&SameTest{"False", "PolynomialQ[2x^2.5, x]"},
 			&SameTest{"False", "PolynomialQ[2x^-2, x]"},
 			&SameTest{"True", "PolynomialQ[2x^0, x]"},
 			&SameTest{"False", "PolynomialQ[2x^y, x]"},
@@ -300,7 +309,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"False", "PolynomialQ[Cos[x], x]"},
 			&SameTest{"False", "PolynomialQ[2x^2-3x+Cos[x], x]"},
 			&SameTest{"False", "PolynomialQ[2x^2-x*Cos[x], x]"},
-			&SameTest{"True", "PolynomialQ[2x^2-3x+2, 2]"},
+			&SameTest{"True", "PolynomialQ[2x^2-x*Cos[y], x]"},
+			&SameTest{"True", "PolynomialQ[2.5x^2-3x+2.5, 2.5]"},
 			&SameTest{"True", "PolynomialQ[2x^2-3x+2, \"hello\"]"},
 			&SameTest{"True", "PolynomialQ[2x^2-3x+2, y]"},
 			&SameTest{"True", "PolynomialQ[x, y]"},
@@ -317,9 +327,21 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"False", "PolynomialQ[y^x, y]"},
 			&SameTest{"False", "PolynomialQ[x^y, y]"},
 			&SameTest{"True", "PolynomialQ[x^y, z]"},
+			&SameTest{"True", "PolynomialQ[2.5*x^2, 2.5]"},
+			&SameTest{"True", "PolynomialQ[2.5*x, 2.5]"},
+			&SameTest{"False", "PolynomialQ[2*x^2, 2]"},
+			&SameTest{"True", "PolynomialQ[2*x, 2]"},
+			&SameTest{"True", "PolynomialQ[x, 2]"},
+			&SameTest{"True", "PolynomialQ[Cos[x*y], Cos[x*y]]"},
+			&SameTest{"True", "PolynomialQ[x^2,2.]"},
+			&SameTest{"False", "PolynomialQ[x^a,a]"},
+			&SameTest{"False", "PolynomialQ[x^n,x]"},
+			&SameTest{"True", "PolynomialQ[-x*Cos[y],x]"},
 			&SameTest{"True", "PolynomialQ[x^y, 1]"},
-			&SameTest{"True", "PolynomialQ[2.5x^2-3x+2.5, 2.5]"},
-			&SameTest{"True", "PolynomialQ[2x^2-x*Cos[y], x]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"True", "PolynomialQ[2*x^2-3x+2, 2]"},
+			&SameTest{"True", "PolynomialQ[2*x^2-3x, 2]"},
 		},
 	})
 	return

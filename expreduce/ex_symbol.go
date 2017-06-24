@@ -81,6 +81,14 @@ func (this *Symbol) Attrs(dm *DefMap) Attributes {
 	return def.attributes
 }
 
+func (this *Symbol) Default(dm *DefMap) Ex {
+	def, isDef := (*dm)[this.Name]
+	if !isDef {
+		return nil
+	}
+	return def.defaultExpr
+}
+
 func stringsToAttributes(strings []string) Attributes {
 	attrs := Attributes{}
 	for _, s := range strings {

@@ -95,6 +95,16 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			}
 		}
 	}
+	// Special case for Optional
+	optional, isOptional := HeadAssertion(b, "Optional")
+	if isOptional {
+		if len(optional.Parts) == 2 {
+			matchq, newPD := IsMatchQ(a, optional.Parts[1], pm, es)
+			if matchq {
+				return &dummyMatchIter{matchq, newPD, true}, true
+			}
+		}
+	}
 
 	// Continue normally
 	_, aIsFlt := a.(*Flt)
@@ -140,10 +150,52 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		return &dummyMatchIter{matchq, newPm, true}, true
 	}
 
-	if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-		return &dummyMatchIter{IsSameQ(a, b, &es.CASLogger), EmptyPD(), true}, true
-	} else if !(aIsExpression && bIsExpression) {
-		return &dummyMatchIter{false, EmptyPD(), true}, true
+	canAssumeHead := false
+	assumingHead := false
+	if bIsExpression {
+		bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
+		if bExpressionSymOk {
+			oneIdentity := bExpressionSym.Attrs(&es.defined).OneIdentity
+			hasDefaultExpr := bExpressionSym.Default(&es.defined) != nil
+			containsOptional := false
+			for _, part := range bExpression.Parts[1:] {
+				if _, isOpt := HeadAssertion(part, "Optional"); isOpt {
+					containsOptional = true
+					break
+				}
+			}
+			if oneIdentity && hasDefaultExpr && containsOptional {
+				canAssumeHead = true
+			}
+		}
+
+		// Handle special case where MatchQ[a,a+c_.] is True
+		if canAssumeHead && !aIsExpression {
+			// Normally this would always fail, but if the conditions are right,
+			// let's configure the variables such that we at least try for a
+			// sequence match.
+			assumingHead = true
+			aIsExpression = true
+			aExpression = NewExpression([]Ex{bExpressionSym, a})
+		}
+		if aIsExpression {
+			aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
+			if canAssumeHead && aExpressionSymOk {
+				if aExpressionSym.Name != bExpressionSym.Name {
+					assumingHead = true
+					aIsExpression = true
+					aExpression = NewExpression([]Ex{bExpressionSym, a})
+				}
+			}
+		}
+	}
+
+	if !assumingHead {
+		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
+			return &dummyMatchIter{IsSameQ(a, b, &es.CASLogger), EmptyPD(), true}, true
+		} else if !(aIsExpression && bIsExpression) {
+			return &dummyMatchIter{false, EmptyPD(), true}, true
+		}
 	}
 
 	attrs := Attributes{}
@@ -228,7 +280,7 @@ func (ami *assignedMatchIter) next() bool {
 			for i, assignedComp := range ami.assn[p.formI] {
 				seq[i] = ami.components[assignedComp]
 			}
-			patOk := DefineSequence(lhs.origForm, seq, lhs.isBlank, p.pm, lhs.isImpliedBs, ami.sequenceHead, ami.es)
+			patOk := DefineSequence(lhs, seq, p.pm, ami.sequenceHead, ami.es)
 			if patOk {
 				ami.stack = append(ami.stack, assignedIterState{
 					p.formI+1, 0, p.pm,
@@ -279,9 +331,10 @@ type sequenceMatchIter struct {
 }
 
 func NewSequenceMatchIter(components []Ex, lhs_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
+	headDefault := (&Symbol{sequenceHead}).Default(&es.defined)
 	fp_components := make([]parsedForm, len(lhs_components))
 	for i, comp := range lhs_components {
-		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, &es.CASLogger)
+		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, headDefault, &es.CASLogger)
 	}
 	return NewSequenceMatchIterPreparsed(components, fp_components, isOrderless, sequenceHead, pm, es)
 }

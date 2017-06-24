@@ -38,18 +38,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Default:	"0",
 		Rules: []Rule{
-			{"Plus[a_, -a_, rest___]", "Plus[rest]"},
-			{"Plus[c1_Integer*a__, c2_Integer*a__, rest___]", "((c1+c2)*a + rest)"},
-			{"Plus[c1_Rational*a__, c2_Rational*a__, rest___]", "((c1+c2)*a + rest)"},
-			// For some reason, this messes up the Infinity - Infinity rule
+			{"Plus[Optional[c1_?NumberQ]*a_, Optional[c2_?NumberQ]*a_, rest___]", "(c1+c2)*a+rest"},
 			{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
-			{"Plus[a_, a_, rest___]", "2*a + rest"},
-			//{"Plus[Repeated[a_, {2}], rest___]", "2*a + rest"},
-			////"((c1_Integer*a_) + a_)": "(c1+1)*a",
-			{"Plus[c1_Real*a_, c2_Integer*a_, rest___]", "(c1+c2)*a + rest"},
-			// I have a feeling that these can be combined into a more general
-			// definition. TODO
-			{"Plus[c_Real*a_, a_, rest___]", "(c+1)*a + rest"},
 		},
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", form)
@@ -315,7 +305,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			//"Times[a_^b_, Power[a_^c_, -1], rest___]": "a^(b-c) * rest",
 			//"Times[a_^b_, Power[a_, Power[c_, -1]], rest___]": "a^(b-c) * rest",
 			{"(1/Infinity)", "0"},
-			{"Times[ComplexInfinity, (_?(Function[AtomQ[#] == False]))|(_Symbol), rest___]", "ComplexInfinity * rest"},
+			{"Times[ComplexInfinity, rest___]", "ComplexInfinity"},
 		},
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " * ", form)

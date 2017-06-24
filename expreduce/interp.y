@@ -37,6 +37,8 @@ import (
 %left CONDITIONSYM
 %left COLONSYM
 %left ALTSYM
+%left REPEATEDSYM
+%left REPEATEDNULLSYM
 %left ORSYM
 %left ANDSYM
 %left SAMESYM
@@ -168,6 +170,10 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"PatternTest"}, $1, $3}) }
 	|    expr ALTSYM expr
 		{ $$  =  fullyAssoc("Alternatives", $1, $3) }
+	|    expr REPEATEDSYM
+		{ $$  =  NewExpression([]Ex{&Symbol{"Repeated"}, $1}) }
+	|    expr REPEATEDNULLSYM
+		{ $$  =  NewExpression([]Ex{&Symbol{"RepeatedNull"}, $1}) }
 	|    expr APPLYSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"Apply"}, $1, $3}) }
 	|    expr MAPSYM expr
@@ -182,14 +188,12 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"ReplaceAll"}, $1, $3}) }
 	|    expr CONDITIONSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"Condition"}, $1, $3}) }
-	|    expr COLONSYM expr
-		{ 
-			if _, isPat := HeadAssertion($1, "Pattern"); isPat {
-				$$  =  NewExpression([]Ex{&Symbol{"Optional"}, $1, $3})
-			} else {
-				$$  =  NewExpression([]Ex{&Symbol{"Pattern"}, $1, $3})
-			}
-		}
+	|    PATTERN COLONSYM INTEGER
+		{ $$  =  NewExpression([]Ex{&Symbol{"Optional"}, $1, $3}) }
+	|    PATTERN COLONSYM NAME
+		{ $$  =  NewExpression([]Ex{&Symbol{"Optional"}, $1, $3}) }
+	|    NAME COLONSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"Pattern"}, $1, $3}) }
 	|    expr SETSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"Set"}, $1, $3}) }
 	|    expr SETDELAYEDSYM expr

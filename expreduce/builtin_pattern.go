@@ -85,17 +85,21 @@ func GetPatternDefinitions() (defs []Definition) {
 
 			// Test pinning in flat
 			&SameTest{"{{{a},{c}}}", "pats={};ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
-			&SameTest{"{{x,a},{b[[1]],b},{y,c}}", "pats"},
+
+			&SameTest{"{{{a,a,c}},{{a,a,c}},{{a,a,c}},{{a,a,c}}}", "pats={};ReplaceList[ExpreduceFlOrOiFn[a,a,c],ExpreduceFlOrOiFn[b___//rm,c//rm,a___//rm]->{{a,b,c}}]"},
+			&SameTest{"{{{},{a,c}},{{a},{c}},{{c},{a}},{{a,c},{}}}", "pats={};ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
+
+			// Test pinning in orderless
+			&SameTest{"{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}", "pats"},
+
+			&SameTest{"True", "MatchQ[__, Optional[1]*a_]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Test order of pattern checking
 			// These probably fail because of my formparsing of PatternTest.
 			// Try these without the //rm. They will most likely work.
-			&SameTest{"{{{a,a,c}},{{a,a,c}},{{a,a,c}},{{a,a,c}}}", "pats={};ReplaceList[ExpreduceFlOrOiFn[a,a,c],ExpreduceFlOrOiFn[b___//rm,c//rm,a___//rm]->{{a,b,c}}]"},
 			&SameTest{"{{c[[1]],c},{b,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{b,a},{c[[1]],c},{a,a},{a,a}}", "pats"},
-			// Test pinning in orderless
-			&SameTest{"{{{},{a,c}},{{a},{c}},{{c},{a}},{{a,c},{}}}", "pats={};ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]"},
-			&SameTest{"{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}", "pats"},
+			&SameTest{"{{x,a},{b[[1]],b},{y,c}}", "pats"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -111,8 +115,19 @@ func GetPatternDefinitions() (defs []Definition) {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			buffer.WriteString(this.Parts[1].StringForm(form))
-			buffer.WriteString(this.Parts[2].StringForm(form))
+			_, blankOk := HeadAssertion(this.Parts[2], "Blank")
+			_, bsOk := HeadAssertion(this.Parts[2], "BlankSequence")
+			_, bnsOk := HeadAssertion(this.Parts[2], "BlankNullSequence")
+			if blankOk || bsOk || bnsOk {
+				buffer.WriteString(this.Parts[1].StringForm(form))
+				buffer.WriteString(this.Parts[2].StringForm(form))
+			} else {
+				buffer.WriteString("(")
+				buffer.WriteString(this.Parts[1].StringForm(form))
+				buffer.WriteString(") : (")
+				buffer.WriteString(this.Parts[2].StringForm(form))
+				buffer.WriteString(")")
+			}
 			return true, buffer.String()
 		},
 		SimpleExamples: []TestInstruction{
@@ -451,7 +466,6 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 		Tests: []TestInstruction{
 			&SameTest{"{{{a},{b}},{{b},{a}}}", "ReplaceList[a+b,x__+y__->{{x},{y}}]"},
-			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
 			&SameTest{"{{{},{a,b}},{{a},{b}},{{a,b},{}}}", "ReplaceList[foo[a,b],foo[a___,b___]->{{a},{b}}]"},
 			&SameTest{"{}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a:Repeated[b_,{2}],rest___]->{{a},{rest}}]"},
 			&SameTest{"{{c}}", "ReplaceList[foo[a,b,c],foo[___,a_]->{a}]"},
@@ -475,16 +489,18 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"{{{a,a},{b,b,c}},{{b,b},{a,a,c}}}", "ReplaceList[ExpreduceOrderlessFn[a,a,b,b,c],ExpreduceOrderlessFn[a:Repeated[b_,{2}],rest___]->{{a},{rest}}]"},
 			&SameTest{"{{a,b,c},{b,c},{a,c},{a,b},{c},{b},{a},{}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[a___,rest___]->{rest}]"},
 			&SameTest{"{{{},{a,b},{},{c,d}},{{},{a,b},{c},{d}},{{},{a,b},{d},{c}},{{},{a,b},{c,d},{}},{{a},{b},{},{c,d}},{{a},{b},{c},{d}},{{a},{b},{d},{c}},{{a},{b},{c,d},{}},{{b},{a},{},{c,d}},{{b},{a},{c},{d}},{{b},{a},{d},{c}},{{b},{a},{c,d},{}},{{a,b},{},{},{c,d}},{{a,b},{},{c},{d}},{{a,b},{},{d},{c}},{{a,b},{},{c,d},{}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,ExpreduceOrderlessFn[c,d]],ExpreduceOrderlessFn[a___,b___,ExpreduceOrderlessFn[c___,d___]]->{{a},{b},{c},{d}}]"},
+
+			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Orderless has issues. Flat seems to work fine. regular ordered matching seems perfect.
 			&SameTest{"{{a},{b},{c}}", "ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[___,a_]->{a}]"},
+
 		},
 	})
 	defs = append(defs, Definition{
 		Name:       "Repeated",
 		Usage:      "`Repeated[p_]` matches a sequence of expressions that match the pattern `p`.",
-		Attributes: []string{"Protected"},
 		Tests: []TestInstruction{
 			&SameTest{"True", "MatchQ[foo[a, a], foo[Repeated[a]]]"},
 			&SameTest{"False", "MatchQ[foo[a, b], foo[Repeated[a]]]"},
@@ -509,6 +525,51 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"False", "MatchQ[ExpreduceFlOrOiFn[a, b, b, b], ExpreduceFlOrOiFn[___, Repeated[_Integer, {-1}]]]"},
 
 			&SameTest{"x", "foo[x, x] /. foo[Repeated[a_, {2}]] -> a"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:       "Optional",
+		Usage:      "`Optional[pat, default]` attempts to match `pat` but uses `default` if not present.",
+		Tests: []TestInstruction{
+			&SameTest{"foo[a]", "foo[a]/.foo[a,b_.]->{a,b}"},
+			&SameTest{"{a,b}", "foo[a,b]/.foo[a,b_.]->{a,b}"},
+			&SameTest{"{a,c}", "foo[a]/.foo[a,b_:c]->{a,b}"},
+			&SameTest{"{a,b}", "foo[a,b]/.foo[a,b_:c]->{a,b}"},
+			&SameTest{"{{a},{b}}", "foo[a,b]/.foo[a___,b_.]->{{a},{b}}"},
+			&SameTest{"{{a},{b}}", "foo[a,b]/.foo[a___,b_:c]->{{a},{b}}"},
+			&SameTest{"{{},{a},{b}}", "foo[a,b]/.foo[a___,b_:c,d_:e]->{{a},{b},{d}}"},
+			&SameTest{"{{x},{y},{z}}", "foo[x]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
+			&SameTest{"foo[]", "foo[]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
+			&SameTest{"{{x},{i},{j}}", "foo[x,i,j]/.foo[a_,b_:y,c_:z]->{{a},{b},{c}}"},
+
+			&SameTest{"a", "a /. foo[a, c_.] -> {{c}}"},
+			// This match succeeds because Plus has both a Default and has
+			// OneIdentity
+			&SameTest{"{{0}}", "a /. a + c_. -> {{c}}"},
+			&SameTest{"False", "MatchQ[a,foo[a,c_.]]"},
+			&SameTest{"True", "MatchQ[a,a+c_.]"},
+			&SameTest{"False", "MatchQ[foo[a],a+c_.]"},
+			&SameTest{"{{0},{0}}", "a/.a+c_.+d_.->{{c},{d}}"},
+			&SameTest{"{{0},{0}}", "Cos[x]/.(_+c_.+d_.)->{{c},{d}}"},
+			&SameTest{"{{0},{5}}", "a/.a+c_.+d_:5->{{c},{d}}"},
+			&SameTest{"{{5},{a}}", "5*a/.Optional[c1_?NumberQ]*a_->{{c1},{a}}"},
+			&SameTest{"{{1},{a}}", "a/.Optional[c1_?NumberQ]*a_->{{c1},{a}}"},
+
+			&SameTest{"False", "MatchQ[foo[a,b],foo[c1__?NumberQ]]"},
+			&SameTest{"True", "MatchQ[foo[1,2],foo[c1__?NumberQ]]"},
+			&SameTest{"False", "MatchQ[foo[1,2],foo[Optional[c1__?NumberQ]]]"},
+			&SameTest{"True", "MatchQ[foo[1],foo[Optional[c1__?NumberQ]]]"},
+
+			// Ensure that we attempt to fill optionals before using the
+			// default.
+			&SameTest{"{{{a},{b,c}},{{5},{a,b,c}}}", "ReplaceList[{a,b,c},{a_:5,b__}->{{a},{b}}]"},
+			&SameTest{"{{{a},{b},{c}},{{a},{6},{b,c}},{{5},{a},{b,c}},{{5},{6},{a,b,c}}}", "ReplaceList[{a,b,c},{a_:5,b_:6,c___}->{{a},{b},{c}}]"},
+
+			&SameTest{"True", "MatchQ[-x,p_.]"},
+			&SameTest{"True", "MatchQ[-x*a,p_.*a]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"foo[a,b]", "foo[a,b]/.foo[a___,b_.,d_.]->{{a},{b},{d}}"},
 		},
 	})
 	return
