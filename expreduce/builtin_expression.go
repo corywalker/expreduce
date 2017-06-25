@@ -109,7 +109,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if isExpr {
 				return &Integer{big.NewInt(int64(len(expr.Parts) - 1))}
 			}
-			return this
+			return &Integer{big.NewInt(0)}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"4", "Length[{1,2,3,4}]"},
@@ -119,6 +119,10 @@ func GetExpressionDefinitions() (defs []Definition) {
 		FurtherExamples: []TestInstruction{
 			&TestComment{"`expr` need not have a `List` head:"},
 			&SameTest{"2", "Length[foo[1, 2]]"},
+			&TestComment{"The length of an atomic expression is zero:"},
+			&SameTest{"0", "Length[a]"},
+			&SameTest{"0", "Length[2.5]"},
+			&SameTest{"0", "Length[\"hello\"]"},
 		},
 	})
 	defs = append(defs, Definition{
