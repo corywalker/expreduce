@@ -244,21 +244,14 @@ func GetPowerDefinitions() (defs []Definition) {
 		Name:  "Expand",
 		Usage: "`Expand[expr]` attempts to expand `expr`.",
 		Rules: []Rule{
-			{"possibleExponents[n_Integer, m_Integer]", "Flatten[Permutations /@ ((PadRight[#, m]) & /@ IntegerPartitions[n, m]), 1]"},
-			{"genVars[addends_List, exponents_List]", "Product[addends[[ExpandUnique`i]]^exponents[[ExpandUnique`i]], {ExpandUnique`i, 1, Length[addends]}]"},
-			{"genExpand[addends_List, exponents_List]", "Sum[(Multinomial @@ exponents[[ExpandUnique`i]])*genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, Length[exponents]}]"},
-			// This is what it should be:
-			//{"myExpand[(Plus[addends__])^(nmatch_Integer)]", "genExpand[List @@ addends, possibleExponents[nmatch, Length[addends]]]"},
-			// But this is what it currently needs to be:
-			{"Expand[(Plus[addends__])^(nmatch_Integer)]", "genExpand[List[addends], possibleExponents[nmatch, Length[List[addends]]]]"},
-			{"Expand[(Plus[addends__])^(nmatch_Integer)*rest___]", "Expand[Expand[Plus[addends]^nmatch] * rest]"},
-			// This line faces a similar problem:
-			{"Expand[Plus[a1s__]*Plus[a2s__]*rest___]", "Expand[Sum[ExpandUnique`a1*ExpandUnique`a2, {ExpandUnique`a1, List[a1s]}, {ExpandUnique`a2, List[a2s]}]*rest]"},
-			// This line faces a similar problem:
-			{"Expand[Plus[addends__]/den_]", "Sum[Expand[ExpandUnique`a/den], {ExpandUnique`a, {addends}}]"},
-			// This one might be redundant
-			{"Expand[c_?AtomQ*Plus[addends__]]", "Sum[Expand[c*ExpandUnique`a], {ExpandUnique`a, {addends}}]"},
-			// Default case:
+			{"possibleExponents[n_Integer,m_Integer]", "Flatten[Permutations/@((PadRight[#,m])&/@IntegerPartitions[n,m]),1]"},
+			{"genVars[addends_List,exponents_List]", "Product[addends[[ExpandUnique`i]]^exponents[[ExpandUnique`i]],{ExpandUnique`i,1,Length[addends]}]"},
+			{"genExpand[addends_List,exponents_List]", "Sum[(Multinomial@@exponents[[ExpandUnique`i]])*genVars[addends,exponents[[ExpandUnique`i]]],{ExpandUnique`i,1,Length[exponents]}]"},
+			{"Expand[s_Plus^n_Integer]", "genExpand[List@@s,possibleExponents[n,Length[s]]]"},
+			{"Expand[s_Plus^n_Integer*rest___]", "Expand[Expand[Plus[s]^n]*rest]"},
+			{"Expand[a1s_Plus*a2s_Plus*rest___]", "Expand[Sum[ExpandUnique`a1*ExpandUnique`a2,{ExpandUnique`a1,List@@a1s},{ExpandUnique`a2,List@@a2s}]*rest]"},
+			{"Expand[addends_Plus/den_]", "Sum[Expand[ExpandUnique`a/den],{ExpandUnique`a,List@@addends}]"},
+			{"Expand[c_?AtomQ*addends_Plus]", "Sum[Expand[c*ExpandUnique`a],{ExpandUnique`a,List@@addends}]"},
 			{"Expand[a_]", "a"},
 		},
 		SimpleExamples: []TestInstruction{

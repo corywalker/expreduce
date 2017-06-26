@@ -257,6 +257,13 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
+			lhs, lhsIsExpr := this.Parts[1].(*Expression)
+			if lhsIsExpr {
+				for i := range lhs.Parts {
+					lhs.Parts[i] = lhs.Parts[i].Eval(es)
+				}
+				es.Define(lhs, this.Parts[2])
+			}
 			es.Define(this.Parts[1], this.Parts[2])
 			return &Symbol{"Null"}
 		},
@@ -470,6 +477,13 @@ func GetSystemDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
 		Attributes: []string{"Flat", "Orderless", "OneIdentity"},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceLikePlus",
+		Default:	"0",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 	})
 	return
 }
