@@ -81,14 +81,8 @@ high precedence. */
 
 list	: /* empty */
 	| list '\n' {Calcrcvr.lval.val = &Symbol{"Null"}}
-	| list stat '\n'
+	| list expr '\n' {Calcrcvr.lval.val = $2}
 	| list error '\n' {Calcrcvr.lval.val = &Symbol{"Null"}}
-	;
-
-stat	:    expr
-		{
-			Calcrcvr.lval.val = $1
-		}
 	;
 
 expr	:    LPARSYM expr RPARSYM
