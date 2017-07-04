@@ -1,0 +1,15 @@
+possibleExponents[n_Integer, m_Integer] := 
+ Flatten[Permutations /@ ((PadRight[#, m]) & /@ 
+     IntegerPartitions[n, m]), 1];
+genVars[addends_List, exponents_List] := 
+ Product[addends[[ExpandUnique`i]]^
+   exponents[[ExpandUnique`i]], {ExpandUnique`i, 1, Length[addends]}];
+genExpand[addends_List, exponents_List] := 
+ Sum[(Multinomial @@ exponents[[ExpandUnique`i]])*
+   genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, 
+   Length[exponents]}];
+Expand[a_] := a //. {
+    s_Plus^n_Integer :> 
+     genExpand[List @@ s, possibleExponents[n, Length[s]]],
+    c_*s_Plus :> ((c*#) &) /@ s
+    };

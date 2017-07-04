@@ -243,17 +243,6 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "Expand",
 		Usage: "`Expand[expr]` attempts to expand `expr`.",
-		Rules: []Rule{
-			{"possibleExponents[n_Integer,m_Integer]", "Flatten[Permutations/@((PadRight[#,m])&/@IntegerPartitions[n,m]),1]"},
-			{"genVars[addends_List,exponents_List]", "Product[addends[[ExpandUnique`i]]^exponents[[ExpandUnique`i]],{ExpandUnique`i,1,Length[addends]}]"},
-			{"genExpand[addends_List,exponents_List]", "Sum[(Multinomial@@exponents[[ExpandUnique`i]])*genVars[addends,exponents[[ExpandUnique`i]]],{ExpandUnique`i,1,Length[exponents]}]"},
-			{"Expand[s_Plus^n_Integer]", "genExpand[List@@s,possibleExponents[n,Length[s]]]"},
-			{"Expand[s_Plus^n_Integer*rest___]", "Expand[Expand[Plus[s]^n]*rest]"},
-			{"Expand[a1s_Plus*a2s_Plus*rest___]", "Expand[Sum[ExpandUnique`a1*ExpandUnique`a2,{ExpandUnique`a1,List@@a1s},{ExpandUnique`a2,List@@a2s}]*rest]"},
-			{"Expand[addends_Plus/den_]", "Sum[Expand[ExpandUnique`a/den],{ExpandUnique`a,List@@addends}]"},
-			{"Expand[c_?AtomQ*addends_Plus]", "Sum[Expand[c*ExpandUnique`a],{ExpandUnique`a,List@@addends}]"},
-			{"Expand[a_]", "a"},
-		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"a^3 + 3 a^2 * b + 3 a b^2 + b^3 + 3 a^2 * c + 6 a b c + 3 b^2 * c + 3 a c^2 + 3 b c^2 + c^3", "Expand[(a + b + c)^3]"},
 			&SameTest{"a c + b c + a d + b d + a e + b e", "(a + b) * (c + d + e) // Expand"},
