@@ -120,6 +120,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{blanks}{dot}
 == return EQUALSYM /* Equal */
 > return GREATERSYM /* Greater */
 \< return LESSSYM /* Less */
+\<\< return GETSYM /* Get */
 >= return GREATEREQUALSYM /* GreaterEqual */
 \<= return LESSEQUALSYM /* LessEqual */
 \. return DOTSYM /* Dot, Optional */
