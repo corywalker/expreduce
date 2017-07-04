@@ -159,6 +159,12 @@ func removeParens(ex Ex) {
 }
 
 func Interp(line string) Ex {
+	// If we want the ability to parse multiple statements without the need
+	// for them to be separated by newlines, perhaps we should start with the
+	// first line and evaluate it. If it produces an error, then we should
+	// evaluate the first and second lines together, and so on. Once the
+	// lines finally produce a valid expression, we can add that parsed
+	// expression to the list of statements.
 	lex := newLexer(line + "\n")
 	var parser CalcParser = CalcNewParser()
 	parser.Parse(lex)

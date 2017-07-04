@@ -65,11 +65,14 @@ contextedIdent ({ident}"`")*{ident}
 blanks ___|__|_
 dot "."
 pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{blanks}{dot}|{contextedIdent}{blanks}{contextedIdent}|{contextedIdent}{blanks}{dot}
+comment         "(*"([^*\x80]|\*+[^*)\x80])*\*+\)
 
 %%
     y.buf = y.buf[:0]
 
 [ \t\r\n]+
+
+{comment}
 
 {D}
     var base int = 10
