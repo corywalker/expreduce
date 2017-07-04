@@ -98,6 +98,10 @@ func (es *EvalState) Init(loadAllDefs bool) {
 					es.Load(def)
 				}
 			}
+			data, err := Asset(fmt.Sprintf("resources/%v.er", defSet.Name))
+			if err == nil {
+				EvalInterp(string(data), es)
+			}
 		}
 		InitCAS(es)
 	}

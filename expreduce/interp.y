@@ -293,7 +293,8 @@ func Interp(line string) Ex {
 	// first line and evaluate it. If it produces an error, then we should
 	// evaluate the first and second lines together, and so on. Once the
 	// lines finally produce a valid expression, we can add that parsed
-	// expression to the list of statements.
+	// expression to the list of statements. Actually, we should read until the
+	// lines no longer produce a valid expression or until we reach EOF.
 	lex := newLexer(line + "\n")
 	var parser CalcParser = CalcNewParser()
 	parser.Parse(lex)
