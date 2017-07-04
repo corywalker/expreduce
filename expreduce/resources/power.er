@@ -13,3 +13,9 @@ Expand[a_] := a //. {
      genExpand[List @@ s, possibleExponents[n, Length[s]]],
     c_*s_Plus :> ((c*#) &) /@ s
     };
+
+PolynomialQ[p_Plus, v_] :=
+  AllTrue[List @@ p, (PolynomialQ[#, v]) &];
+PolynomialQ[p_.*v_^Optional[exp_Integer], v_] :=
+  If[FreeQ[p, v] && Positive[exp], True, False];
+PolynomialQ[p_, v_] := If[FreeQ[p, v], True, False];

@@ -262,20 +262,6 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "PolynomialQ",
 		Usage:  "`PolynomialQ[e, var]` returns True if `e` is a polynomial in `var`.",
-		//Rules: []Rule{
-			//{"PolynomialQ[p_Plus,v_]", "AllTrue[List@@p,(PolynomialQ[#,v])&]"},
-			//// TODO: Should probably assert that the integers are positive.
-			//{"PolynomialQ[p_*v_^exp_Integer,v_]", "If[FreeQ[p,v]&&Positive[exp],True,False]"},
-			//{"PolynomialQ[_,v_Integer]", "True"},
-			//{"PolynomialQ[v_,v_]", "True"},
-			//{"PolynomialQ[p_*v_,v_]", "If[FreeQ[p,v],True,False]"},
-			//{"PolynomialQ[p_,v_]", "If[FreeQ[p,v],True,False]"},
-		//},
-		Rules: []Rule{
-			{"PolynomialQ[p_Plus,v_]", "AllTrue[List@@p,(PolynomialQ[#,v])&]"},
-			{"PolynomialQ[p_.*v_^Optional[exp_Integer],v_]", "If[FreeQ[p,v]&&Positive[exp],True,False]"},
-			{"PolynomialQ[p_,v_]", "If[FreeQ[p,v],True,False]"},
-		},
 		Tests: []TestInstruction{
 			&SameTest{"True", "PolynomialQ[2x^2-3x+2, x]"},
 			&SameTest{"True", "PolynomialQ[2x^2, x]"},
