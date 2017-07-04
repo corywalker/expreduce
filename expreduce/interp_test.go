@@ -61,4 +61,7 @@ func TestInterp(t *testing.T) {
 	CasAssertSame(t, es, "Plus[a,Pattern[a,5]]", "a + a : 5")
 	CasAssertSame(t, es, "Plus[a,Optional[Pattern[a,Blank[]],5]]", "a + a_ : 5")
 	CasAssertSame(t, es, "Plus[Times[2,a],Optional[Pattern[a,Blank[]],5]]", "a + a_ : 5 + a")
+
+	// Test newline handling
+	CasAssertSame(t, es, "a*b*c", "a\nb\nc")
 }

@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"fmt"
 )
 
 type DefMap map[string]Def
@@ -70,6 +71,7 @@ func (this *EvalState) Load(def Definition) {
 func InitCAS(es *EvalState) {
 	// System initialization
 	EvalInterp("SeedRandom[UnixTime[]]", es)
+	EvalInterp(fmt.Sprintf("$Path = {\"%s\"}", "."), es)
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
@@ -80,6 +82,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 	es.NoInit = !loadAllDefs
 	if !es.NoInit {
 		// Init modules
+		// Load bootstrap definitions first.
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
 				if def.Bootstrap {
@@ -87,6 +90,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 				}
 			}
 		}
+		// Load rest of definitions.
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
 				if !def.Bootstrap {

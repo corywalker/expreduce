@@ -69,7 +69,7 @@ pattern {blanks}|{contextedIdent}{blanks}|{blanks}{contextedIdent}|{blanks}{dot}
 %%
     y.buf = y.buf[:0]
 
-[ \t\r]+
+[ \t\r\n]+
 
 {D}
     var base int = 10

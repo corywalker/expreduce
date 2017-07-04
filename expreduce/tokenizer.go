@@ -110,7 +110,7 @@ yystart1:
 		goto yystate53
 	case c == '[':
 		goto yystate55
-	case c == '\t' || c == '\r' || c == ' ':
+	case c == '\t' || c == '\n' || c == '\r' || c == ' ':
 		goto yystate2
 	case c == ']':
 		goto yystate56
@@ -133,7 +133,7 @@ yystate2:
 	switch {
 	default:
 		goto yyrule1
-	case c == '\t' || c == '\r' || c == ' ':
+	case c == '\t' || c == '\n' || c == '\r' || c == ' ':
 		goto yystate2
 	}
 
@@ -552,7 +552,7 @@ yystate61:
 	c = y.getc()
 	goto yyrule13
 
-yyrule1: // [ \t\r]+
+yyrule1: // [ \t\r\n]+
 
 	goto yystate0
 yyrule2: // {D}

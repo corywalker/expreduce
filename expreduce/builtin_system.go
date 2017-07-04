@@ -3,6 +3,8 @@ package expreduce
 import "math/big"
 import "time"
 import "fmt"
+import "os"
+import "io/ioutil"
 import "github.com/op/go-logging"
 
 func exprToN(es *EvalState, e Ex) Ex {
@@ -484,6 +486,45 @@ func GetSystemDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
+	})
+	defs = append(defs, Definition{
+		Name:  "Get",
+		Usage: "`Get[file]` loads `file` and returns the last expression.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			pathSym := &Symbol{"$Path"}
+			path, isDef, _ := es.GetDef("$Path", pathSym)
+			if !isDef {
+				return &Symbol{"$Failed"}
+			}
+			pathL, pathIsList := HeadAssertion(path, "List")
+			if !pathIsList {
+				return &Symbol{"$Failed"}
+			}
+			filenameString, fnIsStr := this.Parts[1].(*String)
+			if !fnIsStr {
+				return &Symbol{"$Failed"}
+			}
+			for _, pathEx := range pathL.Parts[1:] {
+				pathString, pathIsString := pathEx.(*String)
+				if !pathIsString {
+					fmt.Printf("Invalid path: %v\n", pathEx)
+					continue
+				}
+				rawDir := pathString.Val
+				rawFn := filenameString.Val
+				rawPath := rawDir + string(os.PathSeparator) + rawFn
+				dat, err := ioutil.ReadFile(rawPath)
+				if err != nil {
+					continue
+				}
+				fileData := string(dat)
+				return Interp(fileData[:len(fileData)-1])
+			}
+			return &Symbol{"$Failed"}
+		},
 	})
 	return
 }
