@@ -19,3 +19,13 @@ PolynomialQ[p_Plus, v_] :=
 PolynomialQ[p_.*v_^Optional[exp_Integer], v_] :=
   If[FreeQ[p, v] && Positive[exp], True, False];
 PolynomialQ[p_, v_] := If[FreeQ[p, v], True, False];
+
+Exponent[expr_/p_Plus,var_,head_]:=Exponent[expr,var,head];
+Exponent[expr_,var_,head_]:=Module[{e=expr,v=var,h=head,theCases,toCheck},
+    toCheck=expr//Expand;
+    toCheck=If[Head[toCheck]===Plus,toCheck,{toCheck}];
+    theCases=Cases[toCheck,p_.*v^Optional[exp_]->exp]//DeleteDuplicates;
+    If[Length[theCases]=!=Length[toCheck],PrependTo[theCases,0]];
+    h@@theCases
+];
+Exponent[expr_,var_]:=Exponent[expr,var,Max];

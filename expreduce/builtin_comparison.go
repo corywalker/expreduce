@@ -205,6 +205,36 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:  "UnsameQ",
+		Usage: "`lhs =!= rhs` evaluates to False if `lhs` and `rhs` are identical after evaluation, True otherwise.",
+		toString: func(this *Expression, form string) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " =!= ", true, "", "", form)
+		},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) < 1 {
+				return this
+			}
+
+			for i := 1; i < len(this.Parts); i++ {
+				for j := i+1; j < len(this.Parts); j++ {
+					if IsSameQ(this.Parts[i], this.Parts[j], &es.CASLogger) {
+						return &Symbol{"False"}
+					}
+				}
+			}
+			return &Symbol{"True"}
+		},
+		SimpleExamples: []TestInstruction{
+			&StringTest{"False", "a=!=a"},
+			&StringTest{"False", "5 =!= 5"},
+			&StringTest{"True", "a=!=b"},
+		},
+		Tests: []TestInstruction{
+			&StringTest{"False", "a=!=b=!=a"},
+			&StringTest{"True", "UnsameQ[]"},
+		},
+	})
+	defs = append(defs, Definition{
 		Name:  "AtomQ",
 		Usage: "`AtomQ[expr]` returns True if `expr` is an atomic type, and False if `expr` is a full expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {

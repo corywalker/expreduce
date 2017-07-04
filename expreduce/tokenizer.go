@@ -103,27 +103,27 @@ yystart1:
 	case c == '=':
 		goto yystate51
 	case c == '>':
-		goto yystate54
-	case c == '?':
 		goto yystate56
+	case c == '?':
+		goto yystate58
 	case c == '@':
-		goto yystate57
-	case c == '[':
 		goto yystate59
+	case c == '[':
+		goto yystate61
 	case c == '\t' || c == '\n' || c == '\r' || c == ' ':
 		goto yystate2
 	case c == ']':
-		goto yystate60
+		goto yystate62
 	case c == '^':
-		goto yystate61
+		goto yystate63
 	case c == '_':
 		goto yystate11
 	case c == '{':
-		goto yystate62
+		goto yystate64
 	case c == '|':
-		goto yystate63
-	case c == '}':
 		goto yystate65
+	case c == '}':
+		goto yystate67
 	case c >= '0' && c <= '9':
 		goto yystate40
 	}
@@ -141,14 +141,14 @@ yystate3:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule35
+		goto yyrule36
 	case c == '=':
 		goto yystate4
 	}
 
 yystate4:
 	c = y.getc()
-	goto yyrule37
+	goto yyrule38
 
 yystate5:
 	c = y.getc()
@@ -195,13 +195,13 @@ yystate8:
 
 yystate9:
 	c = y.getc()
-	goto yyrule38
+	goto yyrule39
 
 yystate10:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule53
+		goto yyrule54
 	case c == '$' || c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate10
 	case c == '_':
@@ -214,7 +214,7 @@ yystate11:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule52
+		goto yyrule53
 	case c == '$' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate12
 	case c == '.':
@@ -227,7 +227,7 @@ yystate12:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule52
+		goto yyrule53
 	case c == '$' || c >= '0' && c <= '9' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate12
 	case c == '`':
@@ -245,13 +245,13 @@ yystate13:
 
 yystate14:
 	c = y.getc()
-	goto yyrule52
+	goto yyrule53
 
 yystate15:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule52
+		goto yyrule53
 	case c == '$' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate12
 	case c == '.':
@@ -264,7 +264,7 @@ yystate16:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule52
+		goto yyrule53
 	case c == '$' || c >= 'A' && c <= 'Z' || c >= 'a' && c <= 'z':
 		goto yystate12
 	case c == '.':
@@ -284,14 +284,14 @@ yystate18:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule36
+		goto yyrule37
 	case c == '&':
 		goto yystate19
 	}
 
 yystate19:
 	c = y.getc()
-	goto yyrule50
+	goto yyrule51
 
 yystate20:
 	c = y.getc()
@@ -363,7 +363,7 @@ yystate30:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule32
+		goto yyrule33
 	case c == '.':
 		goto yystate31
 	case c >= '0' && c <= '9':
@@ -374,14 +374,14 @@ yystate31:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule33
+		goto yyrule34
 	case c == '.':
 		goto yystate32
 	}
 
 yystate32:
 	c = y.getc()
-	goto yyrule34
+	goto yyrule35
 
 yystate33:
 	c = y.getc()
@@ -409,28 +409,28 @@ yystate34:
 
 yystate35:
 	c = y.getc()
-	goto yyrule39
+	goto yyrule40
 
 yystate36:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule41
+		goto yyrule42
 	case c == '.':
 		goto yystate37
 	}
 
 yystate37:
 	c = y.getc()
-	goto yyrule40
+	goto yyrule41
 
 yystate38:
 	c = y.getc()
-	goto yyrule25
+	goto yyrule26
 
 yystate39:
 	c = y.getc()
-	goto yyrule45
+	goto yyrule46
 
 yystate40:
 	c = y.getc()
@@ -447,7 +447,7 @@ yystate41:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule48
+		goto yyrule49
 	case c == ':':
 		goto yystate42
 	case c == '=':
@@ -458,7 +458,7 @@ yystate41:
 
 yystate42:
 	c = y.getc()
-	goto yyrule51
+	goto yyrule52
 
 yystate43:
 	c = y.getc()
@@ -485,7 +485,7 @@ yystate47:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule28
+		goto yyrule29
 	case c == '<':
 		goto yystate48
 	case c == '=':
@@ -496,37 +496,39 @@ yystate47:
 
 yystate48:
 	c = y.getc()
-	goto yyrule29
+	goto yyrule30
 
 yystate49:
 	c = y.getc()
-	goto yyrule31
+	goto yyrule32
 
 yystate50:
 	c = y.getc()
-	goto yyrule44
+	goto yyrule45
 
 yystate51:
 	c = y.getc()
 	switch {
 	default:
 		goto yyrule22
-	case c == '=':
+	case c == '!':
 		goto yystate52
+	case c == '=':
+		goto yystate54
 	}
 
 yystate52:
 	c = y.getc()
 	switch {
 	default:
-		goto yyrule26
+		goto yyabort
 	case c == '=':
 		goto yystate53
 	}
 
 yystate53:
 	c = y.getc()
-	goto yyrule24
+	goto yyrule25
 
 yystate54:
 	c = y.getc()
@@ -539,55 +541,68 @@ yystate54:
 
 yystate55:
 	c = y.getc()
-	goto yyrule30
+	goto yyrule24
 
 yystate56:
 	c = y.getc()
-	goto yyrule46
+	switch {
+	default:
+		goto yyrule28
+	case c == '=':
+		goto yystate57
+	}
 
 yystate57:
 	c = y.getc()
-	switch {
-	default:
-		goto yyrule42
-	case c == '@':
-		goto yystate58
-	}
+	goto yyrule31
 
 yystate58:
 	c = y.getc()
-	goto yyrule43
+	goto yyrule47
 
 yystate59:
 	c = y.getc()
-	goto yyrule11
+	switch {
+	default:
+		goto yyrule43
+	case c == '@':
+		goto yystate60
+	}
 
 yystate60:
 	c = y.getc()
-	goto yyrule12
+	goto yyrule44
 
 yystate61:
 	c = y.getc()
-	goto yyrule21
+	goto yyrule11
 
 yystate62:
 	c = y.getc()
-	goto yyrule13
+	goto yyrule12
 
 yystate63:
 	c = y.getc()
-	switch {
-	default:
-		goto yyrule47
-	case c == '|':
-		goto yystate64
-	}
+	goto yyrule21
 
 yystate64:
 	c = y.getc()
-	goto yyrule49
+	goto yyrule13
 
 yystate65:
+	c = y.getc()
+	switch {
+	default:
+		goto yyrule48
+	case c == '|':
+		goto yystate66
+	}
+
+yystate66:
+	c = y.getc()
+	goto yyrule50
+
+yystate67:
 	c = y.getc()
 	goto yyrule14
 
@@ -703,115 +718,119 @@ yyrule24: // ===
 	{
 		return SAMESYM /* SameQ */
 	}
-yyrule25: // \/;
+yyrule25: // =!=
+	{
+		return UNSAMESYM /* UnsameQ */
+	}
+yyrule26: // \/;
 	{
 		return CONDITIONSYM /* Condition */
 	}
-yyrule26: // ==
+yyrule27: // ==
 	{
 		return EQUALSYM /* Equal */
 	}
-yyrule27: // >
+yyrule28: // >
 	{
 		return GREATERSYM /* Greater */
 	}
-yyrule28: // \<
+yyrule29: // \<
 	{
 		return LESSSYM /* Less */
 	}
-yyrule29: // \<\<
+yyrule30: // \<\<
 	{
 		return GETSYM /* Get */
 	}
-yyrule30: // >=
+yyrule31: // >=
 	{
 		return GREATEREQUALSYM /* GreaterEqual */
 	}
-yyrule31: // \<=
+yyrule32: // \<=
 	{
 		return LESSEQUALSYM /* LessEqual */
 	}
-yyrule32: // \.
+yyrule33: // \.
 	{
 		return DOTSYM /* Dot, Optional */
 	}
-yyrule33: // \.\.
+yyrule34: // \.\.
 	{
 		return REPEATEDSYM /* Repeated */
 	}
-yyrule34: // \.\.\.
+yyrule35: // \.\.\.
 	{
 		return REPEATEDNULLSYM /* RepeatedNull */
 	}
-yyrule35: // !
+yyrule36: // !
 	{
 		return EXCLAMATIONSYM /* Factorial, Not */
 	}
-yyrule36: // &
+yyrule37: // &
 	{
 		return FUNCTIONSYM /* Factorial */
 	}
-yyrule37: // !=
+yyrule38: // !=
 	{
 		return UNEQUALSYM /* Unequal */
 	}
-yyrule38: // #
+yyrule39: // #
 	{
 		return SLOTSYM /* Slot */
 	}
-yyrule39: // \/\.
+yyrule40: // \/\.
 	{
 		return REPLACEALLSYM /* ReplaceAll */
 	}
-yyrule40: // \/\/\.
+yyrule41: // \/\/\.
 	{
 		return REPLACEREPSYM /* ReplaceRepeated */
 	}
-yyrule41: // \/\/
+yyrule42: // \/\/
 	{
 		return POSTFIXSYM /* */
 	}
-yyrule42: // @
+yyrule43: // @
 	{
 		return FUNCAPPSYM /* */
 	}
-yyrule43: // @@
+yyrule44: // @@
 	{
 		return APPLYSYM /* */
 	}
-yyrule44: // \<>
+yyrule45: // \<>
 	{
 		return STRINGJOINSYM /* StringJoin */
 	}
-yyrule45: // \/@
+yyrule46: // \/@
 	{
 		return MAPSYM /* Map */
 	}
-yyrule46: // \?
+yyrule47: // \?
 	{
 		return PATTESTSYM /* PatternTest */
 	}
-yyrule47: // \|
+yyrule48: // \|
 	{
 		return ALTSYM /* Alternatives */
 	}
-yyrule48: // :
+yyrule49: // :
 	{
 		return COLONSYM /* Pattern */
 	}
-yyrule49: // \|\|
+yyrule50: // \|\|
 	{
 		return ORSYM /* Or */
 	}
-yyrule50: // &&
+yyrule51: // &&
 	{
 		return ANDSYM /* And */
 	}
-yyrule51: // ::
+yyrule52: // ::
 	{
 		return MESSAGENAMESYM /* MessageName */
 	}
-yyrule52: // {pattern}
+yyrule53: // {pattern}
 	{
 
 		delim := "_"
@@ -852,7 +871,7 @@ yyrule52: // {pattern}
 		lval.val = NewExpression([]Ex{&Symbol{"Error"}, &String{"Pattern parse error."}})
 		return PATTERN
 	}
-yyrule53: // {contextedIdent}
+yyrule54: // {contextedIdent}
 	{
 
 		lval.val = &Symbol{string(y.buf)}

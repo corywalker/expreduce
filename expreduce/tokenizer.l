@@ -119,6 +119,7 @@ comment         "(*"([^*\x80]|\*+[^*)\x80])*\*+\)
 = return SETSYM /* set */
 := return SETDELAYEDSYM /* setdelayed */
 === return SAMESYM /* SameQ */
+=!= return UNSAMESYM /* UnsameQ */
 \/; return CONDITIONSYM /* Condition */
 == return EQUALSYM /* Equal */
 > return GREATERSYM /* Greater */
