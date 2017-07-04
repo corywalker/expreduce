@@ -70,7 +70,8 @@ func (this *EvalState) Load(def Definition) {
 
 func InitCAS(es *EvalState) {
 	// System initialization
-	EvalInterp("SeedRandom[UnixTime[]]", es)
+	data := MustAsset("resources/init.er")
+	EvalInterp(string(data), es)
 	EvalInterp(fmt.Sprintf("$Path = {\"%s\"}", "."), es)
 }
 
