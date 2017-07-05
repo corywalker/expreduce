@@ -124,9 +124,13 @@ func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
 	return &es
 }
 
-func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
+func (this *EvalState) IsDef(name string) bool {
 	_, isd := this.defined[name]
-	if !isd {
+	return isd
+}
+
+func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
+	if !this.IsDef(name) {
 		return nil, false, nil
 	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
@@ -154,6 +158,12 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 		}
 	}
 	return nil, false, nil
+}
+
+func (this *EvalState) GetSymDef(name string) (Ex, bool) {
+	sym := &Symbol{name}
+	symDef, isDef, _ := this.GetDef(name, sym)
+	return symDef, isDef
 }
 
 func (this *EvalState) Define(lhs Ex, rhs Ex) {

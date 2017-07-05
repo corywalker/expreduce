@@ -20,6 +20,7 @@ PolynomialQ[p_.*v_^Optional[exp_Integer], v_] :=
   If[FreeQ[p, v] && Positive[exp], True, False];
 PolynomialQ[p_, v_] := If[FreeQ[p, v], True, False];
 
+(* Needs PrependTo and DeleteDuplicates and Module *)
 Exponent[expr_/p_Plus,var_,head_]:=Exponent[expr,var,head];
 Exponent[expr_,var_,head_]:=Module[{e=expr,v=var,h=head,theCases,toCheck},
     toCheck=expr//Expand;

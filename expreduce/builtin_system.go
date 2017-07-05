@@ -526,5 +526,104 @@ func GetSystemDefinitions() (defs []Definition) {
 			return &Symbol{"$Failed"}
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "Module",
+		Usage: "`Module[{locals}, expr]` evaluates `expr` with the local variables `locals`.",
+		Attributes: []string{"HoldAll"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			// Coarse parsing of arguments.
+			if len(this.Parts) != 3 {
+				return this
+			}
+			locals, localsIsList := HeadAssertion(this.Parts[1], "List")
+			if !localsIsList {
+				return this
+			}
+			mnExpr, mnIsDef := es.GetSymDef("$ModuleNumber")
+			if !mnIsDef {
+				return this
+			}
+			mnInteger, mnIsInt := mnExpr.(*Integer)
+			if !mnIsInt {
+				return this
+			}
+			mn := mnInteger.Val.Int64()
+
+			// Parse locals into a struct
+			type parsedLocal struct {
+				sym *Symbol
+				uniqueName string
+				setValue Ex
+				isSet bool
+				isSetDelayed bool
+			}
+			var parsedLocals []parsedLocal
+			for _, localEx := range locals.Parts[1:] {
+				pl := parsedLocal{}
+				symEx := localEx
+				localSet, localIsSet := HeadAssertion(localEx, "Set")
+				pl.isSet = localIsSet
+				localSetDelayed, localIsSetDelayed := HeadAssertion(localEx, "SetDelayed")
+				pl.isSetDelayed = localIsSetDelayed
+				if localIsSet && len(localSet.Parts) == 3 {
+					symEx = localSet.Parts[1]
+					pl.setValue = localSet.Parts[2]
+				}
+				if localIsSetDelayed && len(localSetDelayed.Parts) == 3 {
+					symEx = localSetDelayed.Parts[1]
+					pl.setValue = localSetDelayed.Parts[2]
+				}
+				localSym, localIsSym := symEx.(*Symbol)
+				pl.sym = localSym
+				if !localIsSym {
+					return this
+				}
+				parsedLocals = append(parsedLocals, pl)
+			}
+
+			// Find the next ModuleNumber to use.
+			tryingNew := true
+			for tryingNew {
+				tryingNew = false
+				for i := range parsedLocals {
+					parsedLocals[i].uniqueName = fmt.Sprintf("%v$%v", parsedLocals[i].sym.Name, mn)
+					if es.IsDef(parsedLocals[i].uniqueName) {
+						mn += 1
+						tryingNew = true
+						break
+					}
+				}
+			}
+			es.Define(&Symbol{"$ModuleNumber"}, &Integer{big.NewInt(mn+1)})
+			toReturn := this.Parts[2]
+			for _, pl := range parsedLocals {
+				if pl.isSet || pl.isSetDelayed {
+					rhs := pl.setValue
+					if pl.isSet {
+						rhs = rhs.Eval(es)
+					}
+					es.defined[pl.uniqueName] = Def{
+						downvalues: []Expression{*NewExpression([]Ex{&Symbol{"Rule"}, &Symbol{pl.uniqueName}, rhs})},
+					}
+				} else {
+					es.defined[pl.uniqueName] = Def{}
+				}
+				toReturn = ReplaceAll(toReturn,
+					NewExpression([]Ex{
+						&Symbol{"Rule"},
+						&Symbol{pl.sym.Name},
+						&Symbol{pl.uniqueName},
+					}), es, EmptyPD(), "")
+			}
+			return toReturn
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{t$1,j$1,2}", "$ModuleNumber=1;Module[{t,j},{t,j,$ModuleNumber}]"},
+			&SameTest{"{t$2,j$2,3}", "$ModuleNumber=1;Module[{t,j},{t,j,$ModuleNumber}]"},
+			&SameTest{"{t$4,j$4,5}", "$ModuleNumber=1;t$3=test;Module[{t,j},{t,j,$ModuleNumber}]"},
+			&SameTest{"{t$8,2,9}", "$ModuleNumber=8;t$3=test;Module[{t,j=2},{t,j,$ModuleNumber}]"},
+			&SameTest{"{t$9,2,10}", "$ModuleNumber=8;t$3=test;Module[{t,j:=2},{t,j,$ModuleNumber}]"},
+		},
+	})
 	return
 }
