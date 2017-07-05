@@ -1,5 +1,8 @@
 package expreduce
 
+import "math/big"
+import "sort"
+
 func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "Equal",
@@ -406,6 +409,61 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{False, False, True, Negative[a]}", "Map[Negative, {1, 0, -1, a}]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Max",
+		Usage: "`Max[e1, e2, ...]` the maximum of the expressions.",
+		Attributes: []string{"Flat","NumericFunction","OneIdentity","Orderless"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			// Flatten nested lists into arguments.
+			origHead := this.Parts[0]
+			this.Parts[0] = &Symbol{"List"}
+			dst := NewExpression([]Ex{&Symbol{"List"}})
+			flattenExpr(this, dst, 999999999, &es.CASLogger)
+			// Previously I always set the pointer but it led to an endless
+			// eval loop. I think evaluation might use the pointer to make a
+			// "same" comparison.
+			if !IsSameQ(this, dst, &es.CASLogger) {
+				this = dst
+				sort.Sort(this)
+			}
+			this.Parts[0] = origHead
+
+			if len(this.Parts) == 1 {
+				return NewExpression([]Ex{
+					&Symbol{"Times"},
+					&Integer{big.NewInt(-1)},
+					&Symbol{"Infinity"},
+				})
+			}
+			if len(this.Parts) == 2 {
+				return this.Parts[1]
+			}
+			var i int
+			for i = 1; i < len(this.Parts); i++ {
+				if !numberQ(this.Parts[i]) {
+					break
+				}
+			}
+			i -= 1
+			this.Parts = append([]Ex{this.Parts[0]}, this.Parts[i:]...)
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"3", "Max[1,2,3]"},
+			&SameTest{"Max[3,a]", "Max[1,a,3]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"Max[3,a,b]", "Max[b,1,a,3]"},
+			&SameTest{"Max[3.,a,b]", "Max[b,1,a,3,3.]"},
+			&SameTest{"Max[3.1,a,b]", "Max[b,1,a,3,3.,3.1]"},
+			&SameTest{"Max[99/2,a,b]", "Max[b,1,a,3,3.,3.1 ,Rational[99,2]]"},
+			&SameTest{"-Infinity", "Max[]"},
+			&SameTest{"Max[99/2,a,b]", "Max[{b,1,a},3,3.,3.1 ,Rational[99,2]]"},
+			&SameTest{"Max[99/2,foo[b,1,a]]", "Max[foo[b,1,a],3,3.,3.1 ,Rational[99,2]]"},
+			&SameTest{"Max[a,b,c,d]", "Max[{c,d},{b,a}]"},
+			&SameTest{"Max[a,b,c,d]", "Max[{c,{d}},{b,a}]"},
 		},
 	})
 	return
