@@ -340,5 +340,24 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"{0,1}", "Exponent[1 + x + x^2 - (x*(1 + 2*x))/2, x, List]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "Coefficient",
+		Usage:  "`Coefficient[p, form]` returns the coefficient of form `form` in polynomial `p`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"3", "Coefficient[(a + b)^3, a*b^2]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"j", "Coefficient[c + j*a + k*b, a]"},
+			&SameTest{"a", "Coefficient[c + k*x + a*x^3, x, 3]"},
+			&SameTest{"24", "Coefficient[2*b*(2*a + 3*b)*(1 + 2*a + 3*b), a*b^2]"},
+			&SameTest{"29", "Coefficient[(2 + x)^2 + (5 + x)^2, x, 0]"},
+			&SameTest{"1", "Coefficient[a + x, x]"},
+			&SameTest{"4", "Coefficient[2*b*(2*a + 3*b)*(1 + 2*a + 3*b), a*b]"},
+			&SameTest{"1", "Coefficient[x^2, x^2]"},
+			&SameTest{"-a", "Coefficient[x^2 - x*(a + x), x]"},
+			&SameTest{"-(1/a)+b", "Coefficient[1 + b*x + x^2 - (x*(1 + a*x))/a, x]"},
+			&SameTest{"1/2", "Coefficient[1 + x + x^2 - (x*(1 + 2*x))/2, x]"},
+		},
+	})
 	return
 }

@@ -31,3 +31,22 @@ Exponent[expr_,var_,head_]:=Module[{e=expr,v=var,h=head,theCases,toCheck},
 Exponent[expr_,var_]:=Exponent[expr,var,Max];
 
 Attributes[Exponent] = {Listable, Protected};
+
+ExpreduceSingleCoefficient[inP_, inTerm_] :=
+  Module[{p = inP, term = inTerm, pat},
+   (*If[MatchQ[p,term],Return[1]];*)
+   pat = If[term === 1, a_?NumberQ, Optional[a_]*term];
+   (*pat=Optional[a_]*term;*)
+   If[MatchQ[p, pat],
+    (p) /. pat -> a, 0]
+   ];
+Coefficient[p_, var_, exp_] := Coefficient[p, var^exp];
+Coefficient[inP_, inTerm_] :=
+  Module[{p = inP, term = inTerm, toMatch},
+   toMatch = p // Expand;
+   If[Head[toMatch] === Plus,
+    Map[ExpreduceSingleCoefficient[#, term] &, toMatch],
+    ExpreduceSingleCoefficient[toMatch, term]]
+   ];
+
+Attributes[Coefficient] = {Listable, Protected};
