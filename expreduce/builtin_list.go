@@ -463,7 +463,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Append",
-		Usage: "`Append[list, e]` appends `e` to `list`.",
+		Usage: "`Append[list, e]` returns `list` with `e` appended.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -478,6 +478,39 @@ func GetListDefinitions() (defs []Definition) {
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{a,b,c}", "Append[{a,b},c]"},
 			&SameTest{"foo[a,b,c]", "Append[foo[a,b],c]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "AppendTo",
+		Usage: "`AppendTo[list, e]` appends `e` to `list` and returns the modified `list`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{a,b,c}", "l = {a, b}; AppendTo[l, c]; l"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Prepend",
+		Usage: "`Prepend[list, e]` returns `list` with `e` prepended.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			expr, isExpr := this.Parts[1].(*Expression)
+			if !isExpr {
+				return this
+			}
+			expr.Parts = append(append([]Ex{expr.Parts[0]}, this.Parts[2]), expr.Parts[1:]...)
+			return expr
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{c,a,b}", "Prepend[{a,b},c]"},
+			&SameTest{"foo[c,a,b]", "Prepend[foo[a,b],c]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "PrependTo",
+		Usage: "`PrependTo[list, e]` prepends `e` to `list` and returns the modified `list`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{c,a,b}", "l = {a, b}; PrependTo[l, c]; l"},
 		},
 	})
 	defs = append(defs, Definition{
