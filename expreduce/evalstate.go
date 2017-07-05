@@ -166,6 +166,28 @@ func (this *EvalState) GetSymDef(name string) (Ex, bool) {
 	return symDef, isDef
 }
 
+func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
+	attrsList, attrsIsList := HeadAssertion(rhs, "List")
+	if !attrsIsList {
+		return
+	}
+	var stringAttrs []string
+	for _, attrEx := range attrsList.Parts[1:] {
+		attrSym, attrIsSym := attrEx.(*Symbol)
+		if !attrIsSym {
+			return
+		}
+		stringAttrs = append(stringAttrs, attrSym.Name)
+	}
+	attrs := stringsToAttributes(stringAttrs)
+	if !this.IsDef(sym.Name) {
+		this.defined[sym.Name] = Def{}
+	}
+	tmp := this.defined[sym.Name]
+	tmp.attributes = attrs
+	this.defined[sym.Name] = tmp
+}
+
 func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	if this.IsFrozen() {
 		return
@@ -182,6 +204,17 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
 		if headIsSym {
 			name = headAsSym.Name
+			if name == "Attributes" {
+				if len(LhsF.Parts) != 2 {
+					return
+				}
+				modifiedSym, modifiedIsSym := LhsF.Parts[1].(*Symbol)
+				if !modifiedIsSym {
+					return
+				}
+				this.DefineAttrs(modifiedSym, rhs)
+				return
+			}
 		}
 	}
 	if name == "" {
@@ -189,8 +222,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	}
 
 	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
-	_, isd := this.defined[name]
-	if !isd {
+	if !this.IsDef(name) {
 		newDef := Def{
 			downvalues: []Expression{*NewExpression([]Ex{&Symbol{"Rule"}, lhs, rhs})},
 		}
