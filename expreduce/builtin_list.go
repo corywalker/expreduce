@@ -480,5 +480,38 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"foo[a,b,c]", "Append[foo[a,b],c]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "DeleteDuplicates",
+		Usage: "`DeleteDuplicates[list]` returns `list` with the duplicates removed.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			expr, isExpr := this.Parts[1].(*Expression)
+			if isExpr {
+				toReturn := NewExpression([]Ex{expr.Parts[0]})
+				for _, orig := range expr.Parts[1:] {
+					isDupe := false
+					for _, deduped := range toReturn.Parts[1:] {
+						if IsSameQ(orig, deduped, &es.CASLogger) {
+							isDupe = true
+							break
+						}
+					}
+					if !isDupe {
+						toReturn.Parts = append(toReturn.Parts, orig)
+					}
+				}
+				return toReturn
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{b,a}", "DeleteDuplicates[{b,a,b}]"},
+			&SameTest{"foo[b,a]", "DeleteDuplicates[foo[b,a,b]]"},
+			&SameTest{"{}", "DeleteDuplicates[{}]"},
+		},
+	})
 	return
 }
