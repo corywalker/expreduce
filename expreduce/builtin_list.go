@@ -249,10 +249,22 @@ func GetListDefinitions() (defs []Definition) {
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
 				toReturn := NewExpression([]Ex{&Symbol{"List"}})
+				pattern := this.Parts[2]
+				rule, isRule := HeadAssertion(this.Parts[2], "Rule")
+				if isRule {
+					if len(rule.Parts) != 3 {
+						return toReturn
+					}
+					pattern = rule.Parts[1]
+				}
 
 				for i := 1; i < len(expr.Parts); i++ {
-					if matchq, _ := IsMatchQ(expr.Parts[i], this.Parts[2], EmptyPD(), es); matchq {
-						toReturn.Parts = append(toReturn.Parts, expr.Parts[i])
+					if matchq, pd := IsMatchQ(expr.Parts[i], pattern, EmptyPD(), es); matchq {
+						toAdd := expr.Parts[i]
+						if isRule {
+							toAdd = ReplacePD(rule.Parts[2], es, pd)
+						}
+						toReturn.Parts = append(toReturn.Parts, toAdd)
 					}
 				}
 
@@ -264,6 +276,7 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"{5, 2, 3.5, x, y, 4}", "Cases[{5, 2, 3.5, x, y, 4}, _]"},
 			&SameTest{"{5,2,4}", "Cases[{5, 2, 3.5, x, y, 4}, _Integer]"},
 			&SameTest{"{3.5}", "Cases[{5, 2, 3.5, x, y, 4}, _Real]"},
+			&SameTest{"{2,c}", "Cases[{b^2,1,a^c},_^e_->e]"},
 		},
 		FurtherExamples: []TestInstruction{
 			&TestComment{"`expr` need not be a list:"},
