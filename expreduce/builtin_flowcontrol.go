@@ -5,6 +5,9 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		Name:       "If",
 		Usage:      "`If[cond, iftrue, iffalse]` returns `iftrue` if `cond` is True, and `iffalse` if `cond` is False.",
 		Attributes: []string{"HoldRest"},
+		Rules: []Rule{
+			{"If[cond_, iftrue_]", "If[cond, iftrue, Null]"},
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 4 {
 				return this
@@ -47,6 +50,8 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			&SameTest{"itsfalse", "If[1 == 2, itstrue, itsfalse] /. (2 -> 1)"},
 			&SameTest{"itstrue", "If[1 == k, itstrue, itsfalse] /. (k -> 1)"},
 			&SameTest{"If[1 == k, itstrue, itsfalse]", "If[1 == k, itstrue, itsfalse]"},
+			&SameTest{"a", "If[True, a]"},
+			&SameTest{"Null", "If[False, a]"},
 		},
 	})
 	defs = append(defs, Definition{

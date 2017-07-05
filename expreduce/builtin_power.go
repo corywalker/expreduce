@@ -312,5 +312,33 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"True", "PolynomialQ[2*x^2-3x, 2]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "Exponent",
+		Usage:  "`Exponent[p, var]` returns the degree of `p` with respect to the variable `var`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{0,3,5}", "Exponent[3 + x^3 + k*x^5, x, List]"},
+		},
+		Tests: []TestInstruction{
+			// Sorting of the input addition expression is off here, so we sort
+			// the result so it does match up.
+			&SameTest{"{0,3,5,x^x}", "Exponent[3 + \"hello\" + x^3 + a*x^5 + x^x^x, x, List]//Sort"},
+			&SameTest{"{0}", "Exponent[1 + x^x^x, x^x, List]"},
+			&SameTest{"{0,1}", "Exponent[1 + x^x^x, x^x^x, List]"},
+			&SameTest{"{0}", "Exponent[2 + a, x, List]"},
+			&SameTest{"{0}", "Exponent[a, x, List]"},
+			&SameTest{"{2}", "Exponent[x^2, x, List]"},
+			&SameTest{"{1}", "Exponent[x^2 - x*(a + x), x, List]"},
+			&SameTest{"{0,1}", "Exponent[(1 + x)/(3 + x), x, List]"},
+			&SameTest{"{0,2}", "Exponent[(1 + x^2)/(3 + x), x, List]"},
+			&SameTest{"{0,1}", "Exponent[(1 + x)/(3 + x^3), x, List]"},
+			&SameTest{"{0}", "Exponent[(3 + x^3)^(-1), x, List]"},
+			&SameTest{"{-3}", "Exponent[x^(-3), x, List]"},
+			&SameTest{"{-3}", "Exponent[a/x^3, x, List]"},
+			&SameTest{"{-2}", "Exponent[x^(-2), x, List]"},
+			&SameTest{"{1}", "Exponent[(a*x)/(3 + x^3), x, List]"},
+			&SameTest{"{0,1}", "Exponent[1 + b*x + x^2 - (x*(1 + a*x))/a, x, List]"},
+			&SameTest{"{0,1}", "Exponent[1 + x + x^2 - (x*(1 + 2*x))/2, x, List]"},
+		},
+	})
 	return
 }
