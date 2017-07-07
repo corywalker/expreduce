@@ -74,3 +74,18 @@ Attributes[PolynomialQuotient] = {Protected};
 PolynomialRemainder[inp_, inq_, v_] :=
   PolynomialQuotientRemainder[inp, inq, v][[2]];
 Attributes[PolynomialRemainder] = {Protected};
+
+ExpreduceConstantTerm[c_?NumberQ] := {c, 1};
+ExpreduceConstantTerm[c_?NumberQ*e_] := {c, e};
+ExpreduceConstantTerm[e_] := {1, e};
+FactorTermsList[expr_] := Module[{e = expr, toFactor, cTerms, c},
+   toFactor = e // Expand;
+   If[Head[toFactor] =!= Plus,
+    Return[ExpreduceConstantTerm[toFactor]]
+    ];
+   cTerms = (ExpreduceConstantTerm /@ (List @@ toFactor) // 
+       Transpose)[[1]];
+   c = GCD @@ cTerms;
+   If[Last[cTerms] < 0, c = -c];
+   {c, toFactor/c // Expand}
+   ];

@@ -12,7 +12,12 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	//definition, isdefined := es.defined[this.Name]
 	definition, isdefined, _ := es.GetDef(this.Name, this)
 	if isdefined {
-		return definition.DeepCopy().Eval(es)
+		toReturn := definition.DeepCopy().Eval(es)
+		retVal, isReturn := tryReturnValue(toReturn)
+		if isReturn {
+			return retVal
+		}
+		return toReturn
 	}
 	return this
 }

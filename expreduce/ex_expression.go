@@ -33,6 +33,17 @@ func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
 	return NewEmptyExpression(), false
 }
 
+func tryReturnValue(e Ex) (Ex, bool) {
+	asReturn, isReturn := HeadAssertion(e, "Return")
+	if !isReturn {
+		return nil, false
+	}
+	if len(asReturn.Parts) >= 2 {
+		return asReturn.Parts[1], true
+	}
+	return &Symbol{"Null"}, true
+}
+
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
 func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval bool) {
@@ -71,6 +82,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	shouldEval := true
 	var lastEx Ex = this.DeepCopy()
 	var currEx Ex = this.DeepCopy()
+	insideDefinition := false
 	needsEval := currEx.NeedsEval()
 	for shouldEval {
 		curr, isExpr := currEx.(*Expression)
@@ -91,6 +103,13 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				)
 			}
 			return toReturn
+		}
+
+		if insideDefinition {
+			retVal, isReturn := tryReturnValue(curr)
+			if isReturn {
+				return retVal
+			}
 		}
 
 		// Start by evaluating each argument
@@ -193,6 +212,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 					//fmt.Printf("%v, %v, %v\n", headStr, curr, theRes)
 					es.Infof("Def: %v ▶ %v ▶ using %v ▶ from %s head", currEx, theRes, def, headStr)
 					currEx = theRes
+					insideDefinition = true
 				}
 			}
 		} else if isPureFunction {

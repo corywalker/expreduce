@@ -5,12 +5,15 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		Name:       "If",
 		Usage:      "`If[cond, iftrue, iffalse]` returns `iftrue` if `cond` is True, and `iffalse` if `cond` is False.",
 		Attributes: []string{"HoldRest"},
-		Rules: []Rule{
-			{"If[cond_, iftrue_]", "If[cond, iftrue, Null]"},
-		},
+		// WARNING: Watch out for putting rules here. It can interfere with how
+		// Return works.
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 4 {
+			if len(this.Parts) > 4 || len(this.Parts) < 3 {
 				return this
+			}
+			var falseVal Ex = &Symbol{"Null"}
+			if len(this.Parts) == 4 {
+				falseVal = this.Parts[3]
 			}
 
 			var isequal string = this.Parts[1].IsEqual(&Symbol{"True"}, &es.CASLogger)
@@ -19,7 +22,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			} else if isequal == "EQUAL_TRUE" {
 				return this.Parts[2]
 			} else if isequal == "EQUAL_FALSE" {
-				return this.Parts[3]
+				return falseVal
 			}
 
 			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
@@ -65,7 +68,11 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			isequal := this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 			cont := isequal == "EQUAL_TRUE"
 			for cont {
-				this.Parts[2].Eval(es)
+				tmpRes := this.Parts[2].Eval(es)
+				retVal, isReturn := tryReturnValue(tmpRes)
+				if isReturn {
+					return retVal
+				}
 				isequal = this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 				cont = isequal == "EQUAL_TRUE"
 			}
@@ -94,6 +101,9 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			var toReturn Ex
 			for i := 1; i < len(this.Parts); i++ {
 				toReturn = this.Parts[i].Eval(es)
+				if _, isReturn := HeadAssertion(toReturn, "Return"); isReturn {
+					return toReturn
+				}
 			}
 			return toReturn
 		},
@@ -102,6 +112,18 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			&SameTest{"3", "a = 5; a - 2"},
 			&TestComment{"Including a trailing semicolon causes the expression to return `Null`:"},
 			&SameTest{"Null", "a = 5; a - 2;"},
+		},
+	})
+	// https://mathematica.stackexchange.com/questions/29353/how-does-return-work
+	defs = append(defs, Definition{
+		Name:  "Return",
+		Usage: "`Return[x]` returns `x` immediately.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"x", "myreturnfunc:=(Return[x];hello);myreturnfunc"},
+			&SameTest{"3", "myreturnfunc[x_]:=(Return[x];hello);myreturnfunc[3]"},
+			&SameTest{"3", "myfoo:=(i=1;While[i<5,If[i===3,Return[i]];i=i+1]);myfoo"},
+			&SameTest{"Return[3]", "Return[3]"},
+			&SameTest{"Null", "myreturnfunc:=(Return[];hello);myreturnfunc"},
 		},
 	})
 	return
