@@ -210,6 +210,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return ToStringInfixAdvanced(this.Parts[1:], " = ", true, "(", ")", form)
 		},
+		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -342,6 +343,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "Print",
 		Usage: "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.",
+		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 2 {
 				return this

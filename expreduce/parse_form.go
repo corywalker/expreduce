@@ -79,7 +79,6 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 		if len(optional.Parts) >= 3 {
 			defaultToUse = optional.Parts[2]
 		}
-			cl.Debugf("%v", optional)
 		if len(optional.Parts) >= 2 {
 			startI = 0
 			if defaultToUse == nil {

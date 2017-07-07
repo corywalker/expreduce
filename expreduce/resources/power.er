@@ -9,7 +9,7 @@ genExpand[addends_List, exponents_List] :=
    genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, 
    Length[exponents]}];
 Expand[a_] := a //. {
-    s_Plus^n_Integer :> 
+    s_Plus^n_Integer?Positive :> 
      genExpand[List @@ s, possibleExponents[n, Length[s]]],
     c_*s_Plus :> ((c*#) &) /@ s
     };
@@ -50,3 +50,27 @@ Coefficient[inP_, inTerm_] :=
    ];
 
 Attributes[Coefficient] = {Listable, Protected};
+
+ExpreduceLeadingCoeff[p_, x_] := Coefficient[p, x^Exponent[p, x]];
+PolynomialQuotientRemainder[inp_, inq_, v_] :=
+  Module[{a = inp, b = inq, x = v, r, d, c, i, s, q},
+   q = 0;
+   r = a;
+   d = Exponent[b, x];
+   c = ExpreduceLeadingCoeff[b, x];
+   i = 1;
+   While[Exponent[r, x] >= d && i < 20,
+    s = (ExpreduceLeadingCoeff[r, x]/c)*x^(Exponent[r, x] - d);
+    q = q + s;
+    r = r - s*b;
+    i = i + 1;
+    ];
+   {q, r} // Expand
+   ];
+Attributes[PolynomialQuotientRemainder] = {Protected};
+PolynomialQuotient[inp_, inq_, v_] :=
+  PolynomialQuotientRemainder[inp, inq, v][[1]];
+Attributes[PolynomialQuotient] = {Protected};
+PolynomialRemainder[inp_, inq_, v_] :=
+  PolynomialQuotientRemainder[inp, inq, v][[2]];
+Attributes[PolynomialRemainder] = {Protected};

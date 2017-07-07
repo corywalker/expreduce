@@ -91,8 +91,6 @@ func GetPatternDefinitions() (defs []Definition) {
 
 			// Test pinning in orderless
 			&SameTest{"{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}", "pats"},
-
-			&SameTest{"True", "MatchQ[__, Optional[1]*a_]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Test order of pattern checking
@@ -567,9 +565,13 @@ func GetPatternDefinitions() (defs []Definition) {
 
 			&SameTest{"True", "MatchQ[-x,p_.]"},
 			&SameTest{"True", "MatchQ[-x*a,p_.*a]"},
+
+			&SameTest{"True", "MatchQ[__, Optional[1]*a_]"},
+			&SameTest{"True", "MatchQ[x^x, x^Optional[exp_]]"},
 		},
 		KnownFailures: []TestInstruction{
 			&SameTest{"foo[a,b]", "foo[a,b]/.foo[a___,b_.,d_.]->{{a},{b},{d}}"},
+			&SameTest{"True", "MatchQ[x^x, (x^x)^Optional[exp_]]"},
 		},
 	})
 	return

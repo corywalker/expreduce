@@ -4,8 +4,6 @@ import "bytes"
 import "math/big"
 import "sort"
 
-//import "fmt"
-
 type Expression struct {
 	Parts []Ex
 	//needsEval bool

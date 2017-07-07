@@ -323,7 +323,6 @@ func GetPowerDefinitions() (defs []Definition) {
 			// the result so it does match up.
 			&SameTest{"{0,3,5,x^x}", "Exponent[3 + \"hello\" + x^3 + a*x^5 + x^x^x, x, List]//Sort"},
 			&SameTest{"{0}", "Exponent[1 + x^x^x, x^x, List]"},
-			&SameTest{"{0,1}", "Exponent[1 + x^x^x, x^x^x, List]"},
 			&SameTest{"{0}", "Exponent[2 + a, x, List]"},
 			&SameTest{"{0}", "Exponent[a, x, List]"},
 			&SameTest{"{2}", "Exponent[x^2, x, List]"},
@@ -338,6 +337,9 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"{1}", "Exponent[(a*x)/(3 + x^3), x, List]"},
 			&SameTest{"{0,1}", "Exponent[1 + b*x + x^2 - (x*(1 + a*x))/a, x, List]"},
 			&SameTest{"{0,1}", "Exponent[1 + x + x^2 - (x*(1 + 2*x))/2, x, List]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"{0,1}", "Exponent[1 + x^x^x, x^x^x, List]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -357,6 +359,33 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"-a", "Coefficient[x^2 - x*(a + x), x]"},
 			&SameTest{"-(1/a)+b", "Coefficient[1 + b*x + x^2 - (x*(1 + a*x))/a, x]"},
 			&SameTest{"1/2", "Coefficient[1 + x + x^2 - (x*(1 + 2*x))/2, x]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "PolynomialQuotientRemainder",
+		Usage:  "`PolynomialQuotientRemainder[poly_, div_, var_]` returns the quotient and remainder of `poly` divided by `div` treating `var` as the polynomial variable.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{x^2/2,2}", "PolynomialQuotientRemainder[2 + x^2 + x^3, 2 + 2*x, x]"},
+			&SameTest{"{x^2-x y+y^2,-y^3}", "PolynomialQuotientRemainder[x^3, x + y, x]"},
+			&SameTest{"{x/a,1-x/a}", "PolynomialQuotientRemainder[1 + x^3, 1 + a*x^2, x]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "PolynomialQuotient",
+		Usage:  "`PolynomialQuotient[poly_, div_, var_]` returns the quotient of `poly` divided by `div` treating `var` as the polynomial variable.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"x^2/2", "PolynomialQuotient[2 + x^2 + x^3, 2 + 2*x, x]"},
+			&SameTest{"x^2-x y+y^2", "PolynomialQuotient[x^3, x + y, x]"},
+			&SameTest{"x/a", "PolynomialQuotient[1 + x^3, 1 + a*x^2, x]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "PolynomialRemainder",
+		Usage:  "`PolynomialRemainder[poly_, div_, var_]` returns the remainder of `poly` divided by `div` treating `var` as the polynomial variable.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2", "PolynomialRemainder[2 + x^2 + x^3, 2 + 2*x, x]"},
+			&SameTest{"-y^3", "PolynomialRemainder[x^3, x + y, x]"},
+			&SameTest{"1-x/a", "PolynomialRemainder[1 + x^3, 1 + a*x^2, x]"},
 		},
 	})
 	return
