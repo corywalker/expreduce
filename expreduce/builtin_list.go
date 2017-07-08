@@ -546,5 +546,32 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"{}", "DeleteDuplicates[{}]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "Last",
+		Usage: "`Last[expr]` returns the last part of `expr`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			expr, isExpr := this.Parts[1].(*Expression)
+			if isExpr {
+				if len(expr.Parts) < 2{
+					return this
+				}
+				return expr.Parts[len(expr.Parts)-1]
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"6", "Last[{1,5,6}]"},
+			&SameTest{"b", "Last[a+b]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"Last[a]", "Last[a]"},
+			&SameTest{"Last[{}]", "Last[{}]"},
+			&SameTest{"a", "Last[{a}]"},
+		},
+	})
 	return
 }
