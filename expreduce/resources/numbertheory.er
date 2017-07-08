@@ -1,0 +1,4 @@
+LCM[a_?NumberQ, b_?NumberQ] := (a/GCD[a, b])*b;
+LCM[a_?NumberQ, b_?NumberQ, rest__?NumberQ] := 
+  LCM[LCM[a, b], rest];
+Attributes[LCM]={Flat,Listable,OneIdentity,Orderless,Protected};
