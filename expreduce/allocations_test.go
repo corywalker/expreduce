@@ -221,6 +221,20 @@ func TestAssignments(t *testing.T) {
 	assert.Equal(t, [][]int{[]int{2}, []int{1}, []int{0}}, ai.assns)
 	assert.Equal(t, false, ai.next())
 
+	forms = []parsedForm{
+		newPf(1, 99999),
+		newPf(1, 99999),
+	}
+	nComps = 3
+	formMatches = [][]bool{
+		[]bool{true, true, true},
+		[]bool{true, false, false},
+	}
+	ai = NewAssnIter(nComps, forms, formMatches, true)
+	assert.Equal(t, true, ai.next())
+	assert.Equal(t, [][]int{[]int{1, 2}, []int{0}}, ai.assns)
+	assert.Equal(t, false, ai.next())
+
 	// should be 1/2 n (1+n)/.n->(ncomps-1)
 	forms = []parsedForm{
 		newPf(0, 999999),

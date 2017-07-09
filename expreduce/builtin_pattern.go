@@ -489,6 +489,9 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"{{{},{a,b},{},{c,d}},{{},{a,b},{c},{d}},{{},{a,b},{d},{c}},{{},{a,b},{c,d},{}},{{a},{b},{},{c,d}},{{a},{b},{c},{d}},{{a},{b},{d},{c}},{{a},{b},{c,d},{}},{{b},{a},{},{c,d}},{{b},{a},{c},{d}},{{b},{a},{d},{c}},{{b},{a},{c,d},{}},{{a,b},{},{},{c,d}},{{a,b},{},{c},{d}},{{a,b},{},{d},{c}},{{a,b},{},{c,d},{}}}", "ReplaceList[ExpreduceOrderlessFn[a,b,ExpreduceOrderlessFn[c,d]],ExpreduceOrderlessFn[a___,b___,ExpreduceOrderlessFn[c___,d___]]->{{a},{b},{c},{d}}]"},
 
 			&SameTest{"{}", "ReplaceList[a+b+c,___+a_+___->{a}]"},
+
+			&SameTest{"{{{2},{x,y}}}", "ReplaceList[ExpreduceFlOrOiFn[2,x,y],ExpreduceFlOrOiFn[c_Integer,e__]->{{c},{e}}]"},
+			&SameTest{"{{{2},{x,y}}}", "ReplaceList[ExpreduceFlOrOiFn[2,x,y],ExpreduceFlOrOiFn[c_?NumberQ,e__]->{{c},{e}}]"},
 		},
 		KnownFailures: []TestInstruction{
 			// Orderless has issues. Flat seems to work fine. regular ordered matching seems perfect.

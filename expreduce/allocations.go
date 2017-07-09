@@ -143,7 +143,7 @@ func (asi *assnIter) next() bool {
 		return true
 	}
 	asi.iteratingOrderless = false
-	if asi.ai.next() {
+	for asi.ai.next() {
 		// Create slices against assnData.
 		// TODO: non-orderless needs to support formMatches as well.
 		// ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//pm,b//pm,y___//pm]->{{x},{y}}]
@@ -163,7 +163,7 @@ func (asi *assnIter) next() bool {
 				// I used to not have this, but this can trigger now that we
 				// have formMatches. Now, MatchQ[ExpreduceOrderlessFn[a,b],ExpreduceOrderlessFn[b,b]]
 				// can actually fail before creating any orderless assignments.
-				return false
+				continue
 			}
 			asi.iteratingOrderless = true
 		}
