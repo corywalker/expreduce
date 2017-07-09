@@ -83,9 +83,11 @@ FactorTermsList[expr_] := Module[{e = expr, toFactor, cTerms, c},
    If[Head[toFactor] =!= Plus,
     Return[ExpreduceConstantTerm[toFactor]]
     ];
-   cTerms = (ExpreduceConstantTerm /@ (List @@ toFactor) // 
+   (* Parens are necessary due to precedence issue. *)
+   cTerms = ((ExpreduceConstantTerm /@ (List @@ toFactor)) // 
        Transpose)[[1]];
    c = GCD @@ cTerms;
    If[Last[cTerms] < 0, c = -c];
    {c, toFactor/c // Expand}
    ];
+Attributes[FactorTermsList] = {Protected};

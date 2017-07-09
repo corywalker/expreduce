@@ -388,5 +388,35 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"1-x/a", "PolynomialRemainder[1 + x^3, 1 + a*x^2, x]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "FactorTermsList",
+		Usage:  "`FactorTermsList[expr]` factors out the constant term of `expr` and puts the factored result into a `List`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{2,Sin[8 k]}", "FactorTermsList[2*Sin[8*k]]"},
+			&SameTest{"{1/2,a+x}", "FactorTermsList[a/2 + x/2]"},
+			&SameTest{"{1,a+x}", "FactorTermsList[a + x]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{1,1}", "FactorTermsList[1]"},
+			&SameTest{"{5,1}", "FactorTermsList[5]"},
+			&SameTest{"{5.,1}", "FactorTermsList[5.]"},
+			&SameTest{"{1,a}", "FactorTermsList[a]"},
+			&SameTest{"{1/2,a}", "FactorTermsList[a/2]"},
+			&SameTest{"{-(3/2),x}", "FactorTermsList[(-3*x)/2]"},
+			&SameTest{"{2,a+x}", "FactorTermsList[2*a + 2*x]"},
+			&SameTest{"{1/2,a/(2 b+2 c)+x/(2 b+2 c)}", "FactorTermsList[(a/2 + x/2)/(2*b + 2*c)]"},
+			&SameTest{"{1,2+x^2}", "FactorTermsList[(8 + 4*x^2)/4]"},
+			&SameTest{"{-(1/2),2+3 x+x^2}", "FactorTermsList[(-4 - 6*x - 2*x^2)/4]"},
+			&SameTest{"{-(1/2),-2+3 x+x^2}", "FactorTermsList[(2 - 3*x - x^2)/2]"},
+			&SameTest{"{-(1/2),-2-3 x+x^2}", "FactorTermsList[(2 + 3*x - x^2)/2]"},
+			&SameTest{"{1/2,2+3 x+x^2}", "FactorTermsList[(2 + 3*x + x^2)/2]"},
+			&SameTest{"{1/2,-2-3 x+x^2}", "FactorTermsList[(-2 - 3*x + x^2)/2]"},
+			&SameTest{"{5,2+3 x+x^2}", "FactorTermsList[5*(1 + x)*(2 + x)]"},
+			&SameTest{"{40,1+3 x+3 x^2+x^3}", "FactorTermsList[5*(2 + 2*x)^3]"},
+			&SameTest{"{-6,1+x}", "FactorTermsList[(-12 - 12*x)/2]"},
+			&SameTest{"{2/3,3+x}", "FactorTermsList[(18 + 6*x)/9]"},
+			&SameTest{"{-(2800301/67344500),1-2 x+x^3}", "FactorTermsList[(-2800301/538756 + (2800301*x)/269378 - (2800301*x^3)/538756)/125]"},
+		},
+	})
 	return
 }
