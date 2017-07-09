@@ -1,5 +1,7 @@
 package expreduce
 
+//import "fmt"
+
 func compareStrings(a string, b string) int64 {
 	minchars := Min(len(a), len(b))
 	for i := 0; i < minchars; i++ {
@@ -63,10 +65,44 @@ func ExOrder(a Ex, b Ex) int64 {
 
 	// Handle expression comparisons
 	if aIsExp && bIsExp {
+		_, aIsPow := HeadAssertion(aAsExp, "Power")
+		_, bIsPow := HeadAssertion(bAsExp, "Power")
+		_, aIsTimes := HeadAssertion(aAsExp, "Times")
+		_, bIsTimes := HeadAssertion(bAsExp, "Times")
+		if aIsPow && bIsTimes {
+			return ExOrder(NewExpression([]Ex{
+				&Symbol{"Times"},
+				NewInt(1),
+				aAsExp,
+			}), b)
+		}
+		if bIsPow && aIsTimes {
+			return ExOrder(aAsExp, NewExpression([]Ex{
+				&Symbol{"Times"},
+				NewInt(1),
+				bAsExp,
+			}))
+		}
+		timesMode := aIsTimes && bIsTimes
 		for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
-			o := ExOrder(aAsExp.Parts[i], bAsExp.Parts[i])
+			aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
+			if timesMode && numberQ(aPart) && numberQ(bPart) {
+				continue
+			}
+			o := ExOrder(aPart, bPart)
 			if o != 0 {
 				return o
+			}
+		}
+		if timesMode {
+			for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
+				aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
+				if numberQ(aPart) && numberQ(bPart) {
+					o := ExOrder(aPart, bPart)
+					if o != 0 {
+						return o
+					}
+				}
 			}
 		}
 		if len(aAsExp.Parts) < len(bAsExp.Parts) {
@@ -115,6 +151,14 @@ func ExOrder(a Ex, b Ex) int64 {
 		return -1
 	}
 	if aIsSymbol && bIsExp {
+		_, bIsPow := HeadAssertion(bAsExp, "Power")
+		if bIsPow {
+			return ExOrder(NewExpression([]Ex{
+				&Symbol{"Power"},
+				a,
+				NewInt(1),
+			}), b)
+		}
 		return 1
 	}
 
@@ -125,6 +169,14 @@ func ExOrder(a Ex, b Ex) int64 {
 		return -1
 	}
 	if aIsExp && bIsSymbol {
+		_, aIsPow := HeadAssertion(aAsExp, "Power")
+		if aIsPow {
+			return ExOrder(a, NewExpression([]Ex{
+				&Symbol{"Power"},
+				b,
+				NewInt(1),
+			}))
+		}
 		return -1
 	}
 

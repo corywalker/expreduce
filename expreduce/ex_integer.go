@@ -48,3 +48,7 @@ func (this *Integer) DeepCopy() Ex {
 func (this *Integer) NeedsEval() bool {
 	return false
 }
+
+func NewInt(i int64) *Integer {
+	return &Integer{big.NewInt(i)}
+}

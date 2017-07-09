@@ -152,10 +152,26 @@ func GetSortDefinitions() (defs []Definition) {
 			&SameTest{"-1", "Order[\"b\", \"a\"]"},
 			&SameTest{"1", "Order[\"a\", \"b\"]"},
 			&SameTest{"1", "Order[\"a\", \"aa\"]"},
+
+			// Test polynomial ordering
+			&SameTest{"-1", "Order[x^3,4x^2]"},
+			&SameTest{"-1", "Order[x^3,4x^2]"},
+			&SameTest{"1", "Order[1,4x^2]"},
+			&SameTest{"1", "Order[1,4*Sin[x]^2]"},
+			&SameTest{"-1", "Order[5x^2,4x^2]"},
+			&SameTest{"-1", "Order[4x^3,4x^2]"},
+			&SameTest{"1", "Order[x^2,4x^2]"},
+			&SameTest{"1", "Order[x^2,foo[x]]"},
+			&SameTest{"1", "Order[x^2,x*y]"},
+			&SameTest{"-1", "Order[3x^3,4x^2]"},
 		},
 		KnownFailures: []TestInstruction{
 			&SameTest{"{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]"},
 			&SameTest{"{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]"},
+
+			&SameTest{"1", "Order[x^2*y,x*y^2]"},
+			&SameTest{"1", "Order[x^4*y^2,x^2*y^4]"},
+			&SameTest{"1", "Order[x^2*y,2*x*y^2]"},
 		},
 	})
 	/*defs = append(defs, Definition{
