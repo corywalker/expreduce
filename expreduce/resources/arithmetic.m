@@ -1,3 +1,4 @@
+Abs::usage = "`Abs[expr]` calculates the absolute value of `expr`.";
 Abs[a_?NumberQ] := If[a<0,-a,a];
 Abs[-a_] := Abs[a];
 Attributes[Abs] = {Listable, NumericFunction, Protected, ReadProtected};

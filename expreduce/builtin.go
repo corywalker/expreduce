@@ -110,8 +110,27 @@ func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
 	}
 }
 
+func (def *Definition) AnnotateWithDynamicUsage(es *EvalState) {
+	if len(def.Usage) > 0 {
+		return
+	}
+	lhs := NewExpression([]Ex{
+		&Symbol{"MessageName"},
+		&Symbol{def.Name},
+		&String{"usage"},
+	})
+	usage, usageIsDef, _ := es.GetDef("MessageName", lhs)
+	if !usageIsDef {
+		return
+	}
+	if usageStr, usageIsStr := usage.(*String); usageIsStr {
+		def.Usage = usageStr.Val
+	}
+}
+
 func (def *Definition) AnnotateWithDynamic(es *EvalState) {
 	def.AnnotateWithDynamicTests(es)
+	def.AnnotateWithDynamicUsage(es)
 }
 
 type NamedDefSet struct {

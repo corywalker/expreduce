@@ -605,7 +605,6 @@ func getArithmeticDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Abs",
-		Usage: "`Abs[expr]` calculates the absolute value of `expr`.",
 	})
 	return
 }
