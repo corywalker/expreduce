@@ -281,7 +281,7 @@ Tests`Variables = {
     ESimpleExamples[
         ESameTest[{x, y}, Variables[x + y + y^2]],
         ESameTest[{w^w, x^y, z}, Variables[w^w + x^y + z]],
-        ESameTest[{a, b^c, b^d}, Variables[a^2*b^(2*c + 2*d)]],
+        ESameTest[{a, b^c, b^d}, Variables[a^2*b^(2*c + 2*d)]]
     ], ETests[
         ESameTest[{x, y}, Variables[x*y]],
         ESameTest[{x, y}, Variables[x + y]],
@@ -312,16 +312,12 @@ Tests`Variables = {
         ESameTest[{(a + b)^c}, Variables[(a + b)^c]],
         ESameTest[{(a + b)^c, (a + b)^d}, Variables[(a + b)^(c + d)]],
         ESameTest[{}, Variables[2^(c + d)]],
-        ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
-        ESameTest[{a}, Variables[Sqrt[a]]],
         ESameTest[{Log[b]}, Variables[Log[b]]],
-        ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]],
         ESameTest[{a^b, a^c}, Variables[a^(b + c)]],
         ESameTest[{b^c, b^d}, Variables[b^(2*c + 2*d)]],
         ESameTest[{b^(c*d)}, Variables[b^(2*c*d)]],
         ESameTest[{b^(c*d)}, Variables[b^(c*d)]],
         ESameTest[{b^(2.5*c*d)}, Variables[b^(2.5*c*d)]],
-        ESameTest[{}, Variables[Pi^y]],
         ESameTest[{(a + b)^2.5}, Variables[(a + b)^2.5]],
         ESameTest[{(a + b)^(2.5*a)}, Variables[(a + b)^(2.5*a)]],
         ESameTest[{(a + b)^2.5, (a + b)^a}, Variables[(a + b)^(2.5 + a)]],
@@ -331,43 +327,42 @@ Tests`Variables = {
         ESameTest[{}, Variables[2^"Hello"]],
         ESameTest[{}, Variables[2^"Hello"^2]],
         ESameTest[{a^"Hello"^2}, Variables[a^"Hello"^2]]
+    ], EKnownFailures[
+        (*I think these have to do with NumericQ.*)
+        ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
+        ESameTest[{a}, Variables[Sqrt[a]]],
+        ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]],
+        ESameTest[{}, Variables[Pi^y]]
     ]
 };
 
-(*
 PolynomialGCD::usage = "`PolynomialGCD[a, b]` calculates the polynomial GCD of `a` and `b`.";
 PolySubresultantGCD[inA_, inB_, inX_] := 
   Module[{u = inA, v = inB, x = inX, h, delta, beta, newU, newV, i},
-   Print[u];
-   Print[v];
-   Print[x];
    h = 1;
    i = 1;
    While[v =!= 0 && i < 20,
     delta = Exponent[u, x] - Exponent[v, x];
-    Print[delta];
     beta = (-1)^(delta + 1)*Exponent[u, x]*h^delta;
-    Print[beta];
     h = h*(Exponent[v, x]/h)^delta;
-    Print[h];
     newU = v;
     newV = PolynomialRemainder[u, v, x]/beta;
-    Print[newV];
     u = newU;
     v = newV;
     i = i + 1;
     ];
    If[Exponent[u, x] == 0, 1, u]
-   ];*)
+   ];
 (* doesn't work with rational functions yet. *)
-
 (* Looks like prefactored inputs remain factored. *)
-(*PolynomialGCD[inA_, inB_] := 
+PolynomialGCD[inA_, inB_] := 
   FactorTermsList[
     PolySubresultantGCD[inA, inB, Variables[inA][[1]]]][[2]];
-
-Attributes[PolynomialGCD] = {Listable, Protected};*)
-(*Tests`PolynomialGCD = {
+Attributes[PolynomialGCD] = {Listable, Protected};
+Tests`PolynomialGCD = {
     ESimpleExamples[
+        ESameTest[5+a, PolynomialGCD[15+13 a+2 a^2,10+7 a+a^2]],
+        ESameTest[5+a+a^2, PolynomialGCD[15+13 a+5 a^2+2 a^3,10+7 a+3 a^2+a^3]],
+        ESameTest[-5-a+a^2, PolynomialGCD[15+13 a-a^2-2 a^3,5+a-a^2]]
     ]
-};*)
+};

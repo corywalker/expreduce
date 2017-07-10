@@ -265,8 +265,11 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "FactorTermsList",
 	})
-	/*defs = append(defs, Definition{
+	defs = append(defs, Definition{
+		Name:  "Variables",
+	})
+	defs = append(defs, Definition{
 		Name:  "PolynomialGCD",
-	})*/
+	})
 	return
 }
