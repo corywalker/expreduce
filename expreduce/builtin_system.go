@@ -627,5 +627,12 @@ func GetSystemDefinitions() (defs []Definition) {
 			&SameTest{"{t$9,2,10}", "$ModuleNumber=8;t$3=test;Module[{t,j:=2},{t,j,$ModuleNumber}]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "ESameTest",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		Bootstrap: true,
+		Attributes: []string{"HoldAll"},
+	})
 	return
 }

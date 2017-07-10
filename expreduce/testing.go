@@ -67,9 +67,20 @@ func (this *TestComment) Run(t *testing.T, es *EvalState, td TestDesc) bool {
 	return true
 }
 
-func CasTestInner(es *EvalState, out string, in string, test bool, desc string) (succ bool, s string) {
-	inTree := EvalInterp(in, es).Eval(es)
-	outTree := EvalInterp(out, es).Eval(es)
+type SameTestEx struct {
+	Out Ex
+	In  Ex
+}
+
+func (this *SameTestEx) Run(t *testing.T, es *EvalState, td TestDesc) bool {
+	succ, s := CasTestInner(es, this.Out, this.In, this.In.String(), true, td.desc)
+	assert.True(t, succ, s)
+	return succ
+}
+
+func CasTestInner(es *EvalState, out Ex, in Ex, inStr string, test bool, desc string) (succ bool, s string) {
+	inTree := in.Eval(es).Eval(es)
+	outTree := out.Eval(es).Eval(es)
 	theTestTree := NewExpression([]Ex{
 		&Symbol{"SameQ"},
 		NewExpression([]Ex{&Symbol{"Hold"}, inTree}),
@@ -89,7 +100,7 @@ func CasTestInner(es *EvalState, out string, in string, test bool, desc string) 
 	buffer.WriteString(outTree.String())
 	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
-	buffer.WriteString(in)
+	buffer.WriteString(inStr)
 	if len(desc) != 0 {
 		buffer.WriteString("\n\tDesc: ")
 		buffer.WriteString(desc)
@@ -102,25 +113,25 @@ func CasTestInner(es *EvalState, out string, in string, test bool, desc string) 
 }
 
 func CasAssertSame(t *testing.T, es *EvalState, out string, in string) bool {
-	succ, s := CasTestInner(es, out, in, true, "")
+	succ, s := CasTestInner(es, Interp(out), Interp(in), in, true, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDiff(t *testing.T, es *EvalState, out string, in string) bool {
-	succ, s := CasTestInner(es, out, in, false, "")
+	succ, s := CasTestInner(es, Interp(out), Interp(in), in, false, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDescSame(t *testing.T, es *EvalState, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, out, in, true, desc)
+	succ, s := CasTestInner(es, Interp(out), Interp(in), in, true, desc)
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDescDiff(t *testing.T, es *EvalState, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, out, in, false, desc)
+	succ, s := CasTestInner(es, Interp(out), Interp(in), in, false, desc)
 	assert.True(t, succ, s)
 	return succ
 }

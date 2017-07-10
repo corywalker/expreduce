@@ -32,11 +32,12 @@ func TestIncludedModules(t *testing.T) {
 		}
 		fmt.Printf("Testing module %s\n", defSet.Name)
 		for _, def := range defSet.Defs {
+			es := NewEvalState()
+			def.AnnotateWithDynamic(es)
 			td := TestDesc{
 				module: defSet.Name,
 				def:    def,
 			}
-			es := NewEvalState()
 			if *deftimings {
 				es.DebugOn(logging.ERROR)
 			}

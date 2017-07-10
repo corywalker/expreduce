@@ -1,5 +1,3 @@
-Abs[a_?NumberQ] := If[a<0,-a,a];
-
 (* Eventually we should not need the rest___ term. GCD is Flat. *)
 GCD[Rational[a_, b_], Rational[c_, d_], rest___] := 
   GCD[GCD[a*d, c*b]/(b*d), rest];

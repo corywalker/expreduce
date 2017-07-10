@@ -418,5 +418,17 @@ func GetPowerDefinitions() (defs []Definition) {
 			&SameTest{"{-(2800301/67344500),1-2 x+x^3}", "FactorTermsList[(-2800301/538756 + (2800301*x)/269378 - (2800301*x^3)/538756)/125]"},
 		},
 	})
+	/*defs = append(defs, Definition{
+		Name:  "PolynomialGCD",
+		Usage:  "`PolynomialGCD[a, b]` calculates the polynomial GCD of `a` and `b`.",
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2+3 x+x^2", "PolynomialGCD[8 + 22*x + 21*x^2 + 8*x^3 + x^4, 6 + 11*x + 6*x^2 + x^3]"},
+			&SameTest{"2+x^2", "PolynomialGCD[-4 + x^4, 4 + 4*x^2 + x^4]"},
+			&SameTest{"1-2 x+x^3", "PolynomialGCD[5 - 12*x + 4*x^2 + 5*x^3 - x^4 - 2*x^5 + x^7, 3 - 6*x - 7*x^2 + 17*x^3 + x^4 - 9*x^5 + x^7]"},
+			&SameTest{"1+x", "PolynomialGCD[6 + 7*x + x^2, -6 - 5*x + x^2]"},
+			&SameTest{"1", "PolynomialGCD[3 + 6*x + 2*x^2, 1 + 2*x]"},
+			&SameTest{"3+x", "PolynomialGCD[6 - 28*x - 19*x^2 + 3*x^3 + 2*x^4, -18 - 9*x + 2*x^2 + x^3]"},
+		},
+	})*/
 	return
 }

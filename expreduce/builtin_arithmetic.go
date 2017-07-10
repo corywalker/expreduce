@@ -603,5 +603,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 			&SameTest{"1440", "Product[a + b, {a, 1, 2}, {b, 1, 3}]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Abs",
+		Usage: "`Abs[expr]` calculates the absolute value of `expr`.",
+	})
 	return
 }

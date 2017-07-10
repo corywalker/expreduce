@@ -35,6 +35,85 @@ type Definition struct {
 	Default string
 }
 
+func ToTestInstructions(tc *Expression) []TestInstruction {
+	instructions := []TestInstruction{}
+	for _, tiEx := range tc.Parts[1:] {
+		if st, isSt := HeadAssertion(tiEx, "ESameTest"); isSt {
+			if len(st.Parts) != 3 {
+				log.Fatalf("Invalid test case: %v\n", tiEx)
+				continue
+			}
+			instructions = append(instructions, &SameTestEx{
+				st.Parts[1], st.Parts[2]})
+			continue
+		}
+		if comment, isComment := HeadAssertion(tiEx, "EComment"); isComment {
+			if len(comment.Parts) != 2 {
+				log.Fatalf("Invalid test case: %v\n", tiEx)
+				continue
+			}
+			comStr, comIsStr := comment.Parts[1].(*String)
+			if !comIsStr {
+				log.Fatalf("Invalid test case: %v\n", tiEx)
+				continue
+			}
+			instructions = append(instructions, &TestComment{
+				comStr.Val})
+			continue
+		}
+		log.Fatalf("Invalid test case: %v\n", tiEx)
+	}
+	return instructions
+}
+
+func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
+	tests, testsDef := es.GetSymDef("Tests`" + def.Name)
+	if !testsDef {
+		return
+	}
+	testsList, testsIsList := HeadAssertion(tests, "List")
+	if !testsIsList {
+		return
+	}
+	for _, testCol := range testsList.Parts[1:] {
+		testColExpr, testColIsExpr := testCol.(*Expression)
+		if !testColIsExpr {
+			continue
+		}
+		headSym, headIsSym := testColExpr.Parts[0].(*Symbol)
+		if !headIsSym {
+			continue
+		}
+		if (headSym.Name == "ESimpleExamples") {
+			def.SimpleExamples = append(
+				def.SimpleExamples,
+				ToTestInstructions(testColExpr)...)
+		} else if (headSym.Name == "EFurtherExamples") {
+			def.FurtherExamples = append(
+				def.FurtherExamples,
+				ToTestInstructions(testColExpr)...)
+		} else if (headSym.Name == "ETests") {
+			def.Tests = append(
+				def.Tests,
+				ToTestInstructions(testColExpr)...)
+		} else if (headSym.Name == "EKnownFailures") {
+			def.KnownFailures = append(
+				def.KnownFailures,
+				ToTestInstructions(testColExpr)...)
+		} else if (headSym.Name == "EKnownDangerous") {
+			def.KnownDangerous = append(
+				def.KnownDangerous,
+				ToTestInstructions(testColExpr)...)
+		} else {
+			log.Fatalf("Invalid test collection: %v\n", testColExpr)
+		}
+	}
+}
+
+func (def *Definition) AnnotateWithDynamic(es *EvalState) {
+	def.AnnotateWithDynamicTests(es)
+}
+
 type NamedDefSet struct {
 	Name string
 	Defs []Definition

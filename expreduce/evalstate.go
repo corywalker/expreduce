@@ -70,7 +70,7 @@ func (this *EvalState) Load(def Definition) {
 
 func InitCAS(es *EvalState) {
 	// System initialization
-	data := MustAsset("resources/init.er")
+	data := MustAsset("resources/init.m")
 	EvalInterp(string(data), es)
 	EvalInterp(fmt.Sprintf("$Path = {\"%s\"}", "."), es)
 }
@@ -98,7 +98,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 					es.Load(def)
 				}
 			}
-			data, err := Asset(fmt.Sprintf("resources/%v.er", defSet.Name))
+			data, err := Asset(fmt.Sprintf("resources/%v.m", defSet.Name))
 			if err == nil {
 				EvalInterp(string(data), es)
 			}

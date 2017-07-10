@@ -91,3 +91,35 @@ FactorTermsList[expr_] := Module[{e = expr, toFactor, cTerms, c},
    {c, toFactor/c // Expand}
    ];
 Attributes[FactorTermsList] = {Protected};
+
+(*PolySubresultantGCD[inA_, inB_, inX_] := 
+  Module[{u = inA, v = inB, x = inX, h, delta, beta, newU, newV, i},
+   Print[u];
+   Print[v];
+   Print[x];
+   h = 1;
+   i = 1;
+   While[v =!= 0 && i < 20,
+    delta = Exponent[u, x] - Exponent[v, x];
+    Print[delta];
+    beta = (-1)^(delta + 1)*Exponent[u, x]*h^delta;
+    Print[beta];
+    h = h*(Exponent[v, x]/h)^delta;
+    Print[h];
+    newU = v;
+    newV = PolynomialRemainder[u, v, x]/beta;
+    Print[newV];
+    u = newU;
+    v = newV;
+    i = i + 1;
+    ];
+   If[Exponent[u, x] == 0, 1, u]
+   ];*)
+(* doesn't work with rational functions yet. *)
+
+(* Looks like prefactored inputs remain factored. *)
+(*PolynomialGCD[inA_, inB_] := 
+  FactorTermsList[
+    PolySubresultantGCD[inA, inB, Variables[inA][[1]]]][[2]];
+
+Attributes[PolynomialGCD] = {Listable, Protected};*)
