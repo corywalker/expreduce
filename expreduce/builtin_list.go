@@ -2,6 +2,7 @@ package expreduce
 
 import "bytes"
 import "math/big"
+import "sort"
 
 func (this *Expression) ToStringList(form string) (bool, string) {
 	if form == "FullForm" {
@@ -281,6 +282,82 @@ func GetListDefinitions() (defs []Definition) {
 		FurtherExamples: []TestInstruction{
 			&TestComment{"`expr` need not be a list:"},
 			&SameTest{"{a}", "Cases[bar[a, b, c], a]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "DeleteCases",
+		Usage: "`DeleteCases[expr, pat]` returns a new expression of all elements in `expr` that do not match `pat`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			expr, isExpr := this.Parts[1].(*Expression)
+			if isExpr {
+				toReturn := NewExpression([]Ex{expr.Parts[0]})
+				pattern := this.Parts[2]
+				for i := 1; i < len(expr.Parts); i++ {
+					if matchq, _ := IsMatchQ(expr.Parts[i], pattern, EmptyPD(), es); !matchq {
+						toAdd := expr.Parts[i]
+						toReturn.Parts = append(toReturn.Parts, toAdd)
+					}
+				}
+
+				return toReturn
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{3.5,x,y}", "DeleteCases[{5,2,3.5,x,y,4},_Integer]"},
+			&SameTest{"{5,2,x,y,4}", "DeleteCases[{5,2,3.5,x,y,4},_Real]"},
+			&SameTest{"x+y", "DeleteCases[3.5+x+y,_Real]"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name:  "Union",
+		Usage: "`Union[expr1, expr2, ...]` returns a sorted union of the items in the expressions.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) == 1 {
+				return NewExpression([]Ex{&Symbol{"List"}})
+			}
+			var firstHead Ex = nil
+			var allParts *Expression = nil
+			for _, part := range this.Parts[1:] {
+				expr, isExpr := part.(*Expression)
+				if !isExpr {
+					return this
+				}
+				if firstHead == nil {
+					firstHead = expr.Parts[0]
+					allParts = NewExpression([]Ex{firstHead})
+				} else if !IsSameQ(firstHead, expr.Parts[0], &es.CASLogger) {
+					return this
+				}
+				allParts.Parts = append(allParts.Parts, expr.Parts[1:]...)
+			}
+			sort.Sort(allParts)
+			toReturn := NewExpression([]Ex{firstHead})
+			var lastEx Ex = nil
+			for _, part := range allParts.Parts[1:] {
+				if lastEx == nil || !IsSameQ(lastEx, part, &es.CASLogger) {
+					lastEx = part
+					toReturn.Parts = append(toReturn.Parts, part)
+				}
+			}
+
+			return toReturn
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{a,b}", "Union[{b,a,a,b,a}]"},
+			&SameTest{"{a,b,y,z}", "Union[{b,a,a,b,a},{y,z}]"},
+			&SameTest{"foo[a,b,y,z]", "Union[foo[b,a,a,b,a],foo[y,z]]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"Union[foo[b,a,a,b,a],{y,z}]", "Union[foo[b,a,a,b,a],{y,z}]"},
+			&SameTest{"{}", "Union[]"},
+			&SameTest{"Union[{b,a,a,b,a},z]", "Union[{b,a,a,b,a},z]"},
+			&SameTest{"{a}", "Union[{a}]"},
+			&SameTest{"{List}", "Union[{List}]"},
 		},
 	})
 	defs = append(defs, Definition{
