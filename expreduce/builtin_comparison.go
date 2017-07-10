@@ -274,6 +274,9 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:         "NumericQ",
+	})
+	defs = append(defs, Definition{
 		Name:  "Less",
 		Usage: "`a < b` returns True if `a` is less than `b`.",
 		toString: func(this *Expression, form string) (bool, string) {

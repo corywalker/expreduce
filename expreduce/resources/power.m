@@ -14,6 +14,7 @@ Expand[a_] := a //. {
      genExpand[List @@ s, possibleExponents[n, Length[s]]],
     c_*s_Plus :> ((c*#) &) /@ s
     };
+Attributes[Expand] = {Protected};
 Tests`Expand = {
     ESimpleExamples[
         ESameTest[a^3 + 3 a^2 * b + 3 a b^2 + b^3 + 3 a^2 * c + 6 a b c + 3 b^2 * c + 3 a c^2 + 3 b c^2 + c^3, Expand[(a + b + c)^3]],
@@ -35,6 +36,7 @@ PolynomialQ[p_Plus, v_] :=
 PolynomialQ[p_.*v_^Optional[exp_Integer], v_] :=
   If[FreeQ[p, v] && Positive[exp], True, False];
 PolynomialQ[p_, v_] := If[FreeQ[p, v], True, False];
+Attributes[PolynomialQ] = {Protected};
 Tests`PolynomialQ = {
     ETests[
         ESameTest[True, PolynomialQ[2x^2-3x+2, x]],
@@ -147,7 +149,6 @@ Coefficient[inP_, inTerm_] :=
     Map[ExpreduceSingleCoefficient[#, term] &, toMatch],
     ExpreduceSingleCoefficient[toMatch, term]]
    ];
-
 Attributes[Coefficient] = {Listable, Protected};
 Tests`Coefficient = {
     ESimpleExamples[
@@ -259,6 +260,80 @@ Tests`FactorTermsList = {
     ]
 };
 
+Varibles::usage = "`Variables[expr]` returns the variables in `expr`.";
+Variables[s_Symbol] := {s};
+Variables[s_^p_Integer] := Variables[s];
+Variables[s_^p_Rational] := Variables[s];
+Variables[s_^p_Plus] := 
+  If[NumericQ[s], {}, (((s^#) &) /@ p) // Variables];
+Variables[s_^p_] := If[NumericQ[s], {}, {s^p}];
+Variables[s_^p_Times] := 
+  If[NumericQ[s], {}, {s^DeleteCases[p, _Integer]}];
+Variables[e_] := (
+   If[NumericQ[e] || Length[e] === 0, Return[{}]];
+   If[MemberQ[{Plus, Times, List}, Head[e]], 
+    Return[Union @@ Variables /@ (List @@ e)]];
+   If[Length[e] > 0, Return[{e}]];
+   Unknown
+   );
+Attributes[Variables] = {Protected};
+Tests`Variables = {
+    ESimpleExamples[
+        ESameTest[{x, y}, Variables[x + y + y^2]],
+        ESameTest[{w^w, x^y, z}, Variables[w^w + x^y + z]],
+        ESameTest[{a, b^c, b^d}, Variables[a^2*b^(2*c + 2*d)]],
+    ], ETests[
+        ESameTest[{x, y}, Variables[x*y]],
+        ESameTest[{x, y}, Variables[x + y]],
+        ESameTest[{x, y, y^2.5}, Variables[x + y + y^2.5]],
+        ESameTest[{y}, Variables[y^2]],
+        ESameTest[{x^y}, Variables[x^y]],
+        ESameTest[{x^y, y^x}, Variables[x^y + y^x]],
+        ESameTest[{x^y, z}, Variables[x^y + z]],
+        ESameTest[{w, x^y, z}, Variables[w^2 + x^y + z]],
+        ESameTest[{}, Variables[2^(x + y)]],
+        ESameTest[{}, Variables[2^x]],
+        ESameTest[{}, Variables[foo[]]],
+        ESameTest[{foo[x]}, Variables[foo[x]]],
+        ESameTest[{foo[x, y]}, Variables[foo[x, y]]],
+        ESameTest[{foo[2]}, Variables[foo[2]]],
+        ESameTest[{}, Variables[Sin[2]]],
+        ESameTest[{Sin[x]}, Variables[Sin[x]]],
+        ESameTest[{}, Variables[1]],
+        ESameTest[{x}, Variables[{x}]],
+        ESameTest[{}, Variables[{1}]],
+        ESameTest[{x}, Variables[x]],
+        ESameTest[{a, b, x, y, z}, Variables[a + (a + b)^2 + x*y^3 + 2*z]],
+        ESameTest[{a, b}, Variables[(a + b)^2]],
+        ESameTest[{a, b}, Variables[(a + 2*b)^2]],
+        ESameTest[{a, b^c, b^d}, Variables[(a + b^(c + d))^2]],
+        ESameTest[{a, b^c, b^d}, Variables[a + b^(c + d)]],
+        ESameTest[{(a*b^(c + d))^e}, Variables[(a*b^(c + d))^e]],
+        ESameTest[{(a + b)^c}, Variables[(a + b)^c]],
+        ESameTest[{(a + b)^c, (a + b)^d}, Variables[(a + b)^(c + d)]],
+        ESameTest[{}, Variables[2^(c + d)]],
+        ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
+        ESameTest[{a}, Variables[Sqrt[a]]],
+        ESameTest[{Log[b]}, Variables[Log[b]]],
+        ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]],
+        ESameTest[{a^b, a^c}, Variables[a^(b + c)]],
+        ESameTest[{b^c, b^d}, Variables[b^(2*c + 2*d)]],
+        ESameTest[{b^(c*d)}, Variables[b^(2*c*d)]],
+        ESameTest[{b^(c*d)}, Variables[b^(c*d)]],
+        ESameTest[{b^(2.5*c*d)}, Variables[b^(2.5*c*d)]],
+        ESameTest[{}, Variables[Pi^y]],
+        ESameTest[{(a + b)^2.5}, Variables[(a + b)^2.5]],
+        ESameTest[{(a + b)^(2.5*a)}, Variables[(a + b)^(2.5*a)]],
+        ESameTest[{(a + b)^2.5, (a + b)^a}, Variables[(a + b)^(2.5 + a)]],
+        ESameTest[{}, Variables[5.656854249492381]],
+        ESameTest[{}, Variables[{}]],
+        ESameTest[{a^"Hello"}, Variables[a^"Hello"]],
+        ESameTest[{}, Variables[2^"Hello"]],
+        ESameTest[{}, Variables[2^"Hello"^2]],
+        ESameTest[{a^"Hello"^2}, Variables[a^"Hello"^2]]
+    ]
+};
+
 (*
 PolynomialGCD::usage = "`PolynomialGCD[a, b]` calculates the polynomial GCD of `a` and `b`.";
 PolySubresultantGCD[inA_, inB_, inX_] := 
@@ -294,11 +369,5 @@ PolySubresultantGCD[inA_, inB_, inX_] :=
 Attributes[PolynomialGCD] = {Listable, Protected};*)
 (*Tests`PolynomialGCD = {
     ESimpleExamples[
-        ESameTest[2+3 x+x^2, PolynomialGCD[8 + 22*x + 21*x^2 + 8*x^3 + x^4, 6 + 11*x + 6*x^2 + x^3]],
-        ESameTest[2+x^2, PolynomialGCD[-4 + x^4, 4 + 4*x^2 + x^4]],
-        ESameTest[1-2 x+x^3, PolynomialGCD[5 - 12*x + 4*x^2 + 5*x^3 - x^4 - 2*x^5 + x^7, 3 - 6*x - 7*x^2 + 17*x^3 + x^4 - 9*x^5 + x^7]],
-        ESameTest[1+x, PolynomialGCD[6 + 7*x + x^2, -6 - 5*x + x^2]],
-        ESameTest[1, PolynomialGCD[3 + 6*x + 2*x^2, 1 + 2*x]],
-        ESameTest[3+x, PolynomialGCD[6 - 28*x - 19*x^2 + 3*x^3 + 2*x^4, -18 - 9*x + 2*x^2 + x^3]]
     ]
 };*)
