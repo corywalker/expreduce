@@ -24,6 +24,7 @@ func GetPowerDefinitions() (defs []Definition) {
 			{"(first_ * inner___)^Except[_Symbol, pow_]", "first^pow * Times[inner]^pow"},
 
 			// Rational simplifications
+			// These take up time. Possibly convert to Upvalues.
 			{"Power[Rational[a_,b_], -1]", "Rational[b,a]"},
 			{"Power[Rational[a_,b_], e_?Positive]", "Rational[a^e,b^e]"},
 		},
@@ -242,193 +243,30 @@ func GetPowerDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Expand",
-		Usage: "`Expand[expr]` attempts to expand `expr`.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"a^3 + 3 a^2 * b + 3 a b^2 + b^3 + 3 a^2 * c + 6 a b c + 3 b^2 * c + 3 a c^2 + 3 b c^2 + c^3", "Expand[(a + b + c)^3]"},
-			&SameTest{"a c + b c + a d + b d + a e + b e", "(a + b) * (c + d + e) // Expand"},
-			&SameTest{"a d^2 + b d^2 + c d^2 + 2 a d e + 2 b d e + 2 c d e + a e^2 + b e^2 + c e^2", "(a + b + c)*(d + e)^2 // Expand"},
-			&SameTest{"a^(2 b) + 2 a^b * c^d + c^(2 d)", "Expand[(a^b + c^d)^2]"},
-			&SameTest{"a/d + b/d + c/d", "Expand[(a + b + c)/d]"},
-			&SameTest{"1/d + (2 a)/d + a^2/d + b/d + c/d", "Expand[((a + 1)^2 + b + c)/d]"},
-			&SameTest{"2 + 2 a", "2*(a + 1) // Expand"},
-		},
-		Tests: []TestInstruction{
-		},
-		KnownDangerous: []TestInstruction{
-			// The following tests should not take 10 seconds:
-			&SameTest{"Null", "((60 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + a^5 + b^5 + c^5 + (5 * a * b^4) + (5 * a * c^4) + (5 * b * a^4) + (5 * b * c^4) + (5 * c * a^4) + (5 * c * b^4) + (10 * a^2 * b^3) + (10 * a^2 * c^3) + (10 * a^3 * b^2) + (10 * a^3 * c^2) + (10 * b^2 * c^3) + (10 * b^3 * c^2) + (20 * a * b * c^3) + (20 * a * c * b^3) + (20 * b * c * a^3));"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "PolynomialQ",
-		Usage:  "`PolynomialQ[e, var]` returns True if `e` is a polynomial in `var`.",
-		Tests: []TestInstruction{
-			&SameTest{"True", "PolynomialQ[2x^2-3x+2, x]"},
-			&SameTest{"True", "PolynomialQ[2x^2, x]"},
-			&SameTest{"False", "PolynomialQ[2x^2.5, x]"},
-			&SameTest{"False", "PolynomialQ[2x^-2, x]"},
-			&SameTest{"True", "PolynomialQ[2x^0, x]"},
-			&SameTest{"False", "PolynomialQ[2x^y, x]"},
-			&SameTest{"True", "PolynomialQ[-3x, x]"},
-			&SameTest{"True", "PolynomialQ[2, x]"},
-			&SameTest{"True", "PolynomialQ[2y^2, x]"},
-			&SameTest{"True", "PolynomialQ[-3y, x]"},
-			&SameTest{"False", "PolynomialQ[2x^2-3x+2+Cos[x], x]"},
-			&SameTest{"False", "PolynomialQ[Cos[x], x]"},
-			&SameTest{"False", "PolynomialQ[2x^2-3x+Cos[x], x]"},
-			&SameTest{"False", "PolynomialQ[2x^2-x*Cos[x], x]"},
-			&SameTest{"True", "PolynomialQ[2x^2-x*Cos[y], x]"},
-			&SameTest{"True", "PolynomialQ[2.5x^2-3x+2.5, 2.5]"},
-			&SameTest{"True", "PolynomialQ[2x^2-3x+2, \"hello\"]"},
-			&SameTest{"True", "PolynomialQ[2x^2-3x+2, y]"},
-			&SameTest{"True", "PolynomialQ[x, y]"},
-			&SameTest{"True", "PolynomialQ[y, y]"},
-			&SameTest{"True", "PolynomialQ[2*x, y]"},
-			&SameTest{"False", "PolynomialQ[2*x^Sin[y], x]"},
-			&SameTest{"True", "PolynomialQ[Sin[y]*x^2, x]"},
-			&SameTest{"False", "PolynomialQ[Sin[y]*x^2.5, x]"},
-			&SameTest{"False", "PolynomialQ[Sin[y]*x^y, x]"},
-			&SameTest{"True", "PolynomialQ[2*y, y]"},
-			&SameTest{"True", "PolynomialQ[y*x, y]"},
-			&SameTest{"True", "PolynomialQ[y*x, z]"},
-			&SameTest{"True", "PolynomialQ[y*Sin[x], z]"},
-			&SameTest{"False", "PolynomialQ[y^x, y]"},
-			&SameTest{"False", "PolynomialQ[x^y, y]"},
-			&SameTest{"True", "PolynomialQ[x^y, z]"},
-			&SameTest{"True", "PolynomialQ[2.5*x^2, 2.5]"},
-			&SameTest{"True", "PolynomialQ[2.5*x, 2.5]"},
-			&SameTest{"False", "PolynomialQ[2*x^2, 2]"},
-			&SameTest{"True", "PolynomialQ[2*x, 2]"},
-			&SameTest{"True", "PolynomialQ[x, 2]"},
-			&SameTest{"True", "PolynomialQ[Cos[x*y], Cos[x*y]]"},
-			&SameTest{"True", "PolynomialQ[x^2,2.]"},
-			&SameTest{"False", "PolynomialQ[x^a,a]"},
-			&SameTest{"False", "PolynomialQ[x^n,x]"},
-			&SameTest{"True", "PolynomialQ[-x*Cos[y],x]"},
-			&SameTest{"True", "PolynomialQ[x^y, 1]"},
-		},
-		KnownFailures: []TestInstruction{
-			&SameTest{"True", "PolynomialQ[2*x^2-3x+2, 2]"},
-			&SameTest{"True", "PolynomialQ[2*x^2-3x, 2]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "Exponent",
-		Usage:  "`Exponent[p, var]` returns the degree of `p` with respect to the variable `var`.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"{0,3,5}", "Exponent[3 + x^3 + k*x^5, x, List]"},
-		},
-		Tests: []TestInstruction{
-			// Sorting of the input addition expression is off here, so we sort
-			// the result so it does match up.
-			&SameTest{"{0,3,5,x^x}", "Exponent[3 + \"hello\" + x^3 + a*x^5 + x^x^x, x, List]//Sort"},
-			&SameTest{"{0}", "Exponent[1 + x^x^x, x^x, List]"},
-			&SameTest{"{0}", "Exponent[2 + a, x, List]"},
-			&SameTest{"{0}", "Exponent[a, x, List]"},
-			&SameTest{"{2}", "Exponent[x^2, x, List]"},
-			&SameTest{"{1}", "Exponent[x^2 - x*(a + x), x, List]"},
-			&SameTest{"{0,1}", "Exponent[(1 + x)/(3 + x), x, List]"},
-			&SameTest{"{0,2}", "Exponent[(1 + x^2)/(3 + x), x, List]"},
-			&SameTest{"{0,1}", "Exponent[(1 + x)/(3 + x^3), x, List]"},
-			&SameTest{"{0}", "Exponent[(3 + x^3)^(-1), x, List]"},
-			&SameTest{"{-3}", "Exponent[x^(-3), x, List]"},
-			&SameTest{"{-3}", "Exponent[a/x^3, x, List]"},
-			&SameTest{"{-2}", "Exponent[x^(-2), x, List]"},
-			&SameTest{"{1}", "Exponent[(a*x)/(3 + x^3), x, List]"},
-			&SameTest{"{0,1}", "Exponent[1 + b*x + x^2 - (x*(1 + a*x))/a, x, List]"},
-			&SameTest{"{0,1}", "Exponent[1 + x + x^2 - (x*(1 + 2*x))/2, x, List]"},
-		},
-		KnownFailures: []TestInstruction{
-			&SameTest{"{0,1}", "Exponent[1 + x^x^x, x^x^x, List]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "Coefficient",
-		Usage:  "`Coefficient[p, form]` returns the coefficient of form `form` in polynomial `p`.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"3", "Coefficient[(a + b)^3, a*b^2]"},
-		},
-		Tests: []TestInstruction{
-			&SameTest{"j", "Coefficient[c + j*a + k*b, a]"},
-			&SameTest{"a", "Coefficient[c + k*x + a*x^3, x, 3]"},
-			&SameTest{"24", "Coefficient[2*b*(2*a + 3*b)*(1 + 2*a + 3*b), a*b^2]"},
-			&SameTest{"29", "Coefficient[(2 + x)^2 + (5 + x)^2, x, 0]"},
-			&SameTest{"1", "Coefficient[a + x, x]"},
-			&SameTest{"4", "Coefficient[2*b*(2*a + 3*b)*(1 + 2*a + 3*b), a*b]"},
-			&SameTest{"1", "Coefficient[x^2, x^2]"},
-			&SameTest{"-a", "Coefficient[x^2 - x*(a + x), x]"},
-			&SameTest{"-(1/a)+b", "Coefficient[1 + b*x + x^2 - (x*(1 + a*x))/a, x]"},
-			&SameTest{"1/2", "Coefficient[1 + x + x^2 - (x*(1 + 2*x))/2, x]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "PolynomialQuotientRemainder",
-		Usage:  "`PolynomialQuotientRemainder[poly_, div_, var_]` returns the quotient and remainder of `poly` divided by `div` treating `var` as the polynomial variable.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"{x^2/2,2}", "PolynomialQuotientRemainder[2 + x^2 + x^3, 2 + 2*x, x]"},
-			&SameTest{"{x^2-x y+y^2,-y^3}", "PolynomialQuotientRemainder[x^3, x + y, x]"},
-			&SameTest{"{x/a,1-x/a}", "PolynomialQuotientRemainder[1 + x^3, 1 + a*x^2, x]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "PolynomialQuotient",
-		Usage:  "`PolynomialQuotient[poly_, div_, var_]` returns the quotient of `poly` divided by `div` treating `var` as the polynomial variable.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"x^2/2", "PolynomialQuotient[2 + x^2 + x^3, 2 + 2*x, x]"},
-			&SameTest{"x^2-x y+y^2", "PolynomialQuotient[x^3, x + y, x]"},
-			&SameTest{"x/a", "PolynomialQuotient[1 + x^3, 1 + a*x^2, x]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "PolynomialRemainder",
-		Usage:  "`PolynomialRemainder[poly_, div_, var_]` returns the remainder of `poly` divided by `div` treating `var` as the polynomial variable.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"2", "PolynomialRemainder[2 + x^2 + x^3, 2 + 2*x, x]"},
-			&SameTest{"-y^3", "PolynomialRemainder[x^3, x + y, x]"},
-			&SameTest{"1-x/a", "PolynomialRemainder[1 + x^3, 1 + a*x^2, x]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "FactorTermsList",
-		Usage:  "`FactorTermsList[expr]` factors out the constant term of `expr` and puts the factored result into a `List`.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"{2,Sin[8 k]}", "FactorTermsList[2*Sin[8*k]]"},
-			&SameTest{"{1/2,a+x}", "FactorTermsList[a/2 + x/2]"},
-			&SameTest{"{1,a+x}", "FactorTermsList[a + x]"},
-		},
-		Tests: []TestInstruction{
-			&SameTest{"{1,1}", "FactorTermsList[1]"},
-			&SameTest{"{5,1}", "FactorTermsList[5]"},
-			&SameTest{"{5.,1}", "FactorTermsList[5.]"},
-			&SameTest{"{1,a}", "FactorTermsList[a]"},
-			&SameTest{"{1/2,a}", "FactorTermsList[a/2]"},
-			&SameTest{"{-(3/2),x}", "FactorTermsList[(-3*x)/2]"},
-			&SameTest{"{2,a+x}", "FactorTermsList[2*a + 2*x]"},
-			&SameTest{"{1/2,a/(2 b+2 c)+x/(2 b+2 c)}", "FactorTermsList[(a/2 + x/2)/(2*b + 2*c)]"},
-			&SameTest{"{1,2+x^2}", "FactorTermsList[(8 + 4*x^2)/4]"},
-			&SameTest{"{-(1/2),2+3 x+x^2}", "FactorTermsList[(-4 - 6*x - 2*x^2)/4]"},
-			&SameTest{"{-(1/2),-2+3 x+x^2}", "FactorTermsList[(2 - 3*x - x^2)/2]"},
-			&SameTest{"{-(1/2),-2-3 x+x^2}", "FactorTermsList[(2 + 3*x - x^2)/2]"},
-			&SameTest{"{1/2,2+3 x+x^2}", "FactorTermsList[(2 + 3*x + x^2)/2]"},
-			&SameTest{"{1/2,-2-3 x+x^2}", "FactorTermsList[(-2 - 3*x + x^2)/2]"},
-			&SameTest{"{5,2+3 x+x^2}", "FactorTermsList[5*(1 + x)*(2 + x)]"},
-			&SameTest{"{40,1+3 x+3 x^2+x^3}", "FactorTermsList[5*(2 + 2*x)^3]"},
-			&SameTest{"{-6,1+x}", "FactorTermsList[(-12 - 12*x)/2]"},
-			&SameTest{"{2/3,3+x}", "FactorTermsList[(18 + 6*x)/9]"},
-			&SameTest{"{-(2800301/67344500),1-2 x+x^3}", "FactorTermsList[(-2800301/538756 + (2800301*x)/269378 - (2800301*x^3)/538756)/125]"},
-		},
 	})
 	/*defs = append(defs, Definition{
 		Name:  "PolynomialGCD",
-		Usage:  "`PolynomialGCD[a, b]` calculates the polynomial GCD of `a` and `b`.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"2+3 x+x^2", "PolynomialGCD[8 + 22*x + 21*x^2 + 8*x^3 + x^4, 6 + 11*x + 6*x^2 + x^3]"},
-			&SameTest{"2+x^2", "PolynomialGCD[-4 + x^4, 4 + 4*x^2 + x^4]"},
-			&SameTest{"1-2 x+x^3", "PolynomialGCD[5 - 12*x + 4*x^2 + 5*x^3 - x^4 - 2*x^5 + x^7, 3 - 6*x - 7*x^2 + 17*x^3 + x^4 - 9*x^5 + x^7]"},
-			&SameTest{"1+x", "PolynomialGCD[6 + 7*x + x^2, -6 - 5*x + x^2]"},
-			&SameTest{"1", "PolynomialGCD[3 + 6*x + 2*x^2, 1 + 2*x]"},
-			&SameTest{"3+x", "PolynomialGCD[6 - 28*x - 19*x^2 + 3*x^3 + 2*x^4, -18 - 9*x + 2*x^2 + x^3]"},
-		},
 	})*/
 	return
 }
