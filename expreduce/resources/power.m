@@ -36,6 +36,8 @@ PolynomialQ[p_Plus, v_] :=
 PolynomialQ[p_.*v_^Optional[exp_Integer], v_] :=
   If[FreeQ[p, v] && Positive[exp], True, False];
 PolynomialQ[p_, v_] := If[FreeQ[p, v], True, False];
+(*Seemingly undocumented version with no variable specification:*)
+PolynomialQ[p_] := PolynomialQ[p, Variables[p]];
 Attributes[PolynomialQ] = {Protected};
 Tests`PolynomialQ = {
     ETests[
@@ -84,7 +86,8 @@ Tests`PolynomialQ = {
         ESameTest[True, PolynomialQ[x^y, 1]]
     ], EKnownFailures[
         ESameTest[True, PolynomialQ[2*x^2-3x+2, 2]],
-        ESameTest[True, PolynomialQ[2*x^2-3x, 2]]
+        ESameTest[True, PolynomialQ[2*x^2-3x, 2]],
+        ESameTest[False, PolynomialQ[x/y]]
     ]
 };
 
@@ -384,4 +387,24 @@ Tests`SquareFreeQ = {
         ESameTest[True, SquareFreeQ[(2 x + 3) (x + 2) // Expand]],
         ESameTest[False, SquareFreeQ[(2 x + 3)^2]]
     ]
+};
+
+PSimplify[expr_] := expr;
+PSimplify[p_?PolynomialQ/q_?PolynomialQ] := 
+  If[Length[Variables[p]] === 1 && Variables[p] === Variables[q], 
+   PolynomialQuotient[p, q, Variables[p][[1]]], p/q];
+Tests`PSimplify = {
+    ESimpleExamples[
+        ESameTest[-1 + x^2, PSimplify[(1 - 2*x^2 + x^4)/(-1 + x^2)]],
+        ESameTest[4*x, PSimplify[(-4*x + 4*x^3)/(-1 + x^2)]],
+        ESameTest[-1 - x + x^3 + x^4, PSimplify[(1 - x^2 - x^3 + x^5)/(-1 + x)]],
+        ESameTest[2*x + 5*x^2 + 5*x^3, PSimplify[(-2*x - 3*x^2 + 5*x^4)/(-1 + x)]],
+        ESameTest[-6 + 11*x - 6*x^2 + x^3, PSimplify[(18 - 39*x + 29*x^2 - 9*x^3 + x^4)/(-3 + x)]],
+        ESameTest[13 - 15*x + 4*x^2, PSimplify[(-39 + 58*x - 27*x^2 + 4*x^3)/(-3 + x)]],
+        ESameTest[-3 - x + 3*x^2 + x^3, PSimplify[(-9 - 6*x + 8*x^2 + 6*x^3 + x^4)/(3 + x)]],
+        ESameTest[-2 + 6*x + 4*x^2, PSimplify[(-6 + 16*x + 18*x^2 + 4*x^3)/(3 + x)]]
+    ], EKnownDangerous[
+        ESameTest[12 + 4*x - 15*x^2 - 5*x^3 + 3*x^4 + x^5, PSimplify[(-108 - 108*x + 207*x^2 + 239*x^3 - 81*x^4 - 153*x^5 - 27*x^6 + 21*x^7 + 9*x^8 + x^9)/(-9 - 6*x + 8*x^2 + 6*x^3 + x^4)]],
+        ESameTest[12 - 54*x - 33*x^2 + 18*x^3 + 9*x^4, PSimplify[(-108 + 414*x + 717*x^2 - 324*x^3 - 765*x^4 - 162*x^5 + 147*x^6 + 72*x^7 + 9*x^8)/(-9 - 6*x + 8*x^2 + 6*x^3 + x^4)]]
+    ],
 };

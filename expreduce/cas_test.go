@@ -12,6 +12,8 @@ import (
 
 var testmodules = flag.String("testmodules", "",
 	"A regexp of modules to test, otherwise test all modules.")
+var testsyms = flag.String("testsyms", "",
+	"A regexp of symbols to test, otherwise test all symbols.")
 var verbosetest = flag.Bool("verbosetest", false,
 	"Print every test case that runs.")
 var deftimings = flag.Bool("deftimings", false,
@@ -19,6 +21,7 @@ var deftimings = flag.Bool("deftimings", false,
 
 func TestIncludedModules(t *testing.T) {
 	var testModEx = regexp.MustCompile(*testmodules)
+	var testSymEx = regexp.MustCompile(*testsyms)
 	defSets := GetAllDefinitions()
 	numTests := 0
 	lhsDefTimeCounter := TimeCounter{}
@@ -32,6 +35,9 @@ func TestIncludedModules(t *testing.T) {
 		}
 		fmt.Printf("Testing module %s\n", defSet.Name)
 		for _, def := range defSet.Defs {
+			if !testSymEx.MatchString(def.Name) {
+				continue
+			}
 			es := NewEvalState()
 			def.AnnotateWithDynamic(es)
 			td := TestDesc{
