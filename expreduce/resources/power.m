@@ -366,3 +366,22 @@ Tests`PolynomialGCD = {
         ESameTest[-5-a+a^2, PolynomialGCD[15+13 a-a^2-2 a^3,5+a-a^2]]
     ]
 };
+
+SquareFreeQ::usage = "`SquareFreeQ[expr]` returns True if `expr` is a square-free polynomial.";
+(*only works for univariate polynomials, does not support numbers *)
+SquareFreeQ[ex_] := Module[{f = ex, expF, polyvar, fprime},
+   If[Length[Variables[f]] != 1, Return[False]];
+   expF = Expand[f];
+   polyvar = Variables[expF][[1]];
+   If[! PolynomialQ[expF, polyvar], Return[False]];
+   fprime = D[expF, polyvar];
+   PolynomialGCD[expF, fprime] === 1];
+Attributes[SquareFreeQ] = {Protected, ReadProtected};
+Tests`SquareFreeQ = {
+    ESimpleExamples[
+        ESameTest[False, SquareFreeQ[(x+1)(x+2)^2//Expand]],
+        ESameTest[True, SquareFreeQ[(x + 1) (x + 2)]],
+        ESameTest[True, SquareFreeQ[(2 x + 3) (x + 2) // Expand]],
+        ESameTest[False, SquareFreeQ[(2 x + 3)^2]]
+    ]
+};

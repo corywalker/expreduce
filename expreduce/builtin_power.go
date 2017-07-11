@@ -271,5 +271,6 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:  "PolynomialGCD",
 	})
+	defs = append(defs, Definition{Name: "SquareFreeQ"})
 	return
 }
