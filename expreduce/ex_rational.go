@@ -2,6 +2,7 @@ package expreduce
 
 import "fmt"
 import "math/big"
+import "hash"
 
 type Rational struct {
 	Num *big.Int
@@ -85,4 +86,12 @@ func (this *Rational) AsBigRat() *big.Rat {
 
 func (this *Rational) NeedsEval() bool {
 	return false
+}
+
+func (this *Rational) Hash(h *hash.Hash64) {
+	(*h).Write([]byte{90, 82, 214, 51, 52, 7, 7, 33})
+	nBytes, _ := this.Num.MarshalText()
+	(*h).Write(nBytes)
+	dBytes, _ := this.Den.MarshalText()
+	(*h).Write(dBytes)
 }

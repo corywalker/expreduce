@@ -6,6 +6,13 @@ import "fmt"
 import "os"
 import "io/ioutil"
 import "github.com/op/go-logging"
+import "hash/fnv"
+
+func hashEx(e Ex) uint64 {
+	h := fnv.New64a()
+	e.Hash(&h)
+	return h.Sum64()
+}
 
 func exprToN(es *EvalState, e Ex) Ex {
 	asInt, isInt := e.(*Integer)
@@ -633,6 +640,18 @@ func GetSystemDefinitions() (defs []Definition) {
 		ExpreduceSpecific: true,
 		Bootstrap: true,
 		Attributes: []string{"HoldAll"},
+	})
+	defs = append(defs, Definition{
+		Name:  "Hash",
+		Usage: "`Hash[expr]` returns an integer hash of `expr`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			i := big.NewInt(0)
+			i.SetUint64(hashEx(this.Parts[1]))
+			return &Integer{i}
+		},
 	})
 	return
 }
