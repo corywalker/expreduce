@@ -28,7 +28,7 @@ func RationalAssertion(num Ex, den Ex) (r *Rational, isR bool) {
 	if !denIsInt {
 		return nil, false
 	}
-	return &Rational{numInt.Val, denInt.Val}, true
+	return NewRational(numInt.Val, denInt.Val), true
 }
 
 func getArithmeticDefinitions() (defs []Definition) {

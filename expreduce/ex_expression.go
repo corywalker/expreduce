@@ -3,6 +3,7 @@ package expreduce
 import "bytes"
 import "math/big"
 import "sort"
+import "fmt"
 
 type Expression struct {
 	Parts []Ex
@@ -224,10 +225,14 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		} else {
 		}
 		if !needsEval && shouldEval {
-			//fmt.Printf("this.NeedsEval() is %v but should be %v. (last: %v, curr: %v)\n", this.NeedsEval(), shouldEval, lastEx, currEx)
+			fmt.Printf("needsEval is %v but should be %v. (last: %v, curr: %v)\n", needsEval, shouldEval, lastEx, currEx)
 		}
 		lastEx = currEx
 		needsEval = currEx.NeedsEval()
+	}
+	curr, isExpr := currEx.(*Expression)
+	if isExpr {
+		curr.needsEval = false
 	}
 	return currEx
 }
@@ -385,8 +390,7 @@ func (this *Expression) appendEx(e Ex) {
 }
 
 func (this *Expression) NeedsEval() bool {
-	//return this.needsEval
-	return false
+	return this.needsEval
 }
 
 func NewExpression(parts []Ex) *Expression {

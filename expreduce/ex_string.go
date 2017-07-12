@@ -36,3 +36,7 @@ func (this *String) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy
 }
+
+func (this *String) NeedsEval() bool {
+	return false
+}

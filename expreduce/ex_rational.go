@@ -6,6 +6,7 @@ import "math/big"
 type Rational struct {
 	Num *big.Int
 	Den *big.Int
+	needsEval bool
 }
 
 func (this *Rational) Eval(es *EvalState) Ex {
@@ -42,12 +43,15 @@ func (this *Rational) Eval(es *EvalState) Ex {
 	if !negateRes {
 		this.Num.Set(absNum)
 		this.Den.Set(absDen)
+		this.needsEval = false
 		return this
 	} else {
 		this.Num.Set(absNum.Neg(absNum))
 		this.Den.Set(absDen)
+		this.needsEval = false
 		return this
 	}
+	this.needsEval = false
 	return this
 }
 
@@ -76,7 +80,7 @@ func (this *Rational) DeepCopy() Ex {
 	tmpn.Set(this.Num)
 	tmpd := big.NewInt(0)
 	tmpd.Set(this.Den)
-	return &Rational{tmpn, tmpd}
+	return NewRational(tmpn, tmpd)
 }
 
 func (this *Rational) AsBigRat() *big.Rat {
@@ -84,5 +88,9 @@ func (this *Rational) AsBigRat() *big.Rat {
 }
 
 func (this *Rational) NeedsEval() bool {
-	return false
+	return this.needsEval
+}
+
+func NewRational(n *big.Int, d *big.Int) *Rational {
+	return &Rational{n, d, true}
 }
