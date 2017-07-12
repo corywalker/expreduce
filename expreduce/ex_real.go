@@ -3,6 +3,7 @@ package expreduce
 import "fmt"
 import "math/big"
 import "bytes"
+import "hash"
 
 // Floating point numbers represented by big.Float
 type Flt struct {
@@ -65,4 +66,10 @@ func RationalToFlt(r *Rational) (*Flt, bool) {
 
 func (this *Flt) NeedsEval() bool {
 	return false
+}
+
+func (this *Flt) Hash(h *hash.Hash64) {
+	(*h).Write([]byte{195, 244, 76, 249, 227, 115, 88, 251})
+	bytes, _ := this.Val.MarshalText()
+	(*h).Write(bytes)
 }

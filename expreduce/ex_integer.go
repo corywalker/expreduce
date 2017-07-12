@@ -2,6 +2,7 @@ package expreduce
 
 import "fmt"
 import "math/big"
+import "hash"
 
 // Integer numbers represented by big.Int
 type Integer struct {
@@ -51,4 +52,10 @@ func (this *Integer) NeedsEval() bool {
 
 func NewInt(i int64) *Integer {
 	return &Integer{big.NewInt(i)}
+}
+
+func (this *Integer) Hash(h *hash.Hash64) {
+	(*h).Write([]byte{242, 99, 84, 113, 102, 46, 118, 94})
+	bytes, _ := this.Val.MarshalText()
+	(*h).Write(bytes)
 }

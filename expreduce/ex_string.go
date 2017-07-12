@@ -1,6 +1,7 @@
 package expreduce
 
 import "fmt"
+import "hash"
 
 type String struct {
 	Val string
@@ -39,4 +40,9 @@ func (this *String) DeepCopy() Ex {
 
 func (this *String) NeedsEval() bool {
 	return false
+}
+
+func (this *String) Hash(h *hash.Hash64) {
+	(*h).Write([]byte{102, 206, 57, 172, 207, 100, 198, 133})
+	(*h).Write([]byte(this.Val))
 }

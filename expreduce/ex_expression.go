@@ -4,6 +4,7 @@ import "bytes"
 import "math/big"
 import "sort"
 import "fmt"
+import "hash"
 
 type Expression struct {
 	Parts []Ex
@@ -391,6 +392,13 @@ func (this *Expression) appendEx(e Ex) {
 
 func (this *Expression) NeedsEval() bool {
 	return this.needsEval
+}
+
+func (this *Expression) Hash(h *hash.Hash64) {
+	(*h).Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
+	for _, part := range this.Parts {
+		part.Hash(h)
+	}
 }
 
 func NewExpression(parts []Ex) *Expression {
