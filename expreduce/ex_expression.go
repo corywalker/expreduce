@@ -6,7 +6,8 @@ import "sort"
 
 type Expression struct {
 	Parts []Ex
-	//needsEval bool
+	needsEval bool
+	correctlyInstantiated bool
 }
 
 // Deprecated in favor of headExAssertion
@@ -389,9 +390,16 @@ func (this *Expression) NeedsEval() bool {
 }
 
 func NewExpression(parts []Ex) *Expression {
-	return &Expression{Parts: parts}
+	return &Expression{
+		Parts: parts,
+		needsEval: true,
+		correctlyInstantiated: true,
+	}
 }
 
 func NewEmptyExpression() *Expression {
-	return &Expression{}
+	return &Expression{
+		needsEval: true,
+		correctlyInstantiated: true,
+	}
 }
