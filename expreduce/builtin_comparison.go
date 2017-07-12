@@ -465,6 +465,8 @@ func getComparisonDefinitions() (defs []Definition) {
 			&SameTest{"-Infinity", "Max[]"},
 			&SameTest{"Max[99/2,a,b]", "Max[{b,1,a},3,3.,3.1 ,Rational[99,2]]"},
 			&SameTest{"Max[99/2,foo[b,1,a]]", "Max[foo[b,1,a],3,3.,3.1 ,Rational[99,2]]"},
+		},
+		KnownDangerous: []TestInstruction{
 			&SameTest{"Max[a,b,c,d]", "Max[{c,d},{b,a}]"},
 			&SameTest{"Max[a,b,c,d]", "Max[{c,{d}},{b,a}]"},
 		},

@@ -4,7 +4,11 @@ import "bytes"
 import "math/big"
 import "sort"
 import "fmt"
+import "flag"
 import "hash"
+
+var dirtystrings = flag.Bool("dirtystrings", false, "")
+var printevals = flag.Bool("printevals", false, "")
 
 type Expression struct {
 	Parts []Ex
@@ -83,12 +87,15 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 
 func (this *Expression) Eval(es *EvalState) Ex {
 	shouldEval := true
-	var lastEx Ex = this.DeepCopy()
+	lastExHash := hashEx(this)
 	var currEx Ex = this.DeepCopy()
 	insideDefinition := false
-	needsEval := currEx.NeedsEval()
+	//needsEval := currEx.NeedsEval()
 	for shouldEval {
 		curr, isExpr := currEx.(*Expression)
+		if *printevals {
+			fmt.Printf("Evaluating %v.\n", curr)
+		}
 		// Transition to the right Eval() if this is no longer an Expression
 		if !isExpr {
 			toReturn := currEx.Eval(es)
@@ -190,7 +197,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				changed := false
 				currEx, changed = ThreadExpr(curr)
 				if changed {
-					lastEx = currEx
+					lastExHash = hashEx(currEx)
 					continue
 				}
 			}
@@ -221,15 +228,16 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
 		}
-		if IsSameQ(currEx, lastEx, &es.CASLogger) {
+		currHash := hashEx(currEx)
+		if currHash == lastExHash {
 			shouldEval = false
 		} else {
 		}
-		if !needsEval && shouldEval {
-			fmt.Printf("needsEval is %v but should be %v. (last: %v, curr: %v)\n", needsEval, shouldEval, lastEx, currEx)
-		}
-		lastEx = currEx
-		needsEval = currEx.NeedsEval()
+		//if !needsEval && shouldEval {
+			//fmt.Printf("needsEval is %v but should be %v. (last: %v, curr: %v, %v)\n", needsEval, shouldEval, lastEx, currEx, lastExHash)
+		//}
+		lastExHash = currHash
+		//needsEval = currEx.NeedsEval()
 	}
 	curr, isExpr := currEx.(*Expression)
 	if isExpr {
@@ -318,6 +326,9 @@ func (this *Expression) StringForm(form string) string {
 			ok, res = toStringFn(this, form)
 		}
 		if ok {
+			if this.needsEval && *dirtystrings {
+				return "~" + res + "~"
+			}
 			return res
 		}
 	}
@@ -336,6 +347,9 @@ func (this *Expression) StringForm(form string) string {
 		}
 	}
 	buffer.WriteString("]")
+	if this.needsEval && *dirtystrings {
+		return "~" + buffer.String() + "~"
+	}
 	return buffer.String()
 }
 
