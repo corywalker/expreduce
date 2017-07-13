@@ -94,15 +94,20 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	}
 	var currEx Ex = this.DeepCopy()
 	insideDefinition := false
-	//needsEval := currEx.NeedsEval()
-	//for currEx.NeedsEval() && currExHash != lastExHash {
 	for currExHash != lastExHash {
-		//fmt.Printf("%v, %v\n", currExHash, lastExHash)
 		lastExHash = currExHash
 		curr, isExpr := currEx.(*Expression)
-		// if isExpr && currExHash == curr.cachedHash {
-		// 	return this
-		// }
+
+		if isExpr && insideDefinition {
+			retVal, isReturn := tryReturnValue(curr)
+			if isReturn {
+				return retVal
+			}
+		}
+		if isExpr && currExHash == curr.cachedHash {
+			return curr
+		}
+
 		if *printevals {
 			fmt.Printf("Evaluating %v.\n", curr)
 		}
@@ -123,13 +128,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				)
 			}
 			return toReturn
-		}
-
-		if insideDefinition {
-			retVal, isReturn := tryReturnValue(curr)
-			if isReturn {
-				return retVal
-			}
 		}
 
 		// Start by evaluating each argument

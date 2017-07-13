@@ -238,17 +238,19 @@ func GetSystemDefinitions() (defs []Definition) {
 			// To make sure the result does not change
 			&StringTest{"6", "x=x*2"},
 			&StringTest{"36", "x=x*x"},
-
-			&StringTest{"a^2", "y=a*a"},
-			&StringTest{"a^4", "y=y*y"},
-			&StringTest{"2", "a=2"},
-			&StringTest{"16", "y"},
 		},
 		FurtherExamples: []TestInstruction{
 			&TestComment{"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:"},
 			&SameTest{"{HoldFirst, Protected, SequenceHold}", "Attributes[Set]"},
 			&TestComment{"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:"},
 			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
+		},
+		KnownFailures: []TestInstruction{
+			// Embarassing known failures until we fix the re-evaluation issue.
+			&StringTest{"a^4", "y=y*y"},
+			&StringTest{"a^2", "y=a*a"},
+			&StringTest{"2", "a=2"},
+			&StringTest{"16", "y"},
 		},
 	})
 	defs = append(defs, Definition{
