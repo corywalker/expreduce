@@ -159,6 +159,14 @@ func ExOrder(a Ex, b Ex) int64 {
 				NewInt(1),
 			}), b)
 		}
+		_, bIsTimes := HeadAssertion(bAsExp, "Times")
+		if bIsTimes {
+			return ExOrder(NewExpression([]Ex{
+				&Symbol{"Times"},
+				NewInt(1),
+				a,
+			}), b)
+		}
 		return 1
 	}
 
@@ -175,6 +183,14 @@ func ExOrder(a Ex, b Ex) int64 {
 				&Symbol{"Power"},
 				b,
 				NewInt(1),
+			}))
+		}
+		_, aIsTimes := HeadAssertion(aAsExp, "Times")
+		if aIsTimes {
+			return ExOrder(a, NewExpression([]Ex{
+				&Symbol{"Times"},
+				NewInt(1),
+				b,
 			}))
 		}
 		return -1

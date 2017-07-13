@@ -35,6 +35,9 @@ func GetSortDefinitions() (defs []Definition) {
 			&TestComment{"The object to sort need not be a list:"},
 			&SameTest{"foo[a, b, c, d]", "Sort[foo[d, a, b, c]]"},
 		},
+		Tests: []TestInstruction{
+			&SameTest{"{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]"},
+		},
 	})
 	defs = append(defs, Definition{
 		Name:  "Order",
@@ -167,11 +170,11 @@ func GetSortDefinitions() (defs []Definition) {
 		},
 		KnownFailures: []TestInstruction{
 			&SameTest{"{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]"},
-			&SameTest{"{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]"},
 
 			&SameTest{"1", "Order[x^2*y,x*y^2]"},
 			&SameTest{"1", "Order[x^4*y^2,x^2*y^4]"},
 			&SameTest{"1", "Order[x^2*y,2*x*y^2]"},
+			&SameTest{"1", "Order[c, 5 * b * c]"},
 		},
 	})
 	/*defs = append(defs, Definition{
