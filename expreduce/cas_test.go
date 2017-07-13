@@ -12,6 +12,8 @@ import (
 
 var testmodules = flag.String("testmodules", "",
 	"A regexp of modules to test, otherwise test all modules.")
+var excludemodules = flag.String("excludemodules", "dummypattern",
+	"A regexp of modules to exclude, otherwise test all modules.")
 var testsyms = flag.String("testsyms", "",
 	"A regexp of symbols to test, otherwise test all symbols.")
 var verbosetest = flag.Bool("verbosetest", false,
@@ -21,6 +23,7 @@ var deftimings = flag.Bool("deftimings", false,
 
 func TestIncludedModules(t *testing.T) {
 	var testModEx = regexp.MustCompile(*testmodules)
+	var excludeModEx = regexp.MustCompile(*excludemodules)
 	var testSymEx = regexp.MustCompile(*testsyms)
 	defSets := GetAllDefinitions()
 	numTests := 0
@@ -31,6 +34,9 @@ func TestIncludedModules(t *testing.T) {
 	var mockT testing.T
 	for _, defSet := range defSets {
 		if !testModEx.MatchString(defSet.Name) {
+			continue
+		}
+		if excludeModEx.MatchString(defSet.Name) {
 			continue
 		}
 		fmt.Printf("Testing module %s\n", defSet.Name)

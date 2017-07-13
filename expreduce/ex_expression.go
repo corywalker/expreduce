@@ -86,12 +86,14 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 }
 
 func (this *Expression) Eval(es *EvalState) Ex {
-	shouldEval := true
-	lastExHash := hashEx(this)
+	lastExHash := uint64(0)
+	currExHash := hashEx(this)
 	var currEx Ex = this.DeepCopy()
 	insideDefinition := false
 	//needsEval := currEx.NeedsEval()
-	for shouldEval {
+	//for currEx.NeedsEval() && currExHash != lastExHash {
+	for currExHash != lastExHash {
+		lastExHash = currExHash
 		curr, isExpr := currEx.(*Expression)
 		if *printevals {
 			fmt.Printf("Evaluating %v.\n", curr)
@@ -197,7 +199,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				changed := false
 				currEx, changed = ThreadExpr(curr)
 				if changed {
-					lastExHash = hashEx(currEx)
+					currExHash = hashEx(currEx)
 					continue
 				}
 			}
@@ -228,16 +230,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
 		}
-		currHash := hashEx(currEx)
-		if currHash == lastExHash {
-			shouldEval = false
-		} else {
-		}
-		//if !needsEval && shouldEval {
-			//fmt.Printf("needsEval is %v but should be %v. (last: %v, curr: %v, %v)\n", needsEval, shouldEval, lastEx, currEx, lastExHash)
-		//}
-		lastExHash = currHash
-		//needsEval = currEx.NeedsEval()
+		currExHash = hashEx(currEx)
 	}
 	curr, isExpr := currEx.(*Expression)
 	if isExpr {
@@ -384,6 +377,8 @@ func (this *Expression) DeepCopy() Ex {
 	for i := range this.Parts {
 		thiscopy.Parts = append(thiscopy.Parts, this.Parts[i].DeepCopy())
 	}
+	thiscopy.needsEval = this.needsEval
+	thiscopy.correctlyInstantiated = this.correctlyInstantiated
 	return thiscopy
 }
 

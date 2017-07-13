@@ -81,7 +81,7 @@ func (this *Rational) DeepCopy() Ex {
 	tmpn.Set(this.Num)
 	tmpd := big.NewInt(0)
 	tmpd.Set(this.Den)
-	return NewRational(tmpn, tmpd)
+	return &Rational{tmpn, tmpd, this.needsEval}
 }
 
 func (this *Rational) AsBigRat() *big.Rat {
