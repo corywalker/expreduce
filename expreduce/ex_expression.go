@@ -7,7 +7,6 @@ import "fmt"
 import "flag"
 import "hash"
 
-var dirtystrings = flag.Bool("dirtystrings", false, "")
 var printevals = flag.Bool("printevals", false, "")
 
 type Expression struct {
@@ -326,9 +325,6 @@ func (this *Expression) StringForm(form string) string {
 			ok, res = toStringFn(this, form)
 		}
 		if ok {
-			if this.cachedHash != 0 && *dirtystrings {
-				return "~" + res + "~"
-			}
 			return res
 		}
 	}
@@ -347,9 +343,6 @@ func (this *Expression) StringForm(form string) string {
 		}
 	}
 	buffer.WriteString("]")
-	if this.cachedHash != 0 && *dirtystrings {
-		return "~" + buffer.String() + fmt.Sprintf("%v %v", this.cachedHash, hashEx(this)) + "~"
-	}
 	return buffer.String()
 }
 
