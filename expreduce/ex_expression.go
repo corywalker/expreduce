@@ -14,6 +14,7 @@ type Expression struct {
 	Parts []Ex
 	needsEval bool
 	correctlyInstantiated bool
+	cachedHash uint64
 }
 
 // Deprecated in favor of headExAssertion
@@ -88,13 +89,20 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 func (this *Expression) Eval(es *EvalState) Ex {
 	lastExHash := uint64(0)
 	currExHash := hashEx(this)
+	if currExHash == this.cachedHash {
+		return this
+	}
 	var currEx Ex = this.DeepCopy()
 	insideDefinition := false
 	//needsEval := currEx.NeedsEval()
 	//for currEx.NeedsEval() && currExHash != lastExHash {
 	for currExHash != lastExHash {
+		//fmt.Printf("%v, %v\n", currExHash, lastExHash)
 		lastExHash = currExHash
 		curr, isExpr := currEx.(*Expression)
+		// if isExpr && currExHash == curr.cachedHash {
+		// 	return this
+		// }
 		if *printevals {
 			fmt.Printf("Evaluating %v.\n", curr)
 		}
@@ -235,6 +243,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	curr, isExpr := currEx.(*Expression)
 	if isExpr {
 		curr.needsEval = false
+		curr.cachedHash = currExHash
 	}
 	return currEx
 }
@@ -319,7 +328,7 @@ func (this *Expression) StringForm(form string) string {
 			ok, res = toStringFn(this, form)
 		}
 		if ok {
-			if this.needsEval && *dirtystrings {
+			if this.cachedHash != 0 && *dirtystrings {
 				return "~" + res + "~"
 			}
 			return res
@@ -340,8 +349,8 @@ func (this *Expression) StringForm(form string) string {
 		}
 	}
 	buffer.WriteString("]")
-	if this.needsEval && *dirtystrings {
-		return "~" + buffer.String() + "~"
+	if this.cachedHash != 0 && *dirtystrings {
+		return "~" + buffer.String() + fmt.Sprintf("%v %v", this.cachedHash, hashEx(this)) + "~"
 	}
 	return buffer.String()
 }
@@ -379,6 +388,7 @@ func (this *Expression) DeepCopy() Ex {
 	}
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
+	thiscopy.cachedHash = this.cachedHash
 	return thiscopy
 }
 
