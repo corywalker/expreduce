@@ -40,6 +40,22 @@ func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
 	return NewEmptyExpression(), false
 }
 
+func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
+	expr, isExpr := ex.(*Expression)
+	if isExpr {
+		headExpr, headIsExpr := expr.Parts[0].(*Expression)
+		if headIsExpr {
+			sym, isSym := headExpr.Parts[0].(*Symbol)
+			if isSym {
+				if sym.Name == opHead {
+					return expr, headExpr, true
+				}
+			}
+		}
+	}
+	return NewEmptyExpression(), NewEmptyExpression(), false
+}
+
 func tryReturnValue(e Ex) (Ex, bool) {
 	asReturn, isReturn := HeadAssertion(e, "Return")
 	if !isReturn {

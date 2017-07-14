@@ -116,6 +116,19 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	aExpression, aIsExpression := a.(*Expression)
 	bExpression, bIsExpression := b.(*Expression)
 
+	// Special case for the operator form of Verbatim
+	forceOrdered := false
+	verbatimOp, opExpr, isVerbatimOp := OperatorAssertion(b, "Verbatim")
+	if aIsExpression && isVerbatimOp {
+		if len(opExpr.Parts) == 2 {
+			if IsSameQ(aExpression.Parts[0], opExpr.Parts[1], &es.CASLogger) {
+				b = NewExpression(append([]Ex{opExpr.Parts[1]}, verbatimOp.Parts[1:]...))
+				bExpression, bIsExpression = b.(*Expression)
+				forceOrdered = true
+			}
+		}
+	}
+
 	// This initial value is just a randomly chosen placeholder
 	// TODO, convert headStr to symbol type, have Ex implement getHead() Symbol
 	headStr := "Unknown"
@@ -211,7 +224,9 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		}
 	}
 
-	nomi, ok := NewSequenceMatchIter(aExpression.Parts[startI:], bExpression.Parts[startI:], attrs.Orderless, attrs.Flat, sequenceHead, pm, es)
+	isOrderless := attrs.Orderless && !forceOrdered
+	isFlat := attrs.Flat && !forceOrdered
+	nomi, ok := NewSequenceMatchIter(aExpression.Parts[startI:], bExpression.Parts[startI:], isOrderless, isFlat, sequenceHead, pm, es)
 	if !ok {
 		return &dummyMatchIter{false, pm, true}, true
 	}

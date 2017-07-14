@@ -577,5 +577,19 @@ func GetPatternDefinitions() (defs []Definition) {
 			&SameTest{"True", "MatchQ[x^x, (x^x)^Optional[exp_]]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:       "Verbatim",
+		Usage:      "`Verbatim[expr]` matches `expr` exactly, even if it has patterns.",
+		// Not fully supported. Don't document
+		OmitDocumentation: true,
+		Tests: []TestInstruction{
+			&SameTest{"{{a,b},{b,c},{c,d}}", "ReplaceList[a+b+c+d,Verbatim[Plus][___,x_,y_,___]->{x,y}]"},
+			&SameTest{"{}", "ReplaceList[a+b+c+d,Verbatim[Times][___,x_,y_,___]->{x,y}]"},
+			&SameTest{"{}", "ReplaceList[a+b*c+d,Verbatim[Times][___,x_,y_,___]->{x,y}]"},
+			&SameTest{"{{a,b},{b,c},{c,d}}", "ReplaceList[foo[a,b,c,d],Verbatim[foo][___,x_,y_,___]->{x,y}]"},
+			&SameTest{"{{a,b},{b,c},{c,d}}", "ReplaceList[(a+b)[a,b,c,d],Verbatim[a+b][___,x_,y_,___]->{x,y}]"},
+			&SameTest{"{}", "ReplaceList[(a+b)[a,b,c,d],Verbatim[a+_][___,x_,y_,___]->{x,y}]"},
+		},
+	})
 	return
 }
