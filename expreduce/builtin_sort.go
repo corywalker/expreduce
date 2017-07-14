@@ -167,8 +167,20 @@ func GetSortDefinitions() (defs []Definition) {
 			&SameTest{"1", "Order[x^2,foo[x]]"},
 			&SameTest{"1", "Order[x^2,x*y]"},
 			&SameTest{"-1", "Order[3x^3,4x^2]"},
+
+			&SameTest{"-1", "Order[d*g,d*f]"},
+			&SameTest{"0", "Order[d*g,d*g]"},
+			&SameTest{"1", "Order[d*g,d*h]"},
+
+			//&SameTest{"-1", "Order[d*g,e*f]"}, // fails
+			//Order[d*0e*0f*g,0d*e*f*0g]
+			&SameTest{"1", "Order[d*g,e*g]"},
+			&SameTest{"1", "Order[d*g,e*h]"},
+
 		},
 		KnownFailures: []TestInstruction{
+			&SameTest{"-1", "Order[d g, e f]"},
+
 			&SameTest{"{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]"},
 
 			&SameTest{"1", "Order[x^2*y,x*y^2]"},
