@@ -216,6 +216,13 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 				return
 			}
 		}
+		_, opExpr, isVerbatimOp := OperatorAssertion(lhs, "Verbatim")
+		if isVerbatimOp {
+			opSym, opIsSym := opExpr.Parts[1].(*Symbol)
+			if opIsSym {
+				name = opSym.Name
+			}
+		}
 	}
 	if name == "" {
 		log.Fatalf("Trying to define an invalid lhs: %v", lhs)

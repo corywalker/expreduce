@@ -38,8 +38,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Default:	"0",
 		Rules: []Rule{
-			{"Plus[Optional[c1_?NumberQ]*a_, Optional[c2_?NumberQ]*a_, rest___]", "(c1+c2)*a+rest"},
-			{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
+			{"Verbatim[Plus][beg___, Optional[c1_?NumberQ]*a_, Optional[c2_?NumberQ]*a_, end___]", "beg+(c1+c2)*a+end"},
+			// The world is not ready for this madness.
+			//{"Verbatim[Plus][beg___, Verbatim[Times][Optional[c1_?NumberQ],a__], Verbatim[Times][Optional[c2_?NumberQ],a__], end___]", "beg+(c1+c2)*a+end"},
 		},
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", form)

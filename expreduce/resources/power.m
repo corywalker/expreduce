@@ -174,6 +174,7 @@ PolynomialQuotientRemainder::usage =  "`PolynomialQuotientRemainder[poly_, div_,
 ExpreduceLeadingCoeff[p_, x_] := Coefficient[p, x^Exponent[p, x]];
 PolynomialQuotientRemainder[inp_, inq_, v_] :=
   Module[{a = inp, b = inq, x = v, r, d, c, i, s, q},
+   (*I should think carefully about when I use = vs := to avoid unwanted evaluation*)
    q = 0;
    r = a;
    d = Exponent[b, x];
