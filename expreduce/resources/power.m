@@ -5,7 +5,7 @@ genVars[addends_List, exponents_List] :=
  Product[addends[[ExpandUnique`i]]^
    exponents[[ExpandUnique`i]], {ExpandUnique`i, 1, Length[addends]}];
 genExpand[addends_List, exponents_List] := 
- Sum[(Multinomial @@ exponents[[ExpandUnique`i]])*
+ Plus@@Table[(Multinomial @@ exponents[[ExpandUnique`i]])*
    genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, 
    Length[exponents]}];
 Expand::usage = "`Expand[expr]` attempts to expand `expr`.";
@@ -24,8 +24,7 @@ Tests`Expand = {
         ESameTest[a/d + b/d + c/d, Expand[(a + b + c)/d]],
         ESameTest[1/d + (2 a)/d + a^2/d + b/d + c/d, Expand[((a + 1)^2 + b + c)/d]],
         ESameTest[2 + 2 a, 2*(a + 1) // Expand]
-    ], EKnownDangerous[
-        (*The following tests should not take 10 seconds*)
+    ], ETests[
         ESameTest[Null, ((60 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + a^5 + b^5 + c^5 + (5 * a * b^4) + (5 * a * c^4) + (5 * b * a^4) + (5 * b * c^4) + (5 * c * a^4) + (5 * c * b^4) + (10 * a^2 * b^3) + (10 * a^2 * c^3) + (10 * a^3 * b^2) + (10 * a^3 * c^2) + (10 * b^2 * c^3) + (10 * b^3 * c^2) + (20 * a * b * c^3) + (20 * a * c * b^3) + (20 * b * c * a^3));]
     ]
 };
@@ -404,7 +403,7 @@ Tests`PSimplify = {
         ESameTest[13 - 15*x + 4*x^2, PSimplify[(-39 + 58*x - 27*x^2 + 4*x^3)/(-3 + x)]],
         ESameTest[-3 - x + 3*x^2 + x^3, PSimplify[(-9 - 6*x + 8*x^2 + 6*x^3 + x^4)/(3 + x)]],
         ESameTest[-2 + 6*x + 4*x^2, PSimplify[(-6 + 16*x + 18*x^2 + 4*x^3)/(3 + x)]]
-    ], EKnownDangerous[
+    ], ETests[
         ESameTest[12 + 4*x - 15*x^2 - 5*x^3 + 3*x^4 + x^5, PSimplify[(-108 - 108*x + 207*x^2 + 239*x^3 - 81*x^4 - 153*x^5 - 27*x^6 + 21*x^7 + 9*x^8 + x^9)/(-9 - 6*x + 8*x^2 + 6*x^3 + x^4)]],
         ESameTest[12 - 54*x - 33*x^2 + 18*x^3 + 9*x^4, PSimplify[(-108 + 414*x + 717*x^2 - 324*x^3 - 765*x^4 - 162*x^5 + 147*x^6 + 72*x^7 + 9*x^8)/(-9 - 6*x + 8*x^2 + 6*x^3 + x^4)]]
     ],
