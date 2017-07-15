@@ -1,7 +1,5 @@
 package expreduce
 
-//import "fmt"
-
 func compareStrings(a string, b string) int64 {
 	minchars := Min(len(a), len(b))
 	for i := 0; i < minchars; i++ {
@@ -84,17 +82,29 @@ func ExOrder(a Ex, b Ex) int64 {
 			}))
 		}
 		timesMode := aIsTimes && bIsTimes
-		for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
-			aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
-			if timesMode && numberQ(aPart) && numberQ(bPart) {
-				continue
-			}
-			o := ExOrder(aPart, bPart)
-			if o != 0 {
-				return o
+		if !timesMode {
+			for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
+				aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
+				o := ExOrder(aPart, bPart)
+				if o != 0 {
+					return o
+				}
 			}
 		}
 		if timesMode {
+			ai := len(aAsExp.Parts)-1
+			bi := len(bAsExp.Parts)-1
+			for ai >= 0 && bi >= 0 {
+				aPart, bPart := aAsExp.Parts[ai], bAsExp.Parts[bi]
+				ai, bi = ai-1, bi-1
+				if numberQ(aPart) && numberQ(bPart) {
+					continue
+				}
+				o := ExOrder(aPart, bPart)
+				if o != 0 {
+					return o
+				}
+			}
 			for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
 				aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
 				if numberQ(aPart) && numberQ(bPart) {

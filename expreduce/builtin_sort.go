@@ -177,16 +177,16 @@ func GetSortDefinitions() (defs []Definition) {
 			&SameTest{"1", "Order[d*g,e*g]"},
 			&SameTest{"1", "Order[d*g,e*h]"},
 
-		},
-		KnownFailures: []TestInstruction{
 			&SameTest{"-1", "Order[d g, e f]"},
-
-			&SameTest{"{-1, -1., -0.1, 0, 0.1, 0.11, 2, 2, 2., 0.5^x, 2^x, x, 2*x, x^2, x^x, x^(2*x), X, xX, xxx, 2*y}", "Sort[{-1, -1., 0.1, 0.11, 2., -.1, 2, 0, 2, 2*x, 2*y, x, xxx, 2^x, x^2, x^x, x^(2*x), X, xX, .5^x}]"},
-
 			&SameTest{"1", "Order[x^2*y,x*y^2]"},
 			&SameTest{"1", "Order[x^4*y^2,x^2*y^4]"},
 			&SameTest{"1", "Order[x^2*y,2*x*y^2]"},
 			&SameTest{"1", "Order[c, 5 * b * c]"},
+
+			&SameTest{"{-1,-1.,-0.1,0,0.1,0.11,2,2,2.,0.5^x,2^x,x,2 x,x^2,x^x,x^(2 x),xxx,2 y}", "Sort[{-1,-1.,0.1,0.11,2.,-.1,2,0,2,2*x,2*y,x,xxx,2^x,x^2,x^x,x^(2*x),.5^x}]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"{a,A,b,B}", "Sort[{a,A,b,B}]"},
 		},
 	})
 	/*defs = append(defs, Definition{
