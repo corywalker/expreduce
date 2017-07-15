@@ -408,3 +408,41 @@ Tests`PSimplify = {
         ESameTest[12 - 54*x - 33*x^2 + 18*x^3 + 9*x^4, PSimplify[(-108 + 414*x + 717*x^2 - 324*x^3 - 765*x^4 - 162*x^5 + 147*x^6 + 72*x^7 + 9*x^8)/(-9 - 6*x + 8*x^2 + 6*x^3 + x^4)]]
     ],
 };
+
+FactorSquareFree::usage = "`FactorSquareFree[poly]` computes the square free factorization of `poly`.";
+FactorSquareFree[poly_] :=
+  Module[{f = poly, a, b, nb, c, d, i, res, fprime, polyvar},
+   If[Length[Variables[f]] != 1, Return[f]];
+   polyvar = Variables[f][[1]];
+   If[! PolynomialQ[f, polyvar], Return[f]];
+   fprime = D[f, polyvar];
+   a = PolynomialGCD[f, fprime];
+   res = If[SquareFreeQ[a], a, a // FactorSquareFree];
+   nb = f/a // PSimplify;
+   c = fprime/a // PSimplify;
+   d = c - D[nb, polyvar];
+   i = 1;
+   b = nb;
+   (*Print[{Subscript[a, i-1],Subscript[b, i],Subscript[c, i],
+   Subscript[d, i]}];*)
+   While[b =!= 1 && i < 20,
+    a = PolynomialGCD[b, d];
+    nb = b/a // PSimplify;
+    c = d/a // PSimplify;
+    res = res*If[SquareFreeQ[a], a, a // FactorSquareFree];
+    i = i + 1;
+    b = nb;
+    d = c - D[b, polyvar]
+    (*Print[{Subscript[a, i-1],Subscript[b, i],Subscript[c, i],
+    Subscript[d, i]}]*)];
+   res
+   ];
+Attributes[FactorSquareFree] = {Listable, Protected};
+Tests`FactorSquareFree = {
+    ESimpleExamples[
+        ESameTest[(-1 + x^2)^2, FactorSquareFree[1 - 2*x^2 + x^4]],
+        ESameTest[(-1 + x)^2*(1 + 2*x + 2*x^2 + x^3), FactorSquareFree[1 - x^2 - x^3 + x^5]],
+        ESameTest[(-3 + x)^2*(2 - 3*x + x^2), FactorSquareFree[18 - 39*x + 29*x^2 - 9*x^3 + x^4]],
+        ESameTest[(3 + x)^3*(-4 + x^2)*(-1 + x^2)^2, FactorSquareFree[-108 - 108*x + 207*x^2 + 239*x^3 - 81*x^4 - 153*x^5 - 27*x^6 + 21*x^7 + 9*x^8 + x^9]]
+    ]
+};
