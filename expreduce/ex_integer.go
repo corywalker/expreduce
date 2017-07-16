@@ -59,3 +59,13 @@ func (this *Integer) Hash(h *hash.Hash64) {
 	bytes, _ := this.Val.MarshalText()
 	(*h).Write(bytes)
 }
+
+func (this *Integer) AsBigFloat() *big.Float {
+	newfloat := big.NewFloat(0)
+	newfloat.SetInt(this.Val)
+	return newfloat
+}
+
+func (this *Integer) AddI(i *Integer) {
+	this.Val.Add(this.Val, i.Val)
+}

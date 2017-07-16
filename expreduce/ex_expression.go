@@ -124,12 +124,6 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			return curr
 		}
 
-		currStr := ""
-		started := int64(0)
-		if es.isProfiling {
-			currStr = currEx.String()
-			started = time.Now().UnixNano()
-		}
 		if *printevals {
 			fmt.Printf("Evaluating %v.\n", currEx)
 		}
@@ -150,6 +144,15 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				)
 			}
 			return toReturn
+		}
+
+		currStr := ""
+		currHeadStr := ""
+		started := int64(0)
+		if es.isProfiling {
+			currStr = curr.String()
+			currHeadStr = curr.Parts[0].String()
+			started = time.Now().UnixNano()
 		}
 
 		// Start by evaluating each argument
@@ -264,6 +267,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		if es.isProfiling {
 			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
 			es.timeCounter.AddTime(CounterGroupEvalTime, currStr, elapsed)
+			es.timeCounter.AddTime(CounterGroupHeadEvalTime, currHeadStr, elapsed)
 		}
 	}
 	curr, isExpr := currEx.(*Expression)
