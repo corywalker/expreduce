@@ -18,8 +18,7 @@ type EvalState struct {
 	defined DefMap
 	trace   *Expression
 	NoInit  bool
-	defTimeCounter TimeCounter
-	lhsDefTimeCounter TimeCounter
+	timeCounter TimeCounterGroup
 	freeze bool
 }
 
@@ -77,8 +76,7 @@ func InitCAS(es *EvalState) {
 
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string]Def)
-	es.lhsDefTimeCounter.Init()
-	es.defTimeCounter.Init()
+	es.timeCounter.Init()
 
 	es.NoInit = !loadAllDefs
 	if !es.NoInit {
@@ -146,10 +144,11 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 		}
 
 		res, replaced := Replace(lhs, &def, this)
+
 		if this.isProfiling {
 			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
-			this.defTimeCounter.AddTime(defStr, elapsed)
-			this.lhsDefTimeCounter.AddTime(lhsDefStr, elapsed)
+			this.timeCounter.AddTime(CounterGroupDefTime, defStr, elapsed)
+			this.timeCounter.AddTime(CounterGroupLhsDefTime, lhsDefStr, elapsed)
 		}
 
 		if replaced {

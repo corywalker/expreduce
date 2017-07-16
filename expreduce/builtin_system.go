@@ -92,9 +92,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		Details:           "For timing information to record, debug mode must be enabled through `ExpreduceSetLogging`.",
 		ExpreduceSpecific: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			fmt.Println(es.lhsDefTimeCounter.String())
-			fmt.Println(es.defTimeCounter.String())
-
+			fmt.Println(es.timeCounter.String())
 			return &Symbol{"Null"}
 		},
 	})

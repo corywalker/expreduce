@@ -4,6 +4,7 @@ import "bytes"
 import "math/big"
 import "sort"
 import "fmt"
+import "time"
 import "flag"
 import "hash"
 
@@ -123,6 +124,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			return curr
 		}
 
+		currStr := ""
+		started := int64(0)
+		if es.isProfiling {
+			currStr = currEx.String()
+			started = time.Now().UnixNano()
+		}
 		if *printevals {
 			fmt.Printf("Evaluating %v.\n", currEx)
 		}
@@ -252,6 +259,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
 		}
 		currExHash = hashEx(currEx)
+
+		// Handle end of profiling
+		if es.isProfiling {
+			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
+			es.timeCounter.AddTime(CounterGroupEvalTime, currStr, elapsed)
+		}
 	}
 	curr, isExpr := currEx.(*Expression)
 	if isExpr {

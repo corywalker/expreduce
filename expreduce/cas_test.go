@@ -26,10 +26,8 @@ func TestIncludedModules(t *testing.T) {
 	var testSymEx = regexp.MustCompile(*testsyms)
 	defSets := GetAllDefinitions()
 	numTests := 0
-	lhsDefTimeCounter := TimeCounter{}
-	lhsDefTimeCounter.Init()
-	defTimeCounter := TimeCounter{}
-	defTimeCounter.Init()
+	timeCounter := TimeCounterGroup{}
+	timeCounter.Init()
 	var mockT testing.T
 	for _, defSet := range defSets {
 		if !testModEx.MatchString(defSet.Name) {
@@ -94,16 +92,14 @@ func TestIncludedModules(t *testing.T) {
 				i += 1
 			}*/
 			if *deftimings {
-				lhsDefTimeCounter.Update(&es.lhsDefTimeCounter)
-				defTimeCounter.Update(&es.defTimeCounter)
+				timeCounter.Update(&es.timeCounter)
 			}
 			numTests += i
 		}
 	}
 	fmt.Printf("Ran %v module tests.\n", numTests)
 	if *deftimings {
-		fmt.Println(lhsDefTimeCounter.String())
-		fmt.Println(defTimeCounter.String())
+		fmt.Println(timeCounter.String())
 	}
 }
 
