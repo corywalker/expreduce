@@ -139,7 +139,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
-		if this.debugState {
+		if this.isProfiling {
 			defStr = def.String()
 			lhsDefStr = lhs.String() + defStr
 			started = time.Now().UnixNano()
@@ -151,7 +151,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 			return res, true, &def
 		}
 
-		if this.debugState {
+		if this.isProfiling {
 			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
 			this.defTimeCounter.AddTime(defStr, elapsed)
 			this.lhsDefTimeCounter.AddTime(lhsDefStr, elapsed)

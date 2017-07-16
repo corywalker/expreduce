@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"github.com/op/go-logging"
 	"math/big"
 	"testing"
 	"regexp"
@@ -51,7 +50,7 @@ func TestIncludedModules(t *testing.T) {
 				def:    def,
 			}
 			if *deftimings {
-				es.DebugOn(logging.ERROR)
+				es.SetProfiling(true)
 			}
 			i := 0
 			for _, test := range def.SimpleExamples {
