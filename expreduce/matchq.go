@@ -55,6 +55,23 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		if len(patternTest.Parts) == 3 {
 			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), es)
 			if matchq {
+				// Some Q functions are very simple and occur very often. For
+				// some of these, skip the Eval() call and return the boolean
+				// directly.
+				testSym, testIsSym := patternTest.Parts[2].(*Symbol)
+				if testIsSym {
+					var qFunction singleParamQType
+					if testSym.Name == "NumberQ" {
+						qFunction = numberQ
+					}
+					if qFunction != nil {
+						if qFunction(a) {
+							return &dummyMatchIter{true, newPD, true}, true
+						} else {
+							return &dummyMatchIter{false, pm, true}, true
+						}
+					}
+				}
 				// I used to create a NewEvalState here, but I have evidence
 				// that the same evalstate is used:
 				// MatchQ[1, a_?((mytestval = 999; NumberQ[#]) &)] // Timing
