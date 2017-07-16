@@ -147,24 +147,23 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	}
 
 	// This initial value is just a randomly chosen placeholder
-	// TODO, convert headStr to symbol type, have Ex implement getHead() Symbol
-	headStr := "Unknown"
+	var headEx Ex
 	if aIsFlt {
-		headStr = "Real"
+		headEx = &Symbol{"Real"}
 	} else if aIsInteger {
-		headStr = "Integer"
+		headEx = &Symbol{"Integer"}
 	} else if aIsString {
-		headStr = "String"
+		headEx = &Symbol{"String"}
 	} else if aIsExpression {
-		headStr = aExpression.Parts[0].String()
+		headEx = aExpression.Parts[0]
 	} else if aIsSymbol {
-		headStr = "Symbol"
+		headEx = &Symbol{"Symbol"}
 	} else if aIsRational {
-		headStr = "Rational"
+		headEx = &Symbol{"Rational"}
 	}
 
 	if IsBlankTypeOnly(b) {
-		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headStr, pm, &es.CASLogger)
+		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headEx, pm, &es.CASLogger)
 		if ibtc {
 			return &dummyMatchIter{true, ibtcNewPDs, true}, true
 		}
