@@ -224,7 +224,7 @@ func getReplacementDefinitions() (defs []Definition) {
 				return this
 			}
 			for _, rule := range rules {
-				toReturn, replaced := Replace(this.Parts[1], rule, es, EmptyPD(), "")
+				toReturn, replaced := Replace(this.Parts[1], rule, es)
 				if replaced {
 					return toReturn
 				}

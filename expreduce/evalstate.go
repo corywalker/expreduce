@@ -145,9 +145,8 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 			started = time.Now().UnixNano()
 		}
 
-		ismatchq, _ := IsMatchQ(lhs, def.Parts[1], EmptyPD(), this)
-		if ismatchq {
-			res := ReplaceAll(lhs, &def, this, EmptyPD(), "")
+		res, replaced := Replace(lhs, &def, this)
+		if replaced {
 			return res, true, &def
 		}
 

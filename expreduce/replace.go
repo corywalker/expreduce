@@ -101,19 +101,9 @@ func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
 // Final named pattern substitution will occur at the last possible time.
 func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
                 stopAtHead string) Ex {
-	_, isFlt := this.(*Flt)
-	_, isInteger := this.(*Integer)
-	_, isString := this.(*String)
 	asExpression, isExpression := this.(*Expression)
-	_, isSymbol := this.(*Symbol)
-	_, isRational := this.(*Rational)
 
-	if isFlt || isInteger || isString || isSymbol || isRational {
-		if res, matches := IsMatchQ(this, r.Parts[1], pm, es); res {
-			return ReplacePD(r.Parts[2], es, matches)
-		}
-		return this
-	} else if isExpression {
+	if isExpression {
 		_, isRestrictedHead := HeadAssertion(this, stopAtHead)
 		if isRestrictedHead {
 			return this
@@ -123,12 +113,14 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
 			return asExpression.ReplaceAll(r, stopAtHead, es)
 		}
 	}
-	return &Symbol{"$ReplaceAllFailed"}
+	if res, matches := IsMatchQ(this, r.Parts[1], pm, es); res {
+		return ReplacePD(r.Parts[2], es, matches)
+	}
+	return this
 }
 
-func Replace(this Ex, r *Expression, es *EvalState, pm *PDManager,
-                stopAtHead string) (Ex, bool) {
-	if res, matches := IsMatchQ(this, r.Parts[1], pm, es); res {
+func Replace(this Ex, r *Expression, es *EvalState) (Ex, bool) {
+	if res, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es); res {
 		return ReplacePD(r.Parts[2], es, matches), true
 	}
 	return this, false
