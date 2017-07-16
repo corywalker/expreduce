@@ -13,7 +13,9 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	//definition, isdefined := es.defined[this.Name]
 	definition, isdefined, _ := es.GetDef(this.Name, this)
 	if isdefined {
-		toReturn := definition.DeepCopy().Eval(es)
+		// We must call Eval because, at this point, the expression has broken
+		// out of the evaluation loop.
+		toReturn := definition.Eval(es)
 		retVal, isReturn := tryReturnValue(toReturn)
 		if isReturn {
 			return retVal

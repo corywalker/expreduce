@@ -146,14 +146,14 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 		}
 
 		res, replaced := Replace(lhs, &def, this)
-		if replaced {
-			return res, true, &def
-		}
-
 		if this.isProfiling {
 			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
 			this.defTimeCounter.AddTime(defStr, elapsed)
 			this.lhsDefTimeCounter.AddTime(lhsDefStr, elapsed)
+		}
+
+		if replaced {
+			return res, true, &def
 		}
 	}
 	return nil, false, nil

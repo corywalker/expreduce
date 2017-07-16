@@ -163,7 +163,7 @@ func GetListDefinitions() (defs []Definition) {
 					toReturn := NewExpression([]Ex{&Symbol{"List"}})
 					for mis.cont() {
 						mis.defineCurrent(es)
-						toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
+						toReturn.Parts = append(toReturn.Parts, this.Parts[1].Eval(es))
 						es.Debugf("%v\n", toReturn)
 						mis.next()
 					}

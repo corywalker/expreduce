@@ -259,10 +259,9 @@ func getReplacementDefinitions() (defs []Definition) {
 			for !isSame {
 				newEx := (NewExpression([]Ex{
 					&Symbol{"ReplaceAll"},
-					oldEx.DeepCopy(),
+					oldEx,
 					this.Parts[2],
 				})).Eval(es)
-				//newEx = newEx.Eval(es)
 				es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
 				if IsSameQ(oldEx, newEx, &es.CASLogger) {

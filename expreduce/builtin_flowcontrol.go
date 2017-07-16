@@ -120,10 +120,10 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		Usage: "`Return[x]` returns `x` immediately.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"x", "myreturnfunc:=(Return[x];hello);myreturnfunc"},
-			&SameTest{"3", "myreturnfunc[x_]:=(Return[x];hello);myreturnfunc[3]"},
+			&SameTest{"3", "ret[x_]:=(Return[x];hello);ret[3]"},
 			&SameTest{"3", "myfoo:=(i=1;While[i<5,If[i===3,Return[i]];i=i+1]);myfoo"},
 			&SameTest{"Return[3]", "Return[3]"},
-			&SameTest{"Null", "myreturnfunc:=(Return[];hello);myreturnfunc"},
+			&SameTest{"Null", "retother:=(Return[];hello);retother"},
 		},
 	})
 	return
