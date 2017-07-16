@@ -69,3 +69,7 @@ func (this *Integer) AsBigFloat() *big.Float {
 func (this *Integer) AddI(i *Integer) {
 	this.Val.Add(this.Val, i.Val)
 }
+
+func (this *Integer) MulI(i *Integer) {
+	this.Val.Mul(this.Val, i.Val)
+}

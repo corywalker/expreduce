@@ -128,3 +128,12 @@ func (this *Rational) AddR(r *Rational) {
 	this.Num.Mul(this.Num, r.Den)
 	this.Num.Add(this.Num, tmp)
 }
+
+func (this *Rational) MulI(i *Integer) {
+	this.Num.Mul(this.Num, i.Val)
+}
+
+func (this *Rational) MulR(r *Rational) {
+	this.Num.Mul(this.Num, r.Num)
+	this.Den.Mul(this.Den, r.Den)
+}
