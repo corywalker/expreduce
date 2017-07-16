@@ -1,5 +1,30 @@
 package expreduce
 
+func getValidRules(ruleArg Ex) (rules []*Expression) {
+	rulesRule, ok := HeadAssertion(ruleArg, "Rule")
+	if !ok {
+		rulesRule, ok = HeadAssertion(ruleArg, "RuleDelayed")
+	}
+	if ok {
+		return []*Expression{rulesRule}
+	}
+
+	// Also handle a list of Rules
+	asList, isList := HeadAssertion(ruleArg, "List")
+	if isList {
+		for i := 1; i < len(asList.Parts); i++ {
+			rulesRule, ok := HeadAssertion(asList.Parts[i], "Rule")
+			if !ok {
+				rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
+			}
+			if ok {
+				rules = append(rules, rulesRule)
+			}
+		}
+	}
+	return
+}
+
 func getReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceAll",
@@ -16,32 +41,15 @@ func getReplacementDefinitions() (defs []Definition) {
 				return this
 			}
 
-			rulesRule, ok := HeadAssertion(this.Parts[2], "Rule")
-			if !ok {
-				rulesRule, ok = HeadAssertion(this.Parts[2], "RuleDelayed")
+			rules := getValidRules(this.Parts[2])
+			if len(rules) == 0 {
+				return this
 			}
-			if ok {
-				newEx := ReplaceAll(this.Parts[1], rulesRule, es, EmptyPD(), "")
-				return newEx.Eval(es)
+			toReturn := this.Parts[1]
+			for _, rule := range rules {
+				toReturn = ReplaceAll(toReturn, rule, es, EmptyPD(), "")
 			}
-
-			// Also handle a list of Rules
-			asList, isList := HeadAssertion(this.Parts[2], "List")
-			if isList {
-				toReturn := this.Parts[1]
-				for i := 1; i < len(asList.Parts); i++ {
-					rulesRule, ok := HeadAssertion(asList.Parts[i], "Rule")
-					if !ok {
-						rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
-					}
-					if ok {
-						toReturn = ReplaceAll(toReturn.DeepCopy(), rulesRule, es, EmptyPD(), "")
-					}
-				}
-				return toReturn.Eval(es)
-			}
-
-			return this
+			return toReturn
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"2^(y+1) + y", "2^(x^2+1) + x^2 /. x^2->y"},
@@ -201,6 +209,33 @@ func getReplacementDefinitions() (defs []Definition) {
 		KnownDangerous: []TestInstruction{
 			// Causes stack overflow
 			&SameTest{"99 + a + b + c + d", "a + b + c + d /. (d_Symbol + c_Symbol) -> c + 99 + d"},
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Replace",
+		Usage: "`Replace[expr, rules]` applies `rules` to `expr` if they match at the base level.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			rules := getValidRules(this.Parts[2])
+			if len(rules) == 0 {
+				return this
+			}
+			for _, rule := range rules {
+				toReturn, replaced := Replace(this.Parts[1], rule, es, EmptyPD(), "")
+				if replaced {
+					return toReturn
+				}
+			}
+			return this.Parts[1]
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2", "Replace[a+b,a+b->2]"},
+			&SameTest{"a+b", "Replace[a+b,a->2]"},
+			&SameTest{"2", "Replace[a+b,_->2]"},
+			&SameTest{"c+d", "Replace[a+b,{a+b->c+d,c+d->3}]"},
 		},
 	})
 	defs = append(defs, Definition{

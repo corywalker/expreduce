@@ -124,7 +124,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 
 		if *printevals {
-			fmt.Printf("Evaluating %v.\n", curr)
+			fmt.Printf("Evaluating %v.\n", currEx)
 		}
 		// Transition to the right Eval() if this is no longer an Expression
 		if !isExpr {

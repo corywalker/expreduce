@@ -125,3 +125,11 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
 	}
 	return &Symbol{"$ReplaceAllFailed"}
 }
+
+func Replace(this Ex, r *Expression, es *EvalState, pm *PDManager,
+                stopAtHead string) (Ex, bool) {
+	if res, matches := IsMatchQ(this, r.Parts[1], pm, es); res {
+		return ReplacePD(r.Parts[2], es, matches), true
+	}
+	return this, false
+}
