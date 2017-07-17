@@ -106,7 +106,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	if currExHash == this.cachedHash {
 		return this
 	}
-	var currEx Ex = this.DeepCopy()
+	var currEx Ex = this
 	insideDefinition := false
 	for currExHash != lastExHash {
 		lastExHash = currExHash

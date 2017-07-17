@@ -163,7 +163,9 @@ func GetListDefinitions() (defs []Definition) {
 					toReturn := NewExpression([]Ex{&Symbol{"List"}})
 					for mis.cont() {
 						mis.defineCurrent(es)
-						toReturn.Parts = append(toReturn.Parts, this.Parts[1].Eval(es))
+						// TODO: use ReplacePD for this. We're only replacing
+						// symbols. Don't need a full Eval.
+						toReturn.Parts = append(toReturn.Parts, this.Parts[1].DeepCopy().Eval(es))
 						es.Debugf("%v\n", toReturn)
 						mis.next()
 					}

@@ -65,15 +65,15 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			isequal := this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
+			isequal := this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 			cont := isequal == "EQUAL_TRUE"
 			for cont {
-				tmpRes := this.Parts[2].Eval(es)
+				tmpRes := this.Parts[2].DeepCopy().Eval(es)
 				retVal, isReturn := tryReturnValue(tmpRes)
 				if isReturn {
 					return retVal
 				}
-				isequal = this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
+				isequal = this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 				cont = isequal == "EQUAL_TRUE"
 			}
 

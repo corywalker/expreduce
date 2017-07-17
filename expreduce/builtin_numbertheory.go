@@ -39,7 +39,9 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 				}
 				r := asInt.Val.Cmp(zero)
 				if r > 0 {
-					ints = append(ints, asInt.Val)
+					tmpI := big.NewInt(0)
+					tmpI.Set(asInt.Val)
+					ints = append(ints, tmpI)
 				}
 				if r < 0 {
 					tmpI := big.NewInt(0)
