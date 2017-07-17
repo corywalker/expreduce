@@ -9,6 +9,7 @@ import "flag"
 import "hash"
 
 var printevals = flag.Bool("printevals", false, "")
+var checkhashes = flag.Bool("checkhashes", false, "")
 
 type Expression struct {
 	Parts []Ex
@@ -104,6 +105,7 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 
 func (this *Expression) Eval(es *EvalState) Ex {
 	lastExHash := uint64(0)
+	var lastEx Ex = this
 	currExHash := hashEx(this)
 	if currExHash == this.cachedHash {
 		return this
@@ -113,6 +115,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	for currExHash != lastExHash {
 		lastExHash = currExHash
 		curr, isExpr := currEx.(*Expression)
+		if *checkhashes {
+			if isExpr && curr.cachedHash != 0 && currExHash != curr.cachedHash {
+				fmt.Printf("invalid cache: %v. Used to be %v\n", curr, lastEx)
+			}
+			lastEx = currEx
+		}
 
 		if isExpr && insideDefinition {
 			retVal, isReturn := tryReturnValue(curr)

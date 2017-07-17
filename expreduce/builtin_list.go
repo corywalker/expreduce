@@ -549,8 +549,9 @@ func GetListDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this
 			}
-			expr.Parts = append(expr.Parts, this.Parts[2])
-			return expr
+			res := NewExpression(append([]Ex{}, expr.Parts...))
+			res.Parts = append(res.Parts, this.Parts[2])
+			return res
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{a,b,c}", "Append[{a,b},c]"},
@@ -575,8 +576,10 @@ func GetListDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this
 			}
-			expr.Parts = append(append([]Ex{expr.Parts[0]}, this.Parts[2]), expr.Parts[1:]...)
-			return expr
+			res := NewExpression([]Ex{expr.Parts[0]})
+			res.Parts = append(res.Parts, this.Parts[2])
+			res.Parts = append(res.Parts, expr.Parts[1:]...)
+			return res
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"{c,a,b}", "Prepend[{a,b},c]"},
