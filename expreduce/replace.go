@@ -1,7 +1,7 @@
 package expreduce
 
 // This function assumes e and lhs have the same head and that the head is Flat.
-func FlatReplace(e *Expression, lhs *Expression, rhs Ex, orderless bool, es *EvalState) {
+func FlatReplace(e *Expression, lhs *Expression, rhs Ex, orderless bool, es *EvalState) Ex {
 	looseLhs := NewExpression([]Ex{})
 	looseLhs.Parts = append(looseLhs.Parts, lhs.Parts[0])
 	if !orderless {
@@ -35,9 +35,9 @@ func FlatReplace(e *Expression, lhs *Expression, rhs Ex, orderless bool, es *Eva
 				&Symbol{"Expreduce`end"},
 			}), es, newPd)
 		}
-		tmpExpr := tmpEx.(*Expression)
-		e.Parts = tmpExpr.Parts
+		return tmpEx
 	}
+	return e
 }
 
 func ReplacePDInternal(e Ex, pm *PDManager) Ex {
@@ -52,6 +52,7 @@ func ReplacePDInternal(e Ex, pm *PDManager) Ex {
 	}
 	asExpr, isExpr := e.(*Expression)
 	if isExpr {
+		asExpr.cachedHash = 0
 		for i := range asExpr.Parts {
 			asExpr.Parts[i] = ReplacePDInternal(asExpr.Parts[i], pm)
 		}

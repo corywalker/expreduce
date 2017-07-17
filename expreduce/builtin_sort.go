@@ -16,8 +16,10 @@ func GetSortDefinitions() (defs []Definition) {
 
 			exp, ok := this.Parts[1].(*Expression)
 			if ok {
-				sort.Sort(exp)
-				return exp
+				sortedExp := exp.DeepCopy().(*Expression)
+				sortedExp.cachedHash = 0
+				sort.Sort(sortedExp)
+				return sortedExp
 			}
 			return this
 		},
