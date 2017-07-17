@@ -18,8 +18,7 @@ type EvalState struct {
 	defined DefMap
 	trace   *Expression
 	NoInit  bool
-	defTimeCounter TimeCounter
-	lhsDefTimeCounter TimeCounter
+	timeCounter TimeCounterGroup
 	freeze bool
 }
 
@@ -77,8 +76,7 @@ func InitCAS(es *EvalState) {
 
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string]Def)
-	es.lhsDefTimeCounter.Init()
-	es.defTimeCounter.Init()
+	es.timeCounter.Init()
 
 	es.NoInit = !loadAllDefs
 	if !es.NoInit {
@@ -139,22 +137,22 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
-		if this.debugState {
+		if this.isProfiling {
 			defStr = def.String()
 			lhsDefStr = lhs.String() + defStr
 			started = time.Now().UnixNano()
 		}
 
-		ismatchq, _ := IsMatchQ(lhs, def.Parts[1], EmptyPD(), this)
-		if ismatchq {
-			res := ReplaceAll(lhs, &def, this, EmptyPD(), "")
-			return res, true, &def
+		res, replaced := Replace(lhs, &def, this)
+
+		if this.isProfiling {
+			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
+			this.timeCounter.AddTime(CounterGroupDefTime, defStr, elapsed)
+			this.timeCounter.AddTime(CounterGroupLhsDefTime, lhsDefStr, elapsed)
 		}
 
-		if this.debugState {
-			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
-			this.defTimeCounter.AddTime(defStr, elapsed)
-			this.lhsDefTimeCounter.AddTime(lhsDefStr, elapsed)
+		if replaced {
+			return res, true, &def
 		}
 	}
 	return nil, false, nil
@@ -214,6 +212,13 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 				}
 				this.DefineAttrs(modifiedSym, rhs)
 				return
+			}
+		}
+		_, opExpr, isVerbatimOp := OperatorAssertion(lhs, "Verbatim")
+		if isVerbatimOp {
+			opSym, opIsSym := opExpr.Parts[1].(*Symbol)
+			if opIsSym {
+				name = opSym.Name
 			}
 		}
 	}

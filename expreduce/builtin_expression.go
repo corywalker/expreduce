@@ -60,7 +60,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			}
 			asExpr, IsExpression := this.Parts[1].(*Expression)
 			if IsExpression {
-				return asExpr.Parts[0].DeepCopy()
+				return asExpr.Parts[0]
 			}
 			return this
 		},

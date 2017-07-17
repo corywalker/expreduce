@@ -55,6 +55,23 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		if len(patternTest.Parts) == 3 {
 			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), es)
 			if matchq {
+				// Some Q functions are very simple and occur very often. For
+				// some of these, skip the Eval() call and return the boolean
+				// directly.
+				testSym, testIsSym := patternTest.Parts[2].(*Symbol)
+				if testIsSym {
+					var qFunction singleParamQType
+					if testSym.Name == "NumberQ" {
+						qFunction = numberQ
+					}
+					if qFunction != nil {
+						if qFunction(a) {
+							return &dummyMatchIter{true, newPD, true}, true
+						} else {
+							return &dummyMatchIter{false, pm, true}, true
+						}
+					}
+				}
 				// I used to create a NewEvalState here, but I have evidence
 				// that the same evalstate is used:
 				// MatchQ[1, a_?((mytestval = 999; NumberQ[#]) &)] // Timing
@@ -116,25 +133,37 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	aExpression, aIsExpression := a.(*Expression)
 	bExpression, bIsExpression := b.(*Expression)
 
+	// Special case for the operator form of Verbatim
+	forceOrdered := false
+	verbatimOp, opExpr, isVerbatimOp := OperatorAssertion(b, "Verbatim")
+	if aIsExpression && isVerbatimOp {
+		if len(opExpr.Parts) == 2 {
+			if IsSameQ(aExpression.Parts[0], opExpr.Parts[1], &es.CASLogger) {
+				b = NewExpression(append([]Ex{opExpr.Parts[1]}, verbatimOp.Parts[1:]...))
+				bExpression, bIsExpression = b.(*Expression)
+				forceOrdered = true
+			}
+		}
+	}
+
 	// This initial value is just a randomly chosen placeholder
-	// TODO, convert headStr to symbol type, have Ex implement getHead() Symbol
-	headStr := "Unknown"
+	var headEx Ex
 	if aIsFlt {
-		headStr = "Real"
+		headEx = &Symbol{"Real"}
 	} else if aIsInteger {
-		headStr = "Integer"
+		headEx = &Symbol{"Integer"}
 	} else if aIsString {
-		headStr = "String"
+		headEx = &Symbol{"String"}
 	} else if aIsExpression {
-		headStr = aExpression.Parts[0].String()
+		headEx = aExpression.Parts[0]
 	} else if aIsSymbol {
-		headStr = "Symbol"
+		headEx = &Symbol{"Symbol"}
 	} else if aIsRational {
-		headStr = "Rational"
+		headEx = &Symbol{"Rational"}
 	}
 
 	if IsBlankTypeOnly(b) {
-		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headStr, pm, &es.CASLogger)
+		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headEx, pm, &es.CASLogger)
 		if ibtc {
 			return &dummyMatchIter{true, ibtcNewPDs, true}, true
 		}
@@ -211,7 +240,9 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		}
 	}
 
-	nomi, ok := NewSequenceMatchIter(aExpression.Parts[startI:], bExpression.Parts[startI:], attrs.Orderless, attrs.Flat, sequenceHead, pm, es)
+	isOrderless := attrs.Orderless && !forceOrdered
+	isFlat := attrs.Flat && !forceOrdered
+	nomi, ok := NewSequenceMatchIter(aExpression.Parts[startI:], bExpression.Parts[startI:], isOrderless, isFlat, sequenceHead, pm, es)
 	if !ok {
 		return &dummyMatchIter{false, pm, true}, true
 	}
@@ -354,9 +385,17 @@ func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm,
 		// Right now I have this strange definition of "form". It's basically where I convert blank sequences to blanks at the bottom level. What if I did this at all levels and perhaps did something with patterns?
 		// TODO: prevent the checks here from modifying state so I can use the "rm" function.
 		formMatches[i] = make([]bool, len(components))
+		num_matches := 0
 		for j, part := range components {
 			matchq, _ := IsMatchQ(part, mustContain.form, EmptyPD(), es)
+			if matchq {
+				num_matches++
+			}
 			formMatches[i][j] = matchq
+		}
+		if num_matches < mustContain.startI {
+			es.SetFrozen(origFrozen)
+			return nomi, false
 		}
 	}
 	es.SetFrozen(origFrozen)

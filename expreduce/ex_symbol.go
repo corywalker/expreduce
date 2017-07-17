@@ -13,7 +13,9 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	//definition, isdefined := es.defined[this.Name]
 	definition, isdefined, _ := es.GetDef(this.Name, this)
 	if isdefined {
-		toReturn := definition.DeepCopy().Eval(es)
+		// We must call Eval because, at this point, the expression has broken
+		// out of the evaluation loop.
+		toReturn := definition.Eval(es)
 		retVal, isReturn := tryReturnValue(toReturn)
 		if isReturn {
 			return retVal
@@ -230,4 +232,20 @@ func (this *Symbol) NeedsEval() bool {
 func (this *Symbol) Hash(h *hash.Hash64) {
 	(*h).Write([]byte{107, 10, 247, 23, 33, 221, 163, 156})
 	(*h).Write([]byte(this.Name))
+}
+
+func ContainsSymbol(e Ex, name string) bool {
+	asSym, isSym := e.(*Symbol)
+	if isSym {
+		return asSym.Name == name
+	}
+	asExpr, isExpr := e.(*Expression)
+	if isExpr {
+		for _, part := range asExpr.Parts {
+			if ContainsSymbol(part, name) {
+				return true
+			}
+		}
+	}
+	return false
 }

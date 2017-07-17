@@ -65,15 +65,15 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			isequal := this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
+			isequal := this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 			cont := isequal == "EQUAL_TRUE"
 			for cont {
-				tmpRes := this.Parts[2].Eval(es)
+				tmpRes := this.Parts[2].DeepCopy().Eval(es)
 				retVal, isReturn := tryReturnValue(tmpRes)
 				if isReturn {
 					return retVal
 				}
-				isequal = this.Parts[1].Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
+				isequal = this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
 				cont = isequal == "EQUAL_TRUE"
 			}
 
@@ -120,10 +120,10 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		Usage: "`Return[x]` returns `x` immediately.",
 		SimpleExamples: []TestInstruction{
 			&SameTest{"x", "myreturnfunc:=(Return[x];hello);myreturnfunc"},
-			&SameTest{"3", "myreturnfunc[x_]:=(Return[x];hello);myreturnfunc[3]"},
+			&SameTest{"3", "ret[x_]:=(Return[x];hello);ret[3]"},
 			&SameTest{"3", "myfoo:=(i=1;While[i<5,If[i===3,Return[i]];i=i+1]);myfoo"},
 			&SameTest{"Return[3]", "Return[3]"},
-			&SameTest{"Null", "myreturnfunc:=(Return[];hello);myreturnfunc"},
+			&SameTest{"Null", "retother:=(Return[];hello);retother"},
 		},
 	})
 	return

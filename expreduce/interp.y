@@ -138,7 +138,7 @@ expr	:    LPARSYM expr RPARSYM
 	|    expr MULTSYM expr
 		{ $$  =  fullyAssoc("Times", $1, $3) }
 	|    expr expr %prec MULTSYM
-		{ $$  =  fullyAssoc("Times", $1, $2) }
+		{ $$  =  rightFullyAssoc("Times", $1, $2) }
 	|    expr DIVSYM expr
 		{ $$  =  NewExpression([]Ex{
 		           &Symbol{"Times"},
@@ -271,6 +271,15 @@ func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
 	opExpr, isOp := HeadAssertion(lhs, op)
 	if isOp {
 		opExpr.Parts = append(opExpr.Parts, rhs)
+		return opExpr
+	}
+	return NewExpression([]Ex{&Symbol{op}, lhs, rhs})
+}
+
+func rightFullyAssoc(op string, lhs Ex, rhs Ex) Ex {
+	opExpr, isOp := HeadAssertion(rhs, op)
+	if isOp {
+		opExpr.Parts = append([]Ex{opExpr.Parts[0], lhs}, opExpr.Parts[1:]...)
 		return opExpr
 	}
 	return NewExpression([]Ex{&Symbol{op}, lhs, rhs})

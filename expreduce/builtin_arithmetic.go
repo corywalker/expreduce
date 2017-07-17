@@ -28,7 +28,194 @@ func RationalAssertion(num Ex, den Ex) (r *Rational, isR bool) {
 	if !denIsInt {
 		return nil, false
 	}
-	return &Rational{numInt.Val, denInt.Val}, true
+	return NewRational(numInt.Val, denInt.Val), true
+}
+
+type FoldFn int
+
+const (
+	FoldFnAdd FoldFn = iota
+	FoldFnMul
+)
+
+func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt) Ex {
+	if f != nil {
+		toReturn := f
+		if r != nil {
+			if fn == FoldFnAdd {
+				toReturn.AddR(r)
+			} else if fn == FoldFnMul {
+				toReturn.MulR(r)
+			}
+		}
+		if i != nil {
+			if fn == FoldFnAdd {
+				toReturn.AddI(i)
+			} else if fn == FoldFnMul {
+				toReturn.MulI(i)
+			}
+		}
+		return toReturn
+	}
+	if r != nil {
+		toReturn := r
+		if i != nil {
+			if fn == FoldFnAdd {
+				toReturn.AddI(i)
+			} else if fn == FoldFnMul {
+				toReturn.MulI(i)
+			}
+		}
+		return toReturn
+	}
+	if i != nil {
+		return i
+	}
+	return nil
+}
+
+func computeRealPart(fn FoldFn, e *Expression) (Ex, int) {
+	var foldedInt *Integer
+	var foldedRat *Rational
+	var foldedFlt *Flt
+	for i := 1; i < len(e.Parts); i++ {
+		// TODO: implement short circuiting if we encounter a zero while
+		// multiplying.
+		asInt, isInt := e.Parts[i].(*Integer)
+		if isInt {
+			if foldedInt == nil {
+				// Try deepcopy if problems. I think this does not cause
+				// problems now because we will only modify the value if we end
+				// up creating an entirely new expression.
+				foldedInt = asInt.DeepCopy().(*Integer)
+				continue
+			}
+			if fn == FoldFnAdd {
+				foldedInt.AddI(asInt)
+			} else if fn == FoldFnMul {
+				foldedInt.MulI(asInt)
+			}
+			continue
+		}
+		asRat, isRat := e.Parts[i].(*Rational)
+		if isRat {
+			if foldedRat == nil {
+				foldedRat = asRat.DeepCopy().(*Rational)
+				continue
+			}
+			if fn == FoldFnAdd {
+				foldedRat.AddR(asRat)
+			} else if fn == FoldFnMul {
+				foldedRat.MulR(asRat)
+			}
+			continue
+		}
+		asFlt, isFlt := e.Parts[i].(*Flt)
+		if isFlt {
+			if foldedFlt == nil {
+				foldedFlt = asFlt.DeepCopy().(*Flt)
+				continue
+			}
+			if fn == FoldFnAdd {
+				foldedFlt.AddF(asFlt)
+			} else if fn == FoldFnMul {
+				foldedFlt.MulF(asFlt)
+			}
+			continue
+		}
+		return typedRealPart(fn, foldedInt, foldedRat, foldedFlt), i
+	}
+	return typedRealPart(fn, foldedInt, foldedRat, foldedFlt), -1
+}
+
+func splitTerm(e Ex) (Ex, Ex, bool) {
+	asSym, isSym := e.(*Symbol)
+	if isSym {
+		return &Integer{big.NewInt(1)}, NewExpression([]Ex{
+			&Symbol{"Times"},
+			asSym,
+		}), true
+	}
+	asTimes, isTimes := HeadAssertion(e, "Times")
+	if isTimes {
+		if len(asTimes.Parts) < 2 {
+			return nil, nil, false
+		}
+		if numberQ(asTimes.Parts[1]) {
+			if len(asTimes.Parts) > 2 {
+				return asTimes.Parts[1], NewExpression(append([]Ex{&Symbol{"Times"}}, asTimes.Parts[2:]...)), true
+			}
+		} else {
+			return &Integer{big.NewInt(1)}, NewExpression(append([]Ex{&Symbol{"Times"}}, asTimes.Parts[1:]...)), true
+		}
+	}
+	asExpr, isExpr := e.(*Expression)
+	if isExpr {
+		return &Integer{big.NewInt(1)}, NewExpression([]Ex{
+			&Symbol{"Times"},
+			asExpr,
+		}), true
+	}
+	return nil, nil, false
+}
+
+func collectedToTerm(coeffs []Ex, vars Ex, fullPart Ex) Ex {
+	// Preserve the original expression if there is no need to change it.
+	// We can keep all the cached values like the hash.
+	if len(coeffs) == 1 {
+		return fullPart
+	}
+
+	finalC, _ := computeRealPart(FoldFnAdd, NewExpression(append([]Ex{
+		&Symbol{"Plus"}}, coeffs...)))
+
+	toAdd := NewExpression([]Ex{&Symbol{"Times"}})
+	cAsInt, cIsInt := finalC.(*Integer)
+	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
+		toAdd.Parts = append(toAdd.Parts, finalC)
+	}
+	vAsExpr, vIsExpr := HeadAssertion(vars, "Times")
+	if vIsExpr && len(vAsExpr.Parts) == 2 {
+		vars = vAsExpr.Parts[1]
+	}
+	toAdd.Parts = append(toAdd.Parts, vars)
+	if len(toAdd.Parts) == 2 {
+		return toAdd.Parts[1]
+	}
+	return toAdd
+}
+
+func collectTerms(e *Expression) *Expression {
+	collected := NewExpression([]Ex{&Symbol{"Plus"}})
+	var lastVars Ex
+	var lastFullPart Ex
+	lastCoeffs := []Ex{}
+	for _, part := range e.Parts[1:] {
+		coeff, vars, isTerm := splitTerm(part)
+		if isTerm {
+			if lastVars == nil {
+				lastCoeffs = []Ex{coeff}
+				lastVars = vars
+				lastFullPart = part
+			} else {
+				if hashEx(vars) == hashEx(lastVars) {
+					lastCoeffs = append(lastCoeffs, coeff)
+				} else {
+					collected.Parts = append(collected.Parts, collectedToTerm(lastCoeffs, lastVars, lastFullPart))
+
+					lastCoeffs = []Ex{coeff}
+					lastVars = vars
+					lastFullPart = part
+				}
+			}
+		} else {
+			collected.Parts = append(collected.Parts, part)
+		}
+	}
+	if lastVars != nil {
+		collected.Parts = append(collected.Parts, collectedToTerm(lastCoeffs, lastVars, lastFullPart))
+	}
+	return collected
 }
 
 func getArithmeticDefinitions() (defs []Definition) {
@@ -38,8 +225,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Default:	"0",
 		Rules: []Rule{
-			{"Plus[Optional[c1_?NumberQ]*a_, Optional[c2_?NumberQ]*a_, rest___]", "(c1+c2)*a+rest"},
-			{"Plus[c1_Integer*a_, a_, rest___]", "(c1+1)*a+rest"},
+			//{"Verbatim[Plus][beg___, Optional[c1_?NumberQ]*a_, Optional[c2_?NumberQ]*a_, end___]", "beg+(c1+c2)*a+end"},
+			// The world is not ready for this madness.
+			//{"Verbatim[Plus][beg___, Verbatim[Times][Optional[c1_?NumberQ],a__], Verbatim[Times][Optional[c2_?NumberQ],a__], end___]", "beg+(c1+c2)*a+end"},
 		},
 		toString: func(this *Expression, form string) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", form)
@@ -50,133 +238,31 @@ func getArithmeticDefinitions() (defs []Definition) {
 				return &Integer{big.NewInt(0)}
 			}
 
-			addends := this.Parts[1:len(this.Parts)]
-			// If this expression contains any floats, convert everything possible to
-			// a float
-			if ExArrayContainsFloat(addends) {
-				for i, e := range addends {
-					subint, isint := e.(*Integer)
-					subrat, israt := e.(*Rational)
-					if isint {
-						newfloat := big.NewFloat(0)
-						newfloat.SetInt(subint.Val)
-						addends[i] = &Flt{newfloat}
-					} else if israt {
-						num := big.NewFloat(0)
-						den := big.NewFloat(0)
-						newquo := big.NewFloat(0)
-						num.SetInt(subrat.Num)
-						den.SetInt(subrat.Den)
-						newquo.Quo(num, den)
-						addends[i] = &Flt{newquo}
-					}
+			res := this
+			realPart, symStart := computeRealPart(FoldFnAdd, this)
+			if realPart != nil {
+				if symStart == -1 {
+					return realPart
 				}
+				res = NewExpression([]Ex{&Symbol{"Plus"}})
+				rAsInt, rIsInt := realPart.(*Integer)
+				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0) {
+					res.Parts = append(res.Parts, realPart)
+				}
+				res.Parts = append(res.Parts, this.Parts[symStart:]...)
 			}
 
-			// Accumulate floating point values towards the end of the expression
-			var lastf *Flt = nil
-			for _, e := range addends {
-				f, ok := e.(*Flt)
-				if ok {
-					if lastf != nil {
-						f.Val.Add(f.Val, lastf.Val)
-						lastf.Val = big.NewFloat(0)
-					}
-					lastf = f
-				}
-			}
-
-			if len(addends) == 1 {
-				f, fOk := addends[0].(*Flt)
-				if fOk {
-					if f.Val.Cmp(big.NewFloat(0)) == 0 {
-						return f
-					}
-				}
-				i, iOk := addends[0].(*Integer)
-				if iOk {
-					if i.Val.Cmp(big.NewInt(0)) == 0 {
-						return i
-					}
-				}
-			}
-
-			// Remove zero Floats
-			for i := len(addends) - 1; i >= 0; i-- {
-				f, ok := addends[i].(*Flt)
-				if ok && f.Val.Cmp(big.NewFloat(0)) == 0 && len(addends) > 1 {
-					addends[i] = addends[len(addends)-1]
-					addends[len(addends)-1] = nil
-					addends = addends[:len(addends)-1]
-				}
-			}
-
-			// Accumulate integer values towards the end of the expression
-			var lasti *Integer = nil
-			for _, e := range addends {
-				i, ok := e.(*Integer)
-				if ok {
-					if lasti != nil {
-						i.Val.Add(i.Val, lasti.Val)
-						lasti.Val = big.NewInt(0)
-					}
-					lasti = i
-				}
-			}
-
-			// Accumulate rational values towards the end of the expression
-			var lastr *Rational = nil
-			for _, e := range addends {
-				therat, ok := e.(*Rational)
-				if ok {
-					if lastr != nil {
-						tmp := big.NewInt(0)
-						// lastrNum/lastrDen + theratNum/theratDen // Together
-						tmp.Mul(therat.Den, lastr.Num)
-						therat.Den.Mul(therat.Den, lastr.Den)
-						therat.Num.Mul(therat.Num, lastr.Den)
-						therat.Num.Add(therat.Num, tmp)
-						lastr.Num = big.NewInt(0)
-						lastr.Den = big.NewInt(1)
-					}
-					lastr = therat
-				}
-			}
-
-			// If there is one Integer and one Rational left, merge the Integer into
-			// the Rational
-			if lasti != nil && lastr != nil {
-				lasti.Val.Mul(lasti.Val, lastr.Den)
-				lastr.Num.Add(lastr.Num, lasti.Val)
-				lasti.Val = big.NewInt(0)
-			}
-
-			// Remove zero Integers and Rationals
-			for i := len(addends) - 1; i >= 0; i-- {
-				toRemove := false
-				theint, isInt := addends[i].(*Integer)
-				if isInt {
-					toRemove = theint.Val.Cmp(big.NewInt(0)) == 0
-				}
-				therat, isRat := addends[i].(*Rational)
-				if isRat {
-					toRemove = therat.Num.Cmp(big.NewInt(0)) == 0 && therat.Den.Cmp(big.NewInt(1)) == 0
-				}
-				if toRemove && len(addends) > 1 {
-					addends[i] = addends[len(addends)-1]
-					addends[len(addends)-1] = nil
-					addends = addends[:len(addends)-1]
-				}
+			collected := collectTerms(res)
+			if hashEx(collected) != hashEx(res) {
+				res = collected
 			}
 
 			// If one expression remains, replace this Plus with the expression
-			if len(addends) == 1 {
-				return addends[0]
+			if len(res.Parts) == 2 {
+				return res.Parts[1]
 			}
 
-			this.Parts = this.Parts[0:1]
-			this.Parts = append(this.Parts, addends...)
-			return this
+			return res
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"2", "1 + 1"},
@@ -310,192 +396,45 @@ func getArithmeticDefinitions() (defs []Definition) {
 				return &Integer{big.NewInt(1)}
 			}
 
-			multiplicands := this.Parts[1:len(this.Parts)]
-			// If this expression contains any floats, convert everything possible to
-			// a float
-			if ExArrayContainsFloat(multiplicands) {
-				for i, e := range multiplicands {
-					subint, isint := e.(*Integer)
-					subrat, israt := e.(*Rational)
-					if isint {
-						newfloat := big.NewFloat(0)
-						newfloat.SetInt(subint.Val)
-						multiplicands[i] = &Flt{newfloat}
-					} else if israt {
-						num := big.NewFloat(0)
-						den := big.NewFloat(0)
-						newquo := big.NewFloat(0)
-						num.SetInt(subrat.Num)
-						den.SetInt(subrat.Den)
-						newquo.Quo(num, den)
-						multiplicands[i] = &Flt{newquo}
+			res := this
+			realPart, symStart := computeRealPart(FoldFnMul, this)
+			if realPart != nil {
+				if symStart == -1 {
+					return realPart
+				}
+				res = NewExpression([]Ex{&Symbol{"Times"}})
+				rAsInt, rIsInt := realPart.(*Integer)
+				if rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0 {
+					containsInfinity := MemberQ(this.Parts[symStart:], NewExpression([]Ex{
+						&Symbol{"Alternatives"},
+						&Symbol{"Infinity"},
+						&Symbol{"ComplexInfinity"},
+					}), es)
+					if containsInfinity {
+						return &Symbol{"Indeterminate"}
 					}
+					return &Integer{big.NewInt(0)}
 				}
-			}
-
-			// If there is a zero in the expression, return zero, except under
-			// special circumstances.
-			containsInfinity := MemberQ(multiplicands, NewExpression([]Ex{
-				&Symbol{"Alternatives"},
-				&Symbol{"Infinity"},
-				&Symbol{"ComplexInfinity"},
-			}), es)
-			for _, e := range multiplicands {
-				float, isFlt := e.(*Flt)
-				if isFlt {
-					if float.Val.Cmp(big.NewFloat(0)) == 0 {
-						if containsInfinity {
-							return &Symbol{"Indeterminate"}
-						}
-						return &Flt{big.NewFloat(0)}
-					}
+				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(1)) == 0) {
+					res.Parts = append(res.Parts, realPart)
 				}
-				integer, isInteger := e.(*Integer)
-				if isInteger {
-					if integer.Val.Cmp(big.NewInt(0)) == 0 {
-						if containsInfinity {
-							return &Symbol{"Indeterminate"}
-						}
-						return &Integer{big.NewInt(0)}
-					}
-				}
-			}
-
-			// Geometrically accumulate floating point values towards the end of the expression
-			//es.Debugf("Before accumulating floats: %s", m)
-			origLen := len(multiplicands)
-			offset := 0
-			var lastf *Flt = nil
-			var lastfj int = 0
-			for i := 0; i < origLen; i++ {
-				j := i - offset
-				e := multiplicands[j]
-				f, ok := e.(*Flt)
-				if ok {
-					if lastf != nil {
-						es.Debugf("Encountered float. i=%d, j=%d, lastf=%s, lastfj=%d", i, j, lastf, lastfj)
-						f.Val.Mul(f.Val, lastf.Val)
-						//lastf.Val = big.NewFloat(1)
-						multiplicands = append(multiplicands[:lastfj], multiplicands[lastfj+1:]...)
-						offset++
-						es.Debugf("After deleting: %s", this)
-					}
-					lastf = f
-					lastfj = i - offset
-				}
-			}
-			//es.Debugf(es.Pre() +"After accumulating floats: %s", m)
-
-			if len(multiplicands) == 1 {
-				f, fOk := multiplicands[0].(*Flt)
-				if fOk {
-					if f.Val.Cmp(big.NewFloat(0)) == 1 {
-						return f
-					}
-				}
-				i, iOk := multiplicands[0].(*Integer)
-				if iOk {
-					if i.Val.Cmp(big.NewInt(0)) == 1 {
-						return i
-					}
-				}
-			}
-
-			// Remove one Floats
-			/*
-				for i := len(multiplicands) - 1; i >= 0; i-- {
-					f, ok := multiplicands[i].(*Flt)
-					if ok && f.Val.Cmp(big.NewFloat(1)) == 0 {
-						multiplicands[i] = multiplicands[len(multiplicands)-1]
-						multiplicands[len(multiplicands)-1] = nil
-						multiplicands = multiplicands[:len(multiplicands)-1]
-					}
-				}
-			*/
-
-			// Geometrically accumulate integer values towards the end of the expression
-			var lasti *Integer = nil
-			for _, e := range multiplicands {
-				theint, ok := e.(*Integer)
-				if ok {
-					if lasti != nil {
-						theint.Val.Mul(theint.Val, lasti.Val)
-						lasti.Val = big.NewInt(1)
-					}
-					lasti = theint
-				}
-			}
-
-			// Geometrically accumulate rational values towards the end of the expression
-			var lastr *Rational = nil
-			for _, e := range multiplicands {
-				therat, ok := e.(*Rational)
-				if ok {
-					if lastr != nil {
-						therat.Num.Mul(therat.Num, lastr.Num)
-						therat.Den.Mul(therat.Den, lastr.Den)
-						lastr.Num = big.NewInt(1)
-						lastr.Den = big.NewInt(1)
-					}
-					lastr = therat
-				}
-			}
-
-			// If there is one Integer and one Rational left, merge the Integer into
-			// the Rational
-			if lasti != nil && lastr != nil {
-				lastr.Num.Mul(lastr.Num, lasti.Val)
-				// This will get cleaned up in the next step
-				lasti.Val = big.NewInt(1)
-			}
-
-			// Remove one Integers and Rationals
-			for i := len(multiplicands) - 1; i >= 0; i-- {
-				toRemove := false
-				theint, isInt := multiplicands[i].(*Integer)
-				if isInt {
-					toRemove = theint.Val.Cmp(big.NewInt(1)) == 0
-				}
-				therat, isRat := multiplicands[i].(*Rational)
-				if isRat {
-					toRemove = therat.Num.Cmp(big.NewInt(1)) == 0 && therat.Den.Cmp(big.NewInt(1)) == 0
-				}
-				if toRemove && len(multiplicands) > 1 {
-					multiplicands[i] = multiplicands[len(multiplicands)-1]
-					multiplicands[len(multiplicands)-1] = nil
-					multiplicands = multiplicands[:len(multiplicands)-1]
-				}
+				res.Parts = append(res.Parts, this.Parts[symStart:]...)
 			}
 
 			// If one expression remains, replace this Times with the expression
-			if len(multiplicands) == 1 {
-				return multiplicands[0]
+			if len(res.Parts) == 2 {
+				return res.Parts[1]
 			}
 
 			// Automatically Expand negations (*-1), not (*-1.) of a Plus expression
-			if len(multiplicands) == 2 {
-				leftint, leftintok := multiplicands[0].(*Integer)
-				rightint, rightintok := multiplicands[1].(*Integer)
-				leftplus, leftplusok := HeadAssertion(multiplicands[0], "Plus")
-				rightplus, rightplusok := HeadAssertion(multiplicands[1], "Plus")
-				var theInt *Integer = nil
-				var thePlus *Expression = nil
-				if leftintok {
-					theInt = leftint
-				}
-				if rightintok {
-					theInt = rightint
-				}
-				if leftplusok {
-					thePlus = leftplus
-				}
-				if rightplusok {
-					thePlus = rightplus
-				}
-				if theInt != nil && thePlus != nil {
-					if theInt.Val.Cmp(big.NewInt(-1)) == 0 {
+			// Perhaps better implemented as a rule.
+			if len(res.Parts) == 3 {
+				leftint, leftintok := res.Parts[1].(*Integer)
+				rightplus, rightplusok := HeadAssertion(res.Parts[2], "Plus")
+				if leftintok && rightplusok {
+					if leftint.Val.Cmp(big.NewInt(-1)) == 0 {
 						toreturn := NewExpression([]Ex{&Symbol{"Plus"}})
-						addends := thePlus.Parts[1:len(thePlus.Parts)]
+						addends := rightplus.Parts[1:len(rightplus.Parts)]
 						for i := range addends {
 							toAppend := NewExpression([]Ex{
 								&Symbol{"Times"},
@@ -510,20 +449,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 				}
 			}
 
-			if len(multiplicands) == 2 {
-				rational, isRational := RationalAssertion(multiplicands[0], multiplicands[1])
-				if isRational {
-					return rational.Eval(es)
-				}
-				rational, isRational = RationalAssertion(multiplicands[1], multiplicands[0])
-				if isRational {
-					return rational.Eval(es)
-				}
-			}
-
-			this.Parts = this.Parts[0:1]
-			this.Parts = append(this.Parts, multiplicands...)
-			return this
+			return res
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"Simplification rules apply automatically:"},

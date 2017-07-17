@@ -7,6 +7,7 @@ import "hash"
 type Rational struct {
 	Num *big.Int
 	Den *big.Int
+	needsEval bool
 }
 
 func (this *Rational) Eval(es *EvalState) Ex {
@@ -43,12 +44,15 @@ func (this *Rational) Eval(es *EvalState) Ex {
 	if !negateRes {
 		this.Num.Set(absNum)
 		this.Den.Set(absDen)
+		this.needsEval = false
 		return this
 	} else {
 		this.Num.Set(absNum.Neg(absNum))
 		this.Den.Set(absDen)
+		this.needsEval = false
 		return this
 	}
+	this.needsEval = false
 	return this
 }
 
@@ -77,7 +81,7 @@ func (this *Rational) DeepCopy() Ex {
 	tmpn.Set(this.Num)
 	tmpd := big.NewInt(0)
 	tmpd.Set(this.Den)
-	return &Rational{tmpn, tmpd}
+	return &Rational{tmpn, tmpd, this.needsEval}
 }
 
 func (this *Rational) AsBigRat() *big.Rat {
@@ -85,7 +89,11 @@ func (this *Rational) AsBigRat() *big.Rat {
 }
 
 func (this *Rational) NeedsEval() bool {
-	return false
+	return this.needsEval
+}
+
+func NewRational(n *big.Int, d *big.Int) *Rational {
+	return &Rational{n, d, true}
 }
 
 func (this *Rational) Hash(h *hash.Hash64) {
@@ -94,4 +102,38 @@ func (this *Rational) Hash(h *hash.Hash64) {
 	(*h).Write(nBytes)
 	dBytes, _ := this.Den.MarshalText()
 	(*h).Write(dBytes)
+}
+
+func (this *Rational) AsBigFloat() *big.Float {
+	num := big.NewFloat(0)
+	den := big.NewFloat(0)
+	newquo := big.NewFloat(0)
+	num.SetInt(this.Num)
+	den.SetInt(this.Den)
+	newquo.Quo(num, den)
+	return newquo
+}
+
+func (this *Rational) AddI(i *Integer) {
+	tmp := big.NewInt(0)
+	tmp.Mul(i.Val, this.Den)
+	this.Num.Add(this.Num, tmp)
+}
+
+func (this *Rational) AddR(r *Rational) {
+	tmp := big.NewInt(0)
+	// lastrNum/lastrDen + theratNum/theratDen // Together
+	tmp.Mul(this.Den, r.Num)
+	this.Den.Mul(this.Den, r.Den)
+	this.Num.Mul(this.Num, r.Den)
+	this.Num.Add(this.Num, tmp)
+}
+
+func (this *Rational) MulI(i *Integer) {
+	this.Num.Mul(this.Num, i.Val)
+}
+
+func (this *Rational) MulR(r *Rational) {
+	this.Num.Mul(this.Num, r.Num)
+	this.Den.Mul(this.Den, r.Den)
 }

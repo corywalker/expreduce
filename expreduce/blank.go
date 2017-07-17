@@ -19,7 +19,7 @@ func IsBlankTypeOnly(e Ex) bool {
 	return false
 }
 
-func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
 	asPattern, patternOk := HeadAssertion(e, "Pattern")
@@ -44,12 +44,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 			if len(parts) < 2 {
 				matchesHead = true
 			} else {
-				asSymbol, symbolOk := parts[1].(*Symbol)
-				if symbolOk {
-					if asSymbol.Name == t {
-						matchesHead = true
-					}
-				}
+				matchesHead = IsSameQ(head, parts[1], cl)
 			}
 			cl.Debugf("%v", matchesHead)
 			if matchesHead {
@@ -84,7 +79,6 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 	asBS, bsOk := HeadAssertion(e, "BlankSequence")
 	asBNS, bnsOk := HeadAssertion(e, "BlankNullSequence")
 	if blankOk || bsOk || bnsOk {
-		var asSymbol *Symbol
 		parts := []Ex{}
 		if blankOk {
 			parts = asBlank.Parts
@@ -96,10 +90,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, t string, pm *PDManager, cl *CASLogge
 		if len(parts) < 2 {
 			return true, pm
 		}
-		asSymbol, symbolOk := parts[1].(*Symbol)
-		if symbolOk {
-			return asSymbol.Name == t, pm
-		}
+		return IsSameQ(head, parts[1], cl), pm
 	}
 	return false, pm
 }

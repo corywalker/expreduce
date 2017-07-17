@@ -146,6 +146,15 @@ func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
 	return NewExpression([]Ex{&Symbol{op}, lhs, rhs})
 }
 
+func rightFullyAssoc(op string, lhs Ex, rhs Ex) Ex {
+	opExpr, isOp := HeadAssertion(rhs, op)
+	if isOp {
+		opExpr.Parts = append([]Ex{opExpr.Parts[0], lhs}, opExpr.Parts[1:]...)
+		return opExpr
+	}
+	return NewExpression([]Ex{&Symbol{op}, lhs, rhs})
+}
+
 func removeParens(ex Ex) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
@@ -912,7 +921,7 @@ Calcdefault:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
 		//line interp.y:141
 		{
-			CalcVAL.val = fullyAssoc("Times", CalcDollar[1].val, CalcDollar[2].val)
+			CalcVAL.val = rightFullyAssoc("Times", CalcDollar[1].val, CalcDollar[2].val)
 		}
 	case 18:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]

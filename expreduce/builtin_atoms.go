@@ -11,7 +11,7 @@ func getAtomsDefinitions() (defs []Definition) {
 			nAsInt, nIsInt := this.Parts[1].(*Integer)
 			dAsInt, dIsInt := this.Parts[2].(*Integer)
 			if nIsInt && dIsInt {
-				return (&Rational{nAsInt.Val, dAsInt.Val}).Eval(es)
+				return NewRational(nAsInt.Val, dAsInt.Val).Eval(es)
 			}
 			return this
 		},

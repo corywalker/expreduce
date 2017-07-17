@@ -53,3 +53,56 @@ func (tc *TimeCounter) TruncatedString(numToPrint int) string {
 func (tc *TimeCounter) String() string {
 	return tc.TruncatedString(25)
 }
+
+// TimeCounterGroup
+
+type CounterGroupType uint8
+
+const (
+	CounterGroupDefTime CounterGroupType = iota + 1
+	CounterGroupLhsDefTime
+	CounterGroupEvalTime
+	CounterGroupHeadEvalTime
+)
+
+type TimeCounterGroup struct {
+	defTimeCounter TimeCounter
+	lhsDefTimeCounter TimeCounter
+	evalTimeCounter TimeCounter
+	headEvalTimeCounter TimeCounter
+}
+
+func (tcg *TimeCounterGroup) Init() {
+	tcg.defTimeCounter.Init()
+	tcg.lhsDefTimeCounter.Init()
+	tcg.evalTimeCounter.Init()
+	tcg.headEvalTimeCounter.Init()
+}
+
+func (tcg *TimeCounterGroup) AddTime(counter CounterGroupType, key string, elapsed float64) {
+	if counter == CounterGroupDefTime {
+		tcg.defTimeCounter.AddTime(key, elapsed)
+	} else if counter == CounterGroupLhsDefTime {
+		tcg.lhsDefTimeCounter.AddTime(key, elapsed)
+	} else if counter == CounterGroupEvalTime {
+		tcg.evalTimeCounter.AddTime(key, elapsed)
+	} else if counter == CounterGroupHeadEvalTime {
+		tcg.headEvalTimeCounter.AddTime(key, elapsed)
+	}
+}
+
+func (tcg *TimeCounterGroup) Update(other *TimeCounterGroup) {
+	tcg.defTimeCounter.Update(&other.defTimeCounter)
+	tcg.lhsDefTimeCounter.Update(&other.lhsDefTimeCounter)
+	tcg.evalTimeCounter.Update(&other.evalTimeCounter)
+	tcg.headEvalTimeCounter.Update(&other.headEvalTimeCounter)
+}
+
+func (tcg *TimeCounterGroup) String() string {
+	var buffer bytes.Buffer
+	buffer.WriteString(tcg.defTimeCounter.String() + "\n")
+	buffer.WriteString(tcg.lhsDefTimeCounter.String() + "\n")
+	buffer.WriteString(tcg.evalTimeCounter.String() + "\n")
+	buffer.WriteString(tcg.headEvalTimeCounter.String() + "\n")
+	return buffer.String()
+}

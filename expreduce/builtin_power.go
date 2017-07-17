@@ -277,5 +277,6 @@ func GetPowerDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
 	})
+	defs = append(defs, Definition{Name: "FactorSquareFree"})
 	return
 }

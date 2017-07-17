@@ -16,6 +16,7 @@ type CASLogger struct {
 	_log       *logging.Logger
 	leveled    logging.LeveledBackend
 	debugState bool
+	isProfiling bool
 }
 
 func (this *CASLogger) Debugf(fmt string, args ...interface{}) {
@@ -48,6 +49,10 @@ func (this *CASLogger) DebugOff() {
 
 func (this *CASLogger) DebugState() bool {
 	return this.debugState
+}
+
+func (this *CASLogger) SetProfiling(profiling bool) {
+	this.isProfiling = profiling
 }
 
 func (this *CASLogger) Pre() string {

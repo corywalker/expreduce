@@ -3,11 +3,19 @@ package expreduce
 import "bytes"
 import "math/big"
 import "sort"
+import "fmt"
+import "time"
+import "flag"
 import "hash"
+
+var printevals = flag.Bool("printevals", false, "")
+var checkhashes = flag.Bool("checkhashes", false, "")
 
 type Expression struct {
 	Parts []Ex
-	//needsEval bool
+	needsEval bool
+	correctlyInstantiated bool
+	cachedHash uint64
 }
 
 // Deprecated in favor of headExAssertion
@@ -34,6 +42,22 @@ func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
 	return NewEmptyExpression(), false
 }
 
+func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
+	expr, isExpr := ex.(*Expression)
+	if isExpr {
+		headExpr, headIsExpr := expr.Parts[0].(*Expression)
+		if headIsExpr {
+			sym, isSym := headExpr.Parts[0].(*Symbol)
+			if isSym {
+				if sym.Name == opHead {
+					return expr, headExpr, true
+				}
+			}
+		}
+	}
+	return NewEmptyExpression(), NewEmptyExpression(), false
+}
+
 func tryReturnValue(e Ex) (Ex, bool) {
 	asReturn, isReturn := HeadAssertion(e, "Return")
 	if !isReturn {
@@ -47,46 +71,66 @@ func tryReturnValue(e Ex) (Ex, bool) {
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
-func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval bool) {
+func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval bool) *Expression {
 	// TODO: I should not be attempting to merge the head if it happens to be
 	// a Sequence type. This is very similar to the flatten function. Perhaps
 	// it should be combined. This version is not recursive, and it does not
 	// accept level depths. It is a specific case of Flatten.
-	origLen := len(this.Parts)
-	offset := 0
-	for i := 0; i < origLen; i++ {
-		j := i + offset
-		e := this.Parts[j]
+	res := NewEmptyExpression()
+	encounteredSeq := false
+	for _, e := range(this.Parts) {
 		seq, isseq := HeadAssertion(e, headStr)
-		if shouldEval {
-			for j := 1; j < len(seq.Parts); j++ {
-				seq.Parts[j] = seq.Parts[j].Eval(es)
-			}
-		}
 		if isseq {
-			start := j
-			end := j + 1
-			if j == 0 {
-				this.Parts = append(seq.Parts[1:], this.Parts[end:]...)
-			} else if j == len(this.Parts)-1 {
-				this.Parts = append(this.Parts[:start], seq.Parts[1:]...)
-			} else {
-				// All of these deep copies may not be needed.
-				this.Parts = append(append(this.DeepCopy().(*Expression).Parts[:start], seq.DeepCopy().(*Expression).Parts[1:]...), this.DeepCopy().(*Expression).Parts[end:]...)
+			encounteredSeq = true
+			for _, seqPart := range seq.Parts[1:] {
+				if shouldEval {
+					res.Parts = append(res.Parts, seqPart.Eval(es))
+				} else {
+					res.Parts = append(res.Parts, seqPart)
+				}
 			}
-			offset += len(seq.Parts[1:]) - 1
+		} else {
+			res.Parts = append(res.Parts, e)
 		}
 	}
+	if encounteredSeq {
+		return res
+	}
+	return this
 }
 
 func (this *Expression) Eval(es *EvalState) Ex {
-	shouldEval := true
-	var lastEx Ex = this.DeepCopy()
-	var currEx Ex = this.DeepCopy()
+	lastExHash := uint64(0)
+	var lastEx Ex = this
+	currExHash := hashEx(this)
+	if currExHash == this.cachedHash {
+		return this
+	}
+	var currEx Ex = this
 	insideDefinition := false
-	needsEval := currEx.NeedsEval()
-	for shouldEval {
+	for currExHash != lastExHash {
+		lastExHash = currExHash
 		curr, isExpr := currEx.(*Expression)
+		if *checkhashes {
+			if isExpr && curr.cachedHash != 0 && currExHash != curr.cachedHash {
+				fmt.Printf("invalid cache: %v. Used to be %v\n", curr, lastEx)
+			}
+			lastEx = currEx
+		}
+
+		if isExpr && insideDefinition {
+			retVal, isReturn := tryReturnValue(curr)
+			if isReturn {
+				return retVal
+			}
+		}
+		if isExpr && currExHash == curr.cachedHash {
+			return curr
+		}
+
+		if *printevals {
+			fmt.Printf("Evaluating %v.\n", currEx)
+		}
 		// Transition to the right Eval() if this is no longer an Expression
 		if !isExpr {
 			toReturn := currEx.Eval(es)
@@ -106,11 +150,13 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			return toReturn
 		}
 
-		if insideDefinition {
-			retVal, isReturn := tryReturnValue(curr)
-			if isReturn {
-				return retVal
-			}
+		currStr := ""
+		currHeadStr := ""
+		started := int64(0)
+		if es.isProfiling {
+			currStr = curr.String()
+			currHeadStr = curr.Parts[0].String()
+			started = time.Now().UnixNano()
 		}
 
 		// Start by evaluating each argument
@@ -169,17 +215,19 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// If any of the parts are Sequence, merge them with parts
 		if headIsSym {
 			if !attrs.SequenceHold {
-				curr.mergeSequences(es, "Sequence", false)
+				curr = curr.mergeSequences(es, "Sequence", false)
 			}
 		} else {
-			curr.mergeSequences(es, "Sequence", false)
+			curr = curr.mergeSequences(es, "Sequence", false)
 		}
-		curr.mergeSequences(es, "Evaluate", true)
+		curr = curr.mergeSequences(es, "Evaluate", true)
+		// In case curr changed
+		currEx = curr
 
 		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
 		if headIsSym {
 			if attrs.Flat {
-				curr.mergeSequences(es, headSym.Name, false)
+				curr = curr.mergeSequences(es, headSym.Name, false)
 			}
 			if attrs.Orderless {
 				sort.Sort(curr)
@@ -188,7 +236,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				changed := false
 				currEx, changed = ThreadExpr(curr)
 				if changed {
-					lastEx = currEx
+					currExHash = hashEx(currEx)
 					continue
 				}
 			}
@@ -219,15 +267,19 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		} else if isPureFunction {
 			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
 		}
-		if IsSameQ(currEx, lastEx, &es.CASLogger) {
-			shouldEval = false
-		} else {
+		currExHash = hashEx(currEx)
+
+		// Handle end of profiling
+		if es.isProfiling {
+			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
+			es.timeCounter.AddTime(CounterGroupEvalTime, currStr, elapsed)
+			es.timeCounter.AddTime(CounterGroupHeadEvalTime, currHeadStr, elapsed)
 		}
-		if !needsEval && shouldEval {
-			//fmt.Printf("this.NeedsEval() is %v but should be %v. (last: %v, curr: %v)\n", this.NeedsEval(), shouldEval, lastEx, currEx)
-		}
-		lastEx = currEx
-		needsEval = currEx.NeedsEval()
+	}
+	curr, isExpr := currEx.(*Expression)
+	if isExpr {
+		curr.needsEval = false
+		curr.cachedHash = currExHash
 	}
 	return currEx
 }
@@ -274,11 +326,10 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalSta
 	es.Debugf("Rule r is: %s", r)
 
 	matchq, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es)
-	toreturn := ReplacePD(r.Parts[2].DeepCopy(), es, matches)
 	if matchq {
 		es.Debugf("After MatchQ, rule is: %s", r)
 		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])
-		return toreturn
+		return ReplacePD(r.Parts[2].DeepCopy(), es, matches)
 	}
 
 	thisSym, thisSymOk := this.Parts[0].(*Symbol)
@@ -289,14 +340,18 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalSta
 			if thisSym.Name == otherSym.Name {
 				attrs := thisSym.Attrs(&es.defined)
 				if attrs.Flat {
-					FlatReplace(this, lhsExpr, r.Parts[2], attrs.Orderless, es)
+					return FlatReplace(this, lhsExpr, r.Parts[2], attrs.Orderless, es)
 				}
 			}
 		}
 	}
 
+	maybeChanged := NewEmptyExpression()
 	for i := range this.Parts {
-		this.Parts[i] = ReplaceAll(this.Parts[i], r, es, EmptyPD(), stopAtHead)
+		maybeChanged.Parts = append(maybeChanged.Parts, ReplaceAll(this.Parts[i], r, es, EmptyPD(), stopAtHead))
+	}
+	if hashEx(maybeChanged) != hashEx(this) {
+		return maybeChanged
 	}
 	return this
 }
@@ -364,6 +419,9 @@ func (this *Expression) DeepCopy() Ex {
 	for i := range this.Parts {
 		thiscopy.Parts = append(thiscopy.Parts, this.Parts[i].DeepCopy())
 	}
+	thiscopy.needsEval = this.needsEval
+	thiscopy.correctlyInstantiated = this.correctlyInstantiated
+	thiscopy.cachedHash = this.cachedHash
 	return thiscopy
 }
 
@@ -385,8 +443,7 @@ func (this *Expression) appendEx(e Ex) {
 }
 
 func (this *Expression) NeedsEval() bool {
-	//return this.needsEval
-	return false
+	return this.needsEval
 }
 
 func (this *Expression) Hash(h *hash.Hash64) {
@@ -397,9 +454,16 @@ func (this *Expression) Hash(h *hash.Hash64) {
 }
 
 func NewExpression(parts []Ex) *Expression {
-	return &Expression{Parts: parts}
+	return &Expression{
+		Parts: parts,
+		needsEval: true,
+		correctlyInstantiated: true,
+	}
 }
 
 func NewEmptyExpression() *Expression {
-	return &Expression{}
+	return &Expression{
+		needsEval: true,
+		correctlyInstantiated: true,
+	}
 }

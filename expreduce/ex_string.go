@@ -38,6 +38,10 @@ func (this *String) DeepCopy() Ex {
 	return &thiscopy
 }
 
+func (this *String) NeedsEval() bool {
+	return false
+}
+
 func (this *String) Hash(h *hash.Hash64) {
 	(*h).Write([]byte{102, 206, 57, 172, 207, 100, 198, 133})
 	(*h).Write([]byte(this.Val))

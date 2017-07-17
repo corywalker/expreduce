@@ -9,7 +9,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 			return ToStringInfix(this.Parts[1:], " && ", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			res := &Expression{[]Ex{&Symbol{"And"}}}
+			res := NewExpression([]Ex{&Symbol{"And"}})
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
 				if booleanQ(this.Parts[i], &es.CASLogger) {
@@ -54,7 +54,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 			return ToStringInfix(this.Parts[1:], " || ", form)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			res := &Expression{[]Ex{&Symbol{"Or"}}}
+			res := NewExpression([]Ex{&Symbol{"Or"}})
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
 				if booleanQ(this.Parts[i], &es.CASLogger) {

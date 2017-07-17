@@ -73,3 +73,27 @@ func (this *Flt) Hash(h *hash.Hash64) {
 	bytes, _ := this.Val.MarshalText()
 	(*h).Write(bytes)
 }
+
+func (this *Flt) AddI(i *Integer) {
+	this.Val.Add(this.Val, i.AsBigFloat())
+}
+
+func (this *Flt) AddR(r *Rational) {
+	this.Val.Add(this.Val, r.AsBigFloat())
+}
+
+func (this *Flt) AddF(f *Flt) {
+	this.Val.Add(this.Val, f.Val)
+}
+
+func (this *Flt) MulI(i *Integer) {
+	this.Val.Mul(this.Val, i.AsBigFloat())
+}
+
+func (this *Flt) MulR(r *Rational) {
+	this.Val.Mul(this.Val, r.AsBigFloat())
+}
+
+func (this *Flt) MulF(f *Flt) {
+	this.Val.Mul(this.Val, f.Val)
+}
