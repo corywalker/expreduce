@@ -128,6 +128,96 @@ func computeRealPart(fn FoldFn, e *Expression) (Ex, int) {
 	return typedRealPart(fn, foldedInt, foldedRat, foldedFlt), -1
 }
 
+func splitTerm(e Ex) (Ex, Ex, bool) {
+	asSym, isSym := e.(*Symbol)
+	if isSym {
+		return &Integer{big.NewInt(1)}, NewExpression([]Ex{
+			&Symbol{"Times"},
+			asSym,
+		}), true
+	}
+	asTimes, isTimes := HeadAssertion(e, "Times")
+	if isTimes {
+		if len(asTimes.Parts) < 2 {
+			return nil, nil, false
+		}
+		if numberQ(asTimes.Parts[1]) {
+			if len(asTimes.Parts) > 2 {
+				return asTimes.Parts[1], NewExpression(append([]Ex{&Symbol{"Times"}}, asTimes.Parts[2:]...)), true
+			}
+		} else {
+			return &Integer{big.NewInt(1)}, NewExpression(append([]Ex{&Symbol{"Times"}}, asTimes.Parts[1:]...)), true
+		}
+	}
+	asExpr, isExpr := e.(*Expression)
+	if isExpr {
+		return &Integer{big.NewInt(1)}, NewExpression([]Ex{
+			&Symbol{"Times"},
+			asExpr,
+		}), true
+	}
+	return nil, nil, false
+}
+
+func collectedToTerm(coeffs []Ex, vars Ex, fullPart Ex) Ex {
+	// Preserve the original expression if there is no need to change it.
+	// We can keep all the cached values like the hash.
+	if len(coeffs) == 1 {
+		return fullPart
+	}
+
+	finalC, _ := computeRealPart(FoldFnAdd, NewExpression(append([]Ex{
+		&Symbol{"Plus"}}, coeffs...)))
+
+	toAdd := NewExpression([]Ex{&Symbol{"Times"}})
+	cAsInt, cIsInt := finalC.(*Integer)
+	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
+		toAdd.Parts = append(toAdd.Parts, finalC)
+	}
+	vAsExpr, vIsExpr := HeadAssertion(vars, "Times")
+	if vIsExpr && len(vAsExpr.Parts) == 2 {
+		vars = vAsExpr.Parts[1]
+	}
+	toAdd.Parts = append(toAdd.Parts, vars)
+	if len(toAdd.Parts) == 2 {
+		return toAdd.Parts[1]
+	}
+	return toAdd
+}
+
+func collectTerms(e *Expression) *Expression {
+	collected := NewExpression([]Ex{&Symbol{"Plus"}})
+	var lastVars Ex
+	var lastFullPart Ex
+	lastCoeffs := []Ex{}
+	for _, part := range e.Parts[1:] {
+		coeff, vars, isTerm := splitTerm(part)
+		if isTerm {
+			if lastVars == nil {
+				lastCoeffs = []Ex{coeff}
+				lastVars = vars
+				lastFullPart = part
+			} else {
+				if hashEx(vars) == hashEx(lastVars) {
+					lastCoeffs = append(lastCoeffs, coeff)
+				} else {
+					collected.Parts = append(collected.Parts, collectedToTerm(lastCoeffs, lastVars, lastFullPart))
+
+					lastCoeffs = []Ex{coeff}
+					lastVars = vars
+					lastFullPart = part
+				}
+			}
+		} else {
+			collected.Parts = append(collected.Parts, part)
+		}
+	}
+	if lastVars != nil {
+		collected.Parts = append(collected.Parts, collectedToTerm(lastCoeffs, lastVars, lastFullPart))
+	}
+	return collected
+}
+
 func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:       "Plus",
@@ -135,7 +225,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Default:	"0",
 		Rules: []Rule{
-			{"Verbatim[Plus][beg___, Optional[c1_?NumberQ]*a_, Optional[c2_?NumberQ]*a_, end___]", "beg+(c1+c2)*a+end"},
+			//{"Verbatim[Plus][beg___, Optional[c1_?NumberQ]*a_, Optional[c2_?NumberQ]*a_, end___]", "beg+(c1+c2)*a+end"},
 			// The world is not ready for this madness.
 			//{"Verbatim[Plus][beg___, Verbatim[Times][Optional[c1_?NumberQ],a__], Verbatim[Times][Optional[c2_?NumberQ],a__], end___]", "beg+(c1+c2)*a+end"},
 		},
@@ -160,6 +250,11 @@ func getArithmeticDefinitions() (defs []Definition) {
 					res.Parts = append(res.Parts, realPart)
 				}
 				res.Parts = append(res.Parts, this.Parts[symStart:]...)
+			}
+
+			collected := collectTerms(res)
+			if hashEx(collected) != hashEx(res) {
+				res = collected
 			}
 
 			// If one expression remains, replace this Plus with the expression
