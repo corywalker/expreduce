@@ -118,5 +118,44 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 			&SameTest{"LCM[5,6,c]", "LCM[5, 6, c]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Mod",
+		Usage: "`Mod[x, y]` finds the remainder when `x` is divided by `y`.",
+		Attributes: []string{"Listable", "NumericFunction", "ReadProtected"},
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			xi, xIsInt := this.Parts[1].(*Integer)
+			yi, yIsInt := this.Parts[2].(*Integer)
+			if !xIsInt || !yIsInt {
+				return this
+			}
+			if yi.Val.Cmp(big.NewInt(0)) == 0 {
+				return &Symbol{"Indeterminate"}
+			}
+			m := big.NewInt(0)
+			m.Mod(xi.Val, yi.Val)
+			return &Integer{m}
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"2", "Mod[5,3]"},
+			&SameTest{"0", "Mod[0,3]"},
+			&SameTest{"Indeterminate", "Mod[2,0]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"1", "Mod[-5,3]"},
+			&SameTest{"Mod[a,3]", "Mod[a,3]"},
+			&SameTest{"Indeterminate", "Mod[0,0]"},
+			&SameTest{"Mod[2,a]", "Mod[2,a]"},
+			&SameTest{"Mod[0,a]", "Mod[0,a]"},
+		},
+		KnownFailures: []TestInstruction{
+			&SameTest{"1.5", "Mod[1.5,3]"},
+			&SameTest{"0.", "Mod[2,0.5]"},
+		},
+	})
+	defs = append(defs, Definition{Name: "EvenQ"})
+	defs = append(defs, Definition{Name: "OddQ"})
 	return
 }

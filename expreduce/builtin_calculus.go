@@ -56,6 +56,7 @@ func getCalculusDefinitions() (defs []Definition) {
 
 			// Basic power integrals
 			{"Integrate[x_Symbol,x_Symbol]", "x^2/2"},
+			{"Integrate[a_Symbol,x_Symbol]", "a*x"},
 			{"Integrate[x_Symbol^n_Integer, x_Symbol]", "x^(n+1)/(n+1)"},
 			{"Integrate[x_Symbol^n_Rational, x_Symbol]", "x^(n+1)/(n+1)"},
 
