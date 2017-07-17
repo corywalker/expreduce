@@ -4,9 +4,14 @@ import "math/big"
 import "time"
 import "fmt"
 import "os"
+import "runtime/pprof"
+import "log"
 import "io/ioutil"
 import "github.com/op/go-logging"
 import "hash/fnv"
+import "flag"
+
+var mymemprofile = flag.String("mymemprofile", "", "write memory profile to this file")
 
 func hashEx(e Ex) uint64 {
 	h := fnv.New64a()
@@ -92,6 +97,14 @@ func GetSystemDefinitions() (defs []Definition) {
 		Details:           "For timing information to record, debug mode must be enabled through `ExpreduceSetLogging`.",
 		ExpreduceSpecific: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if *mymemprofile != "" {
+				f, err := os.Create(*mymemprofile)
+				if err != nil {
+					log.Fatal(err)
+				}
+				pprof.WriteHeapProfile(f)
+				f.Close()
+			}
 			fmt.Println(es.timeCounter.String())
 			return &Symbol{"Null"}
 		},
@@ -605,6 +618,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			es.Define(&Symbol{"$ModuleNumber"}, &Integer{big.NewInt(mn+1)})
 			toReturn := this.Parts[2]
+			pm := EmptyPD()
 			for _, pl := range parsedLocals {
 				if pl.isSet || pl.isSetDelayed {
 					rhs := pl.setValue
@@ -617,13 +631,9 @@ func GetSystemDefinitions() (defs []Definition) {
 				} else {
 					es.defined[pl.uniqueName] = Def{}
 				}
-				toReturn = ReplaceAll(toReturn,
-					NewExpression([]Ex{
-						&Symbol{"Rule"},
-						&Symbol{pl.sym.Name},
-						&Symbol{pl.uniqueName},
-					}), es, EmptyPD(), "")
+				pm.patternDefined[pl.sym.Name] = &Symbol{pl.uniqueName}
 			}
+			toReturn = ReplacePD(toReturn, es, pm)
 			return toReturn
 		},
 		Tests: []TestInstruction{
