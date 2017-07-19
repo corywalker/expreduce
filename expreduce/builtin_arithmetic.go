@@ -382,7 +382,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 		Default:	"1",
 		Rules: []Rule{
-			{"Times[a_^Optional[m_], a_^Optional[n_], rest___]", "a^(m+n)*rest"},
+			{"Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___]", "beg*a^(m+n)*end"},
 			{"Times[den_Integer^-1, num_Integer, rest___]", "Rational[num,den] * rest"},
 			{"(1/Infinity)", "0"},
 			{"Times[ComplexInfinity, rest___]", "ComplexInfinity"},
