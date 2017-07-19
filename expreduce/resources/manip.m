@@ -2,16 +2,16 @@ ExpreduceDistributeMultiply[e_, multiplicand_] :=
   If[Head[e] === Plus, (#*multiplicand) & /@ e, e*multiplicand];
 
 Together::usage = "`Together[e]` attempts to put the terms in `e` under the same denominator.";
-Together[(rest___ + a_*Rational[b_,c_])/d_] := Together[(a b+Expand[c Plus[rest]])/(c d)];
-Together[a_+Rational[b_,c_]*d_] := Together[(a c+b d)/c];
-Together[(e_)^p_?((NumberQ[#] && # =!= -1)&)] := Together[Together[e]^p];
 
-Together[(a_/b_ + rest___)/d_] := Together[(a+Expand[ExpreduceDistributeMultiply[Plus[rest], b]])/(b d)];
-Together[b_/a_ + rest___] := Together[(b+Expand[a*Plus[rest]])/(a)];
-(* Needed because 1/a is actually a^-1 *)
-Together[1/a_ + rest___] := Together[(1+Expand[a*Plus[rest]])/(a)];
+(*Factor out some operations*)
+Together[a_Plus*b_] := Together[a]*b;
+Together[e_^p_?NumberQ] := Together[e]^p;
+
+Together[c_*Rational[a_,b_] + rest_] := Together[(c a+Expand[rest b])/b];
+Together[a_.*1/b_ + rest_] := Together[(a+Expand[ExpreduceDistributeMultiply[rest, b]])/b];
 
 Together[e_] := e;
+
 Attributes[Together] = {Listable, Protected};
 Tests`Together = {
     ESimpleExamples[
@@ -35,6 +35,7 @@ Tests`Together = {
         ESameTest[(6+a)/(2 a), 1/2 + 3/a//Together],
         ESameTest[(a+b c)/(a b), (c+ a/b)/a//Together],
         ESameTest[(a+b c+b e)/(b d), (c+e+ a/b)/d//Together],
+        ESameTest[(4 a^2*b+36 c+12 a c+a^2*c)/(4 a^2*c), Together[(1/2 + 3/a)^2+b/c]],
         ESameTest[(6+a)/(2 a), (3 + a/2)/a//Together],
         ESameTest[(a b+c rest)/(c d), (rest + a*b/c)/d//Together],
         ESameTest[(1+a c+b c)/(a+b), 1/(a+b)+c//Together],
