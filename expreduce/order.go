@@ -74,12 +74,26 @@ func ExOrder(a Ex, b Ex) int64 {
 				aAsExp,
 			}), b)
 		}
+		if aIsPow && !bIsPow {
+			return ExOrder(a, NewExpression([]Ex{
+				&Symbol{"Power"},
+				bAsExp,
+				NewInt(1),
+			}))
+		}
 		if bIsPow && aIsTimes {
 			return ExOrder(aAsExp, NewExpression([]Ex{
 				&Symbol{"Times"},
 				NewInt(1),
 				bAsExp,
 			}))
+		}
+		if !aIsPow && bIsPow {
+			return ExOrder(NewExpression([]Ex{
+				&Symbol{"Power"},
+				aAsExp,
+				NewInt(1),
+			}), b)
 		}
 		timesMode := aIsTimes && bIsTimes
 		if !timesMode {

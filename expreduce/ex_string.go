@@ -1,7 +1,7 @@
 package expreduce
 
 import "fmt"
-import "hash"
+import "hash/fnv"
 
 type String struct {
 	Val string
@@ -42,7 +42,9 @@ func (this *String) NeedsEval() bool {
 	return false
 }
 
-func (this *String) Hash(h *hash.Hash64) {
-	(*h).Write([]byte{102, 206, 57, 172, 207, 100, 198, 133})
-	(*h).Write([]byte(this.Val))
+func (this *String) Hash() uint64 {
+	h := fnv.New64a()
+	h.Write([]byte{102, 206, 57, 172, 207, 100, 198, 133})
+	h.Write([]byte(this.Val))
+	return h.Sum64()
 }

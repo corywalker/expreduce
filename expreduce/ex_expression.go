@@ -4,9 +4,10 @@ import "bytes"
 import "math/big"
 import "sort"
 import "fmt"
+import "encoding/binary"
 import "time"
 import "flag"
-import "hash"
+import "hash/fnv"
 
 var printevals = flag.Bool("printevals", false, "")
 var checkhashes = flag.Bool("checkhashes", false, "")
@@ -15,6 +16,7 @@ type Expression struct {
 	Parts []Ex
 	needsEval bool
 	correctlyInstantiated bool
+	evaledHash uint64
 	cachedHash uint64
 }
 
@@ -103,7 +105,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	lastExHash := uint64(0)
 	var lastEx Ex = this
 	currExHash := hashEx(this)
-	if currExHash == this.cachedHash {
+	if currExHash == this.evaledHash {
 		return this
 	}
 	var currEx Ex = this
@@ -112,7 +114,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		lastExHash = currExHash
 		curr, isExpr := currEx.(*Expression)
 		if *checkhashes {
-			if isExpr && curr.cachedHash != 0 && currExHash != curr.cachedHash {
+			if isExpr && curr.evaledHash != 0 && currExHash != curr.evaledHash {
 				fmt.Printf("invalid cache: %v. Used to be %v\n", curr, lastEx)
 			}
 			lastEx = currEx
@@ -124,7 +126,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				return retVal
 			}
 		}
-		if isExpr && currExHash == curr.cachedHash {
+		if isExpr && currExHash == curr.evaledHash {
 			return curr
 		}
 
@@ -184,7 +186,11 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			if es.trace != nil && !es.IsFrozen() {
 				es.trace = NewExpression([]Ex{&Symbol{"List"}})
 			}
+			oldHash := curr.Parts[i].Hash()
 			curr.Parts[i] = curr.Parts[i].Eval(es)
+			if oldHash != curr.Parts[i].Hash() {
+				curr.cachedHash = 0
+			}
 			if es.trace != nil && !es.IsFrozen() {
 				if len(es.trace.Parts) > 2 {
 					// The DeepCopy here doesn't seem to affect anything, but
@@ -279,7 +285,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 	curr, isExpr := currEx.(*Expression)
 	if isExpr {
 		curr.needsEval = false
-		curr.cachedHash = currExHash
+		curr.evaledHash = currExHash
 	}
 	return currEx
 }
@@ -421,6 +427,7 @@ func (this *Expression) DeepCopy() Ex {
 	}
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
+	thiscopy.evaledHash = this.evaledHash
 	thiscopy.cachedHash = this.cachedHash
 	return thiscopy
 }
@@ -430,6 +437,7 @@ func (this *Expression) ShallowCopy() *Expression {
 	thiscopy.Parts = append([]Ex{}, this.Parts...)
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
+	thiscopy.evaledHash = this.evaledHash
 	thiscopy.cachedHash = this.cachedHash
 	return thiscopy
 }
@@ -455,11 +463,23 @@ func (this *Expression) NeedsEval() bool {
 	return this.needsEval
 }
 
-func (this *Expression) Hash(h *hash.Hash64) {
-	(*h).Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
+func (this *Expression) Hash() uint64 {
+	// Will generate stale hashes but offers significant speedup. Use with care.
+	//if this.cachedHash > 0 {
+		//return this.cachedHash
+	//}
+	h := fnv.New64a()
+	h.Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
 	for _, part := range this.Parts {
-		part.Hash(h)
+		b := make([]byte, 8)
+		binary.LittleEndian.PutUint64(b, part.Hash())
+		h.Write(b)
 	}
+	//if this.cachedHash > 0 && h.Sum64() != this.cachedHash {
+		//fmt.Printf("%v stale hash!!!\n", this)
+	//}
+	this.cachedHash = h.Sum64()
+	return h.Sum64()
 }
 
 func NewExpression(parts []Ex) *Expression {

@@ -2,7 +2,7 @@ package expreduce
 
 import "fmt"
 import "math/big"
-import "hash"
+import "hash/fnv"
 
 type Rational struct {
 	Num *big.Int
@@ -96,12 +96,14 @@ func NewRational(n *big.Int, d *big.Int) *Rational {
 	return &Rational{n, d, true}
 }
 
-func (this *Rational) Hash(h *hash.Hash64) {
-	(*h).Write([]byte{90, 82, 214, 51, 52, 7, 7, 33})
+func (this *Rational) Hash() uint64 {
+	h := fnv.New64a()
+	h.Write([]byte{90, 82, 214, 51, 52, 7, 7, 33})
 	nBytes, _ := this.Num.MarshalText()
-	(*h).Write(nBytes)
+	h.Write(nBytes)
 	dBytes, _ := this.Den.MarshalText()
-	(*h).Write(dBytes)
+	h.Write(dBytes)
+	return h.Sum64()
 }
 
 func (this *Rational) AsBigFloat() *big.Float {

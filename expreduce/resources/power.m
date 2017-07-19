@@ -92,7 +92,7 @@ Tests`PolynomialQ = {
 
 Exponent::usage = "`Exponent[p, var]` returns the degree of `p` with respect to the variable `var`.";
 Exponent[expr_/p_Plus, var_, head_] := Exponent[expr, var, head];
-Exponent[expr_, var_, head_] :=
+Exponent[expr_, var_, head_] := If[expr === 0, head[],
   Module[{e = expr, v = var, h = head, theCases, toCheck},
    toCheck = expr // Expand;
    toCheck = If[Head[toCheck] === Plus, toCheck, {toCheck}];
@@ -100,7 +100,7 @@ Exponent[expr_, var_, head_] :=
     Cases[toCheck, p_.*v^Optional[exp_] -> exp] // DeleteDuplicates;
    If[Length[theCases] =!= Length[toCheck], PrependTo[theCases, 0]];
    h @@ theCases
-   ];
+   ]];
 Exponent[expr_, var_] := Exponent[expr, var, Max];
 Attributes[Exponent] = {Listable, Protected};
 Tests`Exponent = {
@@ -128,7 +128,10 @@ Tests`Exponent = {
         ESameTest[{-2}, Exponent[x^(-2), x, List]],
         ESameTest[{1}, Exponent[(a*x)/(3 + x^3), x, List]],
         ESameTest[{0,1}, Exponent[1 + b*x + x^2 - (x*(1 + a*x))/a, x, List]],
-        ESameTest[{0,1}, Exponent[1 + x + x^2 - (x*(1 + 2*x))/2, x, List]]
+        ESameTest[{0,1}, Exponent[1 + x + x^2 - (x*(1 + 2*x))/2, x, List]],
+        ESameTest[{}, Exponent[0, x, List]],
+        ESameTest[{}, Exponent[0, x+2, List]],
+        ESameTest[{}, Exponent[0, 0, List]]
     ], EKnownFailures[
         ESameTest[{0,1}, Exponent[1 + x^x^x, x^x^x, List]]
     ]
@@ -169,18 +172,22 @@ Tests`Coefficient = {
     ]
 };
 
+(*TODO: timing counter of head evals*)
 PolynomialQuotientRemainder::usage =  "`PolynomialQuotientRemainder[poly_, div_, var_]` returns the quotient and remainder of `poly` divided by `div` treating `var` as the polynomial variable.";
 ExpreduceLeadingCoeff[p_, x_] := Coefficient[p, x^Exponent[p, x]];
 PolynomialQuotientRemainder[inp_, inq_, v_] :=
-  Module[{a = inp, b = inq, x = v, r, d, c, i, s, q},
+  Module[{a = inp, b = inq, x = v, r, d, c, i, s, q, rExp},
    (*I should think carefully about when I use = vs := to avoid unwanted evaluation*)
    q = 0;
    r = a;
    d = Exponent[b, x];
-   c = ExpreduceLeadingCoeff[b, x];
+   c = Coefficient[b, x^d];
    i = 1;
-   While[Exponent[r, x] >= d && i < 20,
-    s = (ExpreduceLeadingCoeff[r, x]/c)*x^(Exponent[r, x] - d);
+   While[rExp = Exponent[r, x]; rExp >= d && i < 20,
+    (*Looks like we get the coefficient and the exponent of the leading term here. Perhaps we can just grab the leading term and get both at once. And maybe we can exploit the canonical ordering*)
+    (*But all of this seems wrong. I think the slowness resides in the expreduce interpreter.*)
+    (*TODO tomorrow: find out what 'power' function takes up the most time and optimize it by making kernel changes*)
+    s = (Coefficient[r, x^rExp]/c)*x^(rExp - d);
     q = q + s;
     r = r - s*b;
     i = i + 1;
@@ -345,10 +352,12 @@ PolySubresultantGCD[inA_, inB_, inX_] :=
    h = 1;
    i = 1;
    While[v =!= 0 && i < 20,
-    delta = Exponent[u, x] - Exponent[v, x];
-    beta = (-1)^(delta + 1)*Exponent[u, x]*h^delta;
-    h = h*(Exponent[v, x]/h)^delta;
-    newU = v;
+    uEx = Exponent[u, x];
+    vEx = Exponent[v, x];
+    delta = uEx - vEx;
+    beta = (-1)^(delta + 1)*uEx*h^delta;
+    h = h*(vEx/h)^delta;
+    newU := v;
     newV = PolynomialRemainder[u, v, x]/beta;
     u = newU;
     v = newV;
@@ -411,24 +420,23 @@ Tests`PSimplify = {
 
 FactorSquareFree::usage = "`FactorSquareFree[poly]` computes the square free factorization of `poly`.";
 FactorSquareFree[poly_] :=
-  Module[{f = poly, a, b, nb, c, d, i, res, fprime, polyvar},
-   If[Length[Variables[f]] != 1, Return[f]];
-   polyvar = Variables[f][[1]];
+  Module[{f = poly, a, b, nb, c, d, i, res, fprime, polyvar, vars},
+   vars = Variables[f];
+   If[Length[vars] != 1, Return[f]];
+   polyvar = vars[[1]];
    If[! PolynomialQ[f, polyvar], Return[f]];
    fprime = D[f, polyvar];
    a = PolynomialGCD[f, fprime];
    res = If[SquareFreeQ[a], a, a // FactorSquareFree];
-   nb = f/a // PSimplify;
-   c = fprime/a // PSimplify;
+   nb = PolynomialQuotient[f,a,polyvar];
+   c = PolynomialQuotient[fprime,a,polyvar];
    d = c - D[nb, polyvar];
    i = 1;
    b = nb;
-   (*Print[{Subscript[a, i-1],Subscript[b, i],Subscript[c, i],
-   Subscript[d, i]}];*)
    While[b =!= 1 && i < 20,
     a = PolynomialGCD[b, d];
-    nb = b/a // PSimplify;
-    c = d/a // PSimplify;
+    nb = PolynomialQuotient[b,a,polyvar];
+    c = PolynomialQuotient[d,a,polyvar];
     res = res*If[SquareFreeQ[a], a, a // FactorSquareFree];
     i = i + 1;
     b = nb;

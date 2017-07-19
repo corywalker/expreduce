@@ -4,8 +4,6 @@
 
 package expreduce
 
-import "hash"
-
 type ToStringFnType (func(*Expression, string) (bool, string))
 
 // A nasty global to keep track of ToString functions. TODO: Fix this.
@@ -19,5 +17,5 @@ type Ex interface {
 	IsEqual(b Ex, cl *CASLogger) string
 	DeepCopy() Ex
 	NeedsEval() bool
-	Hash(h *hash.Hash64)
+	Hash() uint64
 }

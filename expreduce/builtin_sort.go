@@ -17,6 +17,7 @@ func GetSortDefinitions() (defs []Definition) {
 			exp, ok := this.Parts[1].(*Expression)
 			if ok {
 				sortedExp := exp.DeepCopy().(*Expression)
+				sortedExp.evaledHash = 0
 				sortedExp.cachedHash = 0
 				sort.Sort(sortedExp)
 				return sortedExp
@@ -39,6 +40,7 @@ func GetSortDefinitions() (defs []Definition) {
 		},
 		Tests: []TestInstruction{
 			&SameTest{"{x, 2*x, 2*x^2, y, 2*y, 2*y^2}", "Sort[{x, 2*x, y, 2*y, 2*y^2, 2*x^2}]"},
+			&SameTest{"{1/a,a,a^2,1/b^2,1/b,b,b^2,1/(a+b)^2,a+b,a+b,(a+b)^2,1/foo[x]^2,foo[x],foo[x]^2}", "Sort[{a^-1,a,a^2,b^-2,b^-1,b,b^2,(a+b)^-2,(a+b),(a+b)^2,a+b,foo[x],foo[x]^-2,foo[x]^2}]"},
 		},
 	})
 	defs = append(defs, Definition{
