@@ -51,3 +51,30 @@ Tests`Together = {
         ESameTest[(a+b+a b c+a b d)/(a b), 1/a+1/b+c+d//Together]
     ]
 };
+
+Distribute::usage = "`Distribute[e]` distributes the function over the `Plus` expressions.";
+(*Distribute[e_, f_] := e;*)
+Distribute[e_] := Distribute[e, Plus];
+Attributes[Distribute] = {Protected};
+Tests`Distribute = {
+    ESimpleExamples[
+        ESameTest[a c+b c+a d+b d, Distribute[(a+b)*(c+d)]],
+        ESameTest[a c+b c, Distribute[(a+b)*c]],
+        ESameTest[foo[a,c]+foo[b,c], Distribute[foo[(a+b),c]]],
+        ESameTest[foo[a,b], Distribute[foo[a,b]]],
+        ESameTest[foo[c]+foo[a,b], Distribute[foo[a,b]+foo[c]]],
+        ESameTest[a+(a+b) c, Distribute[(a+b)*(c)+a]],
+        ESameTest[(a+b) c e+d e+(a+b) c f+d f, Distribute[((a+b)*(c)+d)*(e+f)]],
+        ESameTest[test[foo[a,b]], Distribute[foo[a,b],test]],
+        ESameTest[test[foo[a,b],foo[a,c]], Distribute[foo[a,test[b,c]],test]],
+        ESameTest[test[foo[a,b,d],foo[a,b,e],foo[a,c,d],foo[a,c,e]], Distribute[foo[a,test[b,c],test[d,e]],test]],
+        ESameTest[test[foo[a,b,d,bar[a]],foo[a,b,e,bar[a]],foo[a,c,d,bar[a]],foo[a,c,e,bar[a]]], Distribute[foo[a,test[b,c],test[d,e],bar[a]],test]],
+        ESameTest[a, Distribute[a,test]],
+        ESameTest[1[a+b], Distribute[a+b,1]],
+        ESameTest[test[bar[a,b,d],bar[a,b,e],bar[a,c,d],bar[a,c,e]], Distribute[bar[a,test[b,c],test[d,e]],test]],
+        ESameTest[test[test[f,g][a,b,d],test[f,g][a,b,e],test[f,g][a,c,d],test[f,g][a,c,e]], Distribute[test[f,g][a,test[b,c],test[d,e]],test]],
+        ESameTest[test[foo[]], Distribute[foo[],test]],
+        ESameTest[test[][foo[]], Distribute[foo[],test[]]],
+        ESameTest[foo, Distribute[foo,test]]
+    ]
+};
