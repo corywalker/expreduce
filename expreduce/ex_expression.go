@@ -425,6 +425,15 @@ func (this *Expression) DeepCopy() Ex {
 	return thiscopy
 }
 
+func (this *Expression) ShallowCopy() *Expression {
+	var thiscopy = NewEmptyExpression()
+	thiscopy.Parts = append([]Ex{}, this.Parts...)
+	thiscopy.needsEval = this.needsEval
+	thiscopy.correctlyInstantiated = this.correctlyInstantiated
+	thiscopy.cachedHash = this.cachedHash
+	return thiscopy
+}
+
 // Implement the sort.Interface
 func (this *Expression) Len() int {
 	return len(this.Parts) - 1

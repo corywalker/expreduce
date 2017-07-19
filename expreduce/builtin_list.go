@@ -655,5 +655,45 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"a", "Last[{a}]"},
 		},
 	})
+	defs = append(defs, Definition{
+		Name:  "Select",
+		Usage: "`Select[expr, cond]` selects only parts of `expr` that satisfy `cond`.",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			expr, isExpr := this.Parts[1].(*Expression)
+			if isExpr {
+				res := NewExpression([]Ex{expr.Parts[0]})
+				for _, part := range expr.Parts[1:] {
+					pass := (NewExpression([]Ex{
+						this.Parts[2],
+						part,
+					})).Eval(es)
+					passSymbol, passIsSymbol := pass.(*Symbol)
+					if passIsSymbol {
+						if passSymbol.Name == "True" {
+							res.Parts = append(res.Parts, part)
+						}
+					}
+				}
+				return res
+			}
+			return this
+		},
+		SimpleExamples: []TestInstruction{
+			&SameTest{"{1,3,5,7,9,11,13,15,17,19}", "Select[Range[20],OddQ]"},
+			&SameTest{"{1,2,3,4}", "Select[{1,2,3,4},(True)&]"},
+		},
+		Tests: []TestInstruction{
+			&SameTest{"{}", "Select[{1,2,3,4},(False)&]"},
+			&SameTest{"{}", "Select[{1,2,3,4},(hello)&]"},
+			&SameTest{"foo[2,4]", "Select[foo[1,2,3,4],(EvenQ[#])&]"},
+			&SameTest{"Select[foo[1,2,3,4]]", "Select[foo[1,2,3,4]]"},
+			&SameTest{"foo[]", "Select[foo[1,2,3,4],notfunction]"},
+			&SameTest{"Select[2,EvenQ]", "Select[2,EvenQ]"},
+		},
+	})
 	return
 }

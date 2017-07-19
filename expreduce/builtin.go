@@ -163,6 +163,7 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"boolean", GetBooleanDefinitions()})
 	defs = append(defs, NamedDefSet{"simplify", GetSimplifyDefinitions()})
 	defs = append(defs, NamedDefSet{"numbertheory", GetNumberTheoryDefinitions()})
+	defs = append(defs, NamedDefSet{"manip", GetManipDefinitions()})
 
 	// Check for duplicate definitions
 	definedNames := make(map[string]bool)
