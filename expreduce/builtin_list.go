@@ -606,15 +606,12 @@ func GetListDefinitions() (defs []Definition) {
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
 				toReturn := NewExpression([]Ex{expr.Parts[0]})
+				seen := map[uint64]bool{}
 				for _, orig := range expr.Parts[1:] {
-					isDupe := false
-					for _, deduped := range toReturn.Parts[1:] {
-						if IsSameQ(orig, deduped, &es.CASLogger) {
-							isDupe = true
-							break
-						}
-					}
+					hash := hashEx(orig)
+					_, isDupe := seen[hash]
 					if !isDupe {
+						seen[hash] = true
 						toReturn.Parts = append(toReturn.Parts, orig)
 					}
 				}
@@ -626,6 +623,7 @@ func GetListDefinitions() (defs []Definition) {
 			&SameTest{"{b,a}", "DeleteDuplicates[{b,a,b}]"},
 			&SameTest{"foo[b,a]", "DeleteDuplicates[foo[b,a,b]]"},
 			&SameTest{"{}", "DeleteDuplicates[{}]"},
+			&SameTest{"10000", "Length[DeleteDuplicates[Range[10000]]]"},
 		},
 	})
 	defs = append(defs, Definition{
