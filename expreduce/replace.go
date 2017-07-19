@@ -52,6 +52,7 @@ func ReplacePDInternal(e Ex, pm *PDManager) Ex {
 	}
 	asExpr, isExpr := e.(*Expression)
 	if isExpr {
+		asExpr.evaledHash = 0
 		asExpr.cachedHash = 0
 		for i := range asExpr.Parts {
 			asExpr.Parts[i] = ReplacePDInternal(asExpr.Parts[i], pm)

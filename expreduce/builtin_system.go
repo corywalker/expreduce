@@ -8,15 +8,12 @@ import "runtime/pprof"
 import "log"
 import "io/ioutil"
 import "github.com/op/go-logging"
-import "hash/fnv"
 import "flag"
 
 var mymemprofile = flag.String("mymemprofile", "", "write memory profile to this file")
 
 func hashEx(e Ex) uint64 {
-	h := fnv.New64a()
-	e.Hash(&h)
-	return h.Sum64()
+	return e.Hash()
 }
 
 func exprToN(es *EvalState, e Ex) Ex {

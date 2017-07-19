@@ -2,7 +2,7 @@ package expreduce
 
 import "fmt"
 import "sort"
-import "hash"
+import "hash/fnv"
 
 // Symbols are defined by a string-based name
 type Symbol struct {
@@ -229,9 +229,11 @@ func (this *Symbol) NeedsEval() bool {
 	return false
 }
 
-func (this *Symbol) Hash(h *hash.Hash64) {
-	(*h).Write([]byte{107, 10, 247, 23, 33, 221, 163, 156})
-	(*h).Write([]byte(this.Name))
+func (this *Symbol) Hash() uint64 {
+	h := fnv.New64a()
+	h.Write([]byte{107, 10, 247, 23, 33, 221, 163, 156})
+	h.Write([]byte(this.Name))
+	return h.Sum64()
 }
 
 func ContainsSymbol(e Ex, name string) bool {

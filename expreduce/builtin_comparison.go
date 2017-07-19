@@ -450,8 +450,7 @@ func getComparisonDefinitions() (defs []Definition) {
 				}
 			}
 			i -= 1
-			this.Parts = append([]Ex{this.Parts[0]}, this.Parts[i:]...)
-			return this
+			return NewExpression(append([]Ex{this.Parts[0]}, this.Parts[i:]...))
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"3", "Max[1,2,3]"},
