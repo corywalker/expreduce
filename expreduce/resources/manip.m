@@ -1,14 +1,20 @@
+DistributeMultiply[e_, multiplicand_] := 
+  If[Head[e] === Plus, (#*multiplicand) & /@ e, e*multiplicand];
+
 Together::usage = "`Together[e]` attempts to put the terms in `e` under the same denominator.";
 Together[(rest___ + a_*Rational[b_,c_])/d_] := (Print[5];Together[(a b+Expand[c Plus[rest]])/(c d)]);
 Together[a_+Rational[b_,c_]*d_] := (Print[7];Together[(a c+b d)/c]);
 Together[(e_)^p_?((NumberQ[#] && # =!= -1)&)] := Together[Together[e]^p];
 
-Together[(a_/b_+rest___)/d_] := (Print[1];Together[(a+Expand[b Plus[rest]])/(b d)]);
+Together[(a_/b_+rest___)/d_] := (Print[1];Together[(a+Expand[DistributeMultiply[Plus[rest], b]])/(b d)]);
 (*Together[(a_/b_+rest___)/(c_*d_)] := (Print[4];Together[(a+Expand[b Plus[rest]])/(b c d)]);*)
 Together[a_/b_+c_+rest___] := (Print[2];Together[(a+b c)/b+rest]);
 Together[1/(a__Plus) + b__] := (Print[3];Together[(1+Expand[a*Plus[b]])/(a)]);
 Together[1/(a__Plus)+1/(b__Plus) + c___] := (Print[6];Together[(a+b+Expand[a*b*Plus[c]])/(a*b)]);
 Together[1/(a_Symbol)+ rest___] := (Print[8];Together[(1+Expand[a*Plus[rest]])/(a)]);
+
+(*Together[(b_/c_+rest__)*d_^(-1)*e_^(-1)] := (Print[9];Together[(b+Expand[c Plus[rest]])/(c d e)]);*)
+(*Together[(b_/c_+rest__)*d_^(-1)*e_^(-2)] := (Print[9];Together[(b+Expand[c Plus[rest]])/(c d e^2)]);*)
 
 Together[e_] := e;
 Attributes[Together] = {Listable, Protected};
@@ -16,7 +22,8 @@ Tests`Together = {
     ESimpleExamples[
         ESameTest[(6+a)/(2 a), 1/2+3/a//Together],
         ESameTest[(1/2+3/a)^c, (1/2+3/a)^c//Together],
-        ESameTest[(6+a)^2/(4 a^2), (1/2+3/a)^2//Together],
+        ESameTest[(6+a)^2/(4 a^2), (1/2+3/a)^2//Together]
+    ], ETests[
         ESameTest[(c+a d+b d)/d, a+b+c/d//Together],
         ESameTest[(a+b+c+d)/((a+b) (c+d)), 1/(a+b)+1/(c+d)//Together],
         ESameTest[(a+b+c-a^2 c-a b c+d-a^2 d-a b d)/((a+b) (c+d)), 1/(a+b)+1/(c+d)-a//Together],
@@ -48,14 +55,12 @@ Tests`Together = {
         ESameTest[(a+b)/(a b), 1/a+1/b//Together],
         ESameTest[(a+b+a b c)/(a b), 1/a+1/b+c//Together],
         ESameTest[(1+c d)/c, 1/c+d//Together],
+        ESameTest[(a+b+c+d)/((a+b) (c+d)), (1+a/(c+d)+b/(c+d))/(a+b)//Together],
         ESameTest[(a+b+a b c+a b d)/(a b), 1/a+1/b+c+d//Together]
     ]
 };
 
 Distribute::usage = "`Distribute[e]` distributes the function over the `Plus` expressions.";
-(*Distribute[e_, f_] := e;*)
-Distribute[e_] := Distribute[e, Plus];
-Attributes[Distribute] = {Protected};
 Tests`Distribute = {
     ESimpleExamples[
         ESameTest[a c+b c+a d+b d, Distribute[(a+b)*(c+d)]],

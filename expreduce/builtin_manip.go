@@ -30,6 +30,9 @@ func GetManipDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Together"})
 	defs = append(defs, Definition{
 		Name:  "Distribute",
+		Rules: []Rule{
+			{"Distribute[e_]", "Distribute[e, Plus]"},
+		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
