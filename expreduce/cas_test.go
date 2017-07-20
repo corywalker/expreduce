@@ -37,18 +37,18 @@ func TestIncludedModules(t *testing.T) {
 			continue
 		}
 		fmt.Printf("Testing module %s\n", defSet.Name)
+		es := NewEvalState()
+		if *deftimings {
+			es.SetProfiling(true)
+		}
 		for _, def := range defSet.Defs {
 			if !testSymEx.MatchString(def.Name) {
 				continue
 			}
-			es := NewEvalState()
 			def.AnnotateWithDynamic(es)
 			td := TestDesc{
 				module: defSet.Name,
 				def:    def,
-			}
-			if *deftimings {
-				es.SetProfiling(true)
 			}
 			i := 0
 			for _, test := range def.SimpleExamples {
@@ -91,10 +91,10 @@ func TestIncludedModules(t *testing.T) {
 				test.Run(t, es, td)
 				i += 1
 			}*/
-			if *deftimings {
-				timeCounter.Update(&es.timeCounter)
-			}
 			numTests += i
+		}
+		if *deftimings {
+			timeCounter.Update(&es.timeCounter)
 		}
 	}
 	fmt.Printf("Ran %v module tests.\n", numTests)
