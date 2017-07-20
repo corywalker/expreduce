@@ -241,6 +241,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			}
 			if attrs.Orderless {
 				sort.Sort(curr)
+				curr.cachedHash = 0
 			}
 			if attrs.Listable {
 				changed := false
@@ -468,10 +469,9 @@ func (this *Expression) NeedsEval() bool {
 }
 
 func (this *Expression) Hash() uint64 {
-	// Will generate stale hashes but offers significant speedup. Use with care.
-	//if this.cachedHash > 0 {
-		//return this.cachedHash
-	//}
+	if this.cachedHash > 0 {
+		return this.cachedHash
+	}
 	h := fnv.New64a()
 	h.Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
 	for _, part := range this.Parts {
@@ -479,9 +479,6 @@ func (this *Expression) Hash() uint64 {
 		binary.LittleEndian.PutUint64(b, part.Hash())
 		h.Write(b)
 	}
-	//if this.cachedHash > 0 && h.Sum64() != this.cachedHash {
-		//fmt.Printf("%v stale hash!!!\n", this)
-	//}
 	this.cachedHash = h.Sum64()
 	return h.Sum64()
 }
