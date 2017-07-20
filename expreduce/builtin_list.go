@@ -67,7 +67,7 @@ func applyIndex(ex Ex, index Ex) (Ex, bool) {
 	}
 	iSym, iIsSym := index.(*Symbol)
 	if iIsSym {
-		if iSym.Name == "All" {
+		if iSym.Name == "System`All" {
 			return expr, true
 		}
 	}
@@ -93,7 +93,7 @@ func ThreadExpr(expr *Expression) (*Expression, bool) {
 		return expr, false
 	}
 	listLen := lengths[0]
-	toReturn := NewExpression([]Ex{&Symbol{"List"}})
+	toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 	for listI := 0; listI < listLen; listI++ {
 		thisExpr := NewExpression([]Ex{expr.Parts[0].DeepCopy()})
 		for i := 1; i < len(expr.Parts); i++ {
@@ -160,7 +160,7 @@ func GetListDefinitions() (defs []Definition) {
 				if isOk {
 					// Simulate evaluation within Block[]
 					mis.takeVarSnapshot(es)
-					toReturn := NewExpression([]Ex{&Symbol{"List"}})
+					toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 					for mis.cont() {
 						mis.defineCurrent(es)
 						// TODO: use ReplacePD for this. We're only replacing
@@ -205,10 +205,10 @@ func GetListDefinitions() (defs []Definition) {
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
 				if MemberQ(expr.Parts[1:], this.Parts[2], es) {
-					return &Symbol{"True"}
+					return &Symbol{"System`True"}
 				}
 			}
-			return &Symbol{"False"}
+			return &Symbol{"System`False"}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"False", "MemberQ[{1, 2, 3}, 0]"},
@@ -251,7 +251,7 @@ func GetListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
-				toReturn := NewExpression([]Ex{&Symbol{"List"}})
+				toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 				pattern := this.Parts[2]
 				rule, isRule := HeadAssertion(this.Parts[2], "Rule")
 				if isRule {
@@ -320,7 +320,7 @@ func GetListDefinitions() (defs []Definition) {
 		Usage: "`Union[expr1, expr2, ...]` returns a sorted union of the items in the expressions.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) == 1 {
-				return NewExpression([]Ex{&Symbol{"List"}})
+				return NewExpression([]Ex{&Symbol{"System`List"}})
 			}
 			var firstHead Ex = nil
 			var allParts *Expression = nil
@@ -418,13 +418,13 @@ func GetListDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// I should probably refactor the IterSpec system so that it does not
 			// require being passed a list and a variable of iteration. TODO
-			iterSpecList := NewExpression([]Ex{&Symbol{"List"}, &Symbol{"$DUMMY"}})
+			iterSpecList := NewExpression([]Ex{&Symbol{"System`List"}, &Symbol{"System`$DUMMY"}})
 			iterSpecList.Parts = append(iterSpecList.Parts, this.Parts[1:]...)
 			is, isOk := iterSpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
 			}
-			toReturn := NewExpression([]Ex{&Symbol{"List"}})
+			toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 			for is.cont() {
 				toReturn.Parts = append(toReturn.Parts, is.getCurr())
 				is.next()
@@ -671,7 +671,7 @@ func GetListDefinitions() (defs []Definition) {
 					})).Eval(es)
 					passSymbol, passIsSymbol := pass.(*Symbol)
 					if passIsSymbol {
-						if passSymbol.Name == "True" {
+						if passSymbol.Name == "System`True" {
 							res.Parts = append(res.Parts, part)
 						}
 					}

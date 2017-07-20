@@ -1,6 +1,7 @@
 package expreduce
 
 func GetSimplifyDefinitions() (defs []Definition) {
+	/*
 	defs = append(defs, Definition{
 		Name: "Simplify",
 		Usage: "`Simplify[expr]` attempts to perform simplification operations on `expr`.",
@@ -87,6 +88,6 @@ func GetSimplifyDefinitions() (defs []Definition) {
 				"And[x1___, Or[x2___, !a_, x3___], x4___, a_, x5___] :> And[a, x1, Or[x2, x3], x4, x5]" +
 			"}"},
 		},
-	})
+	})*/
 	return
 }

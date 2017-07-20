@@ -834,17 +834,17 @@ yyrule53: // {pattern}
 	{
 
 		delim := "_"
-		blankType := &Symbol{"Blank"}
+		blankType := &Symbol{"System`Blank"}
 		if strings.Contains(string(y.buf), "___") {
 			delim = "___"
-			blankType = &Symbol{"BlankNullSequence"}
+			blankType = &Symbol{"System`BlankNullSequence"}
 		} else if strings.Contains(string(y.buf), "__") {
 			delim = "__"
-			blankType = &Symbol{"BlankSequence"}
+			blankType = &Symbol{"System`BlankSequence"}
 		}
 		parts := strings.Split(string(y.buf), delim)
 		if len(parts) == 1 {
-			lval.val = NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
+			lval.val = NewExpression([]Ex{&Symbol{"System`Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
 			return PATTERN
 		}
 		if len(parts) == 2 {
@@ -852,23 +852,23 @@ yyrule53: // {pattern}
 				if parts[1] == "" {
 					lval.val = NewExpression([]Ex{blankType})
 				} else if delim == "_" && parts[1] == "." {
-					lval.val = NewExpression([]Ex{&Symbol{"Optional"}, NewExpression([]Ex{blankType})})
+					lval.val = NewExpression([]Ex{&Symbol{"System`Optional"}, NewExpression([]Ex{blankType})})
 				} else {
 					lval.val = NewExpression([]Ex{blankType, &Symbol{parts[1]}})
 				}
 				return PATTERN
 			} else {
 				if parts[1] == "" {
-					lval.val = NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
+					lval.val = NewExpression([]Ex{&Symbol{"System`Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
 				} else if delim == "_" && parts[1] == "." {
-					lval.val = NewExpression([]Ex{&Symbol{"Optional"}, NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})})
+					lval.val = NewExpression([]Ex{&Symbol{"System`Optional"}, NewExpression([]Ex{&Symbol{"System`Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})})
 				} else {
-					lval.val = NewExpression([]Ex{&Symbol{"Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType, &Symbol{parts[1]}})})
+					lval.val = NewExpression([]Ex{&Symbol{"System`Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType, &Symbol{parts[1]}})})
 				}
 				return PATTERN
 			}
 		}
-		lval.val = NewExpression([]Ex{&Symbol{"Error"}, &String{"Pattern parse error."}})
+		lval.val = NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Pattern parse error."}})
 		return PATTERN
 	}
 yyrule54: // {contextedIdent}

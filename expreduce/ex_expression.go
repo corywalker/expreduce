@@ -21,7 +21,7 @@ type Expression struct {
 }
 
 // Deprecated in favor of headExAssertion
-func HeadAssertion(ex Ex, head string) (*Expression, bool) {
+func ContextedHeadAssertion(ex Ex, head string) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		sym, isSym := expr.Parts[0].(*Symbol)
@@ -32,6 +32,10 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 		}
 	}
 	return NewEmptyExpression(), false
+}
+
+func HeadAssertion(ex Ex, head string) (*Expression, bool) {
+	return ContextedHeadAssertion(ex, "System`" + head)
 }
 
 func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
@@ -68,7 +72,7 @@ func tryReturnValue(e Ex) (Ex, bool) {
 	if len(asReturn.Parts) >= 2 {
 		return asReturn.Parts[1], true
 	}
-	return &Symbol{"Null"}, true
+	return &Symbol{"System`Null"}, true
 }
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
@@ -81,7 +85,7 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 	res := NewEmptyExpression()
 	encounteredSeq := false
 	for _, e := range(this.Parts) {
-		seq, isseq := HeadAssertion(e, headStr)
+		seq, isseq := ContextedHeadAssertion(e, headStr)
 		if isseq {
 			encounteredSeq = true
 			for _, seqPart := range seq.Parts[1:] {
@@ -139,7 +143,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			if es.trace != nil && !es.IsFrozen() {
 				toAppend := NewExpression([]Ex{
-					&Symbol{"HoldForm"},
+					&Symbol{"System`HoldForm"},
 					toReturn.DeepCopy(),
 				})
 
@@ -184,7 +188,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			traceBak := es.trace
 			if es.trace != nil && !es.IsFrozen() {
-				es.trace = NewExpression([]Ex{&Symbol{"List"}})
+				es.trace = NewExpression([]Ex{&Symbol{"System`List"}})
 			}
 			oldHash := curr.Parts[i].Hash()
 			curr.Parts[i] = curr.Parts[i].Eval(es)
@@ -205,7 +209,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// Handle tracing
 		if es.trace != nil && !es.IsFrozen() {
 			toAppend := NewExpression([]Ex{
-				&Symbol{"HoldForm"},
+				&Symbol{"System`HoldForm"},
 				currEx.DeepCopy(),
 			})
 
@@ -221,12 +225,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// If any of the parts are Sequence, merge them with parts
 		if headIsSym {
 			if !attrs.SequenceHold {
-				curr = curr.mergeSequences(es, "Sequence", false)
+				curr = curr.mergeSequences(es, "System`Sequence", false)
 			}
 		} else {
-			curr = curr.mergeSequences(es, "Sequence", false)
+			curr = curr.mergeSequences(es, "System`Sequence", false)
 		}
-		curr = curr.mergeSequences(es, "Evaluate", true)
+		curr = curr.mergeSequences(es, "System`Evaluate", true)
 		// In case curr changed
 		currEx = curr
 
@@ -296,9 +300,9 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		for i, arg := range args {
 			toReturn = ReplaceAll(toReturn,
 				NewExpression([]Ex{
-					&Symbol{"Rule"},
+					&Symbol{"System`Rule"},
 					NewExpression([]Ex{
-						&Symbol{"Slot"},
+						&Symbol{"System`Slot"},
 						&Integer{big.NewInt(int64(i + 1))},
 					}),
 
@@ -316,7 +320,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		toReturn := this.Parts[2].DeepCopy()
 		toReturn = ReplaceAll(toReturn,
 			NewExpression([]Ex{
-				&Symbol{"Rule"},
+				&Symbol{"System`Rule"},
 				repSym,
 				args[0],
 			}),

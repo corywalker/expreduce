@@ -84,23 +84,23 @@ func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
 		if !headIsSym {
 			continue
 		}
-		if (headSym.Name == "ESimpleExamples") {
+		if (headSym.Name == "System`ESimpleExamples") {
 			def.SimpleExamples = append(
 				def.SimpleExamples,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "EFurtherExamples") {
+		} else if (headSym.Name == "System`EFurtherExamples") {
 			def.FurtherExamples = append(
 				def.FurtherExamples,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "ETests") {
+		} else if (headSym.Name == "System`ETests") {
 			def.Tests = append(
 				def.Tests,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "EKnownFailures") {
+		} else if (headSym.Name == "System`EKnownFailures") {
 			def.KnownFailures = append(
 				def.KnownFailures,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "EKnownDangerous") {
+		} else if (headSym.Name == "System`EKnownDangerous") {
 			def.KnownDangerous = append(
 				def.KnownDangerous,
 				ToTestInstructions(testColExpr)...)
@@ -115,7 +115,7 @@ func (def *Definition) AnnotateWithDynamicUsage(es *EvalState) {
 		return
 	}
 	lhs := NewExpression([]Ex{
-		&Symbol{"MessageName"},
+		&Symbol{"System`MessageName"},
 		&Symbol{def.Name},
 		&String{"usage"},
 	})

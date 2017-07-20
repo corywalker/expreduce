@@ -49,7 +49,7 @@ func GetRandomDefinitions() (defs []Definition) {
 			asInt, isInt := this.Parts[1].(*Integer)
 			if isInt {
 				rand.Seed(asInt.Val.Int64())
-				return &Symbol{"Null"}
+				return &Symbol{"System`Null"}
 			}
 
 			return this

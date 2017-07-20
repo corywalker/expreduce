@@ -23,22 +23,24 @@ type EvalState struct {
 }
 
 func (this *EvalState) Load(def Definition) {
+	// TODO: deprecate most of this. We should be using .m files now.
+	def.Name = this.GetStringDef("System`$Context", "") + def.Name
 	// TODO: do we really need SetDelayed here, or should we just write to
 	// downvalues directly? If we did this, we could potentially remove the
 	// "bootstrap" attribute that SetDelayed has.
 	for _, rule := range def.Rules {
 		(NewExpression([]Ex{
-			&Symbol{"SetDelayed"},
-			Interp(rule.Lhs),
-			Interp(rule.Rhs),
+			&Symbol{"System`SetDelayed"},
+			Interp(rule.Lhs, this),
+			Interp(rule.Rhs, this),
 		})).Eval(this)
 	}
 
 	if len(def.Usage) > 0 {
 		(NewExpression([]Ex{
-			&Symbol{"SetDelayed"},
+			&Symbol{"System`SetDelayed"},
 			NewExpression([]Ex{
-				&Symbol{"MessageName"},
+				&Symbol{"System`MessageName"},
 				&Symbol{def.Name},
 				&String{"usage"},
 			}),
@@ -58,7 +60,7 @@ func (this *EvalState) Load(def Definition) {
 	protectedAttrs := append(def.Attributes, "Protected")
 	newDef.attributes = stringsToAttributes(protectedAttrs)
 	if def.Default != "" {
-		newDef.defaultExpr = Interp(def.Default)
+		newDef.defaultExpr = Interp(def.Default, this)
 	}
 	if def.toString != nil {
 		// Global so that standard String() interface can access these
@@ -71,11 +73,11 @@ func InitCAS(es *EvalState) {
 	// System initialization
 	data := MustAsset("resources/init.m")
 	EvalInterp(string(data), es)
-	EvalInterp(fmt.Sprintf("$Path = {\"%s\"}", "."), es)
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string]Def)
+	es.Define(&Symbol{"System`$Context"}, &String{"System`"})
 	es.timeCounter.Init()
 
 	es.NoInit = !loadAllDefs
@@ -175,7 +177,10 @@ func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
 		if !attrIsSym {
 			return
 		}
-		stringAttrs = append(stringAttrs, attrSym.Name)
+		if !strings.HasPrefix(attrSym.Name, "System`") {
+			continue
+		}
+		stringAttrs = append(stringAttrs, attrSym.Name[7:])
 	}
 	attrs := stringsToAttributes(stringAttrs)
 	if !this.IsDef(sym.Name) {
@@ -202,7 +207,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
 		if headIsSym {
 			name = headAsSym.Name
-			if name == "Attributes" {
+			if name == "System`Attributes" {
 				if len(LhsF.Parts) != 2 {
 					return
 				}
@@ -214,7 +219,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 				return
 			}
 		}
-		_, opExpr, isVerbatimOp := OperatorAssertion(lhs, "Verbatim")
+		_, opExpr, isVerbatimOp := OperatorAssertion(lhs, "System`Verbatim")
 		if isVerbatimOp {
 			opSym, opIsSym := opExpr.Parts[1].(*Symbol)
 			if opIsSym {
@@ -229,7 +234,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
 	if !this.IsDef(name) {
 		newDef := Def{
-			downvalues: []Expression{*NewExpression([]Ex{&Symbol{"Rule"}, lhs, rhs})},
+			downvalues: []Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})},
 		}
 		this.defined[name] = newDef
 		return
@@ -253,12 +258,12 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	for i := range this.defined[name].downvalues {
 		thisLhsLen := len(this.defined[name].downvalues[i].Parts[1].String())
 		if thisLhsLen < newLhsLen {
-			tmp.downvalues = append(tmp.downvalues[:i], append([]Expression{*NewExpression([]Ex{&Symbol{"Rule"}, lhs, rhs})}, this.defined[name].downvalues[i:]...)...)
+			tmp.downvalues = append(tmp.downvalues[:i], append([]Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})}, this.defined[name].downvalues[i:]...)...)
 			this.defined[name] = tmp
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, *NewExpression([]Ex{&Symbol{"Rule"}, lhs, rhs}))
+	tmp.downvalues = append(tmp.downvalues, *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs}))
 	this.defined[name] = tmp
 }
 
@@ -307,4 +312,17 @@ func (this *EvalState) IsFrozen() bool {
 
 func (this *EvalState) SetFrozen(frozen bool) {
 	this.freeze = frozen
+}
+
+func (this *EvalState) GetStringDef(name string, defaultVal string) string {
+	nameSym := &Symbol{name}
+	def, isDef, _ := this.GetDef(name, nameSym)
+	if !isDef {
+		return defaultVal
+	}
+	defString, defIsString := def.(*String)
+	if !defIsString {
+		return defaultVal
+	}
+	return defString.Val
 }

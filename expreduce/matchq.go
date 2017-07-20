@@ -61,7 +61,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 				testSym, testIsSym := patternTest.Parts[2].(*Symbol)
 				if testIsSym {
 					var qFunction singleParamQType
-					if testSym.Name == "NumberQ" {
+					if testSym.Name == "System`NumberQ" {
 						qFunction = numberQ
 					}
 					if qFunction != nil {
@@ -82,7 +82,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 				})).Eval(es)
 				resSymbol, resIsSymbol := res.(*Symbol)
 				if resIsSymbol {
-					if resSymbol.Name == "True" {
+					if resSymbol.Name == "System`True" {
 						return &dummyMatchIter{true, newPD, true}, true
 					}
 				}
@@ -104,7 +104,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 					res = ReplacePD(res, es, newPD).Eval(es)
 					resSymbol, resIsSymbol := res.(*Symbol)
 					if resIsSymbol {
-						if resSymbol.Name == "True" {
+						if resSymbol.Name == "System`True" {
 							return &dummyMatchIter{true, newPD, true}, true
 						}
 					}
@@ -135,7 +135,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 
 	// Special case for the operator form of Verbatim
 	forceOrdered := false
-	verbatimOp, opExpr, isVerbatimOp := OperatorAssertion(b, "Verbatim")
+	verbatimOp, opExpr, isVerbatimOp := OperatorAssertion(b, "System`Verbatim")
 	if aIsExpression && isVerbatimOp {
 		if len(opExpr.Parts) == 2 {
 			if IsSameQ(aExpression.Parts[0], opExpr.Parts[1], &es.CASLogger) {
@@ -149,17 +149,17 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	// This initial value is just a randomly chosen placeholder
 	var headEx Ex
 	if aIsFlt {
-		headEx = &Symbol{"Real"}
+		headEx = &Symbol{"System`Real"}
 	} else if aIsInteger {
-		headEx = &Symbol{"Integer"}
+		headEx = &Symbol{"System`Integer"}
 	} else if aIsString {
-		headEx = &Symbol{"String"}
+		headEx = &Symbol{"System`String"}
 	} else if aIsExpression {
 		headEx = aExpression.Parts[0]
 	} else if aIsSymbol {
-		headEx = &Symbol{"Symbol"}
+		headEx = &Symbol{"System`Symbol"}
 	} else if aIsRational {
-		headEx = &Symbol{"Rational"}
+		headEx = &Symbol{"System`Rational"}
 	}
 
 	if IsBlankTypeOnly(b) {
@@ -252,7 +252,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 func isMatchQRational(a *Rational, b *Expression, pm *PDManager, es *EvalState) (bool, *PDManager) {
 	return IsMatchQ(
 		NewExpression([]Ex{
-			&Symbol{"Rational"},
+			&Symbol{"System`Rational"},
 			&Integer{a.Num},
 			&Integer{a.Den},
 		}),

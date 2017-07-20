@@ -210,7 +210,7 @@ func evalIterSpecCandidate(es *EvalState, cand Ex) Ex {
 	// them.
 	list, isList := HeadAssertion(cand, "List")
 	if isList {
-		toReturn := NewExpression([]Ex{&Symbol{"List"}})
+		toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 		for i := 1; i < len(list.Parts); i++ {
 			toAdd := list.Parts[i].DeepCopy()
 			// Do not evaluate the variable of iteration. Even if "n" is

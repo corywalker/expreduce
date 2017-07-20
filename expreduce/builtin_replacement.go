@@ -258,7 +258,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 			for !isSame {
 				newEx := (NewExpression([]Ex{
-					&Symbol{"ReplaceAll"},
+					&Symbol{"System`ReplaceAll"},
 					oldEx,
 					this.Parts[2],
 				})).Eval(es)

@@ -24,12 +24,12 @@ func getComparisonDefinitions() (defs []Definition) {
 				isequal = isequal && (equalstr == "EQUAL_TRUE")
 			}
 			if isequal {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			} else {
-				return &Symbol{"False"}
+				return &Symbol{"System`False"}
 			}
 
-			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
+			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected equality return value."}})
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"Expressions known to be equal will evaluate to True:"},
@@ -116,12 +116,12 @@ func getComparisonDefinitions() (defs []Definition) {
 			if isequal == "EQUAL_UNK" {
 				return this
 			} else if isequal == "EQUAL_TRUE" {
-				return &Symbol{"False"}
+				return &Symbol{"System`False"}
 			} else if isequal == "EQUAL_FALSE" {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
 
-			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
+			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected equality return value."}})
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"Expressions known to be unequal will evaluate to True:"},
@@ -156,9 +156,9 @@ func getComparisonDefinitions() (defs []Definition) {
 				issame = issame && IsSameQ(this.Parts[1], this.Parts[i], &es.CASLogger)
 			}
 			if issame {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			} else {
-				return &Symbol{"False"}
+				return &Symbol{"System`False"}
 			}
 		},
 		SimpleExamples: []TestInstruction{
@@ -221,11 +221,11 @@ func getComparisonDefinitions() (defs []Definition) {
 			for i := 1; i < len(this.Parts); i++ {
 				for j := i+1; j < len(this.Parts); j++ {
 					if IsSameQ(this.Parts[i], this.Parts[j], &es.CASLogger) {
-						return &Symbol{"False"}
+						return &Symbol{"System`False"}
 					}
 				}
 			}
-			return &Symbol{"True"}
+			return &Symbol{"System`True"}
 		},
 		SimpleExamples: []TestInstruction{
 			&StringTest{"False", "a=!=a"},
@@ -247,9 +247,9 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			_, IsExpr := this.Parts[1].(*Expression)
 			if IsExpr {
-				return &Symbol{"False"}
+				return &Symbol{"System`False"}
 			}
-			return &Symbol{"True"}
+			return &Symbol{"System`True"}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "AtomQ[\"hello\"]"},
@@ -291,9 +291,9 @@ func getComparisonDefinitions() (defs []Definition) {
 			}
 			// Less
 			if ExOrder(this.Parts[1], this.Parts[2]) == 1 {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
-			return &Symbol{"False"}
+			return &Symbol{"System`False"}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"a < b", "a < b"},
@@ -318,9 +318,9 @@ func getComparisonDefinitions() (defs []Definition) {
 			}
 			// Greater
 			if ExOrder(this.Parts[1], this.Parts[2]) == -1 {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
-			return &Symbol{"False"}
+			return &Symbol{"System`False"}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"a > b", "a > b"},
@@ -345,13 +345,13 @@ func getComparisonDefinitions() (defs []Definition) {
 			}
 			// Less
 			if ExOrder(this.Parts[1], this.Parts[2]) == 1 {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
 			// Equal
 			if ExOrder(this.Parts[1], this.Parts[2]) == 0 {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
-			return &Symbol{"False"}
+			return &Symbol{"System`False"}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"a <= b", "a <= b"},
@@ -376,13 +376,13 @@ func getComparisonDefinitions() (defs []Definition) {
 			}
 			// Greater
 			if ExOrder(this.Parts[1], this.Parts[2]) == -1 {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
 			// Equal
 			if ExOrder(this.Parts[1], this.Parts[2]) == 0 {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
-			return &Symbol{"False"}
+			return &Symbol{"System`False"}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"a >= b", "a >= b"},
@@ -421,8 +421,8 @@ func getComparisonDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Flatten nested lists into arguments.
 			origHead := this.Parts[0]
-			this.Parts[0] = &Symbol{"List"}
-			dst := NewExpression([]Ex{&Symbol{"List"}})
+			this.Parts[0] = &Symbol{"System`List"}
+			dst := NewExpression([]Ex{&Symbol{"System`List"}})
 			flattenExpr(this, dst, 999999999, &es.CASLogger)
 			// Previously I always set the pointer but it led to an endless
 			// eval loop. I think evaluation might use the pointer to make a
@@ -435,9 +435,9 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			if len(this.Parts) == 1 {
 				return NewExpression([]Ex{
-					&Symbol{"Times"},
+					&Symbol{"System`Times"},
 					&Integer{big.NewInt(-1)},
-					&Symbol{"Infinity"},
+					&Symbol{"System`Infinity"},
 				})
 			}
 			if len(this.Parts) == 2 {

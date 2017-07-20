@@ -2,3 +2,4 @@
 SeedRandom[UnixTime[]];
 $Version = "Expreduce";
 $ModuleNumber = 1;
+$Path = {"."};

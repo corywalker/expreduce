@@ -40,23 +40,23 @@ func GetExpressionDefinitions() (defs []Definition) {
 
 			_, IsFlt := this.Parts[1].(*Flt)
 			if IsFlt {
-				return &Symbol{"Real"}
+				return &Symbol{"System`Real"}
 			}
 			_, IsInteger := this.Parts[1].(*Integer)
 			if IsInteger {
-				return &Symbol{"Integer"}
+				return &Symbol{"System`Integer"}
 			}
 			_, IsString := this.Parts[1].(*String)
 			if IsString {
-				return &Symbol{"String"}
+				return &Symbol{"System`String"}
 			}
 			_, IsSymbol := this.Parts[1].(*Symbol)
 			if IsSymbol {
-				return &Symbol{"Symbol"}
+				return &Symbol{"System`Symbol"}
 			}
 			_, IsRational := this.Parts[1].(*Rational)
 			if IsRational {
-				return &Symbol{"Rational"}
+				return &Symbol{"System`Rational"}
 			}
 			asExpr, IsExpression := this.Parts[1].(*Expression)
 			if IsExpression {

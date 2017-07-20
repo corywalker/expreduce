@@ -12,10 +12,10 @@ type Rational struct {
 
 func (this *Rational) Eval(es *EvalState) Ex {
 	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
-		return &Symbol{"Indeterminate"}
+		return &Symbol{"System`Indeterminate"}
 	}
 	if this.Den.Cmp(big.NewInt(0)) == 0 {
-		return &Symbol{"ComplexInfinity"}
+		return &Symbol{"System`ComplexInfinity"}
 	}
 	if this.Num.Cmp(big.NewInt(0)) == 0 {
 		return &Integer{big.NewInt(0)}

@@ -27,9 +27,9 @@ func GetPatternDefinitions() (defs []Definition) {
 			}
 
 			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), es); res {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			} else {
-				return &Symbol{"False"}
+				return &Symbol{"System`False"}
 			}
 		},
 		SimpleExamples: []TestInstruction{
@@ -445,7 +445,7 @@ func GetPatternDefinitions() (defs []Definition) {
 			if !isRule {
 				return this
 			}
-			res := NewExpression([]Ex{&Symbol{"List"}})
+			res := NewExpression([]Ex{&Symbol{"System`List"}})
 			mi, cont := NewMatchIter(this.Parts[1], rule.Parts[1], EmptyPD(), es)
 			for cont {
 				matchq, newPd, done := mi.next()

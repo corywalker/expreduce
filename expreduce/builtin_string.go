@@ -19,11 +19,11 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			// Do not implement FullForm here. It is not officially supported
-			if formAsSymbol.Name != "InputForm" && formAsSymbol.Name != "OutputForm" && formAsSymbol.Name != "FullForm" {
+			if formAsSymbol.Name != "System`InputForm" && formAsSymbol.Name != "System`OutputForm" && formAsSymbol.Name != "System`FullForm" {
 				return this
 			}
 
-			return &String{this.Parts[1].StringForm(formAsSymbol.Name)}
+			return &String{this.Parts[1].StringForm(formAsSymbol.Name[7:])}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"\"a^2\"", "ToString[a^2, InputForm]"},

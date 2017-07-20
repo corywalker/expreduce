@@ -115,7 +115,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 			nInt, nOk := this.Parts[2].(*Integer)
 			if nOk {
 				n := nInt.Val.Int64()
-				toReturn := NewExpression([]Ex{&Symbol{"List"}})
+				toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 				for i := int64(1); i <= n; i++ {
 					toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
 						this.Parts[1],

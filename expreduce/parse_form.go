@@ -104,7 +104,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 			if isSym {
 				// If we have a pattern like k__Plus
 				if sym.Name == sequenceHead {
-					form = NewExpression([]Ex{&Symbol{"Blank"}})
+					form = NewExpression([]Ex{&Symbol{"System`Blank"}})
 					startI = 2
 				} else {
 					endI = 1

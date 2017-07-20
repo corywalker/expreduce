@@ -31,7 +31,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 	if isExpr {
 		toReturn, defined, _ := es.GetDef(
 			"N",
-			NewExpression([]Ex{&Symbol{"N"}, e}),
+			NewExpression([]Ex{&Symbol{"System`N"}, e}),
 		)
 		if defined {
 			return toReturn
@@ -40,7 +40,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 		for _, part := range asExpr.Parts {
 			toAdd, defined, _ := es.GetDef(
 				"N",
-				NewExpression([]Ex{&Symbol{"N"}, part}),
+				NewExpression([]Ex{&Symbol{"System`N"}, part}),
 			)
 			if !defined {
 				toAdd = exprToN(es, part)
@@ -65,24 +65,24 @@ func GetSystemDefinitions() (defs []Definition) {
 
 			sym, ok := this.Parts[1].(*Symbol)
 			if ok {
-				if sym.Name == "True" {
+				if sym.Name == "System`True" {
 			        levelSym, lsOk := this.Parts[2].(*Symbol)
 					if !lsOk {
-					  return NewExpression([]Ex{&Symbol{"Error"}, &String{"Invalid level."}})
+					  return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
 					}
-					if levelSym.Name == "Debug" {
+					if levelSym.Name == "System`Debug" {
 						es.DebugOn(logging.DEBUG)
-					} else if levelSym.Name == "Info" {
+					} else if levelSym.Name == "System`Info" {
 						es.DebugOn(logging.INFO)
-					} else if levelSym.Name == "Notice" {
+					} else if levelSym.Name == "System`Notice" {
 						es.DebugOn(logging.NOTICE)
 					} else {
-					  return NewExpression([]Ex{&Symbol{"Error"}, &String{"Invalid level."}})
+					  return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
 					}
-					return &Symbol{"Null"}
-				} else if sym.Name == "False" {
+					return &Symbol{"System`Null"}
+				} else if sym.Name == "System`False" {
 					es.DebugOff()
-					return &Symbol{"Null"}
+					return &Symbol{"System`Null"}
 				}
 			}
 			return this
@@ -103,7 +103,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				f.Close()
 			}
 			fmt.Println(es.timeCounter.String())
-			return &Symbol{"Null"}
+			return &Symbol{"System`Null"}
 		},
 	})
 	defs = append(defs, Definition{
@@ -120,11 +120,11 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			toReturn := NewExpression([]Ex{&Symbol{"List"}})
+			toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 			def, isDef := es.defined[sym.Name]
 			if isDef {
 				for _, s := range def.attributes.toStrings() {
-					toReturn.Parts = append(toReturn.Parts, &Symbol{s})
+					toReturn.Parts = append(toReturn.Parts, &Symbol{"System`" + s})
 				}
 			}
 			return toReturn
@@ -181,7 +181,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					es.Clear(sym.Name)
 				}
 			}
-			return &Symbol{"Null"}
+			return &Symbol{"System`Null"}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"a", "a"},
@@ -210,9 +210,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			def, isd := es.defined[sym.Name]
 			if !isd {
-				return &Symbol{"Null"}
+				return &Symbol{"System`Null"}
 			}
-			return NewExpression([]Ex{&Symbol{"Error"}, &String{def.String()}})
+			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{def.String()}})
 		},
 	})
 	defs = append(defs, Definition{
@@ -285,7 +285,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				es.Define(lhs, this.Parts[2])
 			}
 			es.Define(this.Parts[1], this.Parts[2])
-			return &Symbol{"Null"}
+			return &Symbol{"System`Null"}
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"`SetDelayed` can be used to define functions:"},
@@ -351,7 +351,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			start := time.Now()
 			res := this.Parts[1].Eval(es)
 			elapsed := time.Since(start).Seconds()
-			return NewExpression([]Ex{&Symbol{"List"}, &Flt{big.NewFloat(elapsed)}, res})
+			return NewExpression([]Ex{&Symbol{"System`List"}, &Flt{big.NewFloat(elapsed)}, res})
 		},
 		SimpleExamples: []TestInstruction{
 			&ExampleOnlyInstruction{"{0.00167509, 5000000050000000}", "Timing[Sum[a, {a, 100000000}]]"},
@@ -370,7 +370,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				fmt.Printf("%s", this.Parts[i].String())
 			}
 			fmt.Printf("\n")
-			return &Symbol{"Null"}
+			return &Symbol{"System`Null"}
 		},
 	})
 	defs = append(defs, Definition{
@@ -395,7 +395,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			// way.
 
 			// Put system in trace mode:
-			es.trace = NewExpression([]Ex{&Symbol{"List"}})
+			es.trace = NewExpression([]Ex{&Symbol{"System`List"}})
 			// Evaluate first argument in trace mode:
 			this.Parts[1].Eval(es)
 			if len(es.trace.Parts) > 2 {
@@ -405,7 +405,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return toReturn
 			}
 			es.trace = nil
-			return NewExpression([]Ex{&Symbol{"List"}})
+			return NewExpression([]Ex{&Symbol{"System`List"}})
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"List[HoldForm[Plus[1, 2]], HoldForm[3]]", "1 + 2 // Trace"},
@@ -513,18 +513,18 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			pathSym := &Symbol{"$Path"}
+			pathSym := &Symbol{"System`$Path"}
 			path, isDef, _ := es.GetDef("$Path", pathSym)
 			if !isDef {
-				return &Symbol{"$Failed"}
+				return &Symbol{"System`$Failed"}
 			}
 			pathL, pathIsList := HeadAssertion(path, "List")
 			if !pathIsList {
-				return &Symbol{"$Failed"}
+				return &Symbol{"System`$Failed"}
 			}
 			filenameString, fnIsStr := this.Parts[1].(*String)
 			if !fnIsStr {
-				return &Symbol{"$Failed"}
+				return &Symbol{"System`$Failed"}
 			}
 			for _, pathEx := range pathL.Parts[1:] {
 				pathString, pathIsString := pathEx.(*String)
@@ -540,9 +540,9 @@ func GetSystemDefinitions() (defs []Definition) {
 					continue
 				}
 				fileData := string(dat)
-				return Interp(fileData[:len(fileData)-1])
+				return Interp(fileData[:len(fileData)-1], es)
 			}
-			return &Symbol{"$Failed"}
+			return &Symbol{"System`$Failed"}
 		},
 	})
 	defs = append(defs, Definition{
@@ -558,7 +558,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !localsIsList {
 				return this
 			}
-			mnExpr, mnIsDef := es.GetSymDef("$ModuleNumber")
+			mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
 			if !mnIsDef {
 				return this
 			}
@@ -613,7 +613,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					}
 				}
 			}
-			es.Define(&Symbol{"$ModuleNumber"}, &Integer{big.NewInt(mn+1)})
+			es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn+1)})
 			toReturn := this.Parts[2]
 			pm := EmptyPD()
 			for _, pl := range parsedLocals {
@@ -623,7 +623,7 @@ func GetSystemDefinitions() (defs []Definition) {
 						rhs = rhs.Eval(es)
 					}
 					es.defined[pl.uniqueName] = Def{
-						downvalues: []Expression{*NewExpression([]Ex{&Symbol{"Rule"}, &Symbol{pl.uniqueName}, rhs})},
+						downvalues: []Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, &Symbol{pl.uniqueName}, rhs})},
 					}
 				} else {
 					es.defined[pl.uniqueName] = Def{}
