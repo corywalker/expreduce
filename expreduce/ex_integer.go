@@ -13,12 +13,13 @@ func (f *Integer) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (f *Integer) StringForm(form string) string {
+func (f *Integer) StringForm(form string, context *String, contextPath *Expression) string {
 	return fmt.Sprintf("%d", f.Val)
 }
 
 func (this *Integer) String() string {
-	return this.StringForm("InputForm")
+	context, contextPath := DefaultStringFormArgs()
+	return this.StringForm("InputForm", context, contextPath)
 }
 
 func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {

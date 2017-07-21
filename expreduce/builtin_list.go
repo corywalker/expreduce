@@ -4,7 +4,7 @@ import "bytes"
 import "math/big"
 import "sort"
 
-func (this *Expression) ToStringList(form string) (bool, string) {
+func (this *Expression) ToStringList(form string, context *String, contextPath *Expression) (bool, string) {
 	if form == "FullForm" {
 		return false, ""
 	}

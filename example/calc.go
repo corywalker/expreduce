@@ -65,6 +65,7 @@ func main() {
 
 		if !isNull {
 			// Print formatted result
+			context, contextPath := expreduce.ActualStringFormArgs(es)
 			specialForms := []string{
 				"System`FullForm",
 				"System`OutputForm",
@@ -82,12 +83,12 @@ func main() {
 					"Out[%d]//%s= %s\n\n",
 					promptNum,
 					specialForm,
-					asSpecialForm.Parts[1].StringForm(specialForm),
+					asSpecialForm.Parts[1].StringForm(specialForm, context, contextPath),
 				)
 				wasSpecialForm = true
 			}
 			if !wasSpecialForm {
-				fmt.Printf("Out[%d]= %s\n\n", promptNum, res.StringForm("System`InputForm"))
+				fmt.Printf("Out[%d]= %s\n\n", promptNum, res.StringForm("System`InputForm", context, contextPath))
 			}
 		}
 

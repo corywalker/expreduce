@@ -229,8 +229,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 			// The world is not ready for this madness.
 			//{"Verbatim[Plus][beg___, Verbatim[Times][Optional[c1_?NumberQ],a__], Verbatim[Times][Optional[c2_?NumberQ],a__], end___]", "beg+(c1+c2)*a+end"},
 		},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " + ", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " + ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values
@@ -387,8 +387,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 			{"(1/Infinity)", "0"},
 			{"Times[ComplexInfinity, rest___]", "ComplexInfinity"},
 		},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " * ", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " * ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values

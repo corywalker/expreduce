@@ -323,7 +323,8 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	// "complexity" score, order then matters. TODO: Create better measure of
 	// complexity (or specificity)
 	var tmp = this.defined[name]
-	newLhsLen := len(lhs.StringForm("InputForm"))
+	context, contextPath := DefaultStringFormArgs()
+	newLhsLen := len(lhs.StringForm("InputForm", context, contextPath))
 	for i := range this.defined[name].downvalues {
 		thisLhsLen := len(this.defined[name].downvalues[i].Parts[1].String())
 		if thisLhsLen < newLhsLen {

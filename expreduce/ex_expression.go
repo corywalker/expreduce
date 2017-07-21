@@ -367,7 +367,7 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalSta
 	return this
 }
 
-func (this *Expression) StringForm(form string) string {
+func (this *Expression) StringForm(form string, context *String, contextPath *Expression) string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm {
@@ -375,7 +375,7 @@ func (this *Expression) StringForm(form string) string {
 		headStr := headAsSym.Name
 		toStringFn, hasToStringFn := toStringFns[headStr]
 		if hasToStringFn {
-			ok, res = toStringFn(this, form)
+			ok, res = toStringFn(this, form, context, contextPath)
 		}
 		if ok {
 			return res
@@ -390,7 +390,7 @@ func (this *Expression) StringForm(form string) string {
 		if i == 0 {
 			continue
 		}
-		buffer.WriteString(e.StringForm(form))
+		buffer.WriteString(e.StringForm(form, context, contextPath))
 		if i != len(this.Parts)-1 {
 			buffer.WriteString(", ")
 		}
@@ -400,7 +400,8 @@ func (this *Expression) StringForm(form string) string {
 }
 
 func (this *Expression) String() string {
-	return this.StringForm("InputForm")
+	context, contextPath := DefaultStringFormArgs()
+	return this.StringForm("InputForm", context, contextPath)
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {

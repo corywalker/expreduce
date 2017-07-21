@@ -219,11 +219,11 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "Set",
 		Usage:      "`lhs = rhs` sets `lhs` to stand for `rhs`.",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " = ", true, "(", ")", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " = ", true, "(", ")", form, context, contextPath)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -265,11 +265,11 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "SetDelayed",
 		Usage:      "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
 		Attributes: []string{"HoldAll", "SequenceHold"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " := ", true, "(", ")", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " := ", true, "(", ")", form, context, contextPath)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {

@@ -5,8 +5,8 @@ func GetBooleanDefinitions() (defs []Definition) {
 		Name:       "And",
 		Usage:      "`e1 && e2 && ...` returns `True` if all expressions evaluate to `True`.",
 		Attributes: []string{"Flat", "HoldAll", "OneIdentity"},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " && ", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " && ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			res := NewExpression([]Ex{&Symbol{"System`And"}})
@@ -50,8 +50,8 @@ func GetBooleanDefinitions() (defs []Definition) {
 		Name:       "Or",
 		Usage:      "`e1 || e2 || ...` returns `True` if any expressions evaluate to `True`.",
 		Attributes: []string{"Flat", "HoldAll", "OneIdentity"},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " || ", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " || ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			res := NewExpression([]Ex{&Symbol{"System`Or"}})

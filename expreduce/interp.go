@@ -236,7 +236,8 @@ func EvalInterpMany(doc string, es *EvalState) Ex {
 }
 
 func EasyRun(line string, es *EvalState) string {
-	return EvalInterp(line, es).StringForm("InputForm")
+	context, contextPath := ActualStringFormArgs(es)
+	return EvalInterp(line, es).StringForm("InputForm", context, contextPath)
 }
 
 //line yacctab:1

@@ -26,18 +26,25 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Symbol) StringForm(form string) string {
+func (this *Symbol) StringForm(form string, context *String, contextPath *Expression) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
-	if strings.HasPrefix(this.Name, "System`") {
-		return fmt.Sprintf("%v", this.Name[7:])
+	if strings.HasPrefix(this.Name, context.Val) {
+		return fmt.Sprintf("%v", this.Name[len(context.Val):])
+	}
+	for _, pathPart := range contextPath.Parts[1:] {
+		path := pathPart.(*String).Val
+		if strings.HasPrefix(this.Name, path) {
+			return fmt.Sprintf("%v", this.Name[len(path):])
+		}
 	}
 	return fmt.Sprintf("%v", this.Name)
 }
 
 func (this *Symbol) String() string {
-	return this.StringForm("InputForm")
+	context, contextPath := DefaultStringFormArgs()
+	return this.StringForm("InputForm", context, contextPath)
 }
 
 func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {

@@ -28,8 +28,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			{"Power[Rational[a_,b_], -1]", "Rational[b,a]"},
 			{"Power[Rational[a_,b_], e_?Positive]", "Rational[a^e,b^e]"},
 		},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

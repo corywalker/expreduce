@@ -2,7 +2,7 @@ package expreduce
 
 import "bytes"
 
-func ToStringBlankType(repr string, parts []Ex, form string) (bool, string) {
+func ToStringBlankType(repr string, parts []Ex, form string, context *String, contextPath *Expression) (bool, string) {
 	if form == "FullForm" {
 		return false, ""
 	}
@@ -107,7 +107,7 @@ func GetPatternDefinitions() (defs []Definition) {
 		Usage: "`name{BLANKFORM}` is equivalent to `Pattern[name, {BLANKFORM}]` and can be used in pattern matching to refer to the matched expression as `name`, where `{BLANKFORM}` is one of `{_, __, ___}`.\n\n" +
 			"`name{BLANKFORM}head` is equivalent to `Pattern[name, {BLANKFORM}head]` and can be used in pattern matching to refer to the matched expression as `name`, where `{BLANKFORM}` is one of `{_, __, ___}`.",
 		Attributes: []string{"HoldFirst"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -119,13 +119,13 @@ func GetPatternDefinitions() (defs []Definition) {
 			_, bsOk := HeadAssertion(this.Parts[2], "BlankSequence")
 			_, bnsOk := HeadAssertion(this.Parts[2], "BlankNullSequence")
 			if blankOk || bsOk || bnsOk {
-				buffer.WriteString(this.Parts[1].StringForm(form))
-				buffer.WriteString(this.Parts[2].StringForm(form))
+				buffer.WriteString(this.Parts[1].StringForm(form, context, contextPath))
+				buffer.WriteString(this.Parts[2].StringForm(form, context, contextPath))
 			} else {
 				buffer.WriteString("(")
-				buffer.WriteString(this.Parts[1].StringForm(form))
+				buffer.WriteString(this.Parts[1].StringForm(form, context, contextPath))
 				buffer.WriteString(") : (")
-				buffer.WriteString(this.Parts[2].StringForm(form))
+				buffer.WriteString(this.Parts[2].StringForm(form, context, contextPath))
 				buffer.WriteString(")")
 			}
 			return true, buffer.String()
@@ -149,8 +149,8 @@ func GetPatternDefinitions() (defs []Definition) {
 		Name: "Blank",
 		Usage: "`_` matches any expression.\n\n" +
 			"`_head` matches any expression with a `Head` of `head`.",
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringBlankType("_", this.Parts, form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringBlankType("_", this.Parts, form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "MatchQ[a + b, _]"},
@@ -219,8 +219,8 @@ func GetPatternDefinitions() (defs []Definition) {
 		Name: "BlankSequence",
 		Usage: "`__` matches any sequence of one or more expressions.\n\n" +
 			"`__head` matches any sequence of one or more expressions, each with a `Head` of `head`.",
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringBlankType("__", this.Parts, form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringBlankType("__", this.Parts, form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "MatchQ[a + b + c, a + b + __]"},
@@ -311,8 +311,8 @@ func GetPatternDefinitions() (defs []Definition) {
 		Name: "BlankNullSequence",
 		Usage: "`___` matches any sequence of zero or more expressions.\n\n" +
 			"`___head` matches any sequence of zero or more expressions, each with a `Head` of `head`.",
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringBlankType("___", this.Parts, form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringBlankType("___", this.Parts, form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"True", "MatchQ[a*b, ___]"},

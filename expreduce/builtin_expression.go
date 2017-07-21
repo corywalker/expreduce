@@ -177,14 +177,14 @@ func GetExpressionDefinitions() (defs []Definition) {
 		Name:       "HoldForm",
 		Usage:      "`HoldForm[expr]` prevents automatic evaluation of `expr`. Prints as `expr`.",
 		Attributes: []string{"HoldAll"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}
 			if form == "FullForm" {
 				return false, ""
 			}
-			return true, this.Parts[1].StringForm(form)
+			return true, this.Parts[1].StringForm(form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&StringTest{"5^3", "HoldForm[Power[5, 3]]"},

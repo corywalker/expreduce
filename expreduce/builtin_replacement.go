@@ -30,11 +30,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		Name: "ReplaceAll",
 		Usage: "`expr /. rule` replaces all occurences of the LHS of `rule` with the RHS of `rule` in `expr`.\n\n" +
 			"`expr /. {r1, r2, ...}` performes the same operation as `expr /. rule`, but evaluating each `r_n` in sequence.",
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -242,11 +242,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		Name: "ReplaceRepeated",
 		Usage: "`expr //. rule` replaces all occurences of the LHS of `rule` with the RHS of `rule` in `expr` repeatedly until the expression stabilizes.\n\n" +
 			"`expr //. {r1, r2, ...}` performes the same operation as `expr //. rule`, but evaluating each `r_n` in sequence.",
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -281,11 +281,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		Name:       "Rule",
 		Usage:      "`lhs -> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`.",
 		Attributes: []string{"SequenceHold"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"2^(y+1) + y", "2^(x^2+1) + x^2 /. x^2 -> y"},
@@ -298,11 +298,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		Name:       "RuleDelayed",
 		Usage:      "`lhs :> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`, evaluating `rhs` only after replacement.",
 		Attributes: []string{"HoldRest", "SequenceHold"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"2^(y+1) + y", "2^(x^2+1) + x^2 /. x^2 :> y"},
