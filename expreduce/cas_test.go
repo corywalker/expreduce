@@ -148,11 +148,11 @@ func TestLowLevel(t *testing.T) {
 	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
 	assert.Equal(t, "(a * b * c * d * e * f)", EasyRun("a * b * c *d *e *f", es))
 
-	CasAssertSame(t, es, "2", "test = 2")
-	_, containsTest := es.defined["System`test"]
+	CasAssertSame(t, es, "2", "iubjndxuier = 2")
+	_, containsTest := es.defined["System`iubjndxuier"]
 	assert.True(t, containsTest)
 	es.ClearAll()
-	_, containsTest = es.defined["System`test"]
+	_, containsTest = es.defined["System`iubjndxuier"]
 	assert.False(t, containsTest)
 }
 

@@ -170,21 +170,28 @@ func removeParens(ex Ex) {
 	return
 }
 
-func addContext(e Ex, context string) {
+func addContextAndDefine(e Ex, context string, contextPath []string, es *EvalState) {
 	if sym, isSym := e.(*Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
+			for _, toTry := range contextPath {
+				if es.IsDef(toTry + sym.Name) {
+					sym.Name = toTry + sym.Name
+					return
+				}
+			}
 			sym.Name = context + sym.Name
 		}
+		es.MarkSeen(sym.Name)
 	}
 	expr, isExpr := e.(*Expression)
 	if isExpr {
 		for _, part := range expr.Parts {
-			addContext(part, context)
+			addContextAndDefine(part, context, contextPath, es)
 		}
 	}
 }
 
-func ContextedInterp(line string, context string) Ex {
+func Interp(line string, es *EvalState) Ex {
 	// If we want the ability to parse multiple statements without the need
 	// for them to be separated by newlines, perhaps we should start with the
 	// first line and evaluate it. If it produces an error, then we should
@@ -206,16 +213,26 @@ func ContextedInterp(line string, context string) Ex {
 		}
 	}
 	removeParens(parsed)
-	addContext(parsed, context)
+	context := es.GetStringDef("System`$Context", "")
+	contextPathEx := es.GetListDef("System`$ContextPath")
+	contextPath := []string{}
+	for _, pathPart := range contextPathEx.Parts[1:] {
+		contextPath = append(contextPath, pathPart.(*String).Val)
+	}
+	addContextAndDefine(parsed, context, contextPath, es)
 	return parsed
-}
-
-func Interp(line string, es *EvalState) Ex {
-	return ContextedInterp(line, es.GetStringDef("System`$Context", ""))
 }
 
 func EvalInterp(line string, es *EvalState) Ex {
 	return Interp(line, es).Eval(es)
+}
+
+func EvalInterpMany(doc string, es *EvalState) Ex {
+	var last Ex
+	for _, expr := range strings.Split(doc, "\n\n") {
+		last = EvalInterp(expr, es)
+	}
+	return last
 }
 
 func EasyRun(line string, es *EvalState) string {

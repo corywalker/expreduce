@@ -25,6 +25,8 @@ type EvalState struct {
 func (this *EvalState) Load(def Definition) {
 	// TODO: deprecate most of this. We should be using .m files now.
 	def.Name = this.GetStringDef("System`$Context", "") + def.Name
+	this.MarkSeen(def.Name)
+	EvalInterp("$Context = \"Private`\"", this)
 	// TODO: do we really need SetDelayed here, or should we just write to
 	// downvalues directly? If we did this, we could potentially remove the
 	// "bootstrap" attribute that SetDelayed has.
@@ -67,22 +69,72 @@ func (this *EvalState) Load(def Definition) {
 		toStringFns[def.Name] = def.toString
 	}
 	this.defined[def.Name] = newDef
-}
-
-func InitCAS(es *EvalState) {
-	// System initialization
-	data := MustAsset("resources/init.m")
-	EvalInterp(string(data), es)
+	EvalInterp("$Context = \"System`\"", this)
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string]Def)
+	// These are fundamental symbols that affect even the parsing of 
+	// expressions. We must define them before even the bootstrap definitions.
 	es.Define(&Symbol{"System`$Context"}, &String{"System`"})
+	es.Define(&Symbol{"System`$ContextPath"}, NewExpression([]Ex{
+		&Symbol{"System`List"},
+		&String{"System`"},
+	}))
 	es.timeCounter.Init()
 
 	es.NoInit = !loadAllDefs
 	if !es.NoInit {
 		// Init modules
+		// Mark all core builtins as seen in the System context:
+		es.MarkSeen("System`Symbol")
+		es.MarkSeen("System`Integer")
+		es.MarkSeen("System`Rational")
+		es.MarkSeen("System`String")
+		es.MarkSeen("System`True")
+		es.MarkSeen("System`False")
+		es.MarkSeen("System`Log")
+		es.MarkSeen("System`Sqrt")
+
+		es.MarkSeen("System`InputForm")
+		es.MarkSeen("System`OutputForm")
+		es.MarkSeen("System`FullForm")
+
+		es.MarkSeen("System`ESimpleExamples")
+		es.MarkSeen("System`EFurtherExamples")
+		es.MarkSeen("System`ETests")
+		es.MarkSeen("System`EKnownFailures")
+		es.MarkSeen("System`EKnownDangerous")
+		es.MarkSeen("System`ESameTest")
+		es.MarkSeen("System`EComment")
+		es.MarkSeen("System`Echo")
+
+		es.MarkSeen("System`Attributes")
+		es.MarkSeen("System`Orderless")
+		es.MarkSeen("System`Flat")
+		es.MarkSeen("System`OneIdentity")
+		es.MarkSeen("System`Listable")
+		es.MarkSeen("System`Constant")
+		es.MarkSeen("System`NumericFunction")
+		es.MarkSeen("System`Protected")
+		es.MarkSeen("System`Locked")
+		es.MarkSeen("System`ReadProtected")
+		es.MarkSeen("System`HoldFirst")
+		es.MarkSeen("System`HoldRest")
+		es.MarkSeen("System`HoldAll")
+		es.MarkSeen("System`HoldAllComplete")
+		es.MarkSeen("System`NHoldFirst")
+		es.MarkSeen("System`NHoldRest")
+		es.MarkSeen("System`NHoldAll")
+		es.MarkSeen("System`SequenceHold")
+		es.MarkSeen("System`Temporary")
+		es.MarkSeen("System`Stub")
+
+		for _, defSet := range GetAllDefinitions() {
+			for _, def := range defSet.Defs {
+				es.MarkSeen(es.GetStringDef("System`$Context", "") + def.Name)
+			}
+		}
 		// Load bootstrap definitions first.
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
@@ -100,11 +152,19 @@ func (es *EvalState) Init(loadAllDefs bool) {
 			}
 			data, err := Asset(fmt.Sprintf("resources/%v.m", defSet.Name))
 			if err == nil {
-				EvalInterp(string(data), es)
+				EvalInterp("$Context = \"Private`\"", es)
+				EvalInterpMany(string(data), es)
+				EvalInterp("$Context = \"System`\"", es)
 			}
 		}
-		InitCAS(es)
+		// System initialization
+		data := MustAsset("resources/init.m")
+		EvalInterpMany(string(data), es)
 	}
+	//EvalInterp("$Context = \"Global`\"", es)
+	EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
+	//EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
+	EvalInterp("$ExpreduceContextStack = {\"System`\"}", es)
 }
 
 func NewEvalState() *EvalState {
@@ -189,6 +249,15 @@ func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
 	tmp := this.defined[sym.Name]
 	tmp.attributes = attrs
 	this.defined[sym.Name] = tmp
+}
+
+func (this *EvalState) MarkSeen(name string) {
+	if !this.IsDef(name) {
+		newDef := Def{
+			downvalues: []Expression{},
+		}
+		this.defined[name] = newDef
+	}
 }
 
 func (this *EvalState) Define(lhs Ex, rhs Ex) {
@@ -325,4 +394,17 @@ func (this *EvalState) GetStringDef(name string, defaultVal string) string {
 		return defaultVal
 	}
 	return defString.Val
+}
+
+func (this *EvalState) GetListDef(name string) *Expression {
+	nameSym := &Symbol{name}
+	def, isDef, _ := this.GetDef(name, nameSym)
+	if !isDef {
+		return NewExpression([]Ex{&Symbol{"System`List"}})
+	}
+	defList, defIsList := HeadAssertion(def, "List")
+	if !defIsList {
+		return NewExpression([]Ex{&Symbol{"System`List"}})
+	}
+	return defList
 }
