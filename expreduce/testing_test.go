@@ -12,7 +12,7 @@ func TestTesting(t *testing.T) {
 	es := NewEvalState()
 
 	CasAssertSame(t, es, " 1 ", "    1")
-	succ, s := CasTestInner(es, Interp(" 1. ", es), Interp("1  ", es), " 1. ", true, "")
+	succ, s := CasTestInner(es, Interp(" 1. ", es).Eval(es), Interp("1  ", es).Eval(es), " 1. ", true, "")
 	assert.False(t, succ, s)
 	CasAssertSame(t, es, "5.5", "1+1.5+3")
 	CasAssertDiff(t, es, "5.6", "1+1.5+3")

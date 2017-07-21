@@ -45,6 +45,7 @@ func TestIncludedModules(t *testing.T) {
 			if !testSymEx.MatchString(def.Name) {
 				continue
 			}
+			EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
 			def.AnnotateWithDynamic(es)
 			td := TestDesc{
 				module: defSet.Name,
@@ -149,10 +150,10 @@ func TestLowLevel(t *testing.T) {
 	assert.Equal(t, "(a * b * c * d * e * f)", EasyRun("a * b * c *d *e *f", es))
 
 	CasAssertSame(t, es, "2", "iubjndxuier = 2")
-	_, containsTest := es.defined["System`iubjndxuier"]
+	_, containsTest := es.defined["Global`iubjndxuier"]
 	assert.True(t, containsTest)
 	es.ClearAll()
-	_, containsTest = es.defined["System`iubjndxuier"]
+	_, containsTest = es.defined["Global`iubjndxuier"]
 	assert.False(t, containsTest)
 }
 

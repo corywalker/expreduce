@@ -384,7 +384,7 @@ func (this *Expression) StringForm(form string, context *String, contextPath *Ex
 
 	// Default printing format
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Parts[0].String())
+	buffer.WriteString(this.Parts[0].StringForm(form, context, contextPath))
 	buffer.WriteString("[")
 	for i, e := range this.Parts {
 		if i == 0 {

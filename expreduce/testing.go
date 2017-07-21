@@ -73,14 +73,12 @@ type SameTestEx struct {
 }
 
 func (this *SameTestEx) Run(t *testing.T, es *EvalState, td TestDesc) bool {
-	succ, s := CasTestInner(es, this.Out, this.In, this.In.String(), true, td.desc)
+	succ, s := CasTestInner(es, this.Out.Eval(es), this.In.Eval(es), this.In.String(), true, td.desc)
 	assert.True(t, succ, s)
 	return succ
 }
 
-func CasTestInner(es *EvalState, out Ex, in Ex, inStr string, test bool, desc string) (succ bool, s string) {
-	inTree := in.Eval(es)
-	outTree := out.Eval(es)
+func CasTestInner(es *EvalState, inTree Ex, outTree Ex, inStr string, test bool, desc string) (succ bool, s string) {
 	theTestTree := NewExpression([]Ex{
 		&Symbol{"System`SameQ"},
 		NewExpression([]Ex{&Symbol{"System`Hold"}, inTree}),
@@ -117,25 +115,25 @@ func CasTestInner(es *EvalState, out Ex, in Ex, inStr string, test bool, desc st
 }
 
 func CasAssertSame(t *testing.T, es *EvalState, out string, in string) bool {
-	succ, s := CasTestInner(es, Interp(out, es), Interp(in, es), in, true, "")
+	succ, s := CasTestInner(es, Interp(in, es).Eval(es), Interp(out, es).Eval(es), in, true, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDiff(t *testing.T, es *EvalState, out string, in string) bool {
-	succ, s := CasTestInner(es, Interp(out, es), Interp(in, es), in, false, "")
+	succ, s := CasTestInner(es, Interp(in, es).Eval(es), Interp(out, es).Eval(es), in, false, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDescSame(t *testing.T, es *EvalState, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, Interp(out, es), Interp(in, es), in, true, desc)
+	succ, s := CasTestInner(es, Interp(in, es).Eval(es), Interp(out, es).Eval(es), in, true, desc)
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDescDiff(t *testing.T, es *EvalState, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, Interp(out, es), Interp(in, es), in, false, desc)
+	succ, s := CasTestInner(es, Interp(in, es).Eval(es), Interp(out, es).Eval(es), in, false, desc)
 	assert.True(t, succ, s)
 	return succ
 }

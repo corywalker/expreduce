@@ -161,10 +161,9 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		data := MustAsset("resources/init.m")
 		EvalInterpMany(string(data), es)
 	}
-	//EvalInterp("$Context = \"Global`\"", es)
+	EvalInterp("$Context = \"Global`\"", es)
 	EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
-	//EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
-	EvalInterp("$ExpreduceContextStack = {\"System`\"}", es)
+	EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
 }
 
 func NewEvalState() *EvalState {

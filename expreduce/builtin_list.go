@@ -11,7 +11,7 @@ func (this *Expression) ToStringList(form string, context *String, contextPath *
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range this.Parts[1:] {
-		buffer.WriteString(e.String())
+		buffer.WriteString(e.StringForm(form, context, contextPath))
 		if i != len(this.Parts[1:])-1 {
 			buffer.WriteString(", ")
 		}

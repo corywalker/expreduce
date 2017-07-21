@@ -47,10 +47,10 @@ func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start
 	for i := 0; i < len(parts); i++ {
 		if surroundEachArg {
 			buffer.WriteString("(")
-			buffer.WriteString(parts[i].String())
+			buffer.WriteString(parts[i].StringForm(form, context, contextPath))
 			buffer.WriteString(")")
 		} else {
-			buffer.WriteString(parts[i].String())
+			buffer.WriteString(parts[i].StringForm(form, context, contextPath))
 		}
 		if i != len(parts)-1 {
 			buffer.WriteString(delim)
