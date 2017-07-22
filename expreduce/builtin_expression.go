@@ -40,23 +40,23 @@ func GetExpressionDefinitions() (defs []Definition) {
 
 			_, IsFlt := this.Parts[1].(*Flt)
 			if IsFlt {
-				return &Symbol{"Real"}
+				return &Symbol{"System`Real"}
 			}
 			_, IsInteger := this.Parts[1].(*Integer)
 			if IsInteger {
-				return &Symbol{"Integer"}
+				return &Symbol{"System`Integer"}
 			}
 			_, IsString := this.Parts[1].(*String)
 			if IsString {
-				return &Symbol{"String"}
+				return &Symbol{"System`String"}
 			}
 			_, IsSymbol := this.Parts[1].(*Symbol)
 			if IsSymbol {
-				return &Symbol{"Symbol"}
+				return &Symbol{"System`Symbol"}
 			}
 			_, IsRational := this.Parts[1].(*Rational)
 			if IsRational {
-				return &Symbol{"Rational"}
+				return &Symbol{"System`Rational"}
 			}
 			asExpr, IsExpression := this.Parts[1].(*Expression)
 			if IsExpression {
@@ -177,14 +177,14 @@ func GetExpressionDefinitions() (defs []Definition) {
 		Name:       "HoldForm",
 		Usage:      "`HoldForm[expr]` prevents automatic evaluation of `expr`. Prints as `expr`.",
 		Attributes: []string{"HoldAll"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}
 			if form == "FullForm" {
 				return false, ""
 			}
-			return true, this.Parts[1].StringForm(form)
+			return true, this.Parts[1].StringForm(form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&StringTest{"5^3", "HoldForm[Power[5, 3]]"},

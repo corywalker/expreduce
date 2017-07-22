@@ -19,7 +19,7 @@ func ParseRepeated(e *Expression) (Ex, int, int, bool) {
 		return nil, min, max, false
 	}
 	if len(e.Parts) >= 3 {
-		list, isList := HeadAssertion(e.Parts[2], "List")
+		list, isList := HeadAssertion(e.Parts[2], "System`List")
 		if !isList {
 			return nil, min, max, false
 		}
@@ -40,15 +40,15 @@ func ParseRepeated(e *Expression) (Ex, int, int, bool) {
 func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault Ex, cl *CASLogger) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	toParse := lhs_component
-	optional, isOptional := HeadAssertion(toParse, "Optional")
+	optional, isOptional := HeadAssertion(toParse, "System`Optional")
 	if isOptional {
 		toParse = optional.Parts[1]
 	}
-	patTest, isPatTest := HeadAssertion(toParse, "PatternTest")
+	patTest, isPatTest := HeadAssertion(toParse, "System`PatternTest")
 	if isPatTest {
 		toParse = patTest.Parts[1]
 	}
-	pat, isPat := HeadAssertion(toParse, "Pattern")
+	pat, isPat := HeadAssertion(toParse, "System`Pattern")
 	var patSym *Symbol
 	if isPat {
 		patIsSym := false
@@ -60,11 +60,11 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 			isPat = false
 		}
 	}
-	bns, isBns := HeadAssertion(toParse, "BlankNullSequence")
-	bs, isBs := HeadAssertion(toParse, "BlankSequence")
-	blank, isBlank := HeadAssertion(toParse, "Blank")
-	repeated, isRepeated := HeadAssertion(toParse, "Repeated")
-	repeatedNull, isRepeatedNull := HeadAssertion(toParse, "RepeatedNull")
+	bns, isBns := HeadAssertion(toParse, "System`BlankNullSequence")
+	bs, isBs := HeadAssertion(toParse, "System`BlankSequence")
+	blank, isBlank := HeadAssertion(toParse, "System`Blank")
+	repeated, isRepeated := HeadAssertion(toParse, "System`Repeated")
+	repeatedNull, isRepeatedNull := HeadAssertion(toParse, "System`RepeatedNull")
 	isImpliedBs := isBlank && isFlat
 	// Ensure isBlank is exclusive from isImpliedBs
 	isBlank = isBlank && !isImpliedBs
@@ -104,7 +104,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 			if isSym {
 				// If we have a pattern like k__Plus
 				if sym.Name == sequenceHead {
-					form = NewExpression([]Ex{&Symbol{"Blank"}})
+					form = NewExpression([]Ex{&Symbol{"System`Blank"}})
 					startI = 2
 				} else {
 					endI = 1

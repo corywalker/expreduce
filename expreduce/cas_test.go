@@ -37,18 +37,19 @@ func TestIncludedModules(t *testing.T) {
 			continue
 		}
 		fmt.Printf("Testing module %s\n", defSet.Name)
+		es := NewEvalState()
+		if *deftimings {
+			es.SetProfiling(true)
+		}
 		for _, def := range defSet.Defs {
 			if !testSymEx.MatchString(def.Name) {
 				continue
 			}
-			es := NewEvalState()
+			EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
 			def.AnnotateWithDynamic(es)
 			td := TestDesc{
 				module: defSet.Name,
 				def:    def,
-			}
-			if *deftimings {
-				es.SetProfiling(true)
 			}
 			i := 0
 			for _, test := range def.SimpleExamples {
@@ -91,10 +92,10 @@ func TestIncludedModules(t *testing.T) {
 				test.Run(t, es, td)
 				i += 1
 			}*/
-			if *deftimings {
-				timeCounter.Update(&es.timeCounter)
-			}
 			numTests += i
+		}
+		if *deftimings {
+			timeCounter.Update(&es.timeCounter)
 		}
 	}
 	fmt.Printf("Ran %v module tests.\n", numTests)
@@ -117,9 +118,9 @@ func TestLowLevel(t *testing.T) {
 
 	// Test nested addition functionality
 	var a = NewExpression([]Ex{
-		&Symbol{"Plus"},
+		&Symbol{"System`Plus"},
 		NewExpression([]Ex{
-			&Symbol{"Plus"},
+			&Symbol{"System`Plus"},
 			&Flt{big.NewFloat(80)},
 			&Flt{big.NewFloat(3)},
 		}),
@@ -131,16 +132,16 @@ func TestLowLevel(t *testing.T) {
 	// Test equality checking
 	assert.Equal(t, "EQUAL_TRUE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}, &es.CASLogger))
 	assert.Equal(t, "EQUAL_FALSE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(98)}, &es.CASLogger))
-	assert.Equal(t, "EQUAL_TRUE", (&Symbol{"x"}).IsEqual(&Symbol{"x"}, &es.CASLogger))
-	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"X"}, &es.CASLogger))
-	assert.Equal(t, "EQUAL_UNK", (&Symbol{"x"}).IsEqual(&Symbol{"y"}, &es.CASLogger))
+	assert.Equal(t, "EQUAL_TRUE", (&Symbol{"System`x"}).IsEqual(&Symbol{"System`x"}, &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", (&Symbol{"System`x"}).IsEqual(&Symbol{"System`X"}, &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", (&Symbol{"System`x"}).IsEqual(&Symbol{"System`y"}, &es.CASLogger))
 
 	// Test evaluation
 	newa := a.Eval(es)
 	assert.Equal(t, "87.5", newa.String())
 
 	// Test basic Symbol functionality
-	var v *Symbol = &Symbol{"x"}
+	var v *Symbol = &Symbol{"System`x"}
 	assert.Equal(t, "x", v.String())
 	v.Eval(es)
 	assert.Equal(t, "x", v.String())
@@ -148,11 +149,11 @@ func TestLowLevel(t *testing.T) {
 	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
 	assert.Equal(t, "(a * b * c * d * e * f)", EasyRun("a * b * c *d *e *f", es))
 
-	CasAssertSame(t, es, "2", "test = 2")
-	_, containsTest := es.defined["test"]
+	CasAssertSame(t, es, "2", "iubjndxuier = 2")
+	_, containsTest := es.defined["Global`iubjndxuier"]
 	assert.True(t, containsTest)
 	es.ClearAll()
-	_, containsTest = es.defined["test"]
+	_, containsTest = es.defined["Global`iubjndxuier"]
 	assert.False(t, containsTest)
 }
 
@@ -160,15 +161,15 @@ func TestDeepCopy(t *testing.T) {
 	fmt.Println("Testing deepcopy")
 
 	// Test deepcopy
-	var t1 = &Symbol{"x"}
+	var t1 = &Symbol{"System`x"}
 	t2 := *t1
 	t3 := t1.DeepCopy().(*Symbol)
-	assert.Equal(t, "x", t1.Name)
-	assert.Equal(t, "x", t2.Name)
-	assert.Equal(t, "x", t3.Name)
+	assert.Equal(t, "System`x", t1.Name)
+	assert.Equal(t, "System`x", t2.Name)
+	assert.Equal(t, "System`x", t3.Name)
 	t2.Name = "y"
 	t3.Name = "z"
-	assert.Equal(t, "x", t1.Name)
+	assert.Equal(t, "System`x", t1.Name)
 	assert.Equal(t, "y", t2.Name)
 	assert.Equal(t, "z", t3.Name)
 

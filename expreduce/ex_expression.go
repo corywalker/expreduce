@@ -61,14 +61,14 @@ func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
 }
 
 func tryReturnValue(e Ex) (Ex, bool) {
-	asReturn, isReturn := HeadAssertion(e, "Return")
+	asReturn, isReturn := HeadAssertion(e, "System`Return")
 	if !isReturn {
 		return nil, false
 	}
 	if len(asReturn.Parts) >= 2 {
 		return asReturn.Parts[1], true
 	}
-	return &Symbol{"Null"}, true
+	return &Symbol{"System`Null"}, true
 }
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
@@ -139,7 +139,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			if es.trace != nil && !es.IsFrozen() {
 				toAppend := NewExpression([]Ex{
-					&Symbol{"HoldForm"},
+					&Symbol{"System`HoldForm"},
 					toReturn.DeepCopy(),
 				})
 
@@ -184,7 +184,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			traceBak := es.trace
 			if es.trace != nil && !es.IsFrozen() {
-				es.trace = NewExpression([]Ex{&Symbol{"List"}})
+				es.trace = NewExpression([]Ex{&Symbol{"System`List"}})
 			}
 			oldHash := curr.Parts[i].Hash()
 			curr.Parts[i] = curr.Parts[i].Eval(es)
@@ -205,7 +205,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// Handle tracing
 		if es.trace != nil && !es.IsFrozen() {
 			toAppend := NewExpression([]Ex{
-				&Symbol{"HoldForm"},
+				&Symbol{"System`HoldForm"},
 				currEx.DeepCopy(),
 			})
 
@@ -221,22 +221,23 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// If any of the parts are Sequence, merge them with parts
 		if headIsSym {
 			if !attrs.SequenceHold {
-				curr = curr.mergeSequences(es, "Sequence", false)
+				curr = curr.mergeSequences(es, "System`Sequence", false)
 			}
 		} else {
-			curr = curr.mergeSequences(es, "Sequence", false)
+			curr = curr.mergeSequences(es, "System`Sequence", false)
 		}
-		curr = curr.mergeSequences(es, "Evaluate", true)
+		curr = curr.mergeSequences(es, "System`Evaluate", true)
 		// In case curr changed
 		currEx = curr
 
-		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
+		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "System`Function")
 		if headIsSym {
 			if attrs.Flat {
 				curr = curr.mergeSequences(es, headSym.Name, false)
 			}
 			if attrs.Orderless {
 				sort.Sort(curr)
+				curr.cachedHash = 0
 			}
 			if attrs.Listable {
 				changed := false
@@ -296,16 +297,16 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		for i, arg := range args {
 			toReturn = ReplaceAll(toReturn,
 				NewExpression([]Ex{
-					&Symbol{"Rule"},
+					&Symbol{"System`Rule"},
 					NewExpression([]Ex{
-						&Symbol{"Slot"},
+						&Symbol{"System`Slot"},
 						&Integer{big.NewInt(int64(i + 1))},
 					}),
 
 					arg,
 				}),
 
-				es, EmptyPD(), "Function")
+				es, EmptyPD(), "System`Function")
 		}
 		return toReturn
 	} else if len(this.Parts) == 3 {
@@ -316,12 +317,12 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		toReturn := this.Parts[2].DeepCopy()
 		toReturn = ReplaceAll(toReturn,
 			NewExpression([]Ex{
-				&Symbol{"Rule"},
+				&Symbol{"System`Rule"},
 				repSym,
 				args[0],
 			}),
 
-			es, EmptyPD(), "Function")
+			es, EmptyPD(), "System`Function")
 		return toReturn
 	}
 	return this
@@ -362,7 +363,7 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalSta
 	return this
 }
 
-func (this *Expression) StringForm(form string) string {
+func (this *Expression) StringForm(form string, context *String, contextPath *Expression) string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm {
@@ -370,7 +371,7 @@ func (this *Expression) StringForm(form string) string {
 		headStr := headAsSym.Name
 		toStringFn, hasToStringFn := toStringFns[headStr]
 		if hasToStringFn {
-			ok, res = toStringFn(this, form)
+			ok, res = toStringFn(this, form, context, contextPath)
 		}
 		if ok {
 			return res
@@ -379,13 +380,13 @@ func (this *Expression) StringForm(form string) string {
 
 	// Default printing format
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Parts[0].String())
+	buffer.WriteString(this.Parts[0].StringForm(form, context, contextPath))
 	buffer.WriteString("[")
 	for i, e := range this.Parts {
 		if i == 0 {
 			continue
 		}
-		buffer.WriteString(e.StringForm(form))
+		buffer.WriteString(e.StringForm(form, context, contextPath))
 		if i != len(this.Parts)-1 {
 			buffer.WriteString(", ")
 		}
@@ -395,7 +396,8 @@ func (this *Expression) StringForm(form string) string {
 }
 
 func (this *Expression) String() string {
-	return this.StringForm("InputForm")
+	context, contextPath := DefaultStringFormArgs()
+	return this.StringForm("InputForm", context, contextPath)
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
@@ -464,10 +466,9 @@ func (this *Expression) NeedsEval() bool {
 }
 
 func (this *Expression) Hash() uint64 {
-	// Will generate stale hashes but offers significant speedup. Use with care.
-	//if this.cachedHash > 0 {
-		//return this.cachedHash
-	//}
+	if this.cachedHash > 0 {
+		return this.cachedHash
+	}
 	h := fnv.New64a()
 	h.Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
 	for _, part := range this.Parts {
@@ -475,9 +476,6 @@ func (this *Expression) Hash() uint64 {
 		binary.LittleEndian.PutUint64(b, part.Hash())
 		h.Write(b)
 	}
-	//if this.cachedHash > 0 && h.Sum64() != this.cachedHash {
-		//fmt.Printf("%v stale hash!!!\n", this)
-	//}
 	this.cachedHash = h.Sum64()
 	return h.Sum64()
 }

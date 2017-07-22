@@ -63,34 +63,34 @@ func ExOrder(a Ex, b Ex) int64 {
 
 	// Handle expression comparisons
 	if aIsExp && bIsExp {
-		_, aIsPow := HeadAssertion(aAsExp, "Power")
-		_, bIsPow := HeadAssertion(bAsExp, "Power")
-		_, aIsTimes := HeadAssertion(aAsExp, "Times")
-		_, bIsTimes := HeadAssertion(bAsExp, "Times")
+		_, aIsPow := HeadAssertion(aAsExp, "System`Power")
+		_, bIsPow := HeadAssertion(bAsExp, "System`Power")
+		_, aIsTimes := HeadAssertion(aAsExp, "System`Times")
+		_, bIsTimes := HeadAssertion(bAsExp, "System`Times")
 		if aIsPow && bIsTimes {
 			return ExOrder(NewExpression([]Ex{
-				&Symbol{"Times"},
+				&Symbol{"System`Times"},
 				NewInt(1),
 				aAsExp,
 			}), b)
 		}
 		if aIsPow && !bIsPow {
 			return ExOrder(a, NewExpression([]Ex{
-				&Symbol{"Power"},
+				&Symbol{"System`Power"},
 				bAsExp,
 				NewInt(1),
 			}))
 		}
 		if bIsPow && aIsTimes {
 			return ExOrder(aAsExp, NewExpression([]Ex{
-				&Symbol{"Times"},
+				&Symbol{"System`Times"},
 				NewInt(1),
 				bAsExp,
 			}))
 		}
 		if !aIsPow && bIsPow {
 			return ExOrder(NewExpression([]Ex{
-				&Symbol{"Power"},
+				&Symbol{"System`Power"},
 				aAsExp,
 				NewInt(1),
 			}), b)
@@ -175,18 +175,18 @@ func ExOrder(a Ex, b Ex) int64 {
 		return -1
 	}
 	if aIsSymbol && bIsExp {
-		_, bIsPow := HeadAssertion(bAsExp, "Power")
+		_, bIsPow := HeadAssertion(bAsExp, "System`Power")
 		if bIsPow {
 			return ExOrder(NewExpression([]Ex{
-				&Symbol{"Power"},
+				&Symbol{"System`Power"},
 				a,
 				NewInt(1),
 			}), b)
 		}
-		_, bIsTimes := HeadAssertion(bAsExp, "Times")
+		_, bIsTimes := HeadAssertion(bAsExp, "System`Times")
 		if bIsTimes {
 			return ExOrder(NewExpression([]Ex{
-				&Symbol{"Times"},
+				&Symbol{"System`Times"},
 				NewInt(1),
 				a,
 			}), b)
@@ -201,18 +201,18 @@ func ExOrder(a Ex, b Ex) int64 {
 		return -1
 	}
 	if aIsExp && bIsSymbol {
-		_, aIsPow := HeadAssertion(aAsExp, "Power")
+		_, aIsPow := HeadAssertion(aAsExp, "System`Power")
 		if aIsPow {
 			return ExOrder(a, NewExpression([]Ex{
-				&Symbol{"Power"},
+				&Symbol{"System`Power"},
 				b,
 				NewInt(1),
 			}))
 		}
-		_, aIsTimes := HeadAssertion(aAsExp, "Times")
+		_, aIsTimes := HeadAssertion(aAsExp, "System`Times")
 		if aIsTimes {
 			return ExOrder(a, NewExpression([]Ex{
-				&Symbol{"Times"},
+				&Symbol{"System`Times"},
 				NewInt(1),
 				b,
 			}))

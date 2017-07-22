@@ -132,7 +132,7 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 				return this
 			}
 			if yi.Val.Cmp(big.NewInt(0)) == 0 {
-				return &Symbol{"Indeterminate"}
+				return &Symbol{"System`Indeterminate"}
 			}
 			m := big.NewInt(0)
 			m.Mod(xi.Val, yi.Val)

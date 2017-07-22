@@ -11,7 +11,7 @@ func (this *String) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *String) StringForm(form string) string {
+func (this *String) StringForm(form string, context *String, contextPath *Expression) string {
 	if form == "OutputForm" {
 		return fmt.Sprintf("%v", this.Val)
 	}
@@ -19,7 +19,8 @@ func (this *String) StringForm(form string) string {
 }
 
 func (this *String) String() string {
-	return this.StringForm("InputForm")
+	context, contextPath := DefaultStringFormArgs()
+	return this.StringForm("InputForm", context, contextPath)
 }
 
 func (this *String) IsEqual(other Ex, cl *CASLogger) string {

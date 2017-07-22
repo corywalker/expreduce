@@ -6,16 +6,16 @@ func FlatReplace(e *Expression, lhs *Expression, rhs Ex, orderless bool, es *Eva
 	looseLhs.Parts = append(looseLhs.Parts, lhs.Parts[0])
 	if !orderless {
 		looseLhs.Parts = append(looseLhs.Parts, NewExpression([]Ex{
-			&Symbol{"Pattern"},
-			&Symbol{"Expreduce`start"},
-			NewExpression([]Ex{&Symbol{"BlankNullSequence"}}),
+			&Symbol{"System`Pattern"},
+			&Symbol{"System`Expreduce`start"},
+			NewExpression([]Ex{&Symbol{"System`BlankNullSequence"}}),
 		}))
 	}
 	looseLhs.Parts = append(looseLhs.Parts, lhs.Parts[1:]...)
 	looseLhs.Parts = append(looseLhs.Parts, NewExpression([]Ex{
-		&Symbol{"Pattern"},
-		&Symbol{"Expreduce`end"},
-		NewExpression([]Ex{&Symbol{"BlankNullSequence"}}),
+		&Symbol{"System`Pattern"},
+		&Symbol{"System`Expreduce`end"},
+		NewExpression([]Ex{&Symbol{"System`BlankNullSequence"}}),
 	}))
 	pm := EmptyPD()
 	matchq, newPd := IsMatchQ(e, looseLhs, pm, es)
@@ -25,14 +25,14 @@ func FlatReplace(e *Expression, lhs *Expression, rhs Ex, orderless bool, es *Eva
 			tmpEx = ReplacePD(NewExpression([]Ex{
 				e.Parts[0],
 				rhs,
-				&Symbol{"Expreduce`end"},
+				&Symbol{"System`Expreduce`end"},
 			}), es, newPd)
 		} else {
 			tmpEx = ReplacePD(NewExpression([]Ex{
 				e.Parts[0],
-				&Symbol{"Expreduce`start"},
+				&Symbol{"System`Expreduce`start"},
 				rhs,
-				&Symbol{"Expreduce`end"},
+				&Symbol{"System`Expreduce`end"},
 			}), es, newPd)
 		}
 		return tmpEx

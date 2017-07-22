@@ -38,7 +38,7 @@ type Definition struct {
 func ToTestInstructions(tc *Expression) []TestInstruction {
 	instructions := []TestInstruction{}
 	for _, tiEx := range tc.Parts[1:] {
-		if st, isSt := HeadAssertion(tiEx, "ESameTest"); isSt {
+		if st, isSt := HeadAssertion(tiEx, "System`ESameTest"); isSt {
 			if len(st.Parts) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
@@ -47,7 +47,7 @@ func ToTestInstructions(tc *Expression) []TestInstruction {
 				st.Parts[1], st.Parts[2]})
 			continue
 		}
-		if comment, isComment := HeadAssertion(tiEx, "EComment"); isComment {
+		if comment, isComment := HeadAssertion(tiEx, "System`EComment"); isComment {
 			if len(comment.Parts) != 2 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
@@ -71,7 +71,7 @@ func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
 	if !testsDef {
 		return
 	}
-	testsList, testsIsList := HeadAssertion(tests, "List")
+	testsList, testsIsList := HeadAssertion(tests, "System`List")
 	if !testsIsList {
 		return
 	}
@@ -84,23 +84,23 @@ func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
 		if !headIsSym {
 			continue
 		}
-		if (headSym.Name == "ESimpleExamples") {
+		if (headSym.Name == "System`ESimpleExamples") {
 			def.SimpleExamples = append(
 				def.SimpleExamples,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "EFurtherExamples") {
+		} else if (headSym.Name == "System`EFurtherExamples") {
 			def.FurtherExamples = append(
 				def.FurtherExamples,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "ETests") {
+		} else if (headSym.Name == "System`ETests") {
 			def.Tests = append(
 				def.Tests,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "EKnownFailures") {
+		} else if (headSym.Name == "System`EKnownFailures") {
 			def.KnownFailures = append(
 				def.KnownFailures,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "EKnownDangerous") {
+		} else if (headSym.Name == "System`EKnownDangerous") {
 			def.KnownDangerous = append(
 				def.KnownDangerous,
 				ToTestInstructions(testColExpr)...)
@@ -115,7 +115,7 @@ func (def *Definition) AnnotateWithDynamicUsage(es *EvalState) {
 		return
 	}
 	lhs := NewExpression([]Ex{
-		&Symbol{"MessageName"},
+		&Symbol{"System`MessageName"},
 		&Symbol{def.Name},
 		&String{"usage"},
 	})

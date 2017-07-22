@@ -52,22 +52,23 @@ func main() {
 		}
 		fmt.Printf("\n")
 
-		exp := expreduce.Interp(line)
+		exp := expreduce.Interp(line, es)
 		res := exp.Eval(es)
 
 		isNull := false
 		asSym, isSym := res.(*expreduce.Symbol)
 		if isSym {
-			if asSym.Name == "Null" {
+			if asSym.Name == "System`Null" {
 				isNull = true
 			}
 		}
 
 		if !isNull {
 			// Print formatted result
+			context, contextPath := expreduce.ActualStringFormArgs(es)
 			specialForms := []string{
-				"FullForm",
-				"OutputForm",
+				"System`FullForm",
+				"System`OutputForm",
 			}
 			wasSpecialForm := false
 			for _, specialForm := range specialForms {
@@ -81,13 +82,13 @@ func main() {
 				fmt.Printf(
 					"Out[%d]//%s= %s\n\n",
 					promptNum,
-					specialForm,
-					asSpecialForm.Parts[1].StringForm(specialForm),
+					specialForm[7:],
+					asSpecialForm.Parts[1].StringForm(specialForm[7:], context, contextPath),
 				)
 				wasSpecialForm = true
 			}
 			if !wasSpecialForm {
-				fmt.Printf("Out[%d]= %s\n\n", promptNum, res.StringForm("InputForm"))
+				fmt.Printf("Out[%d]= %s\n\n", promptNum, res.StringForm("InputForm", context, contextPath))
 			}
 		}
 

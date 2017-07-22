@@ -5,23 +5,23 @@ func GetBooleanDefinitions() (defs []Definition) {
 		Name:       "And",
 		Usage:      "`e1 && e2 && ...` returns `True` if all expressions evaluate to `True`.",
 		Attributes: []string{"Flat", "HoldAll", "OneIdentity"},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " && ", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " && ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			res := NewExpression([]Ex{&Symbol{"And"}})
+			res := NewExpression([]Ex{&Symbol{"System`And"}})
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
 				if booleanQ(this.Parts[i], &es.CASLogger) {
 				    if falseQ(this.Parts[i], &es.CASLogger) {
-						return &Symbol{"False"}
+						return &Symbol{"System`False"}
 					}
 				} else {
 					res.appendEx(this.Parts[i])
 				}
 			}
 			if len(res.Parts) == 1 {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
 			if len(res.Parts) == 2 {
 				return res.Parts[1]
@@ -50,23 +50,23 @@ func GetBooleanDefinitions() (defs []Definition) {
 		Name:       "Or",
 		Usage:      "`e1 || e2 || ...` returns `True` if any expressions evaluate to `True`.",
 		Attributes: []string{"Flat", "HoldAll", "OneIdentity"},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " || ", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " || ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			res := NewExpression([]Ex{&Symbol{"Or"}})
+			res := NewExpression([]Ex{&Symbol{"System`Or"}})
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
 				if booleanQ(this.Parts[i], &es.CASLogger) {
 				    if trueQ(this.Parts[i], &es.CASLogger) {
-						return &Symbol{"True"}
+						return &Symbol{"System`True"}
 					}
 				} else {
 					res.appendEx(this.Parts[i])
 				}
 			}
 			if len(res.Parts) == 1 {
-				return &Symbol{"False"}
+				return &Symbol{"System`False"}
 			}
 			if len(res.Parts) == 2 {
 				return res.Parts[1]
@@ -99,10 +99,10 @@ func GetBooleanDefinitions() (defs []Definition) {
 				return this
 			}
 			if trueQ(this.Parts[1], &es.CASLogger) {
-				return &Symbol{"False"}
+				return &Symbol{"System`False"}
 			}
 			if falseQ(this.Parts[1], &es.CASLogger) {
-				return &Symbol{"True"}
+				return &Symbol{"System`True"}
 			}
 			return this
 		},

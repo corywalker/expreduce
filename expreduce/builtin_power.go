@@ -28,8 +28,8 @@ func GetPowerDefinitions() (defs []Definition) {
 			{"Power[Rational[a_,b_], -1]", "Rational[b,a]"},
 			{"Power[Rational[a_,b_], e_?Positive]", "Rational[a^e,b^e]"},
 		},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -76,7 +76,7 @@ func GetPowerDefinitions() (defs []Definition) {
 			}
 			if isZerothPower {
 				if isZeroBase {
-					return &Symbol{"Indeterminate"}
+					return &Symbol{"System`Indeterminate"}
 				}
 				return &Integer{big.NewInt(1)}
 			}
@@ -101,10 +101,10 @@ func GetPowerDefinitions() (defs []Definition) {
 					if newbase.Cmp(big.NewInt(-1)) == 0 {
 						return &Integer{big.NewInt(-1)}
 					}
-					//return NewExpression([]Ex{&Symbol{"Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}})
-					return NewExpression([]Ex{&Symbol{"Rational"}, &Integer{big.NewInt(1)}, &Integer{newbase}})
+					//return NewExpression([]Ex{&Symbol{"System`Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}})
+					return NewExpression([]Ex{&Symbol{"System`Rational"}, &Integer{big.NewInt(1)}, &Integer{newbase}})
 				} else {
-					return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected zero power in Power evaluation."}})
+					return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected zero power in Power evaluation."}})
 				}
 			}
 
@@ -122,7 +122,7 @@ func GetPowerDefinitions() (defs []Definition) {
 			if powerIsRat {
 				if powerRat.Num.Cmp(big.NewInt(1)) == 0 && powerRat.Den.Cmp(big.NewInt(2)) == 0 {
 					return NewExpression([]Ex{
-						&Symbol{"Sqrt"},
+						&Symbol{"System`Sqrt"},
 						this.Parts[1],
 					})
 

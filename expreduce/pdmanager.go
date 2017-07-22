@@ -59,7 +59,7 @@ func (this *PDManager) String() string {
 }
 
 func (this *PDManager) Expression() Ex {
-	res := NewExpression([]Ex{&Symbol{"List"}})
+	res := NewExpression([]Ex{&Symbol{"System`List"}})
 	// We sort the keys here such that converting identical PDManagers always
 	// produces the same string.
 	keys := []string{}
@@ -70,7 +70,7 @@ func (this *PDManager) Expression() Ex {
 	for _, k := range keys {
 		v := this.patternDefined[k]
 		res.appendEx(NewExpression([]Ex{
-			&Symbol{"Rule"},
+			&Symbol{"System`Rule"},
 			&String{k},
 			v,
 		}))
@@ -90,7 +90,7 @@ func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead s
 		} else if lhs.isImpliedBs {
 			attemptDefine = NewExpression(append([]Ex{sequenceHeadSym}, sequence...))
 		} else {
-			head := &Symbol{"Sequence"}
+			head := &Symbol{"System`Sequence"}
 			attemptDefine = NewExpression(append([]Ex{head}, sequence...))
 		}
 

@@ -15,9 +15,9 @@ func singleParamQEval(fn singleParamQType) evalFnType {
 			return this
 		}
 		if fn(this.Parts[1]) {
-			return &Symbol{"True"}
+			return &Symbol{"System`True"}
 		}
-		return &Symbol{"False"}
+		return &Symbol{"System`False"}
 	})
 }
 
@@ -27,9 +27,9 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 			return this
 		}
 		if fn(this.Parts[1], &es.CASLogger) {
-			return &Symbol{"True"}
+			return &Symbol{"System`True"}
 		}
-		return &Symbol{"False"}
+		return &Symbol{"System`False"}
 	})
 }
 
@@ -39,9 +39,9 @@ func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
 			return this
 		}
 		if fn(this.Parts[1], this.Parts[2], &es.CASLogger) {
-			return &Symbol{"True"}
+			return &Symbol{"System`True"}
 		}
-		return &Symbol{"False"}
+		return &Symbol{"System`False"}
 	})
 }
 
@@ -62,10 +62,10 @@ func numberQ(e Ex) bool {
 }
 
 func vectorQ(e Ex) bool {
-	l, isL := HeadAssertion(e, "List")
+	l, isL := HeadAssertion(e, "System`List")
 	if isL {
 		for i := 1; i < len(l.Parts); i++ {
-			_, subIsL := HeadAssertion(l.Parts[i], "List")
+			_, subIsL := HeadAssertion(l.Parts[i], "System`List")
 			if subIsL {
 				return false
 			}
@@ -76,7 +76,7 @@ func vectorQ(e Ex) bool {
 }
 
 func matrixQ(e Ex, cl *CASLogger) bool {
-	l, isL := HeadAssertion(e, "List")
+	l, isL := HeadAssertion(e, "System`List")
 	if isL {
 		return len(dimensions(l, 0, cl)) == 2
 	}
@@ -96,17 +96,17 @@ func symbolNameQ(e Ex, name string, cl *CASLogger) bool {
 }
 
 func trueQ(e Ex, cl *CASLogger) bool {
-	return symbolNameQ(e, "True", cl)
+	return symbolNameQ(e, "System`True", cl)
 }
 
 func falseQ(e Ex, cl *CASLogger) bool {
-	return symbolNameQ(e, "False", cl)
+	return symbolNameQ(e, "System`False", cl)
 }
 
 func booleanQ(e Ex, cl *CASLogger) bool {
 	sym, isSym := e.(*Symbol)
 	if isSym {
-		return sym.Name == "False" || sym.Name == "True"
+		return sym.Name == "System`False" || sym.Name == "System`True"
 	}
 	return false
 }

@@ -1,6 +1,7 @@
 package expreduce
 
 import "fmt"
+import "strings"
 import "sort"
 import "hash/fnv"
 
@@ -25,15 +26,25 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Symbol) StringForm(form string) string {
+func (this *Symbol) StringForm(form string, context *String, contextPath *Expression) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
+	}
+	if strings.HasPrefix(this.Name, context.Val) {
+		return fmt.Sprintf("%v", this.Name[len(context.Val):])
+	}
+	for _, pathPart := range contextPath.Parts[1:] {
+		path := pathPart.(*String).Val
+		if strings.HasPrefix(this.Name, path) {
+			return fmt.Sprintf("%v", this.Name[len(path):])
+		}
 	}
 	return fmt.Sprintf("%v", this.Name)
 }
 
 func (this *Symbol) String() string {
-	return this.StringForm("InputForm")
+	context, contextPath := DefaultStringFormArgs()
+	return this.StringForm("InputForm", context, contextPath)
 }
 
 func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {
@@ -41,10 +52,10 @@ func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {
 	if !ok {
 		return "EQUAL_UNK"
 	}
-	if this.Name == "False" && otherConv.Name == "True" {
+	if this.Name == "System`False" && otherConv.Name == "System`True" {
 		return "EQUAL_FALSE"
 	}
-	if this.Name == "True" && otherConv.Name == "False" {
+	if this.Name == "System`True" && otherConv.Name == "System`False" {
 		return "EQUAL_FALSE"
 	}
 	if this.Name != otherConv.Name {

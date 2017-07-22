@@ -1,18 +1,18 @@
 package expreduce
 
 func IsBlankTypeOnly(e Ex) bool {
-	asPattern, patternOk := HeadAssertion(e, "Pattern")
+	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
 	if patternOk {
-		_, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
-		_, bsOk := HeadAssertion(asPattern.Parts[2], "BlankSequence")
-		_, bnsOk := HeadAssertion(asPattern.Parts[2], "BlankNullSequence")
+		_, blankOk := HeadAssertion(asPattern.Parts[2], "System`Blank")
+		_, bsOk := HeadAssertion(asPattern.Parts[2], "System`BlankSequence")
+		_, bnsOk := HeadAssertion(asPattern.Parts[2], "System`BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			return true
 		}
 	}
-	_, blankOk := HeadAssertion(e, "Blank")
-	_, bsOk := HeadAssertion(e, "BlankSequence")
-	_, bnsOk := HeadAssertion(e, "BlankNullSequence")
+	_, blankOk := HeadAssertion(e, "System`Blank")
+	_, bsOk := HeadAssertion(e, "System`BlankSequence")
+	_, bnsOk := HeadAssertion(e, "System`BlankNullSequence")
 	if blankOk || bsOk || bnsOk {
 		return true
 	}
@@ -22,11 +22,11 @@ func IsBlankTypeOnly(e Ex) bool {
 func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
-	asPattern, patternOk := HeadAssertion(e, "Pattern")
+	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
 	if patternOk {
-		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "Blank")
-		asBS, bsOk := HeadAssertion(asPattern.Parts[2], "BlankSequence")
-		asBNS, bnsOk := HeadAssertion(asPattern.Parts[2], "BlankNullSequence")
+		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "System`Blank")
+		asBS, bsOk := HeadAssertion(asPattern.Parts[2], "System`BlankSequence")
+		asBNS, bnsOk := HeadAssertion(asPattern.Parts[2], "System`BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			parts := []Ex{}
 			if blankOk {
@@ -75,9 +75,9 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger
 			return false, pm
 		}
 	}
-	asBlank, blankOk := HeadAssertion(e, "Blank")
-	asBS, bsOk := HeadAssertion(e, "BlankSequence")
-	asBNS, bnsOk := HeadAssertion(e, "BlankNullSequence")
+	asBlank, blankOk := HeadAssertion(e, "System`Blank")
+	asBS, bsOk := HeadAssertion(e, "System`BlankSequence")
+	asBNS, bnsOk := HeadAssertion(e, "System`BlankNullSequence")
 	if blankOk || bsOk || bnsOk {
 		parts := []Ex{}
 		if blankOk {
@@ -97,14 +97,14 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger
 
 func BlankNullSequenceToBlank(bns *Expression) *Expression {
 	if len(bns.Parts) < 2 {
-		return NewExpression([]Ex{&Symbol{"Blank"}})
+		return NewExpression([]Ex{&Symbol{"System`Blank"}})
 	}
-	return NewExpression([]Ex{&Symbol{"Blank"}, bns.Parts[1]})
+	return NewExpression([]Ex{&Symbol{"System`Blank"}, bns.Parts[1]})
 }
 
 func BlankSequenceToBlank(bs *Expression) *Expression {
 	if len(bs.Parts) < 2 {
-		return NewExpression([]Ex{&Symbol{"Blank"}})
+		return NewExpression([]Ex{&Symbol{"System`Blank"}})
 	}
-	return NewExpression([]Ex{&Symbol{"Blank"}, bs.Parts[1]})
+	return NewExpression([]Ex{&Symbol{"System`Blank"}, bs.Parts[1]})
 }

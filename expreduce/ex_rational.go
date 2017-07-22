@@ -12,10 +12,10 @@ type Rational struct {
 
 func (this *Rational) Eval(es *EvalState) Ex {
 	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
-		return &Symbol{"Indeterminate"}
+		return &Symbol{"System`Indeterminate"}
 	}
 	if this.Den.Cmp(big.NewInt(0)) == 0 {
-		return &Symbol{"ComplexInfinity"}
+		return &Symbol{"System`ComplexInfinity"}
 	}
 	if this.Num.Cmp(big.NewInt(0)) == 0 {
 		return &Integer{big.NewInt(0)}
@@ -56,12 +56,13 @@ func (this *Rational) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Rational) StringForm(form string) string {
+func (this *Rational) StringForm(form string, context *String, contextPath *Expression) string {
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)
 }
 
 func (this *Rational) String() string {
-	return this.StringForm("InputForm")
+	context, contextPath := DefaultStringFormArgs()
+	return this.StringForm("InputForm", context, contextPath)
 }
 
 func (this *Rational) IsEqual(other Ex, cl *CASLogger) string {
@@ -85,7 +86,8 @@ func (this *Rational) DeepCopy() Ex {
 }
 
 func (this *Rational) AsBigRat() *big.Rat {
-	return big.NewRat(this.Num.Int64(), this.Den.Int64())
+	res := big.NewRat(1, 1)
+	return res.SetFrac(this.Num, this.Den)
 }
 
 func (this *Rational) NeedsEval() bool {

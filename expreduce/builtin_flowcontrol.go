@@ -11,12 +11,12 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.Parts) > 4 || len(this.Parts) < 3 {
 				return this
 			}
-			var falseVal Ex = &Symbol{"Null"}
+			var falseVal Ex = &Symbol{"System`Null"}
 			if len(this.Parts) == 4 {
 				falseVal = this.Parts[3]
 			}
 
-			var isequal string = this.Parts[1].IsEqual(&Symbol{"True"}, &es.CASLogger)
+			var isequal string = this.Parts[1].IsEqual(&Symbol{"System`True"}, &es.CASLogger)
 			if isequal == "EQUAL_UNK" {
 				return this
 			} else if isequal == "EQUAL_TRUE" {
@@ -25,7 +25,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				return falseVal
 			}
 
-			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
+			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected equality return value."}})
 		},
 		SimpleExamples: []TestInstruction{
 			&StringTest{"9", "x=9"},
@@ -65,7 +65,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			isequal := this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
+			isequal := this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"System`True"}, &es.CASLogger)
 			cont := isequal == "EQUAL_TRUE"
 			for cont {
 				tmpRes := this.Parts[2].DeepCopy().Eval(es)
@@ -73,19 +73,19 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				if isReturn {
 					return retVal
 				}
-				isequal = this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"True"}, &es.CASLogger)
+				isequal = this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"System`True"}, &es.CASLogger)
 				cont = isequal == "EQUAL_TRUE"
 			}
 
 			if isequal == "EQUAL_UNK" {
-				return NewExpression([]Ex{&Symbol{"Error"}, &String{"Encountered EQUAL_UNK when evaluating test for the While."}})
+				return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Encountered EQUAL_UNK when evaluating test for the While."}})
 			} else if isequal == "EQUAL_TRUE" {
-				return &Symbol{"Null"}
+				return &Symbol{"System`Null"}
 			} else if isequal == "EQUAL_FALSE" {
-				return &Symbol{"Null"}
+				return &Symbol{"System`Null"}
 			}
 
-			return NewExpression([]Ex{&Symbol{"Error"}, &String{"Unexpected equality return value."}})
+			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected equality return value."}})
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"1", "a=1"},
@@ -101,7 +101,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			var toReturn Ex
 			for i := 1; i < len(this.Parts); i++ {
 				toReturn = this.Parts[i].Eval(es)
-				if _, isReturn := HeadAssertion(toReturn, "Return"); isReturn {
+				if _, isReturn := HeadAssertion(toReturn, "System`Return"); isReturn {
 					return toReturn
 				}
 			}

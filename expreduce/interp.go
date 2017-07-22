@@ -6,9 +6,10 @@ import __yyfmt__ "fmt"
 //line interp.y:3
 import (
 	"math/big"
+	"strings"
 )
 
-//line interp.y:13
+//line interp.y:14
 type CalcSymType struct {
 	yys    int
 	val    Ex
@@ -133,7 +134,7 @@ const CalcEofCode = 1
 const CalcErrCode = 2
 const CalcInitialStackSize = 16
 
-//line interp.y:268
+//line interp.y:269
 
 /*  start  of  programs  */
 
@@ -169,7 +170,28 @@ func removeParens(ex Ex) {
 	return
 }
 
-func Interp(line string) Ex {
+func addContextAndDefine(e Ex, context string, contextPath []string, es *EvalState) {
+	if sym, isSym := e.(*Symbol); isSym {
+		if !strings.Contains(sym.Name, "`") {
+			for _, toTry := range contextPath {
+				if es.IsDef(toTry + sym.Name) {
+					sym.Name = toTry + sym.Name
+					return
+				}
+			}
+			sym.Name = context + sym.Name
+		}
+		es.MarkSeen(sym.Name)
+	}
+	expr, isExpr := e.(*Expression)
+	if isExpr {
+		for _, part := range expr.Parts {
+			addContextAndDefine(part, context, contextPath, es)
+		}
+	}
+}
+
+func Interp(line string, es *EvalState) Ex {
 	// If we want the ability to parse multiple statements without the need
 	// for them to be separated by newlines, perhaps we should start with the
 	// first line and evaluate it. If it produces an error, then we should
@@ -191,15 +213,31 @@ func Interp(line string) Ex {
 		}
 	}
 	removeParens(parsed)
+	context := es.GetStringDef("System`$Context", "")
+	contextPathEx := es.GetListDef("System`$ContextPath")
+	contextPath := []string{}
+	for _, pathPart := range contextPathEx.Parts[1:] {
+		contextPath = append(contextPath, pathPart.(*String).Val)
+	}
+	addContextAndDefine(parsed, context, contextPath, es)
 	return parsed
 }
 
 func EvalInterp(line string, es *EvalState) Ex {
-	return Interp(line).Eval(es)
+	return Interp(line, es).Eval(es)
+}
+
+func EvalInterpMany(doc string, es *EvalState) Ex {
+	var last Ex
+	for _, expr := range strings.Split(doc, "\n\n") {
+		last = EvalInterp(expr, es)
+	}
+	return last
 }
 
 func EasyRun(line string, es *EvalState) string {
-	return EvalInterp(line, es).StringForm("InputForm")
+	context, contextPath := ActualStringFormArgs(es)
+	return EvalInterp(line, es).StringForm("InputForm", context, contextPath)
 }
 
 //line yacctab:1
@@ -815,42 +853,42 @@ Calcdefault:
 
 	case 2:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:85
+		//line interp.y:86
 		{
 			Calcrcvr.lval.val = CalcDollar[2].val
 		}
 	case 3:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:86
+		//line interp.y:87
 		{
-			Calcrcvr.lval.val = &Symbol{"Null"}
+			Calcrcvr.lval.val = &Symbol{"System`Null"}
 		}
 	case 4:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:92
+		//line interp.y:93
 		{
 			CalcVAL.val = NewExpression([]Ex{&Symbol{"Internal`Parens"}, CalcDollar[2].val})
 		}
 	case 5:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:96
+		//line interp.y:97
 		{
-			CalcVAL.val = fullyAssoc("CompoundExpression", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`CompoundExpression", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 6:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:98
+		//line interp.y:99
 		{
-			CalcVAL.val = fullyAssoc("CompoundExpression", CalcDollar[1].val, &Symbol{"Null"})
+			CalcVAL.val = fullyAssoc("System`CompoundExpression", CalcDollar[1].val, &Symbol{"System`Null"})
 		}
 	case 7:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:100
+		//line interp.y:101
 		{
 			CalcVAL.val = NewExpression([]Ex{
-				&Symbol{"Times"},
+				&Symbol{"System`Times"},
 				NewExpression([]Ex{
-					&Symbol{"Factorial"},
+					&Symbol{"System`Factorial"},
 					CalcDollar[1].val,
 				}),
 				CalcDollar[3].val,
@@ -858,33 +896,33 @@ Calcdefault:
 		}
 	case 8:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:110
+		//line interp.y:111
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Factorial"}, CalcDollar[1].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Factorial"}, CalcDollar[1].val})
 		}
 	case 9:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:112
+		//line interp.y:113
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Not"}, CalcDollar[2].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Not"}, CalcDollar[2].val})
 		}
 	case 10:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:114
+		//line interp.y:115
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Function"}, CalcDollar[1].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Function"}, CalcDollar[1].val})
 		}
 	case 11:
 		CalcDollar = CalcS[Calcpt-6 : Calcpt+1]
-		//line interp.y:116
+		//line interp.y:117
 		{
 			ex := NewEmptyExpression()
-			ex.Parts = append([]Ex{&Symbol{"Part"}, CalcDollar[1].val}, CalcDollar[4].valSeq...)
+			ex.Parts = append([]Ex{&Symbol{"System`Part"}, CalcDollar[1].val}, CalcDollar[4].valSeq...)
 			CalcVAL.val = ex
 		}
 	case 12:
 		CalcDollar = CalcS[Calcpt-4 : Calcpt+1]
-		//line interp.y:122
+		//line interp.y:123
 		{
 			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{CalcDollar[1].val}, CalcDollar[3].valSeq...)
@@ -892,46 +930,46 @@ Calcdefault:
 		}
 	case 13:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:128
+		//line interp.y:129
 		{
 			ex := NewEmptyExpression()
-			ex.Parts = []Ex{&Symbol{"List"}}
+			ex.Parts = []Ex{&Symbol{"System`List"}}
 			ex.Parts = append(ex.Parts, CalcDollar[2].valSeq...)
 			CalcVAL.val = ex
 		}
 	case 14:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:135
+		//line interp.y:136
 		{
-			CalcVAL.val = fullyAssoc("Plus", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Plus", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 15:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:137
+		//line interp.y:138
 		{
-			CalcVAL.val = fullyAssoc("Plus", CalcDollar[1].val, NewExpression([]Ex{&Symbol{"Times"}, CalcDollar[3].val, &Integer{big.NewInt(-1)}}))
+			CalcVAL.val = fullyAssoc("System`Plus", CalcDollar[1].val, NewExpression([]Ex{&Symbol{"System`Times"}, CalcDollar[3].val, &Integer{big.NewInt(-1)}}))
 		}
 	case 16:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:139
+		//line interp.y:140
 		{
-			CalcVAL.val = fullyAssoc("Times", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Times", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 17:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:141
+		//line interp.y:142
 		{
-			CalcVAL.val = rightFullyAssoc("Times", CalcDollar[1].val, CalcDollar[2].val)
+			CalcVAL.val = rightFullyAssoc("System`Times", CalcDollar[1].val, CalcDollar[2].val)
 		}
 	case 18:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:143
+		//line interp.y:144
 		{
 			CalcVAL.val = NewExpression([]Ex{
-				&Symbol{"Times"},
+				&Symbol{"System`Times"},
 				CalcDollar[1].val,
 				NewExpression([]Ex{
-					&Symbol{"Power"},
+					&Symbol{"System`Power"},
 					CalcDollar[3].val,
 					&Integer{big.NewInt(-1)},
 				}),
@@ -939,293 +977,293 @@ Calcdefault:
 		}
 	case 19:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:154
+		//line interp.y:155
 		{
 			CalcVAL.val = NewExpression([]Ex{
-				&Symbol{"Power"},
+				&Symbol{"System`Power"},
 				CalcDollar[1].val,
 				CalcDollar[3].val,
 			})
 		}
 	case 20:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:161
+		//line interp.y:162
 		{
 			CalcVAL.val = NewExpression([]Ex{CalcDollar[3].val, CalcDollar[1].val})
 		}
 	case 21:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:163
+		//line interp.y:164
 		{
 			CalcVAL.val = NewExpression([]Ex{CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 22:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:165
+		//line interp.y:166
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"PatternTest"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`PatternTest"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 23:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:167
+		//line interp.y:168
 		{
-			CalcVAL.val = fullyAssoc("Alternatives", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Alternatives", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 24:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:169
+		//line interp.y:170
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Repeated"}, CalcDollar[1].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Repeated"}, CalcDollar[1].val})
 		}
 	case 25:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:171
+		//line interp.y:172
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"RepeatedNull"}, CalcDollar[1].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`RepeatedNull"}, CalcDollar[1].val})
 		}
 	case 26:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:173
+		//line interp.y:174
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Apply"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Apply"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 27:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:175
+		//line interp.y:176
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Map"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Map"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 28:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:177
+		//line interp.y:178
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Rule"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Rule"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 29:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:179
+		//line interp.y:180
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"RuleDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`RuleDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 30:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:181
+		//line interp.y:182
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"ReplaceRepeated"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`ReplaceRepeated"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 31:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:183
+		//line interp.y:184
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"ReplaceAll"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`ReplaceAll"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 32:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:185
+		//line interp.y:186
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Condition"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Condition"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 33:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:187
+		//line interp.y:188
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Optional"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Optional"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 34:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:189
+		//line interp.y:190
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Optional"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Optional"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 35:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:191
+		//line interp.y:192
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Pattern"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Pattern"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 36:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:193
+		//line interp.y:194
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Set"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Set"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 37:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:195
+		//line interp.y:196
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"SetDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`SetDelayed"}, CalcDollar[1].val, CalcDollar[3].val})
 		}
 	case 38:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:197
+		//line interp.y:198
 		{
-			CalcVAL.val = fullyAssoc("SameQ", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`SameQ", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 39:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:199
+		//line interp.y:200
 		{
-			CalcVAL.val = fullyAssoc("UnsameQ", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`UnsameQ", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 40:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:201
+		//line interp.y:202
 		{
-			CalcVAL.val = fullyAssoc("Equal", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Equal", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 41:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:203
+		//line interp.y:204
 		{
-			CalcVAL.val = fullyAssoc("Unequal", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Unequal", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 42:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:205
+		//line interp.y:206
 		{
-			CalcVAL.val = fullyAssoc("Less", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Less", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 43:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:207
+		//line interp.y:208
 		{
-			CalcVAL.val = fullyAssoc("LessEqual", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`LessEqual", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 44:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:209
+		//line interp.y:210
 		{
-			CalcVAL.val = fullyAssoc("Greater", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Greater", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 45:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:211
+		//line interp.y:212
 		{
-			CalcVAL.val = fullyAssoc("GreaterEqual", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`GreaterEqual", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 46:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:213
+		//line interp.y:214
 		{
-			CalcVAL.val = fullyAssoc("Span", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Span", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 47:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:215
+		//line interp.y:216
 		{
-			CalcVAL.val = fullyAssoc("Dot", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Dot", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 48:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:217
+		//line interp.y:218
 		{
-			CalcVAL.val = fullyAssoc("And", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`And", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 49:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:219
+		//line interp.y:220
 		{
-			CalcVAL.val = fullyAssoc("Or", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`Or", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 50:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:221
+		//line interp.y:222
 		{
 			if integer, isInteger := CalcDollar[2].val.(*Integer); isInteger {
 				CalcVAL.val = &Integer{integer.Val.Neg(integer.Val)}
 			} else if flt, isFlt := CalcDollar[2].val.(*Flt); isFlt {
 				CalcVAL.val = &Flt{flt.Val.Neg(flt.Val)}
 			} else {
-				CalcVAL.val = NewExpression([]Ex{&Symbol{"Times"}, CalcDollar[2].val, &Integer{big.NewInt(-1)}})
+				CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Times"}, CalcDollar[2].val, &Integer{big.NewInt(-1)}})
 			}
 		}
 	case 51:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:231
+		//line interp.y:232
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Slot"}, &Integer{big.NewInt(1)}})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Slot"}, &Integer{big.NewInt(1)}})
 		}
 	case 52:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:233
+		//line interp.y:234
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Slot"}, CalcDollar[2].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Slot"}, CalcDollar[2].val})
 		}
 	case 53:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:235
+		//line interp.y:236
 		{
-			CalcVAL.val = NewExpression([]Ex{&Symbol{"Get"}, CalcDollar[2].val})
+			CalcVAL.val = NewExpression([]Ex{&Symbol{"System`Get"}, CalcDollar[2].val})
 		}
 	case 54:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:237
+		//line interp.y:238
 		{
 			if sym, isSym := CalcDollar[3].val.(*Symbol); isSym {
-				CalcVAL.val = fullyAssoc("MessageName", CalcDollar[1].val, &String{sym.Name})
+				CalcVAL.val = fullyAssoc("System`MessageName", CalcDollar[1].val, &String{sym.Name})
 			} else {
-				CalcVAL.val = fullyAssoc("MessageName", CalcDollar[1].val, CalcDollar[3].val)
+				CalcVAL.val = fullyAssoc("System`MessageName", CalcDollar[1].val, CalcDollar[3].val)
 			}
 		}
 	case 55:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:245
+		//line interp.y:246
 		{
-			CalcVAL.val = fullyAssoc("StringJoin", CalcDollar[1].val, CalcDollar[3].val)
+			CalcVAL.val = fullyAssoc("System`StringJoin", CalcDollar[1].val, CalcDollar[3].val)
 		}
 	case 56:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:247
+		//line interp.y:248
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 57:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:249
+		//line interp.y:250
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 58:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:251
+		//line interp.y:252
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 59:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:253
+		//line interp.y:254
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 60:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:255
+		//line interp.y:256
 		{
 			CalcVAL.val = CalcDollar[1].val
 		}
 	case 61:
 		CalcDollar = CalcS[Calcpt-0 : Calcpt+1]
-		//line interp.y:259
+		//line interp.y:260
 		{
 			CalcVAL.valSeq = []Ex{}
 		}
 	case 62:
 		CalcDollar = CalcS[Calcpt-1 : Calcpt+1]
-		//line interp.y:261
+		//line interp.y:262
 		{
 			CalcVAL.valSeq = append(CalcVAL.valSeq, CalcDollar[1].val)
 		}
 	case 63:
 		CalcDollar = CalcS[Calcpt-3 : Calcpt+1]
-		//line interp.y:263
+		//line interp.y:264
 		{
 			CalcVAL.valSeq = append(CalcVAL.valSeq, CalcDollar[3].val)
 		}
 	case 64:
 		CalcDollar = CalcS[Calcpt-2 : Calcpt+1]
-		//line interp.y:265
+		//line interp.y:266
 		{
-			CalcVAL.valSeq = append(CalcVAL.valSeq, &Symbol{"Null"})
+			CalcVAL.valSeq = append(CalcVAL.valSeq, &Symbol{"System`Null"})
 		}
 	}
 	goto Calcstack /* stack new state and value */

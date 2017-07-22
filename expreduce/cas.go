@@ -4,7 +4,7 @@
 
 package expreduce
 
-type ToStringFnType (func(*Expression, string) (bool, string))
+type ToStringFnType (func(*Expression, string, *String, *Expression) (bool, string))
 
 // A nasty global to keep track of ToString functions. TODO: Fix this.
 var toStringFns = make(map[string]ToStringFnType)
@@ -13,7 +13,7 @@ var toStringFns = make(map[string]ToStringFnType)
 type Ex interface {
 	Eval(es *EvalState) Ex
 	String() string
-	StringForm(form string) string
+	StringForm(form string, context *String, contextPath *Expression) string
 	IsEqual(b Ex, cl *CASLogger) string
 	DeepCopy() Ex
 	NeedsEval() bool

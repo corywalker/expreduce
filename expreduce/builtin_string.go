@@ -19,11 +19,12 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			// Do not implement FullForm here. It is not officially supported
-			if formAsSymbol.Name != "InputForm" && formAsSymbol.Name != "OutputForm" && formAsSymbol.Name != "FullForm" {
+			if formAsSymbol.Name != "System`InputForm" && formAsSymbol.Name != "System`OutputForm" && formAsSymbol.Name != "System`FullForm" {
 				return this
 			}
 
-			return &String{this.Parts[1].StringForm(formAsSymbol.Name)}
+			context, contextPath := ActualStringFormArgs(es)
+			return &String{this.Parts[1].StringForm(formAsSymbol.Name[7:], context, contextPath)}
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"\"a^2\"", "ToString[a^2, InputForm]"},
@@ -42,8 +43,8 @@ func GetStringDefinitions() (defs []Definition) {
 			// OrderlessIsMatchQ
 			{"StringJoin[list_List]", "StringJoin[list /. List->Sequence]"},
 		},
-		toString: func(this *Expression, form string) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " <> ", form)
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " <> ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			toReturn := ""

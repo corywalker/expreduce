@@ -1,21 +1,21 @@
 package expreduce
 
 func getValidRules(ruleArg Ex) (rules []*Expression) {
-	rulesRule, ok := HeadAssertion(ruleArg, "Rule")
+	rulesRule, ok := HeadAssertion(ruleArg, "System`Rule")
 	if !ok {
-		rulesRule, ok = HeadAssertion(ruleArg, "RuleDelayed")
+		rulesRule, ok = HeadAssertion(ruleArg, "System`RuleDelayed")
 	}
 	if ok {
 		return []*Expression{rulesRule}
 	}
 
 	// Also handle a list of Rules
-	asList, isList := HeadAssertion(ruleArg, "List")
+	asList, isList := HeadAssertion(ruleArg, "System`List")
 	if isList {
 		for i := 1; i < len(asList.Parts); i++ {
-			rulesRule, ok := HeadAssertion(asList.Parts[i], "Rule")
+			rulesRule, ok := HeadAssertion(asList.Parts[i], "System`Rule")
 			if !ok {
-				rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
+				rulesRule, ok = HeadAssertion(asList.Parts[i], "System`RuleDelayed")
 			}
 			if ok {
 				rules = append(rules, rulesRule)
@@ -30,11 +30,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		Name: "ReplaceAll",
 		Usage: "`expr /. rule` replaces all occurences of the LHS of `rule` with the RHS of `rule` in `expr`.\n\n" +
 			"`expr /. {r1, r2, ...}` performes the same operation as `expr /. rule`, but evaluating each `r_n` in sequence.",
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -242,11 +242,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		Name: "ReplaceRepeated",
 		Usage: "`expr //. rule` replaces all occurences of the LHS of `rule` with the RHS of `rule` in `expr` repeatedly until the expression stabilizes.\n\n" +
 			"`expr //. {r1, r2, ...}` performes the same operation as `expr //. rule`, but evaluating each `r_n` in sequence.",
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -258,7 +258,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 			for !isSame {
 				newEx := (NewExpression([]Ex{
-					&Symbol{"ReplaceAll"},
+					&Symbol{"System`ReplaceAll"},
 					oldEx,
 					this.Parts[2],
 				})).Eval(es)
@@ -281,11 +281,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		Name:       "Rule",
 		Usage:      "`lhs -> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`.",
 		Attributes: []string{"SequenceHold"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"2^(y+1) + y", "2^(x^2+1) + x^2 /. x^2 -> y"},
@@ -298,11 +298,11 @@ func getReplacementDefinitions() (defs []Definition) {
 		Name:       "RuleDelayed",
 		Usage:      "`lhs :> rhs` can be used in replacement functions to say that instances of `lhs` should be replaced with `rhs`, evaluating `rhs` only after replacement.",
 		Attributes: []string{"HoldRest", "SequenceHold"},
-		toString: func(this *Expression, form string) (bool, string) {
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", form)
+			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", form, context, contextPath)
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"2^(y+1) + y", "2^(x^2+1) + x^2 /. x^2 :> y"},
