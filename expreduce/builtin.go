@@ -56,12 +56,12 @@ func ToTestInstructions(tc *Expression) []TestInstruction {
 				st.Parts[1].(*String).Val, st.Parts[2].(*String).Val})
 			continue
 		}
-		if comment, isComment := HeadAssertion(tiEx, "System`EComment"); isComment {
-			if len(comment.Parts) != 2 {
+		if st, isSt := HeadAssertion(tiEx, "System`EComment"); isSt {
+			if len(st.Parts) != 2 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
-			comStr, comIsStr := comment.Parts[1].(*String)
+			comStr, comIsStr := st.Parts[1].(*String)
 			if !comIsStr {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue

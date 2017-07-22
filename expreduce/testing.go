@@ -25,15 +25,6 @@ func (this *SameTest) Run(t *testing.T, es *EvalState, td TestDesc) bool {
 	return CasAssertDescSame(t, es, this.Out, this.In, td.desc)
 }
 
-type DiffTest struct {
-	Out string
-	In  string
-}
-
-func (this *DiffTest) Run(t *testing.T, es *EvalState, td TestDesc) bool {
-	return CasAssertDescDiff(t, es, this.Out, this.In, td.desc)
-}
-
 type StringTest struct {
 	Out string
 	In  string
