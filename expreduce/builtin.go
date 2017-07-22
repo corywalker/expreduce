@@ -56,6 +56,15 @@ func ToTestInstructions(tc *Expression) []TestInstruction {
 				st.Parts[1].(*String).Val, st.Parts[2].(*String).Val})
 			continue
 		}
+		if st, isSt := HeadAssertion(tiEx, "System`EExampleOnlyInstruction"); isSt {
+			if len(st.Parts) != 3 {
+				log.Fatalf("Invalid test case: %v\n", tiEx)
+				continue
+			}
+			instructions = append(instructions, &ExampleOnlyInstruction{
+				st.Parts[1].(*String).Val, st.Parts[2].(*String).Val})
+			continue
+		}
 		if st, isSt := HeadAssertion(tiEx, "System`EComment"); isSt {
 			if len(st.Parts) != 2 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
