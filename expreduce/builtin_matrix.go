@@ -231,7 +231,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			l, isL := ContextedHeadAssertion(this.Parts[1], "System`List")
+			l, isL := HeadAssertion(this.Parts[1], "System`List")
 			if !isL {
 				return this
 			}

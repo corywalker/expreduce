@@ -21,7 +21,7 @@ type Expression struct {
 }
 
 // Deprecated in favor of headExAssertion
-func ContextedHeadAssertion(ex Ex, head string) (*Expression, bool) {
+func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		sym, isSym := expr.Parts[0].(*Symbol)
@@ -61,7 +61,7 @@ func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
 }
 
 func tryReturnValue(e Ex) (Ex, bool) {
-	asReturn, isReturn := ContextedHeadAssertion(e, "System`Return")
+	asReturn, isReturn := HeadAssertion(e, "System`Return")
 	if !isReturn {
 		return nil, false
 	}
@@ -81,7 +81,7 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 	res := NewEmptyExpression()
 	encounteredSeq := false
 	for _, e := range(this.Parts) {
-		seq, isseq := ContextedHeadAssertion(e, headStr)
+		seq, isseq := HeadAssertion(e, headStr)
 		if isseq {
 			encounteredSeq = true
 			for _, seqPart := range seq.Parts[1:] {
@@ -230,7 +230,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// In case curr changed
 		currEx = curr
 
-		pureFunction, isPureFunction := ContextedHeadAssertion(curr.Parts[0], "System`Function")
+		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "System`Function")
 		if headIsSym {
 			if attrs.Flat {
 				curr = curr.mergeSequences(es, headSym.Name, false)

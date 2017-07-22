@@ -518,7 +518,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !isDef {
 				return &Symbol{"System`$Failed"}
 			}
-			pathL, pathIsList := ContextedHeadAssertion(path, "System`List")
+			pathL, pathIsList := HeadAssertion(path, "System`List")
 			if !pathIsList {
 				return &Symbol{"System`$Failed"}
 			}
@@ -554,7 +554,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			locals, localsIsList := ContextedHeadAssertion(this.Parts[1], "System`List")
+			locals, localsIsList := HeadAssertion(this.Parts[1], "System`List")
 			if !localsIsList {
 				return this
 			}
@@ -580,9 +580,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			for _, localEx := range locals.Parts[1:] {
 				pl := parsedLocal{}
 				symEx := localEx
-				localSet, localIsSet := ContextedHeadAssertion(localEx, "System`Set")
+				localSet, localIsSet := HeadAssertion(localEx, "System`Set")
 				pl.isSet = localIsSet
-				localSetDelayed, localIsSetDelayed := ContextedHeadAssertion(localEx, "System`SetDelayed")
+				localSetDelayed, localIsSetDelayed := HeadAssertion(localEx, "System`SetDelayed")
 				pl.isSetDelayed = localIsSetDelayed
 				if localIsSet && len(localSet.Parts) == 3 {
 					symEx = localSet.Parts[1]

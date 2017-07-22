@@ -87,7 +87,7 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
 	asExpression, isExpression := this.(*Expression)
 
 	if isExpression {
-		_, isRestrictedHead := ContextedHeadAssertion(this, stopAtHead)
+		_, isRestrictedHead := HeadAssertion(this, stopAtHead)
 		if isRestrictedHead {
 			return this
 		} else {

@@ -62,10 +62,10 @@ func numberQ(e Ex) bool {
 }
 
 func vectorQ(e Ex) bool {
-	l, isL := ContextedHeadAssertion(e, "System`List")
+	l, isL := HeadAssertion(e, "System`List")
 	if isL {
 		for i := 1; i < len(l.Parts); i++ {
-			_, subIsL := ContextedHeadAssertion(l.Parts[i], "System`List")
+			_, subIsL := HeadAssertion(l.Parts[i], "System`List")
 			if subIsL {
 				return false
 			}
@@ -76,7 +76,7 @@ func vectorQ(e Ex) bool {
 }
 
 func matrixQ(e Ex, cl *CASLogger) bool {
-	l, isL := ContextedHeadAssertion(e, "System`List")
+	l, isL := HeadAssertion(e, "System`List")
 	if isL {
 		return len(dimensions(l, 0, cl)) == 2
 	}

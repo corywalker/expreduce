@@ -115,9 +115,9 @@ func GetPatternDefinitions() (defs []Definition) {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			_, blankOk := ContextedHeadAssertion(this.Parts[2], "System`Blank")
-			_, bsOk := ContextedHeadAssertion(this.Parts[2], "System`BlankSequence")
-			_, bnsOk := ContextedHeadAssertion(this.Parts[2], "System`BlankNullSequence")
+			_, blankOk := HeadAssertion(this.Parts[2], "System`Blank")
+			_, bsOk := HeadAssertion(this.Parts[2], "System`BlankSequence")
+			_, bnsOk := HeadAssertion(this.Parts[2], "System`BlankNullSequence")
 			if blankOk || bsOk || bnsOk {
 				buffer.WriteString(this.Parts[1].StringForm(form, context, contextPath))
 				buffer.WriteString(this.Parts[2].StringForm(form, context, contextPath))
@@ -441,7 +441,7 @@ func GetPatternDefinitions() (defs []Definition) {
 				return this
 			}
 
-			rule, isRule := ContextedHeadAssertion(this.Parts[2], "System`Rule")
+			rule, isRule := HeadAssertion(this.Parts[2], "System`Rule")
 			if !isRule {
 				return this
 			}

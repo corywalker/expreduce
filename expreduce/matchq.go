@@ -20,7 +20,7 @@ func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
 
 func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	// Special case for Except
-	except, isExcept := ContextedHeadAssertion(b, "System`Except")
+	except, isExcept := HeadAssertion(b, "System`Except")
 	if isExcept {
 		if len(except.Parts) == 2 {
 			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), es)
@@ -35,7 +35,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		}
 	}
 	// Special case for Alternatives
-	alts, isAlts := ContextedHeadAssertion(b, "System`Alternatives")
+	alts, isAlts := HeadAssertion(b, "System`Alternatives")
 	if isAlts {
 		for _, alt := range alts.Parts[1:] {
 			// I recently changed the third argument from EmptyPD() to pm
@@ -50,7 +50,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		return &dummyMatchIter{false, pm, true}, true
 	}
 	// Special case for PatternTest
-	patternTest, isPT := ContextedHeadAssertion(b, "System`PatternTest")
+	patternTest, isPT := HeadAssertion(b, "System`PatternTest")
 	if isPT {
 		if len(patternTest.Parts) == 3 {
 			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), es)
@@ -91,7 +91,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		}
 	}
 	// Special case for Condition
-	condition, isCond := ContextedHeadAssertion(b, "System`Condition")
+	condition, isCond := HeadAssertion(b, "System`Condition")
 	if isCond {
 		if len(condition.Parts) == 3 {
 			mi, cont := NewMatchIter(a, condition.Parts[1], EmptyPD(), es)
@@ -113,7 +113,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		}
 	}
 	// Special case for Optional
-	optional, isOptional := ContextedHeadAssertion(b, "System`Optional")
+	optional, isOptional := HeadAssertion(b, "System`Optional")
 	if isOptional {
 		if len(optional.Parts) == 2 {
 			matchq, newPD := IsMatchQ(a, optional.Parts[1], pm, es)
@@ -188,7 +188,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			hasDefaultExpr := bExpressionSym.Default(&es.defined) != nil
 			containsOptional := false
 			for _, part := range bExpression.Parts[1:] {
-				if _, isOpt := ContextedHeadAssertion(part, "System`Optional"); isOpt {
+				if _, isOpt := HeadAssertion(part, "System`Optional"); isOpt {
 					containsOptional = true
 					break
 				}

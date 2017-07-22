@@ -13,7 +13,7 @@ func ExArrayContainsFloat(a []Ex) bool {
 
 func RationalAssertion(num Ex, den Ex) (r *Rational, isR bool) {
 	numInt, numIsInt := num.(*Integer)
-	denPow, denIsPow := ContextedHeadAssertion(den, "System`Power")
+	denPow, denIsPow := HeadAssertion(den, "System`Power")
 	if !numIsInt || !denIsPow {
 		return nil, false
 	}
@@ -136,7 +136,7 @@ func splitTerm(e Ex) (Ex, Ex, bool) {
 			asSym,
 		}), true
 	}
-	asTimes, isTimes := ContextedHeadAssertion(e, "System`Times")
+	asTimes, isTimes := HeadAssertion(e, "System`Times")
 	if isTimes {
 		if len(asTimes.Parts) < 2 {
 			return nil, nil, false
@@ -174,7 +174,7 @@ func collectedToTerm(coeffs []Ex, vars Ex, fullPart Ex) Ex {
 	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
 		toAdd.Parts = append(toAdd.Parts, finalC)
 	}
-	vAsExpr, vIsExpr := ContextedHeadAssertion(vars, "System`Times")
+	vAsExpr, vIsExpr := HeadAssertion(vars, "System`Times")
 	if vIsExpr && len(vAsExpr.Parts) == 2 {
 		vars = vAsExpr.Parts[1]
 	}
@@ -430,7 +430,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			// Perhaps better implemented as a rule.
 			if len(res.Parts) == 3 {
 				leftint, leftintok := res.Parts[1].(*Integer)
-				rightplus, rightplusok := ContextedHeadAssertion(res.Parts[2], "System`Plus")
+				rightplus, rightplusok := HeadAssertion(res.Parts[2], "System`Plus")
 				if leftintok && rightplusok {
 					if leftint.Val.Cmp(big.NewInt(-1)) == 0 {
 						toreturn := NewExpression([]Ex{&Symbol{"System`Plus"}})

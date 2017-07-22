@@ -269,7 +269,7 @@ exprseq:
 %%      /*  start  of  programs  */
 
 func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
-	opExpr, isOp := ContextedHeadAssertion(lhs, op)
+	opExpr, isOp := HeadAssertion(lhs, op)
 	if isOp {
 		opExpr.Parts = append(opExpr.Parts, rhs)
 		return opExpr
@@ -278,7 +278,7 @@ func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
 }
 
 func rightFullyAssoc(op string, lhs Ex, rhs Ex) Ex {
-	opExpr, isOp := ContextedHeadAssertion(rhs, op)
+	opExpr, isOp := HeadAssertion(rhs, op)
 	if isOp {
 		opExpr.Parts = append([]Ex{opExpr.Parts[0], lhs}, opExpr.Parts[1:]...)
 		return opExpr
@@ -290,7 +290,7 @@ func removeParens(ex Ex) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		for i := range expr.Parts {
-			parens, isParens := ContextedHeadAssertion(expr.Parts[i], "Internal`Parens")
+			parens, isParens := HeadAssertion(expr.Parts[i], "Internal`Parens")
 			if isParens {
 				expr.Parts[i] = parens.Parts[1]
 			}
@@ -337,7 +337,7 @@ func Interp(line string, es *EvalState) Ex {
 	// Remove outer parens
 	parens, isParens := NewEmptyExpression(), true
 	for isParens {
-		parens, isParens = ContextedHeadAssertion(parsed, "Internal`Parens")
+		parens, isParens = HeadAssertion(parsed, "Internal`Parens")
 		if isParens {
 			parsed = parens.Parts[1]
 		}

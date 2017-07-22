@@ -38,7 +38,7 @@ type Definition struct {
 func ToTestInstructions(tc *Expression) []TestInstruction {
 	instructions := []TestInstruction{}
 	for _, tiEx := range tc.Parts[1:] {
-		if st, isSt := ContextedHeadAssertion(tiEx, "System`ESameTest"); isSt {
+		if st, isSt := HeadAssertion(tiEx, "System`ESameTest"); isSt {
 			if len(st.Parts) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
@@ -47,7 +47,7 @@ func ToTestInstructions(tc *Expression) []TestInstruction {
 				st.Parts[1], st.Parts[2]})
 			continue
 		}
-		if comment, isComment := ContextedHeadAssertion(tiEx, "System`EComment"); isComment {
+		if comment, isComment := HeadAssertion(tiEx, "System`EComment"); isComment {
 			if len(comment.Parts) != 2 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
@@ -71,7 +71,7 @@ func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
 	if !testsDef {
 		return
 	}
-	testsList, testsIsList := ContextedHeadAssertion(tests, "System`List")
+	testsList, testsIsList := HeadAssertion(tests, "System`List")
 	if !testsIsList {
 		return
 	}

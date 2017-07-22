@@ -77,7 +77,7 @@ func applyIndex(ex Ex, index Ex) (Ex, bool) {
 func ThreadExpr(expr *Expression) (*Expression, bool) {
 	lengths := []int{}
 	for i := 1; i < len(expr.Parts); i++ {
-		list, isList := ContextedHeadAssertion(expr.Parts[i], "System`List")
+		list, isList := HeadAssertion(expr.Parts[i], "System`List")
 		if isList {
 			lengths = append(lengths, len(list.Parts) - 1)
 		}
@@ -97,7 +97,7 @@ func ThreadExpr(expr *Expression) (*Expression, bool) {
 	for listI := 0; listI < listLen; listI++ {
 		thisExpr := NewExpression([]Ex{expr.Parts[0].DeepCopy()})
 		for i := 1; i < len(expr.Parts); i++ {
-			list, isList := ContextedHeadAssertion(expr.Parts[i], "System`List")
+			list, isList := HeadAssertion(expr.Parts[i], "System`List")
 			if isList {
 				thisExpr.Parts = append(thisExpr.Parts, list.Parts[listI+1])
 			} else {
@@ -253,7 +253,7 @@ func GetListDefinitions() (defs []Definition) {
 			if isExpr {
 				toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 				pattern := this.Parts[2]
-				rule, isRule := ContextedHeadAssertion(this.Parts[2], "System`Rule")
+				rule, isRule := HeadAssertion(this.Parts[2], "System`Rule")
 				if isRule {
 					if len(rule.Parts) != 3 {
 						return toReturn

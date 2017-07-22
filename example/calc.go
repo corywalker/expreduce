@@ -82,7 +82,7 @@ func main() {
 				fmt.Printf(
 					"Out[%d]//%s= %s\n\n",
 					promptNum,
-					specialForm,
+					specialForm[7:],
 					asSpecialForm.Parts[1].StringForm(specialForm[7:], context, contextPath),
 				)
 				wasSpecialForm = true
