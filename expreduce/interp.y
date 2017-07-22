@@ -359,7 +359,7 @@ func EvalInterp(line string, es *EvalState) Ex {
 
 func EvalInterpMany(doc string, es *EvalState) Ex {
 	var last Ex
-	for _, expr := range strings.Split(doc, "\n\n") {
+	for _, expr := range strings.Split(doc, "\n\n\n") {
 		last = EvalInterp(expr, es)
 	}
 	return last
