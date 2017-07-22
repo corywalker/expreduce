@@ -290,9 +290,12 @@ func removeParens(ex Ex) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		for i := range expr.Parts {
-			parens, isParens := HeadAssertion(expr.Parts[i], "Internal`Parens")
-			if isParens {
-				expr.Parts[i] = parens.Parts[1]
+			parens, isParens := NewEmptyExpression(), true
+			for isParens {
+				parens, isParens = HeadAssertion(expr.Parts[i], "Internal`Parens")
+				if isParens {
+					expr.Parts[i] = parens.Parts[1]
+				}
 			}
 			removeParens(expr.Parts[i])
 		}
@@ -359,7 +362,7 @@ func EvalInterp(line string, es *EvalState) Ex {
 
 func EvalInterpMany(doc string, es *EvalState) Ex {
 	var last Ex
-	for _, expr := range strings.Split(doc, "\n\n") {
+	for _, expr := range strings.Split(doc, "\n\n\n") {
 		last = EvalInterp(expr, es)
 	}
 	return last
