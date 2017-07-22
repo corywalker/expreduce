@@ -107,6 +107,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`EKnownDangerous")
 		es.MarkSeen("System`ESameTest")
 		es.MarkSeen("System`EStringTest")
+		es.MarkSeen("System`EExampleOnlyInstruction")
 		es.MarkSeen("System`EComment")
 		es.MarkSeen("System`Echo")
 

@@ -1,3 +1,113 @@
+Power::usage = "`base^exp` finds `base` raised to the power of `exp`.";
+(*Simplify nested exponents*)
+Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
+Power[Power[a_,b_Real],c_Integer] := a^(b*c);
+Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
+Power[Infinity, -1] := 0;
+(*Power definitions*)
+(Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
+(first_ * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
+(*Rational simplifications*)
+(*These take up time. Possibly convert to Upvalues.*)
+Power[Rational[a_,b_], -1] := Rational[b,a];
+Power[Rational[a_,b_], e_?Positive] := Rational[a^e,b^e];
+Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
+Tests`Power = {
+    ESimpleExamples[
+        EComment["Exponents of integers are computed exactly:"],
+        EStringTest["-1/125", "(-5)^-3"],
+        EComment["Floating point exponents are handled with floating point precision:"],
+        EStringTest["1.99506e+3010", ".5^-10000."],
+        EComment["Automatically apply some basic simplification rules:"],
+        ESameTest[m^4., (m^2.)^2]
+    ], EFurtherExamples[
+        EComment["Expreduce handles problematic exponents accordingly:"],
+        EStringTest["Indeterminate", "0^0"],
+        ESameTest[ComplexInfinity, 0^(-1)]
+    ], ETests[
+        (*Test raising expressions to the first power*)
+        EStringTest["(1 + x)", "(x+1)^1"],
+        EStringTest["0", "0^1"],
+        EStringTest["0.", "0.^1"],
+        EStringTest["-5", "-5^1"],
+        EStringTest["-5.5", "-5.5^1"],
+        EStringTest["(1 + x)", "(x+1)^1."],
+        EStringTest["0", "0^1."],
+        EStringTest["0.", "0.^1."],
+        EStringTest["-5", "(-5)^1."],
+        EStringTest["-5.5", "-5.5^1."],
+
+        (*Test raising expressions to the zero power*)
+        EStringTest["1", "(x+1)^0"],
+        EStringTest["Indeterminate", "0^0"],
+        EStringTest["Indeterminate", "0.^0"],
+        EStringTest["-1", "-5^0"],
+        EStringTest["1", "(-5)^0"],
+        EStringTest["1", "(-5.5)^0"],
+        EStringTest["1", "(x+1)^0."],
+        EStringTest["Indeterminate", "0^0."],
+        EStringTest["Indeterminate", "0.^0."],
+        EStringTest["-1", "-5^0."],
+        EStringTest["1", "(-5.5)^0."],
+        EStringTest["-1", "-5^0"],
+        EStringTest["1", "99^0"],
+
+        EStringTest["125", "5^3"],
+        EStringTest["1/125", "5^-3"],
+        EStringTest["-125", "(-5)^3"],
+        EStringTest["-1/125", "(-5)^-3"],
+
+        EStringTest["2.97538e+1589", "39^999."],
+        EStringTest["3.36092e-1590", "39^-999."],
+        EStringTest["1.99506e+3010", ".5^-10000."],
+        EStringTest["1.99506e+3010", ".5^-10000"],
+
+        EStringTest["1", "1^1"],
+        EStringTest["1", "1^2"],
+        EStringTest["1", "1^0"],
+        EStringTest["1", "1^-1"],
+        EStringTest["1", "1^-2"],
+        EStringTest["1", "1^99999992"],
+        EStringTest["1.", "1^2."],
+        EStringTest["1.", "1^99999992."],
+        EStringTest["1.", "1.^30"],
+        EStringTest["4.", "(1.*2*1.)^2"],
+        EStringTest["-1", "(-1)^1"],
+        EStringTest["1", "(-1)^2"],
+        EStringTest["1", "(-1)^0"],
+        EStringTest["1", "(-1)^0"],
+        EStringTest["-1", "(-1)^-1"],
+        EStringTest["1", "(-1)^-2"],
+        EStringTest["1", "(-1)^99999992"],
+        EStringTest["1.", "(-1.)^30"],
+        EStringTest["4.", "(1.*2*-1.)^2"],
+        EStringTest["-0.5", "(1.*2*-1.)^(-1)"],
+
+        ESameTest[Rational, Power[2, -1] // Head],
+        ESameTest[Integer, Power[1, -1] // Head],
+        ESameTest[Integer, Power[2, 2] // Head],
+        ESameTest[Rational, Power[-2, -1] // Head],
+        ESameTest[Rational, Power[2, -2] // Head],
+
+        (*Exponent simplifications*)
+        ESameTest[m^4, m^2*m^2],
+        ESameTest[m^4, (m^2)^2],
+        ESameTest[(m^2)^2., (m^2)^2.],
+        ESameTest[(m^2.)^2., (m^2.)^2.],
+        ESameTest[m^4., (m^2.)^2],
+
+        ESameTest[ComplexInfinity, 0^(-1)],
+
+        ESameTest[{1}, ReplaceAll[a, a^p_. -> {p}]]
+    ], EKnownFailures[
+        (*Fix these when I have Abs functionality*)
+        EStringTest["2.975379863266329e+1589", "39^999."],
+        EStringTest["3.360915398890324e-1590", "39^-999."],
+        EStringTest["1.9950631168791027e+3010", ".5^-10000."],
+        EStringTest["1.9950631168791027e+3010", ".5^-10000"]
+    ]
+};
+
 possibleExponents[n_Integer, m_Integer] := 
  Flatten[Permutations /@ ((PadRight[#, m]) & /@ 
      IntegerPartitions[n, m]), 1];

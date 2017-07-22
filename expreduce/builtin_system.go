@@ -646,7 +646,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
 		Bootstrap: true,
-		Attributes: []string{"HoldAll"},
+		Attributes: []string{"HoldAll", "SequenceHold"},
 	})
 	defs = append(defs, Definition{
 		Name:  "Hash",

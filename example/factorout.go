@@ -69,8 +69,6 @@ func main() {
 								tests.WriteString(fmt.Sprintf("EComment[\"%v\"]", tComment.Comment))
 							} else if tString, tIsString := t.(*expreduce.StringTest); tIsString {
 								tests.WriteString(fmt.Sprintf("EStringTest[\"%v\", \"%v\"]", tString.Out, tString.In))
-							} else if tDiff, tIsDiff := t.(*expreduce.DiffTest); tIsDiff {
-								tests.WriteString(fmt.Sprintf("EDiffTest[%v, %v]", tDiff.Out, tDiff.In))
 							} else if tExampleOnly, tIsExampleOnly := t.(*expreduce.ExampleOnlyInstruction); tIsExampleOnly {
 								tests.WriteString(fmt.Sprintf("EExampleOnlyInstruction[\"%v\", \"%v\"]", tExampleOnly.Out, tExampleOnly.In))
 							} else if _, tIsResetState := t.(*expreduce.ResetState); tIsResetState {
@@ -93,8 +91,10 @@ func main() {
 					b.WriteString(fmt.Sprintf("%v\n", tests.String()))
 				}
 				b.WriteString(fmt.Sprintf("\n"))
+			} else {
+				//fmt.Printf("<<<%v has no ::usage so skipping!>>>\n", def.Name)
 			}
 		}
-		fmt.Printf("%s\n", strings.Replace(b.String(), "\t", "    ", -1))
+		fmt.Printf("%s\n", strings.TrimSpace(strings.Replace(b.String(), "\t", "    ", -1)))
 	}
 }
