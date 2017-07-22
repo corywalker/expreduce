@@ -34,10 +34,6 @@ func ContextedHeadAssertion(ex Ex, head string) (*Expression, bool) {
 	return NewEmptyExpression(), false
 }
 
-func HeadAssertion(ex Ex, head string) (*Expression, bool) {
-	return ContextedHeadAssertion(ex, "System`" + head)
-}
-
 func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
@@ -65,7 +61,7 @@ func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
 }
 
 func tryReturnValue(e Ex) (Ex, bool) {
-	asReturn, isReturn := HeadAssertion(e, "Return")
+	asReturn, isReturn := ContextedHeadAssertion(e, "System`Return")
 	if !isReturn {
 		return nil, false
 	}
@@ -234,7 +230,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// In case curr changed
 		currEx = curr
 
-		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "Function")
+		pureFunction, isPureFunction := ContextedHeadAssertion(curr.Parts[0], "System`Function")
 		if headIsSym {
 			if attrs.Flat {
 				curr = curr.mergeSequences(es, headSym.Name, false)
@@ -310,7 +306,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 					arg,
 				}),
 
-				es, EmptyPD(), "Function")
+				es, EmptyPD(), "System`Function")
 		}
 		return toReturn
 	} else if len(this.Parts) == 3 {
@@ -326,7 +322,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 				args[0],
 			}),
 
-			es, EmptyPD(), "Function")
+			es, EmptyPD(), "System`Function")
 		return toReturn
 	}
 	return this

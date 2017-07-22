@@ -33,7 +33,7 @@ func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
 	isl := &iterSpecList{}
 
 	listEx = evalIterSpecCandidate(es, listEx)
-	list, isList := HeadAssertion(listEx, "List")
+	list, isList := ContextedHeadAssertion(listEx, "System`List")
 	if isList {
 		iOk, iMinOk, iMaxOk := false, false, false
 		if len(list.Parts) > 2 {
@@ -68,7 +68,7 @@ func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
 		// Conversion to iterSpecRange failed. Try iterSpecList.
 		iterListOk := false
 		if len(list.Parts) == 3 {
-			isl.list, iterListOk = HeadAssertion(list.Parts[2], "List")
+			isl.list, iterListOk = ContextedHeadAssertion(list.Parts[2], "System`List")
 		}
 		if iOk && iterListOk {
 			isl.reset()
@@ -208,7 +208,7 @@ func (this *Expression) evalIterationFunc(es *EvalState, init Ex, op string) Ex 
 func evalIterSpecCandidate(es *EvalState, cand Ex) Ex {
 	// Special handling for Lists, which might have variables of iteration in
 	// them.
-	list, isList := HeadAssertion(cand, "List")
+	list, isList := ContextedHeadAssertion(cand, "System`List")
 	if isList {
 		toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
 		for i := 1; i < len(list.Parts); i++ {

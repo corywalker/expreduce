@@ -1,21 +1,21 @@
 package expreduce
 
 func getValidRules(ruleArg Ex) (rules []*Expression) {
-	rulesRule, ok := HeadAssertion(ruleArg, "Rule")
+	rulesRule, ok := ContextedHeadAssertion(ruleArg, "System`Rule")
 	if !ok {
-		rulesRule, ok = HeadAssertion(ruleArg, "RuleDelayed")
+		rulesRule, ok = ContextedHeadAssertion(ruleArg, "System`RuleDelayed")
 	}
 	if ok {
 		return []*Expression{rulesRule}
 	}
 
 	// Also handle a list of Rules
-	asList, isList := HeadAssertion(ruleArg, "List")
+	asList, isList := ContextedHeadAssertion(ruleArg, "System`List")
 	if isList {
 		for i := 1; i < len(asList.Parts); i++ {
-			rulesRule, ok := HeadAssertion(asList.Parts[i], "Rule")
+			rulesRule, ok := ContextedHeadAssertion(asList.Parts[i], "System`Rule")
 			if !ok {
-				rulesRule, ok = HeadAssertion(asList.Parts[i], "RuleDelayed")
+				rulesRule, ok = ContextedHeadAssertion(asList.Parts[i], "System`RuleDelayed")
 			}
 			if ok {
 				rules = append(rules, rulesRule)

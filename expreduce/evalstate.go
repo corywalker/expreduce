@@ -226,7 +226,7 @@ func (this *EvalState) GetSymDef(name string) (Ex, bool) {
 }
 
 func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
-	attrsList, attrsIsList := HeadAssertion(rhs, "List")
+	attrsList, attrsIsList := ContextedHeadAssertion(rhs, "System`List")
 	if !attrsIsList {
 		return
 	}
@@ -402,7 +402,7 @@ func (this *EvalState) GetListDef(name string) *Expression {
 	if !isDef {
 		return NewExpression([]Ex{&Symbol{"System`List"}})
 	}
-	defList, defIsList := HeadAssertion(def, "List")
+	defList, defIsList := ContextedHeadAssertion(def, "System`List")
 	if !defIsList {
 		return NewExpression([]Ex{&Symbol{"System`List"}})
 	}
