@@ -7,7 +7,7 @@ import (
 
 func GetSortDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "Sort",
+		Name: "Sort",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -25,7 +25,7 @@ func GetSortDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Order",
+		Name: "Order",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this

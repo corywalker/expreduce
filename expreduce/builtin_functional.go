@@ -10,7 +10,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 		Name: "Slot",
 	})
 	defs = append(defs, Definition{
-		Name:  "Apply",
+		Name: "Apply",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -27,7 +27,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Map",
+		Name: "Map",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -48,7 +48,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Array",
+		Name: "Array",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -70,7 +70,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:         "Identity",
+		Name: "Identity",
 	})
 	return
 }

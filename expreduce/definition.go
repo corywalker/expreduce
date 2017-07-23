@@ -3,8 +3,8 @@ package expreduce
 import "bytes"
 
 type Def struct {
-	downvalues []Expression
-	attributes Attributes
+	downvalues  []Expression
+	attributes  Attributes
 	defaultExpr Ex
 
 	// A function defined here will override downvalues.

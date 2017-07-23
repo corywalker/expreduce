@@ -2,7 +2,7 @@ package expreduce
 
 func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "ToString",
+		Name: "ToString",
 		// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -24,7 +24,7 @@ func GetStringDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "StringJoin",
+		Name: "StringJoin",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " <> ", form, context, contextPath)
 		},

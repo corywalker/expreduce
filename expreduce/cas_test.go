@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/assert"
 	"math/big"
-	"testing"
 	"regexp"
+	"testing"
 )
 
 var testmodules = flag.String("testmodules", "",

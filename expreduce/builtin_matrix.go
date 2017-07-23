@@ -62,7 +62,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 		Details: "The row-reduce method has not been added yet, but the shortcuts to finding the inverses of matrices up to 3x3 have been added.",
 	})
 	defs = append(defs, Definition{
-		Name:  "Dimensions",
+		Name: "Dimensions",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -83,7 +83,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 		legacyEvalFn: singleParamQLogEval(matrixQ),
 	})
 	defs = append(defs, Definition{
-		Name:       "Dot",
+		Name: "Dot",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) == 2 {
 				return this.Parts[1]
@@ -140,7 +140,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Transpose",
+		Name: "Transpose",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

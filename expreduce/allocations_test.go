@@ -14,14 +14,14 @@ func newPf(startI int, endI int) parsedForm {
 	}
 }
 
-// sequenceAssignments[len_Integer, forms_List, orderless_?BooleanQ] := 
+// sequenceAssignments[len_Integer, forms_List, orderless_?BooleanQ] :=
 //  ReplaceList[
-//   fn @@ Range[0, len - 1] /. 
-//    fn -> If[orderless, ExpreduceOrderlessFn, foo], 
+//   fn @@ Range[0, len - 1] /.
+//    fn -> If[orderless, ExpreduceOrderlessFn, foo],
 //   fn @@ Table[
-//       Pattern[Alphabet[][[i]] // ToExpression // Evaluate, 
-//        Repeated[_, forms[[i]]]], {i, Length[forms]}] -> 
-//     Table[{Alphabet[][[i]] // ToExpression}, {i, Length[forms]}] /. 
+//       Pattern[Alphabet[][[i]] // ToExpression // Evaluate,
+//        Repeated[_, forms[[i]]]], {i, Length[forms]}] ->
+//     Table[{Alphabet[][[i]] // ToExpression}, {i, Length[forms]}] /.
 //    fn -> If[orderless, ExpreduceOrderlessFn, foo]]
 
 func TestAllocations(t *testing.T) {
@@ -138,7 +138,8 @@ func TestAllocations(t *testing.T) {
 	}
 	ai = NewAllocIter(800000, forms)
 	num := 0
-	for num = 0; ai.next(); num++ {}
+	for num = 0; ai.next(); num++ {
+	}
 	assert.Equal(t, 800000, num)
 
 	// should be 1/2 n (1+n)/.n->(ncomps-1)
@@ -150,7 +151,8 @@ func TestAllocations(t *testing.T) {
 		newPf(0, 999999),
 	}
 	ai = NewAllocIter(1400, forms)
-	for num = 0; ai.next(); num++ {}
+	for num = 0; ai.next(); num++ {
+	}
 	assert.Equal(t, 979300, num)
 }
 
@@ -176,30 +178,30 @@ func TestAssignments(t *testing.T) {
 	nComps := 3
 	ai := NewAssnIter(nComps, forms, allMatch(nComps, len(forms)), true)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{}, []int{0}, []int{1, 2}}, ai.assns)
+	assert.Equal(t, [][]int{{}, {0}, {1, 2}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{}, []int{1}, []int{0, 2}}, ai.assns)
+	assert.Equal(t, [][]int{{}, {1}, {0, 2}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{}, []int{2}, []int{0, 1}}, ai.assns)
+	assert.Equal(t, [][]int{{}, {2}, {0, 1}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{0}, []int{1}, []int{2}}, ai.assns)
+	assert.Equal(t, [][]int{{0}, {1}, {2}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{0}, []int{2}, []int{1}}, ai.assns)
+	assert.Equal(t, [][]int{{0}, {2}, {1}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{1}, []int{0}, []int{2}}, ai.assns)
+	assert.Equal(t, [][]int{{1}, {0}, {2}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{1}, []int{2}, []int{0}}, ai.assns)
+	assert.Equal(t, [][]int{{1}, {2}, {0}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{2}, []int{0}, []int{1}}, ai.assns)
+	assert.Equal(t, [][]int{{2}, {0}, {1}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{2}, []int{1}, []int{0}}, ai.assns)
+	assert.Equal(t, [][]int{{2}, {1}, {0}}, ai.assns)
 	assert.Equal(t, false, ai.next())
 
 	ai = NewAssnIter(nComps, forms, allMatch(nComps, len(forms)), false)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{}, []int{0}, []int{1, 2}}, ai.assns)
+	assert.Equal(t, [][]int{{}, {0}, {1, 2}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{0}, []int{1}, []int{2}}, ai.assns)
+	assert.Equal(t, [][]int{{0}, {1}, {2}}, ai.assns)
 	assert.Equal(t, false, ai.next())
 
 	// Test pinning a form to particular components.
@@ -210,15 +212,15 @@ func TestAssignments(t *testing.T) {
 	}
 	nComps = 3
 	formMatches := [][]bool{
-		[]bool{true, true, true},
-		[]bool{false, true, false},
-		[]bool{true, true, true},
+		{true, true, true},
+		{false, true, false},
+		{true, true, true},
 	}
 	ai = NewAssnIter(nComps, forms, formMatches, true)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{0}, []int{1}, []int{2}}, ai.assns)
+	assert.Equal(t, [][]int{{0}, {1}, {2}}, ai.assns)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{2}, []int{1}, []int{0}}, ai.assns)
+	assert.Equal(t, [][]int{{2}, {1}, {0}}, ai.assns)
 	assert.Equal(t, false, ai.next())
 
 	forms = []parsedForm{
@@ -227,12 +229,12 @@ func TestAssignments(t *testing.T) {
 	}
 	nComps = 3
 	formMatches = [][]bool{
-		[]bool{true, true, true},
-		[]bool{true, false, false},
+		{true, true, true},
+		{true, false, false},
 	}
 	ai = NewAssnIter(nComps, forms, formMatches, true)
 	assert.Equal(t, true, ai.next())
-	assert.Equal(t, [][]int{[]int{1, 2}, []int{0}}, ai.assns)
+	assert.Equal(t, [][]int{{1, 2}, {0}}, ai.assns)
 	assert.Equal(t, false, ai.next())
 
 	// should be 1/2 n (1+n)/.n->(ncomps-1)
@@ -246,11 +248,13 @@ func TestAssignments(t *testing.T) {
 	nComps = 1400
 	ai = NewAssnIter(nComps, forms, allMatch(nComps, len(forms)), false)
 	num := 0
-	for num = 0; ai.next(); num++ {}
+	for num = 0; ai.next(); num++ {
+	}
 	assert.Equal(t, 979300, num)
 
 	nComps = 8
 	ai = NewAssnIter(nComps, forms, allMatch(nComps, len(forms)), true)
-	for num = 0; ai.next(); num++ {}
+	for num = 0; ai.next(); num++ {
+	}
 	assert.Equal(t, 40824, num)
 }

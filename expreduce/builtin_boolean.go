@@ -2,7 +2,7 @@ package expreduce
 
 func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:       "And",
+		Name: "And",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " && ", form, context, contextPath)
 		},
@@ -11,7 +11,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
 				if booleanQ(this.Parts[i], &es.CASLogger) {
-				    if falseQ(this.Parts[i], &es.CASLogger) {
+					if falseQ(this.Parts[i], &es.CASLogger) {
 						return &Symbol{"System`False"}
 					}
 				} else {
@@ -28,7 +28,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Or",
+		Name: "Or",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " || ", form, context, contextPath)
 		},
@@ -37,7 +37,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
 				if booleanQ(this.Parts[i], &es.CASLogger) {
-				    if trueQ(this.Parts[i], &es.CASLogger) {
+					if trueQ(this.Parts[i], &es.CASLogger) {
 						return &Symbol{"System`True"}
 					}
 				} else {
@@ -54,7 +54,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Not",
+		Name: "Not",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -69,11 +69,11 @@ func GetBooleanDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "TrueQ",
+		Name:         "TrueQ",
 		legacyEvalFn: singleParamQLogEval(trueQ),
 	})
 	defs = append(defs, Definition{
-		Name: "BooleanQ",
+		Name:         "BooleanQ",
 		legacyEvalFn: singleParamQLogEval(booleanQ),
 	})
 	defs = append(defs, Definition{Name: "AllTrue"})
