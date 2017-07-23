@@ -142,10 +142,10 @@ func (def *Definition) AnnotateWithDynamicUsage(es *EvalState) {
 	}
 	lhs := NewExpression([]Ex{
 		&Symbol{"System`MessageName"},
-		&Symbol{def.Name},
+		&Symbol{"System`" + def.Name},
 		&String{"usage"},
 	})
-	usage, usageIsDef, _ := es.GetDef("MessageName", lhs)
+	usage, usageIsDef, _ := es.GetDef("System`MessageName", lhs)
 	if !usageIsDef {
 		return
 	}
