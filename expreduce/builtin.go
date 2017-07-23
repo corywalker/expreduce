@@ -1,6 +1,7 @@
 package expreduce
 
 import "log"
+import "fmt"
 
 type Rule struct {
 	Lhs string
@@ -85,6 +86,10 @@ func ToTestInstructions(tc *Expression) []TestInstruction {
 				continue
 			}
 			instructions = append(instructions, &ResetState{})
+			continue
+		}
+		if _, isSt := HeadAssertion(tiEx, "System`List"); isSt {
+			fmt.Printf("Ignoring unfilled test: %v\n", tiEx)
 			continue
 		}
 		log.Fatalf("Invalid test case: %v\n", tiEx)

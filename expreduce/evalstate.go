@@ -93,8 +93,6 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`String")
 		es.MarkSeen("System`True")
 		es.MarkSeen("System`False")
-		es.MarkSeen("System`Log")
-		es.MarkSeen("System`Sqrt")
 
 		es.MarkSeen("System`InputForm")
 		es.MarkSeen("System`OutputForm")

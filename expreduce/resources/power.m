@@ -4,6 +4,8 @@ Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
 Power[Power[a_,b_Real],c_Integer] := a^(b*c);
 Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
 Power[Infinity, -1] := 0;
+Power[0, a_Integer?Positive] := 0;
+Power[0, a_Real?Positive] := 0.;
 (*Power definitions*)
 (Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
 (first_ * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
@@ -105,6 +107,18 @@ Tests`Power = {
         EStringTest["3.360915398890324e-1590", "39^-999."],
         EStringTest["1.9950631168791027e+3010", ".5^-10000."],
         EStringTest["1.9950631168791027e+3010", ".5^-10000"]
+    ]
+};
+
+Log::usage = "`Log[e]` finds the natural logarithm of `e`.";
+Log[E] := 1;
+Log[E^p_?NumberQ] := p;
+Attributes[Log] = {Listable,NumericFunction,Protected};
+Tests`Log = {
+    ESimpleExamples[
+        ESameTest[1, Log[E]],
+        ESameTest[-2, Log[E^(-2)]],
+        ESameTest[Log[2], Log[2]]
     ]
 };
 
