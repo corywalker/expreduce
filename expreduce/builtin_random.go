@@ -18,7 +18,7 @@ func GetRandomDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "SeedRandom",
+		Name: "SeedRandom",
 		Details: "`SeedRandom[UnixTime[]]` is called automatically upon " +
 			"initialization of Expreduce, so random number sequences will not " +
 			"repeat over subsequent sessions.",

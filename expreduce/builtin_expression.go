@@ -31,7 +31,7 @@ func flattenExpr(src *Expression, dst *Expression, level int64, cl *CASLogger) {
 
 func GetExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "Head",
+		Name: "Head",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -65,7 +65,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Depth",
+		Name: "Depth",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -74,7 +74,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Length",
+		Name: "Length",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -88,16 +88,16 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Sequence",
+		Name: "Sequence",
 	})
 	defs = append(defs, Definition{
-		Name:  "Evaluate",
+		Name: "Evaluate",
 	})
 	defs = append(defs, Definition{
-		Name:       "Hold",
+		Name: "Hold",
 	})
 	defs = append(defs, Definition{
-		Name:       "HoldForm",
+		Name: "HoldForm",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
@@ -109,7 +109,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Flatten",
+		Name: "Flatten",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 2 {
 				return this
@@ -132,15 +132,15 @@ func GetExpressionDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Flat",
+		Name:              "Flat",
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{
-		Name:  "Orderless",
+		Name:              "Orderless",
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{
-		Name:  "OneIdentity",
+		Name:              "OneIdentity",
 		OmitDocumentation: true,
 	})
 	return

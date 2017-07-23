@@ -83,7 +83,7 @@ func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
 // the RHS. We will merely make sure that the named patterns are added to pm.
 // Final named pattern substitution will occur at the last possible time.
 func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
-                stopAtHead string) Ex {
+	stopAtHead string) Ex {
 	asExpression, isExpression := this.(*Expression)
 
 	if isExpression {

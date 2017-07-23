@@ -19,7 +19,7 @@ func ToStringBlankType(repr string, parts []Ex, form string, context *String, co
 
 func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "MatchQ",
+		Name: "MatchQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -80,19 +80,19 @@ func GetPatternDefinitions() (defs []Definition) {
 		Name: "Except",
 	})
 	defs = append(defs, Definition{
-		Name:       "PatternTest",
+		Name: "PatternTest",
 	})
 	defs = append(defs, Definition{
-		Name:       "Condition",
+		Name: "Condition",
 	})
 	defs = append(defs, Definition{
-		Name:  "Alternatives",
+		Name: "Alternatives",
 	})
 	defs = append(defs, Definition{
-		Name:  "FreeQ",
+		Name: "FreeQ",
 	})
 	defs = append(defs, Definition{
-		Name:  "ReplaceList",
+		Name: "ReplaceList",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -115,13 +115,13 @@ func GetPatternDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Repeated",
+		Name: "Repeated",
 	})
 	defs = append(defs, Definition{
-		Name:       "Optional",
+		Name: "Optional",
 	})
 	defs = append(defs, Definition{
-		Name:       "Verbatim",
+		Name: "Verbatim",
 		// Not fully supported. Don't document
 		OmitDocumentation: true,
 	})

@@ -1,7 +1,7 @@
 package expreduce
 
 type allocIterState struct {
-	currForm int
+	currForm  int
 	remaining int
 	currFormI int
 }
@@ -29,7 +29,7 @@ func (ai *allocIter) next() bool {
 		if p.currForm+1 >= len(ai.forms) {
 			if (ai.forms[p.currForm].startI <= p.remaining) && (p.remaining <= ai.forms[p.currForm].endI) {
 				ai.stack = append(ai.stack, allocIterState{
-				p.currForm+1, 0, p.remaining})
+					p.currForm + 1, 0, p.remaining})
 			}
 		} else {
 			// Optional forms fill eagerly instead of lazily.
@@ -39,14 +39,14 @@ func (ai *allocIter) next() bool {
 				for i := ai.forms[p.currForm].startI; i <= Min(ai.forms[p.currForm].endI, p.remaining); i++ {
 					if p.remaining-i >= 0 {
 						ai.stack = append(ai.stack, allocIterState{
-						p.currForm+1, p.remaining-i, i})
+							p.currForm + 1, p.remaining - i, i})
 					}
 				}
 			} else {
 				for i := Min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
 					if p.remaining-i >= 0 {
 						ai.stack = append(ai.stack, allocIterState{
-						p.currForm+1, p.remaining-i, i})
+							p.currForm + 1, p.remaining - i, i})
 					}
 				}
 			}
@@ -71,22 +71,22 @@ type assnIterState struct {
 	// to do all asignments of it to two BlankNullSequences, we have an
 	// underlying data structure called assnData which could contain {0, 1} or
 	// {1, 0} in the case where the assignment was {{1}, {0}}.
-	assnDataI int
+	assnDataI       int
 	crossedBoundary bool
-	toFree int
+	toFree          int
 }
 
 type assnIter struct {
-	forms []parsedForm
-	assnData []int
-	assnIndices []int
-	assns [][]int
-	formMatches [][]bool
-	orderless bool
-	taken []bool
-	stack []assnIterState
+	forms              []parsedForm
+	assnData           []int
+	assnIndices        []int
+	assns              [][]int
+	formMatches        [][]bool
+	orderless          bool
+	taken              []bool
+	stack              []assnIterState
 	iteratingOrderless bool
-	ai allocIter
+	ai                 allocIter
 }
 
 func (asi *assnIter) nextOrderless() bool {
@@ -118,7 +118,7 @@ func (asi *assnIter) nextOrderless() bool {
 			willCrossBoundary = formI != asi.assnIndices[p.assnDataI+1]
 		}
 
-		startI := p.lastTaken+1
+		startI := p.lastTaken + 1
 		if p.crossedBoundary {
 			startI = 0
 		}
@@ -127,10 +127,10 @@ func (asi *assnIter) nextOrderless() bool {
 				-1, 0, true, p.lastTaken,
 			})
 		}
-		for i := len(asi.taken)-1; i >= startI; i-- {
+		for i := len(asi.taken) - 1; i >= startI; i-- {
 			if !asi.taken[i] && asi.formMatches[formI][i] {
 				asi.stack = append(asi.stack, assnIterState{
-					i, p.assnDataI+1, willCrossBoundary, -1,
+					i, p.assnDataI + 1, willCrossBoundary, -1,
 				})
 			}
 		}
@@ -149,7 +149,7 @@ func (asi *assnIter) next() bool {
 		// ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//pm,b//pm,y___//pm]->{{x},{y}}]
 		lasti := 0
 		for i := range asi.assns {
-			asi.assns[i] = asi.assnData[lasti:lasti+asi.ai.alloc[i]]
+			asi.assns[i] = asi.assnData[lasti : lasti+asi.ai.alloc[i]]
 			for j := lasti; j < lasti+asi.ai.alloc[i]; j++ {
 				asi.assnIndices[j] = i
 			}

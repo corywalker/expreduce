@@ -220,8 +220,8 @@ func collectTerms(e *Expression) *Expression {
 
 func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:       "Plus",
-		Default:	"0",
+		Name:    "Plus",
+		Default: "0",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", form, context, contextPath)
 		},
@@ -265,8 +265,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Times",
-		Default:	"1",
+		Name:    "Times",
+		Default: "1",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " * ", form, context, contextPath)
 		},

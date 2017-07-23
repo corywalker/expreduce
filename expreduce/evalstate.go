@@ -2,11 +2,11 @@ package expreduce
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"sort"
 	"strings"
 	"time"
-	"fmt"
 )
 
 type DefMap map[string]Def
@@ -15,11 +15,11 @@ type EvalState struct {
 	// Embedded type for logging
 	CASLogger
 
-	defined DefMap
-	trace   *Expression
-	NoInit  bool
+	defined     DefMap
+	trace       *Expression
+	NoInit      bool
 	timeCounter TimeCounterGroup
-	freeze bool
+	freeze      bool
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -74,7 +74,7 @@ func (this *EvalState) Load(def Definition) {
 
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string]Def)
-	// These are fundamental symbols that affect even the parsing of 
+	// These are fundamental symbols that affect even the parsing of
 	// expressions. We must define them before even the bootstrap definitions.
 	es.Define(&Symbol{"System`$Context"}, &String{"System`"})
 	es.Define(&Symbol{"System`$ContextPath"}, NewExpression([]Ex{
@@ -197,7 +197,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	for i := range this.defined[name].downvalues {
-	    def := this.defined[name].downvalues[i]
+		def := this.defined[name].downvalues[i]
 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
@@ -210,7 +210,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 		res, replaced := Replace(lhs, &def, this)
 
 		if this.isProfiling {
-			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
+			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
 			this.timeCounter.AddTime(CounterGroupDefTime, defStr, elapsed)
 			this.timeCounter.AddTime(CounterGroupLhsDefTime, lhsDefStr, elapsed)
 		}

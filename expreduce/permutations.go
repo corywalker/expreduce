@@ -15,7 +15,7 @@ func reverse(ar []int) {
 }
 
 func nextKPermutation(ar []int, n int, k int) int {
-	if (k <= 0) {
+	if k <= 0 {
 		return 0
 	}
 

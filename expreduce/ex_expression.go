@@ -13,11 +13,11 @@ var printevals = flag.Bool("printevals", false, "")
 var checkhashes = flag.Bool("checkhashes", false, "")
 
 type Expression struct {
-	Parts []Ex
-	needsEval bool
+	Parts                 []Ex
+	needsEval             bool
 	correctlyInstantiated bool
-	evaledHash uint64
-	cachedHash uint64
+	evaledHash            uint64
+	cachedHash            uint64
 }
 
 // Deprecated in favor of headExAssertion
@@ -80,7 +80,7 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 	// accept level depths. It is a specific case of Flatten.
 	res := NewEmptyExpression()
 	encounteredSeq := false
-	for _, e := range(this.Parts) {
+	for _, e := range this.Parts {
 		seq, isseq := HeadAssertion(e, headStr)
 		if isseq {
 			encounteredSeq = true
@@ -278,7 +278,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 		// Handle end of profiling
 		if es.isProfiling {
-			elapsed := float64(time.Now().UnixNano() - started) / 1000000000
+			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
 			es.timeCounter.AddTime(CounterGroupEvalTime, currStr, elapsed)
 			es.timeCounter.AddTime(CounterGroupHeadEvalTime, currHeadStr, elapsed)
 		}
@@ -482,15 +482,15 @@ func (this *Expression) Hash() uint64 {
 
 func NewExpression(parts []Ex) *Expression {
 	return &Expression{
-		Parts: parts,
-		needsEval: true,
+		Parts:                 parts,
+		needsEval:             true,
 		correctlyInstantiated: true,
 	}
 }
 
 func NewEmptyExpression() *Expression {
 	return &Expression{
-		needsEval: true,
+		needsEval:             true,
 		correctlyInstantiated: true,
 	}
 }

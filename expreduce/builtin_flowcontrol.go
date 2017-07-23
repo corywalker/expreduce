@@ -2,7 +2,7 @@ package expreduce
 
 func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:       "If",
+		Name: "If",
 		// WARNING: Watch out for putting rules here. It can interfere with how
 		// Return works.
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -27,7 +27,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "While",
+		Name: "While",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -56,7 +56,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "CompoundExpression",
+		Name: "CompoundExpression",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			var toReturn Ex
 			for i := 1; i < len(this.Parts); i++ {
@@ -70,7 +70,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	// https://mathematica.stackexchange.com/questions/29353/how-does-return-work
 	defs = append(defs, Definition{
-		Name:  "Return",
+		Name: "Return",
 	})
 	return
 }

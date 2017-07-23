@@ -66,9 +66,9 @@ const (
 )
 
 type TimeCounterGroup struct {
-	defTimeCounter TimeCounter
-	lhsDefTimeCounter TimeCounter
-	evalTimeCounter TimeCounter
+	defTimeCounter      TimeCounter
+	lhsDefTimeCounter   TimeCounter
+	evalTimeCounter     TimeCounter
 	headEvalTimeCounter TimeCounter
 }
 

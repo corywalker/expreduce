@@ -7,8 +7,8 @@ import (
 
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:       "Power",
-		Default:	"1",
+		Name:    "Power",
+		Default: "1",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form, context, contextPath)
 		},
@@ -126,19 +126,19 @@ func GetPowerDefinitions() (defs []Definition) {
 			{"PowerExpand[exp_]", "exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
 		},
 	})
-	defs = append(defs, Definition{Name:  "Expand"})
-	defs = append(defs, Definition{Name:  "PolynomialQ"})
-	defs = append(defs, Definition{Name:  "Exponent"})
-	defs = append(defs, Definition{Name:  "Coefficient"})
-	defs = append(defs, Definition{Name:  "PolynomialQuotientRemainder"})
-	defs = append(defs, Definition{Name:  "PolynomialQuotient"})
-	defs = append(defs, Definition{Name:  "PolynomialRemainder"})
-	defs = append(defs, Definition{Name:  "FactorTermsList"})
-	defs = append(defs, Definition{Name:  "Variables"})
-	defs = append(defs, Definition{Name:  "PolynomialGCD"})
+	defs = append(defs, Definition{Name: "Expand"})
+	defs = append(defs, Definition{Name: "PolynomialQ"})
+	defs = append(defs, Definition{Name: "Exponent"})
+	defs = append(defs, Definition{Name: "Coefficient"})
+	defs = append(defs, Definition{Name: "PolynomialQuotientRemainder"})
+	defs = append(defs, Definition{Name: "PolynomialQuotient"})
+	defs = append(defs, Definition{Name: "PolynomialRemainder"})
+	defs = append(defs, Definition{Name: "FactorTermsList"})
+	defs = append(defs, Definition{Name: "Variables"})
+	defs = append(defs, Definition{Name: "PolynomialGCD"})
 	defs = append(defs, Definition{Name: "SquareFreeQ"})
 	defs = append(defs, Definition{
-		Name: "PSimplify",
+		Name:              "PSimplify",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
 	})

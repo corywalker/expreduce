@@ -32,7 +32,7 @@ type Definition struct {
 	toString ToStringFnType
 
 	Attributes []string
-	Default string
+	Default    string
 }
 
 func ToTestInstructions(tc *Expression) []TestInstruction {
@@ -110,23 +110,23 @@ func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
 		if !headIsSym {
 			continue
 		}
-		if (headSym.Name == "System`ESimpleExamples") {
+		if headSym.Name == "System`ESimpleExamples" {
 			def.SimpleExamples = append(
 				def.SimpleExamples,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "System`EFurtherExamples") {
+		} else if headSym.Name == "System`EFurtherExamples" {
 			def.FurtherExamples = append(
 				def.FurtherExamples,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "System`ETests") {
+		} else if headSym.Name == "System`ETests" {
 			def.Tests = append(
 				def.Tests,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "System`EKnownFailures") {
+		} else if headSym.Name == "System`EKnownFailures" {
 			def.KnownFailures = append(
 				def.KnownFailures,
 				ToTestInstructions(testColExpr)...)
-		} else if (headSym.Name == "System`EKnownDangerous") {
+		} else if headSym.Name == "System`EKnownDangerous" {
 			def.KnownDangerous = append(
 				def.KnownDangerous,
 				ToTestInstructions(testColExpr)...)

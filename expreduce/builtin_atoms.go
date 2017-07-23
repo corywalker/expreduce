@@ -2,7 +2,7 @@ package expreduce
 
 func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "Rational",
+		Name: "Rational",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -15,8 +15,8 @@ func getAtomsDefinitions() (defs []Definition) {
 			return this
 		},
 	})
-	defs = append(defs, Definition{Name:  "String"})
-	defs = append(defs, Definition{Name:  "Real"})
-	defs = append(defs, Definition{Name:  "Integer"})
+	defs = append(defs, Definition{Name: "String"})
+	defs = append(defs, Definition{Name: "Real"})
+	defs = append(defs, Definition{Name: "Integer"})
 	return
 }

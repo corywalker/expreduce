@@ -13,9 +13,9 @@ var format = logging.MustStringFormatter(
 )
 
 type CASLogger struct {
-	_log       *logging.Logger
-	leveled    logging.LeveledBackend
-	debugState bool
+	_log        *logging.Logger
+	leveled     logging.LeveledBackend
+	debugState  bool
 	isProfiling bool
 }
 

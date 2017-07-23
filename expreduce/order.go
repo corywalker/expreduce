@@ -106,8 +106,8 @@ func ExOrder(a Ex, b Ex) int64 {
 			}
 		}
 		if timesMode {
-			ai := len(aAsExp.Parts)-1
-			bi := len(bAsExp.Parts)-1
+			ai := len(aAsExp.Parts) - 1
+			bi := len(bAsExp.Parts) - 1
 			for ai >= 0 && bi >= 0 {
 				aPart, bPart := aAsExp.Parts[ai], bAsExp.Parts[bi]
 				ai, bi = ai-1, bi-1

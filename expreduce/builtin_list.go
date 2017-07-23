@@ -79,7 +79,7 @@ func ThreadExpr(expr *Expression) (*Expression, bool) {
 	for i := 1; i < len(expr.Parts); i++ {
 		list, isList := HeadAssertion(expr.Parts[i], "System`List")
 		if isList {
-			lengths = append(lengths, len(list.Parts) - 1)
+			lengths = append(lengths, len(list.Parts)-1)
 		}
 	}
 	if len(lengths) == 0 {
@@ -111,14 +111,14 @@ func ThreadExpr(expr *Expression) (*Expression, bool) {
 
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:       "List",
-		toString:   (*Expression).ToStringList,
+		Name:     "List",
+		toString: (*Expression).ToStringList,
 	})
 	defs = append(defs, Definition{
-		Name:  "Total",
+		Name: "Total",
 	})
 	defs = append(defs, Definition{
-		Name:  "Mean",
+		Name: "Mean",
 	})
 	defs = append(defs, Definition{
 		Name: "Table",
@@ -145,7 +145,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "MemberQ",
+		Name: "MemberQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -160,7 +160,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Cases",
+		Name: "Cases",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -194,7 +194,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "DeleteCases",
+		Name: "DeleteCases",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -217,7 +217,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Union",
+		Name: "Union",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) == 1 {
 				return NewExpression([]Ex{&Symbol{"System`List"}})
@@ -307,7 +307,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Part",
+		Name: "Part",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) == 1 {
 				return this
@@ -330,10 +330,10 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "All",
+		Name: "All",
 	})
 	defs = append(defs, Definition{
-		Name:  "Thread",
+		Name: "Thread",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -347,7 +347,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Append",
+		Name: "Append",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -362,10 +362,10 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "AppendTo",
+		Name: "AppendTo",
 	})
 	defs = append(defs, Definition{
-		Name:  "Prepend",
+		Name: "Prepend",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
@@ -381,10 +381,10 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "PrependTo",
+		Name: "PrependTo",
 	})
 	defs = append(defs, Definition{
-		Name:  "DeleteDuplicates",
+		Name: "DeleteDuplicates",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -408,7 +408,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Last",
+		Name: "Last",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -416,7 +416,7 @@ func GetListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
-				if len(expr.Parts) < 2{
+				if len(expr.Parts) < 2 {
 					return this
 				}
 				return expr.Parts[len(expr.Parts)-1]
@@ -425,7 +425,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Select",
+		Name: "Select",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this

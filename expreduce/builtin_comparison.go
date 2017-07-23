@@ -5,7 +5,7 @@ import "sort"
 
 func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name:  "Equal",
+		Name: "Equal",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " == ", true, "", "", form, context, contextPath)
 		},
@@ -32,7 +32,7 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Unequal",
+		Name: "Unequal",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " != ", true, "", "", form, context, contextPath)
 		},
@@ -54,7 +54,7 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "SameQ",
+		Name: "SameQ",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " === ", true, "", "", form, context, contextPath)
 		},
@@ -75,7 +75,7 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "UnsameQ",
+		Name: "UnsameQ",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " =!= ", true, "", "", form, context, contextPath)
 		},
@@ -85,7 +85,7 @@ func getComparisonDefinitions() (defs []Definition) {
 			}
 
 			for i := 1; i < len(this.Parts); i++ {
-				for j := i+1; j < len(this.Parts); j++ {
+				for j := i + 1; j < len(this.Parts); j++ {
 					if IsSameQ(this.Parts[i], this.Parts[j], &es.CASLogger) {
 						return &Symbol{"System`False"}
 					}
@@ -95,7 +95,7 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "AtomQ",
+		Name: "AtomQ",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -113,10 +113,10 @@ func getComparisonDefinitions() (defs []Definition) {
 		legacyEvalFn: singleParamQEval(numberQ),
 	})
 	defs = append(defs, Definition{
-		Name:         "NumericQ",
+		Name: "NumericQ",
 	})
 	defs = append(defs, Definition{
-		Name:  "Less",
+		Name: "Less",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " < ", true, "", "", form, context, contextPath)
 		},
@@ -135,7 +135,7 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Greater",
+		Name: "Greater",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " > ", true, "", "", form, context, contextPath)
 		},
@@ -154,7 +154,7 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "LessEqual",
+		Name: "LessEqual",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " <= ", true, "", "", form, context, contextPath)
 		},
@@ -177,7 +177,7 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "GreaterEqual",
+		Name: "GreaterEqual",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " >= ", true, "", "", form, context, contextPath)
 		},
@@ -200,13 +200,13 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Positive",
+		Name: "Positive",
 	})
 	defs = append(defs, Definition{
-		Name:       "Negative",
+		Name: "Negative",
 	})
 	defs = append(defs, Definition{
-		Name:  "Max",
+		Name: "Max",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Flatten nested lists into arguments.
 			origHead := this.Parts[0]

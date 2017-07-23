@@ -9,9 +9,9 @@ type matchIter interface {
 }
 
 type dummyMatchIter struct {
-	isMatchQ	bool
-	pm			*PDManager
-	isDone		bool
+	isMatchQ bool
+	pm       *PDManager
+	isDone   bool
 }
 
 func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
@@ -263,19 +263,19 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, es *EvalState) 
 type assignedIterState struct {
 	formI int
 	assnI int
-	pm *PDManager
+	pm    *PDManager
 }
 
 type assignedMatchIter struct {
-	assn			[][]int
+	assn [][]int
 
 	// Inherited from sequenceMatchIter
-	components		[]Ex
-	lhs_components	[]parsedForm
-	pm				*PDManager
-	sequenceHead	string
-	es				*EvalState
-	stack			[]assignedIterState
+	components     []Ex
+	lhs_components []parsedForm
+	pm             *PDManager
+	sequenceHead   string
+	es             *EvalState
+	stack          []assignedIterState
 }
 
 func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIter {
@@ -314,7 +314,7 @@ func (ami *assignedMatchIter) next() bool {
 			patOk := DefineSequence(lhs, seq, p.pm, ami.sequenceHead, ami.es)
 			if patOk {
 				ami.stack = append(ami.stack, assignedIterState{
-					p.formI+1, 0, p.pm,
+					p.formI + 1, 0, p.pm,
 				})
 			}
 			continue
@@ -334,7 +334,7 @@ func (ami *assignedMatchIter) next() bool {
 				toAddReversed = append(toAddReversed, submatches)
 			}
 		}
-		for i := len(toAddReversed)-1; i >= 0; i-- {
+		for i := len(toAddReversed) - 1; i >= 0; i-- {
 			updatedPm := p.pm
 			if toAddReversed[i].Len() > 0 {
 				if len(toAddReversed) > 1 {
@@ -343,7 +343,7 @@ func (ami *assignedMatchIter) next() bool {
 				updatedPm.Update(toAddReversed[i])
 			}
 			ami.stack = append(ami.stack, assignedIterState{
-				p.formI, p.assnI+1, updatedPm,
+				p.formI, p.assnI + 1, updatedPm,
 			})
 		}
 	}
@@ -351,14 +351,14 @@ func (ami *assignedMatchIter) next() bool {
 }
 
 type sequenceMatchIter struct {
-	components		[]Ex
-	lhs_components	[]parsedForm
-	pm				*PDManager
-	sequenceHead	string
-	es				*EvalState
-	ai				assnIter
-	iteratingAmi	bool
-	ami				assignedMatchIter
+	components     []Ex
+	lhs_components []parsedForm
+	pm             *PDManager
+	sequenceHead   string
+	es             *EvalState
+	ai             assnIter
+	iteratingAmi   bool
+	ami            assignedMatchIter
 }
 
 func NewSequenceMatchIter(components []Ex, lhs_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {

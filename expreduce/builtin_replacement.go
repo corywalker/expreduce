@@ -103,7 +103,7 @@ func getReplacementDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Rule",
+		Name: "Rule",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
@@ -112,7 +112,7 @@ func getReplacementDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "RuleDelayed",
+		Name: "RuleDelayed",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""

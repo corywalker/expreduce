@@ -4,7 +4,7 @@ import "math/big"
 
 func GetNumberTheoryDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "PrimeQ",
+		Name:         "PrimeQ",
 		legacyEvalFn: singleParamQEval(primeQ),
 	})
 	defs = append(defs, Definition{

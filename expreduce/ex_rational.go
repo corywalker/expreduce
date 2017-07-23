@@ -5,8 +5,8 @@ import "math/big"
 import "hash/fnv"
 
 type Rational struct {
-	Num *big.Int
-	Den *big.Int
+	Num       *big.Int
+	Den       *big.Int
 	needsEval bool
 }
 

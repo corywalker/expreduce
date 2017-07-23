@@ -65,9 +65,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			sym, ok := this.Parts[1].(*Symbol)
 			if ok {
 				if sym.Name == "System`True" {
-			        levelSym, lsOk := this.Parts[2].(*Symbol)
+					levelSym, lsOk := this.Parts[2].(*Symbol)
 					if !lsOk {
-					  return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
+						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
 					}
 					if levelSym.Name == "System`Debug" {
 						es.DebugOn(logging.DEBUG)
@@ -76,7 +76,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					} else if levelSym.Name == "System`Notice" {
 						es.DebugOn(logging.NOTICE)
 					} else {
-					  return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
+						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
 					}
 					return &Symbol{"System`Null"}
 				} else if sym.Name == "System`False" {
@@ -105,7 +105,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Attributes",
+		Name: "Attributes",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -127,7 +127,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Default",
+		Name: "Default",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -146,7 +146,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Clear",
+		Name: "Clear",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			for _, arg := range this.Parts[1:] {
 				es.Debugf("arg: %v", arg)
@@ -303,7 +303,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Timing",
+		Name: "Timing",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -316,8 +316,8 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Print",
-		Usage: "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.",
+		Name:      "Print",
+		Usage:     "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.",
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 2 {
@@ -332,10 +332,10 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "MessageName",
+		Name: "MessageName",
 	})
 	defs = append(defs, Definition{
-		Name:       "Trace",
+		Name: "Trace",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -359,7 +359,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "N",
+		Name: "N",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -368,59 +368,59 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Listable",
+		Name: "Listable",
 	})
 	defs = append(defs, Definition{
-		Name: "ExpreduceFlatFn",
+		Name:              "ExpreduceFlatFn",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Attributes: []string{"Flat"},
+		Attributes:        []string{"Flat"},
 	})
 	defs = append(defs, Definition{
-		Name: "ExpreduceOrderlessFn",
+		Name:              "ExpreduceOrderlessFn",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Attributes: []string{"Orderless"},
+		Attributes:        []string{"Orderless"},
 	})
 	defs = append(defs, Definition{
-		Name: "ExpreduceOneIdentityFn",
+		Name:              "ExpreduceOneIdentityFn",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Attributes: []string{"OneIdentity"},
+		Attributes:        []string{"OneIdentity"},
 	})
 	defs = append(defs, Definition{
-		Name: "ExpreduceFlatFn2",
+		Name:              "ExpreduceFlatFn2",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Attributes: []string{"Flat"},
+		Attributes:        []string{"Flat"},
 	})
 	defs = append(defs, Definition{
-		Name: "ExpreduceFlOrFn",
+		Name:              "ExpreduceFlOrFn",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Attributes: []string{"Flat", "Orderless"},
+		Attributes:        []string{"Flat", "Orderless"},
 	})
 	defs = append(defs, Definition{
-		Name: "ExpreduceFlOiFn",
+		Name:              "ExpreduceFlOiFn",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Attributes: []string{"Flat", "OneIdentity"},
+		Attributes:        []string{"Flat", "OneIdentity"},
 	})
 	defs = append(defs, Definition{
-		Name: "ExpreduceFlOrOiFn",
+		Name:              "ExpreduceFlOrOiFn",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Attributes: []string{"Flat", "Orderless", "OneIdentity"},
+		Attributes:        []string{"Flat", "Orderless", "OneIdentity"},
 	})
 	defs = append(defs, Definition{
-		Name: "ExpreduceLikePlus",
-		Default:	"0",
+		Name:              "ExpreduceLikePlus",
+		Default:           "0",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Attributes: []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
+		Attributes:        []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 	})
 	defs = append(defs, Definition{
-		Name:  "Get",
+		Name: "Get",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -458,7 +458,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Module",
+		Name: "Module",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Coarse parsing of arguments.
 			if len(this.Parts) != 3 {
@@ -480,10 +480,10 @@ func GetSystemDefinitions() (defs []Definition) {
 
 			// Parse locals into a struct
 			type parsedLocal struct {
-				sym *Symbol
-				uniqueName string
-				setValue Ex
-				isSet bool
+				sym          *Symbol
+				uniqueName   string
+				setValue     Ex
+				isSet        bool
 				isSetDelayed bool
 			}
 			var parsedLocals []parsedLocal
@@ -523,7 +523,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					}
 				}
 			}
-			es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn+1)})
+			es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn + 1)})
 			toReturn := this.Parts[2]
 			pm := EmptyPD()
 			for _, pl := range parsedLocals {
@@ -545,14 +545,14 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "ESameTest",
+		Name:              "ESameTest",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		Bootstrap: true,
-		Attributes: []string{"HoldAll", "SequenceHold"},
+		Bootstrap:         true,
+		Attributes:        []string{"HoldAll", "SequenceHold"},
 	})
 	defs = append(defs, Definition{
-		Name:  "Hash",
+		Name: "Hash",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

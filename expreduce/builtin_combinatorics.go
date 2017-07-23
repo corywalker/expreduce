@@ -132,7 +132,7 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:  "Permutations",
+		Name: "Permutations",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -158,10 +158,10 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:       "Multinomial",
+		Name: "Multinomial",
 	})
 	defs = append(defs, Definition{
-		Name:       "Factorial",
+		Name: "Factorial",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this

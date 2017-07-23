@@ -1,16 +1,16 @@
 package expreduce
 
 type parsedForm struct {
-	startI		int
-	endI		int
-	form		Ex
-	origForm	Ex
-	isBlank		bool
-	isImpliedBs	bool
-	isOptional	bool
-	defaultExpr	Ex
-	hasPat		bool
-	patSym		*Symbol
+	startI      int
+	endI        int
+	form        Ex
+	origForm    Ex
+	isBlank     bool
+	isImpliedBs bool
+	isOptional  bool
+	defaultExpr Ex
+	hasPat      bool
+	patSym      *Symbol
 }
 
 func ParseRepeated(e *Expression) (Ex, int, int, bool) {
@@ -115,7 +115,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 		form = blank
 	} else if isRepeated {
 		repPat, repMin, repMax, repOk := ParseRepeated(repeated)
-		if (repOk) {
+		if repOk {
 			if repMin != -1 {
 				startI = repMin
 			}
