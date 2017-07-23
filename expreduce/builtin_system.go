@@ -55,7 +55,6 @@ func exprToN(es *EvalState, e Ex) Ex {
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceSetLogging",
-		Usage:             "`ExpreduceSetLogging[bool, level]` sets the logging state to `bool` and the level to `level`.",
 		Details:           "Logging output prints to the console. There can be a lot of logging output, especially for more complicated pattern matches. Valid levels are `Debug`, `Info`, `Notice`, `Warning`, `Error`, and `Critical`.",
 		ExpreduceSpecific: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -90,7 +89,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:              "ExpreduceDefinitionTimes",
-		Usage:             "`ExpreduceDefinitionTimes[]` prints the time in seconds evaluating various definitions.",
 		Details:           "For timing information to record, debug mode must be enabled through `ExpreduceSetLogging`.",
 		ExpreduceSpecific: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -108,8 +106,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Attributes",
-		Usage:      "`Attributes[sym]` returns a `List` of attributes for `sym`.",
-		Attributes: []string{"HoldAll", "Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -129,22 +125,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return toReturn
 		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"{Protected, ReadProtected}", "Attributes[Infinity]"},
-			&SameTest{"{HoldAll, Listable, Protected}", "Attributes[Attributes]"},
-			&SameTest{"{Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}", "Attributes[Plus]"},
-			&TestComment{"The default set of attributes is the empty list:"},
-			&SameTest{"{}", "Attributes[undefinedSym]"},
-		},
-		FurtherExamples: []TestInstruction{
-			&TestComment{"Only symbols can have attributes:"},
-			&SameTest{"Attributes[2]", "Attributes[2]"},
-			&SameTest{"Attributes[a^2]", "Attributes[a^2]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:       "Default",
-		Usage:      "`Default[sym]` returns the default value of `sym` when used as an `Optional` pattern without a default specified.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -161,18 +144,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return this
 		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"1", "Default[Times]"},
-			&SameTest{"0", "Default[Plus]"},
-		},
-		Tests: []TestInstruction{
-			&SameTest{"Default[foo]", "Default[foo]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:       "Clear",
-		Usage:      "`Clear[sym1, sym2, ...]` clears the symbol definitions from the evaluation context.",
-		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			for _, arg := range this.Parts[1:] {
 				es.Debugf("arg: %v", arg)
@@ -183,21 +157,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return &Symbol{"System`Null"}
 		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"a", "a"},
-			&SameTest{"5", "a = 5"},
-			&SameTest{"6", "b = 6"},
-			&SameTest{"7", "c = 7"},
-			&SameTest{"5", "a"},
-			&SameTest{"Null", "Clear[a, 99, b]"},
-			&StringTest{"a", "a"},
-			&StringTest{"b", "b"},
-			&StringTest{"7", "c"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:              "Definition",
-		Attributes:        []string{"HoldAll"},
 		OmitDocumentation: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -255,10 +217,11 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 		KnownFailures: []TestInstruction{
 			// Embarassing known failures until we fix the re-evaluation issue.
-			&StringTest{"a^4", "y=y*y"},
-			&StringTest{"a^2", "y=a*a"},
-			&StringTest{"2", "a=2"},
-			&StringTest{"16", "y"},
+			&SameTest{"a^4", "y=y*y"},
+			&SameTest{"a^2", "y=a*a"},
+			&SameTest{"2", "a=2"},
+			&SameTest{"16", "y"},
+			&SameTest{"Null", "Clear[a]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -341,8 +304,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "Timing",
-		Usage:      "`Timing[expr]` returns a `List` with the first element being the time in seconds for the evaluation of `expr`, and the second element being the result.",
-		Attributes: []string{"HoldAll", "SequenceHold"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -352,9 +313,6 @@ func GetSystemDefinitions() (defs []Definition) {
 			res := this.Parts[1].Eval(es)
 			elapsed := time.Since(start).Seconds()
 			return NewExpression([]Ex{&Symbol{"System`List"}, &Flt{big.NewFloat(elapsed)}, res})
-		},
-		SimpleExamples: []TestInstruction{
-			&ExampleOnlyInstruction{"{0.00167509, 5000000050000000}", "Timing[Sum[a, {a, 100000000}]]"},
 		},
 	})
 	defs = append(defs, Definition{
@@ -375,17 +333,9 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:       "MessageName",
-		Usage:      "`sym::msg` references a particular message for `sym`.",
-		Attributes: []string{"HoldFirst", "ReadProtected"},
-		SimpleExamples: []TestInstruction{
-			&TestComment{"`MessageName` is used to store the usage messages of built-in symbols:"},
-			&SameTest{"\"`sym::msg` references a particular message for `sym`.\"", "MessageName::usage"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:       "Trace",
-		Usage:      "`Trace[expr]` traces the evaluation of `expr`.",
-		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -407,55 +357,18 @@ func GetSystemDefinitions() (defs []Definition) {
 			es.trace = nil
 			return NewExpression([]Ex{&Symbol{"System`List"}})
 		},
-		SimpleExamples: []TestInstruction{
-			&SameTest{"List[HoldForm[Plus[1, 2]], HoldForm[3]]", "1 + 2 // Trace"},
-			&SameTest{"List[List[HoldForm[Plus[1, 3]], HoldForm[4]], HoldForm[Plus[4, 2]], HoldForm[6]]", "(1 + 3) + 2 // Trace"},
-			&SameTest{"List[List[HoldForm[Plus[1, 3]], HoldForm[4]], HoldForm[Plus[2, 4]], HoldForm[6]]", "2 + (1 + 3) // Trace"},
-		},
-		Tests: []TestInstruction{
-			&SameTest{"{}", "Trace[a + b + c]"},
-			&SameTest{"{}", "Trace[1]"},
-			&SameTest{"{HoldForm[2^2], HoldForm[4]}", "Trace[2^2]"},
-			&SameTest{"{{HoldForm[2^2], HoldForm[4]}, HoldForm[4*5], HoldForm[20]}", "Trace[2^2*5]"},
-			&SameTest{"{{{HoldForm[2^2], HoldForm[4]}, HoldForm[4*5], HoldForm[20]}, HoldForm[20 + 4], HoldForm[24]}", "Trace[2^2*5+4]"},
-			&SameTest{"{{{HoldForm[2^2], HoldForm[4]}, {HoldForm[3^3], HoldForm[27]}, HoldForm[4*27*5], HoldForm[540]}, HoldForm[540 + 4], HoldForm[544]}", "Trace[2^2*3^3*5+4]"},
-			&SameTest{"{HoldForm[b + a], HoldForm[a + b]}", "Trace[b+a]"},
-			&SameTest{"{}", "Trace[a+foo[a,b]]"},
-			&SameTest{"{HoldForm[foo[Sequence[a, b]]], HoldForm[foo[a, b]]}", "Trace[foo[Sequence[a,b]]]"},
-		},
-		KnownFailures: []TestInstruction{
-			// We are close with this one but not quite:
-			&SameTest{"{{{HoldForm[a*a], HoldForm[a^2]}, HoldForm[foo[a^2, b]]}, HoldForm[a + foo[a^2, b]]}", "Trace[a+foo[a*a,b]]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "N",
-		Usage: "`N[expr]` attempts to convert `expr` to a numeric value.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
 			return exprToN(es, this.Parts[1])
 		},
-		Tests: []TestInstruction{
-			&SameTest{"2.", "N[2]"},
-			&SameTest{"0.5", "N[1/2]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name:  "Listable",
-		Usage: "`Listable` is an attribute that calls for functions to automatically map over lists.",
-		SimpleExamples: []TestInstruction{
-			&SameTest{"{1, 1, 1, 0}", "Boole[{True, True, True, False}]"},
-			&SameTest{"{False, True, True}", "Positive[{-1, 4, 5}]"},
-			&SameTest{"{{False, True, True}}", "Positive[{{-1, 4, 5}}]"},
-			&SameTest{"{{False, True, True}, {True, False}}", "Positive[{{-1, 4, 5}, {6, -1}}]"},
-		},
-		Tests: []TestInstruction{
-			&SameTest{"{Positive[-1, 2], Positive[4, 2], Positive[5, 2]}", "Positive[{-1, 4, 5}, 2]"},
-			&SameTest{"Positive[{-1, 4, 5}, {1, 2}]", "Positive[{-1, 4, 5}, {1, 2}]"},
-			&SameTest{"{Positive[-1, 1], Positive[4, 2], Positive[5, 3]}", "Positive[{-1, 4, 5}, {1, 2, 3}]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name: "ExpreduceFlatFn",
@@ -508,7 +421,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Get",
-		Usage: "`Get[file]` loads `file` and returns the last expression.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -547,8 +459,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Module",
-		Usage: "`Module[{locals}, expr]` evaluates `expr` with the local variables `locals`.",
-		Attributes: []string{"HoldAll"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Coarse parsing of arguments.
 			if len(this.Parts) != 3 {
@@ -633,13 +543,6 @@ func GetSystemDefinitions() (defs []Definition) {
 			toReturn = ReplacePD(toReturn, es, pm)
 			return toReturn
 		},
-		Tests: []TestInstruction{
-			&SameTest{"{t$1,j$1,2}", "$ModuleNumber=1;Module[{t,j},{t,j,$ModuleNumber}]"},
-			&SameTest{"{t$2,j$2,3}", "$ModuleNumber=1;Module[{t,j},{t,j,$ModuleNumber}]"},
-			&SameTest{"{t$4,j$4,5}", "$ModuleNumber=1;t$3=test;Module[{t,j},{t,j,$ModuleNumber}]"},
-			&SameTest{"{t$8,2,9}", "$ModuleNumber=8;t$3=test;Module[{t,j=2},{t,j,$ModuleNumber}]"},
-			&SameTest{"{t$9,2,10}", "$ModuleNumber=8;t$3=test;Module[{t,j:=2},{t,j,$ModuleNumber}]"},
-		},
 	})
 	defs = append(defs, Definition{
 		Name: "ESameTest",
@@ -650,7 +553,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:  "Hash",
-		Usage: "`Hash[expr]` returns an integer hash of `expr`.",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
