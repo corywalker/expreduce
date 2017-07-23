@@ -79,6 +79,14 @@ func ToTestInstructions(tc *Expression) []TestInstruction {
 				comStr.Val})
 			continue
 		}
+		if st, isSt := HeadAssertion(tiEx, "System`EResetState"); isSt {
+			if len(st.Parts) != 1 {
+				log.Fatalf("Invalid test case: %v\n", tiEx)
+				continue
+			}
+			instructions = append(instructions, &ResetState{})
+			continue
+		}
 		log.Fatalf("Invalid test case: %v\n", tiEx)
 	}
 	return instructions

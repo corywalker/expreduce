@@ -109,6 +109,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`EStringTest")
 		es.MarkSeen("System`EExampleOnlyInstruction")
 		es.MarkSeen("System`EComment")
+		es.MarkSeen("System`EResetState")
 		es.MarkSeen("System`Echo")
 
 		es.MarkSeen("System`Attributes")

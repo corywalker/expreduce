@@ -23,20 +23,14 @@ func mathFnOneParam(fn func(float64) float64) func(*Expression, *EvalState) Ex {
 func GetTrigDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:         "Sin",
-		Attributes:   []string{"Listable", "NumericFunction"},
-		Usage:        "`Sin[x]` is the sine of `x`.",
 		legacyEvalFn: mathFnOneParam(math.Sin),
 	})
 	defs = append(defs, Definition{
 		Name:         "Cos",
-		Attributes:   []string{"Listable", "NumericFunction"},
-		Usage:        "`Cos[x]` is the cosine of `x`.",
 		legacyEvalFn: mathFnOneParam(math.Cos),
 	})
 	defs = append(defs, Definition{
 		Name:         "Tan",
-		Attributes:   []string{"Listable", "NumericFunction"},
-		Usage:        "`Tan[x]` is the tangent of `x`.",
 		legacyEvalFn: mathFnOneParam(math.Tan),
 	})
 	return

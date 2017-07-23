@@ -1,0 +1,39 @@
+ToString::usage = "`ToString[expr, form]` converts `expr` into a string using printing method `form`.";
+ToString[a_] := ToString[a, OutputForm];
+Attributes[ToString] = {Protected};
+Tests`ToString = {
+    ESimpleExamples[
+        ESameTest["a^2", ToString[Global`a^2, InputForm]],
+        ESameTest["Hello World", "Hello World" // ToString]
+    ]
+};
+
+StringJoin::usage = "`s1 <> s2 <> ...` can join a list of strings into a single string.";
+(*For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]*)
+(*but slow for StringJoin[Table["x", {k,2000}]]*)
+(*StringJoin[{args___}]": "StringJoin[args]",*)
+(*This rule runs much faster, probably because it avoids*)
+(*OrderlessIsMatchQ*)
+StringJoin[list_List] := StringJoin[list /. List->Sequence];
+Attributes[StringJoin] = {Flat, OneIdentity, Protected};
+Tests`StringJoin = {
+    ESimpleExamples[
+        ESameTest["Hello World", "Hello" <> " " <> "World"],
+        ESameTest["If a=2, then a^2=4", "If a=2, then " <> ToString[Global`a^2, InputForm] <> "=" <> ToString[a^2 /. a -> 2, InputForm]]
+    ], EFurtherExamples[
+        EComment["The `StringJoin` of nothing is the empty string:"],
+        ESameTest["", StringJoin[]],
+        EComment["If `StringJoin` receives any non-string arguments, the expression does not evaluate:"],
+        ESameTest["Hello" <> 5, StringJoin["Hello", 5]],
+        EComment["This function takes `List` arguments as well:"],
+        ESameTest["abc", StringJoin[{"a", "b", "c"}]]
+    ]
+};
+
+Infix::usage = "`Infix[expr, sep]` represents `expr` in infix form with separator `sep` when converted to a string.";
+Attributes[Infix] = {Protected};
+Tests`Infix = {
+    ESimpleExamples[
+        ESameTest["(bar|fuzz|zip)", Infix[foo[Global`bar, Global`fuzz, Global`zip], "|"] // ToString]
+    ]
+};

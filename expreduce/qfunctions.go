@@ -83,10 +83,6 @@ func matrixQ(e Ex, cl *CASLogger) bool {
 	return false
 }
 
-func patternsOrderedQ(a Ex, b Ex, cl *CASLogger) bool {
-	return false
-}
-
 func symbolNameQ(e Ex, name string, cl *CASLogger) bool {
 	sym, isSym := e.(*Symbol)
 	if isSym {
