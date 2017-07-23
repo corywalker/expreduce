@@ -60,7 +60,7 @@ func NewAllocIter(l int, forms []parsedForm) allocIter {
 	ai.forms = forms
 	ai.alloc = make([]int, len(forms))
 	ai.stack = []allocIterState{
-		allocIterState{0, l, 0},
+		{0, l, 0},
 	}
 	return ai
 }

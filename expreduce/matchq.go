@@ -287,7 +287,7 @@ func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIte
 	ami.sequenceHead = smi.sequenceHead
 	ami.es = smi.es
 	ami.stack = []assignedIterState{
-		assignedIterState{0, 0, CopyPD(ami.pm)},
+		{0, 0, CopyPD(ami.pm)},
 	}
 	return ami
 }
