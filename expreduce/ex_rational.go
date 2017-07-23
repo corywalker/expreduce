@@ -46,12 +46,9 @@ func (this *Rational) Eval(es *EvalState) Ex {
 		this.Den.Set(absDen)
 		this.needsEval = false
 		return this
-	} else {
-		this.Num.Set(absNum.Neg(absNum))
-		this.Den.Set(absDen)
-		this.needsEval = false
-		return this
 	}
+	this.Num.Set(absNum.Neg(absNum))
+	this.Den.Set(absDen)
 	this.needsEval = false
 	return this
 }
