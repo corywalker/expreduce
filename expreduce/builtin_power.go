@@ -146,6 +146,7 @@ func GetPowerDefinitions() (defs []Definition) {
 		legacyEvalFn: bigMathFnOneParam(mathbigext.Log, true),
 	})
 	defs = append(defs, Definition{Name: "Sqrt"})
+	defs = append(defs, Definition{Name: "I"})
 	defs = append(defs, Definition{Name: "PolynomialQ"})
 	defs = append(defs, Definition{Name: "Exponent"})
 	defs = append(defs, Definition{Name: "Coefficient"})

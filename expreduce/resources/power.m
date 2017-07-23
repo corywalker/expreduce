@@ -4,8 +4,6 @@ Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
 Power[Power[a_,b_Real],c_Integer] := a^(b*c);
 Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
 Power[Infinity, -1] := 0;
-Power[0, a_Integer?Positive] := 0;
-Power[0, a_Real?Positive] := 0.;
 (*Power definitions*)
 (Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
 (first_ * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
@@ -121,6 +119,27 @@ Tests`Log = {
         ESameTest[Log[2], Log[2]]
     ]
 };
+
+Sqrt::usage = "`Sqrt[e]` finds the square root of `e`.";
+(*TODO: automatically simplify perfect squares*)
+Attributes[Sqrt] = {Listable, NumericFunction, Protected};
+Sqrt[0] := 0;
+Sqrt[1] := 1;
+Sqrt[a_Integer?Negative] := I*Sqrt[-a];
+Sqrt[a_Real?Positive] := a^.5;
+Tests`Sqrt = {
+    ESimpleExamples[
+        ESameTest[Sqrt[3], Sqrt[3]],
+        ESameTest[I, Sqrt[-1]],
+        ESameTest[I * Sqrt[3], Sqrt[-3]],
+        ESameTest[1, Sqrt[1]],
+        ESameTest[0, Sqrt[0]]
+    ]
+};
+
+(*TODO: actually use Complex atom type*)
+I::usage = "`I` is the imaginary number representing `Sqrt[-1]`.";
+Attributes[I] = {Locked, Protected, ReadProtected};
 
 possibleExponents[n_Integer, m_Integer] := 
  Flatten[Permutations /@ ((PadRight[#, m]) & /@ 
