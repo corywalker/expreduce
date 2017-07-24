@@ -318,7 +318,9 @@ Tests`Condition = {
         ESameTest[True, MatchQ[5, y_Integer /; True]],
         ESameTest[False, MatchQ[5, y_ /; y == 0]],
         ESameTest[True, MatchQ[5, y_ /; y == 5]],
-        ESameTest[{1,2,3,5}, {3, 5, 2, 1} //. {x___, y_, z_, k___} /; (Order[y, z] == -1) -> {x, z, y, k}]
+        ESameTest[{1,2,3,5}, {3, 5, 2, 1} //. {x___, y_, z_, k___} /; (Order[y, z] == -1) -> {x, z, y, k}],
+        ESameTest[myfn[1], Replace[1,a_Integer:>myfn[a]/;a>0]],
+        ESameTest[-1, Replace[-1,a_Integer:>myfn[a]/;a>0]]
     ]
 };
 
