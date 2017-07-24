@@ -131,6 +131,13 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`Temporary")
 		es.MarkSeen("System`Stub")
 
+		es.MarkSeen("System`Sec")
+		es.MarkSeen("System`Csc")
+		es.MarkSeen("System`Cot")
+		es.MarkSeen("System`ArcSin")
+		es.MarkSeen("System`ArcCos")
+		es.MarkSeen("System`ArcTan")
+
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
 				es.MarkSeen(es.GetStringDef("System`$Context", "") + def.Name)

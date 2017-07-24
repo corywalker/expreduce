@@ -116,6 +116,7 @@ Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)
 Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;
 (1/Infinity) := 0;
 Times[ComplexInfinity, rest___] := ComplexInfinity;
+Cos[x_Symbol]*Sin[x_Symbol]^(-1)*rest___ := Cot[x]*rest;
 Attributes[Times] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected};
 Tests`Times = {
     ESimpleExamples[
