@@ -67,7 +67,7 @@ func ExOrder(a Ex, b Ex) int64 {
 		_, bIsPow := HeadAssertion(bAsExp, "System`Power")
 		_, aIsTimes := HeadAssertion(aAsExp, "System`Times")
 		_, bIsTimes := HeadAssertion(bAsExp, "System`Times")
-		if aIsPow && bIsTimes {
+		if !aIsTimes && bIsTimes {
 			return ExOrder(NewExpression([]Ex{
 				&Symbol{"System`Times"},
 				NewInt(1),
@@ -81,7 +81,7 @@ func ExOrder(a Ex, b Ex) int64 {
 				NewInt(1),
 			}))
 		}
-		if bIsPow && aIsTimes {
+		if !bIsTimes && aIsTimes {
 			return ExOrder(aAsExp, NewExpression([]Ex{
 				&Symbol{"System`Times"},
 				NewInt(1),
