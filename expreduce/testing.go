@@ -64,7 +64,7 @@ type SameTestEx struct {
 }
 
 func (this *SameTestEx) Run(t *testing.T, es *EvalState, td TestDesc) bool {
-	succ, s := CasTestInner(es, this.Out.Eval(es), this.In.Eval(es), this.In.String(), true, td.desc)
+	succ, s := CasTestInner(es, this.In.Eval(es), this.Out.Eval(es), this.In.String(), true, td.desc)
 	assert.True(t, succ, s)
 	return succ
 }
