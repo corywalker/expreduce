@@ -3,7 +3,48 @@ Power::usage = "`base^exp` finds `base` raised to the power of `exp`.";
 Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
 Power[Power[a_,b_Real],c_Integer] := a^(b*c);
 Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
+Power[Infinity, 0] := Indeterminate;
+Power[-Infinity, 0] := Indeterminate;
+Power[_, 0] := 1;
+Power[Infinity, 0.] := Indeterminate;
+Power[-Infinity, 0.] := Indeterminate;
+Power[_, 0.] := 1;
 Power[Infinity, -1] := 0;
+Power[Indeterminate, _] := Indeterminate;
+Power[_, Indeterminate] := Indeterminate;
+Power[1, a_] := 1;
+Power[b_?NumberQ, Infinity] := Which[
+    b < -1,
+    ComplexInfinity,
+    b === -1,
+    Indeterminate,
+    b < 1,
+    0,
+    b === 1,
+    Indeterminate,
+    b > 1,
+    Infinity,
+    True,
+    UnexpectedInfinitePowerBase
+];
+Power[b_, Infinity] := Indeterminate;
+Power[b_?NumberQ, -Infinity] := Which[
+    b < -1,
+    0,
+    b === -1,
+    Indeterminate,
+    b <= 0,
+    ComplexInfinity,
+    b < 1,
+    Infinity,
+    b === 1,
+    Indeterminate,
+    b > 1,
+    0,
+    True,
+    UnexpectedInfinitePowerBase
+];
+Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)
 (Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
 (first_ * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
@@ -98,7 +139,18 @@ Tests`Power = {
 
         ESameTest[ComplexInfinity, 0^(-1)],
 
-        ESameTest[{1}, ReplaceAll[a, a^p_. -> {p}]]
+        ESameTest[{1}, ReplaceAll[a, a^p_. -> {p}]],
+
+        ESameTest[0, 2^(-Infinity)],
+        ESameTest[0, (-2)^(-Infinity)],
+        ESameTest[Indeterminate, (-1)^(-Infinity)],
+        ESameTest[Indeterminate, (1)^(-Infinity)],
+        ESameTest[Indeterminate, (d)^(-Infinity)],
+        ESameTest[Infinity, 2^(Infinity)],
+        ESameTest[ComplexInfinity, (-2)^(Infinity)],
+        ESameTest[Indeterminate, (-1)^(Infinity)],
+        ESameTest[Indeterminate, (1)^(Infinity)],
+        ESameTest[Indeterminate, (d)^(Infinity)]
     ], EKnownFailures[
         (*Fix these when I have Abs functionality*)
         EStringTest["2.975379863266329e+1589", "39^999."],
@@ -109,6 +161,9 @@ Tests`Power = {
 };
 
 Log::usage = "`Log[e]` finds the natural logarithm of `e`.";
+Log[-1] := I*Pi;
+Log[0] := -Infinity;
+Log[1] := 0;
 Log[E] := 1;
 Log[E^p_?NumberQ] := p;
 Attributes[Log] = {Listable,NumericFunction,Protected};
@@ -126,6 +181,7 @@ Attributes[Sqrt] = {Listable, NumericFunction, Protected};
 Sqrt[0] := 0;
 Sqrt[1] := 1;
 Sqrt[a_Integer?Negative] := I*Sqrt[-a];
+Sqrt[-a_] := I*Sqrt[a];
 Sqrt[a_Real?Positive] := a^.5;
 Tests`Sqrt = {
     ESimpleExamples[

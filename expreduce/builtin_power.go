@@ -63,7 +63,7 @@ func GetPowerDefinitions() (defs []Definition) {
 			} else if baseIsInt {
 				basePositivity = baseInt.Val.Cmp(big.NewInt(0))
 			}
-			if powerPositivity == 0 {
+			if powerPositivity == 0 && (baseIsInt || baseIsFlt) {
 				if basePositivity == 0 {
 					return &Symbol{"System`Indeterminate"}
 				}
