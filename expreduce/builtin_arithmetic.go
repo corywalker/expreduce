@@ -340,5 +340,6 @@ func getArithmeticDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{Name: "Abs"})
+	defs = append(defs, Definition{Name: "Divide"})
 	return
 }

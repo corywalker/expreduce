@@ -27,10 +27,20 @@ func exprToN(es *EvalState, e Ex) Ex {
 		toReturn, _ := RationalToFlt(asRat)
 		return toReturn
 	}
+	_, isSym := e.(*Symbol)
+	if isSym {
+		toReturn, defined, _ := es.GetDef(
+			"System`N",
+			NewExpression([]Ex{&Symbol{"System`N"}, e}),
+		)
+		if defined {
+			return toReturn
+		}
+	}
 	asExpr, isExpr := e.(*Expression)
 	if isExpr {
 		toReturn, defined, _ := es.GetDef(
-			"N",
+			"System`N",
 			NewExpression([]Ex{&Symbol{"System`N"}, e}),
 		)
 		if defined {
@@ -39,7 +49,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 		exToReturn := NewEmptyExpression()
 		for _, part := range asExpr.Parts {
 			toAdd, defined, _ := es.GetDef(
-				"N",
+				"System`N",
 				NewExpression([]Ex{&Symbol{"System`N"}, part}),
 			)
 			if !defined {

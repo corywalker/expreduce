@@ -116,7 +116,8 @@ Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)
 Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;
 (1/Infinity) := 0;
 Times[ComplexInfinity, rest___] := ComplexInfinity;
-Cos[x_Symbol]*Sin[x_Symbol]^(-1)*rest___ := Cot[x]*rest;
+Sin[x_]*Cos[x_]^(-1)*rest___ := Tan[x]*rest;
+Cos[x_]*Sin[x_]^(-1)*rest___ := Cot[x]*rest;
 Attributes[Times] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected};
 Tests`Times = {
     ESimpleExamples[
@@ -197,6 +198,8 @@ Tests`Product = {
 
 Abs::usage = "`Abs[expr]` calculates the absolute value of `expr`.";
 Abs[a_?NumberQ] := If[a<0,-a,a];
+Abs[Infinity] := Infinity;
+Abs[ComplexInfinity] := Infinity;
 Abs[-a_] := Abs[a];
 Attributes[Abs] = {Listable, NumericFunction, Protected, ReadProtected};
 Tests`Abs = {
@@ -211,5 +214,14 @@ Tests`Abs = {
         ESameTest[0, Abs[0]],
         ESameTest[Abs[x^a], Abs[-x^a]],
         ESameTest[Abs[x^(a + b)], Abs[-x^(a + b)]]
+    ]
+};
+
+Divide::usage = "`Divide[a, b]` computes `a/b`.";
+Divide[a_,b_] := a/b;
+Attributes[Divide] = {Listable, NumericFunction, Protected};
+Tests`Divide = {
+    ESimpleExamples[
+        ESameTest[2, Divide[10, 5]]
     ]
 };

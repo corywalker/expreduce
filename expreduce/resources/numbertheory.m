@@ -91,12 +91,15 @@ Tests`LCM = {
 };
 
 Mod::usage = "`Mod[x, y]` finds the remainder when `x` is divided by `y`.";
+(* Factor out numeric constants like Pi: *)
+Mod[a_Integer*c_?NumericQ,b_Integer*c_?NumericQ] := c * Mod[a,b];
 Attributes[Mod] = {Listable, NumericFunction, ReadProtected, Protected};
 Tests`Mod = {
     ESimpleExamples[
         ESameTest[2, Mod[5,3]],
         ESameTest[0, Mod[0,3]],
-        ESameTest[Indeterminate, Mod[2,0]]
+        ESameTest[Indeterminate, Mod[2,0]],
+        ESameTest[Pi, Mod[-2 Pi,3 Pi]]
     ], ETests[
         ESameTest[1, Mod[-5,3]],
         ESameTest[Mod[a,3], Mod[a,3]],

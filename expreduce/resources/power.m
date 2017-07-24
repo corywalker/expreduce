@@ -162,10 +162,15 @@ Tests`Power = {
 
 Log::usage = "`Log[e]` finds the natural logarithm of `e`.";
 Log[-1] := I*Pi;
+Log[ComplexInfinity] := Infinity;
+Log[Infinity] := Infinity;
+Log[-ComplexInfinity] := Infinity;
+Log[-Infinity] := Infinity;
 Log[0] := -Infinity;
 Log[1] := 0;
 Log[E] := 1;
 Log[E^p_?NumberQ] := p;
+Log[Rational[1,b_]] := -Log[a];
 Attributes[Log] = {Listable,NumericFunction,Protected};
 Tests`Log = {
     ESimpleExamples[
