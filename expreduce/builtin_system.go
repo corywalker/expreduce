@@ -438,7 +438,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 			pathSym := &Symbol{"System`$Path"}
-			path, isDef, _ := es.GetDef("$Path", pathSym)
+			path, isDef, _ := es.GetDef("System`$Path", pathSym)
 			if !isDef {
 				return &Symbol{"System`$Failed"}
 			}
