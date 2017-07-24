@@ -184,7 +184,8 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !isd {
 				return &Symbol{"System`Null"}
 			}
-			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{def.String()}})
+			context, contextPath := DefinitionComplexityStringFormArgs()
+			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{def.StringForm("InputForm", context, contextPath)}})
 		},
 	})
 	defs = append(defs, Definition{
@@ -226,10 +227,11 @@ func GetSystemDefinitions() (defs []Definition) {
 			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
 		},
 		KnownFailures: []TestInstruction{
-			// Embarassing known failures until we fix the re-evaluation issue.
-			&SameTest{"a^4", "y=y*y"},
+			// Set up for the known failure:
 			&SameTest{"a^2", "y=a*a"},
+			&SameTest{"a^4", "y=y*y"},
 			&SameTest{"2", "a=2"},
+			// Known failure until we fix the re-evaluation issue.
 			&SameTest{"16", "y"},
 			&SameTest{"Null", "Clear[a]"},
 		},

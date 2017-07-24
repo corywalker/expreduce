@@ -540,13 +540,14 @@ Tests`Variables = {
         ESameTest[{a^"Hello"}, Variables[a^"Hello"]],
         ESameTest[{}, Variables[2^"Hello"]],
         ESameTest[{}, Variables[2^"Hello"^2]],
-        ESameTest[{a^"Hello"^2}, Variables[a^"Hello"^2]]
+        ESameTest[{a^"Hello"^2}, Variables[a^"Hello"^2]],
+
+        ESameTest[{}, Variables[Pi^y]]
     ], EKnownFailures[
         (*I think these have to do with NumericQ.*)
         ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
         ESameTest[{a}, Variables[Sqrt[a]]],
-        ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]],
-        ESameTest[{}, Variables[Pi^y]]
+        ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]]
     ]
 };
 

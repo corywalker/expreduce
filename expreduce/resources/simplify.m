@@ -1,6 +1,3 @@
-(*THIS FUNCTION IS CURRENTLY DISABLED*)
-(*See builtin_simplify.go for why*)
-
 Simplify::usage = "`Simplify[expr]` attempts to perform simplification operations on `expr`.";
 Simplify[exp_] := exp //. {
     (*a_ && a_  :> a,*)

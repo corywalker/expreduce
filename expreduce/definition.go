@@ -35,3 +35,16 @@ func (this *Def) String() string {
 	buffer.WriteString("}")
 	return buffer.String()
 }
+
+func (def *Def) StringForm(form string, context *String, contextPath *Expression) string {
+	var buffer bytes.Buffer
+	buffer.WriteString("{")
+	for i, e := range def.downvalues {
+		buffer.WriteString(e.StringForm(form, context, contextPath))
+		if i != len(def.downvalues)-1 {
+			buffer.WriteString("\n")
+		}
+	}
+	buffer.WriteString("}")
+	return buffer.String()
+}

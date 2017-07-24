@@ -1,6 +1,7 @@
 D::usage = "`D[f, x]` finds the partial derivative of `f` with respect to `x`.";
+D[Indeterminate, x_] := Indeterminate;
 D[x_,x_] := 1;
-D[a_,x_] := 0 /; FreeQ[a,x];
+D[a_,x_] := 0 /; (FreeQ[a,x] && a =!= Indeterminate);
 D[a_+b_,x_] := D[a,x]+D[b,x];
 D[a_ b_,x_] := D[a,x]*b + a*D[b,x];
 (*Chain rule*)
@@ -8,6 +9,7 @@ D[a_ b_,x_] := D[a,x]*b + a*D[b,x];
 D[f_[g_[x_Symbol]], x_Symbol] := (Evaluate[D[f[#], #]] &)[g[x]]*D[g[x],x];
 (*The times operator is needed here. Whitespace precedence is messed up*)
 D[a_^(b_), x_] := a^b*(D[b,x] Log[a]+D[a,x]/a*b);
+D[Abs[a_], x_] := If[FreeQ[a, x], 0, Derivative[1][Abs][x]];
 D[Log[a_], x_] := D[a, x]/a;
 D[Sin[a_], x_] := D[a,x] Cos[a];
 D[Cos[a_], x_] := -D[a,x] Sin[a];
