@@ -93,8 +93,6 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`String")
 		es.MarkSeen("System`True")
 		es.MarkSeen("System`False")
-		es.MarkSeen("System`Log")
-		es.MarkSeen("System`Sqrt")
 
 		es.MarkSeen("System`InputForm")
 		es.MarkSeen("System`OutputForm")
@@ -110,6 +108,9 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`EExampleOnlyInstruction")
 		es.MarkSeen("System`EComment")
 		es.MarkSeen("System`EResetState")
+		es.MarkSeen("System`Debug")
+		es.MarkSeen("System`Info")
+		es.MarkSeen("System`Notice")
 		es.MarkSeen("System`Echo")
 
 		es.MarkSeen("System`Attributes")
@@ -132,6 +133,13 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`SequenceHold")
 		es.MarkSeen("System`Temporary")
 		es.MarkSeen("System`Stub")
+
+		es.MarkSeen("System`Sec")
+		es.MarkSeen("System`Csc")
+		es.MarkSeen("System`Cot")
+		es.MarkSeen("System`ArcSin")
+		es.MarkSeen("System`ArcCos")
+		es.MarkSeen("System`ArcTan")
 
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
@@ -325,10 +333,10 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	// "complexity" score, order then matters. TODO: Create better measure of
 	// complexity (or specificity)
 	var tmp = this.defined[name]
-	context, contextPath := DefaultStringFormArgs()
+	context, contextPath := DefinitionComplexityStringFormArgs()
 	newLhsLen := len(lhs.StringForm("InputForm", context, contextPath))
 	for i := range this.defined[name].downvalues {
-		thisLhsLen := len(this.defined[name].downvalues[i].Parts[1].String())
+		thisLhsLen := len(this.defined[name].downvalues[i].Parts[1].StringForm("InputForm", context, contextPath))
 		if thisLhsLen < newLhsLen {
 			tmp.downvalues = append(tmp.downvalues[:i], append([]Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})}, this.defined[name].downvalues[i:]...)...)
 			this.defined[name] = tmp

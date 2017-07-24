@@ -1,8 +1,6 @@
 Infinity::usage = "`Infinity` represents the mathematical concept of infinity.";
-Plus[Infinity, _Integer, rest___] := Infinity + rest;
-Plus[Infinity, _Real, rest___] := Infinity + rest;
-Plus[-Infinity, _Integer, rest___] := -Infinity + rest;
-Plus[-Infinity, _Real, rest___] := -Infinity + rest;
+Plus[Infinity, _, rest___] := Infinity + rest;
+Plus[-Infinity, _, rest___] := -Infinity + rest;
 Plus[Infinity, -Infinity, rest___] := Indeterminate + rest;
 Attributes[Infinity] = {ReadProtected, Protected};
 Tests`Infinity = {

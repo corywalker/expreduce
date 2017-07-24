@@ -3,11 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"os"
-	"runtime/pprof"
-	"log"
 	"github.com/corywalker/expreduce/expreduce"
 	"gopkg.in/readline.v1"
+	"log"
+	"os"
+	"runtime/pprof"
 )
 
 var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")

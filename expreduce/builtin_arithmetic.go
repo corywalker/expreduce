@@ -289,6 +289,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 						&Symbol{"System`Alternatives"},
 						&Symbol{"System`Infinity"},
 						&Symbol{"System`ComplexInfinity"},
+						&Symbol{"System`Indeterminate"},
 					}), es)
 					if containsInfinity {
 						return &Symbol{"System`Indeterminate"}
@@ -339,5 +340,6 @@ func getArithmeticDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{Name: "Abs"})
+	defs = append(defs, Definition{Name: "Divide"})
 	return
 }

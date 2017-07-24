@@ -5,6 +5,22 @@ import (
 	"math/big"
 )
 
+func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(*Expression, *EvalState) Ex {
+	return (func(this *Expression, es *EvalState) Ex {
+		if len(this.Parts) != 2 {
+			return this
+		}
+
+		flt, ok := this.Parts[1].(*Flt)
+		if ok {
+			if !onlyPos || flt.Val.Cmp(big.NewFloat(0)) == 1 {
+				return &Flt{fn(flt.Val)}
+			}
+		}
+		return this
+	})
+}
+
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Power",
@@ -35,31 +51,29 @@ func GetPowerDefinitions() (defs []Definition) {
 				}
 			}
 			// Anything raised to the 0th power is 1, with a small exception
-			isZerothPower := false
+			powerPositivity := -2
 			if powerIsFlt {
-				if powerFlt.Val.Cmp(big.NewFloat(0)) == 0 {
-					isZerothPower = true
-				}
+				powerPositivity = powerFlt.Val.Cmp(big.NewFloat(0))
 			} else if powerIsInt {
-				if powerInt.Val.Cmp(big.NewInt(0)) == 0 {
-					isZerothPower = true
-				}
+				powerPositivity = powerInt.Val.Cmp(big.NewInt(0))
 			}
-			isZeroBase := false
+			basePositivity := -2
 			if baseIsFlt {
-				if baseFlt.Val.Cmp(big.NewFloat(0)) == 0 {
-					isZeroBase = true
-				}
+				basePositivity = baseFlt.Val.Cmp(big.NewFloat(0))
 			} else if baseIsInt {
-				if baseInt.Val.Cmp(big.NewInt(0)) == 0 {
-					isZeroBase = true
-				}
+				basePositivity = baseInt.Val.Cmp(big.NewInt(0))
 			}
-			if isZerothPower {
-				if isZeroBase {
+			if powerPositivity == 0 && (baseIsInt || baseIsFlt) {
+				if basePositivity == 0 {
 					return &Symbol{"System`Indeterminate"}
 				}
 				return &Integer{big.NewInt(1)}
+			}
+			if powerPositivity == 1 && basePositivity == 0 {
+				return this.Parts[1]
+			}
+			if basePositivity == -1 && powerIsFlt {
+				return this
 			}
 
 			//es.Debugf("Power eval. baseIsInt=%v, powerIsInt=%v", baseIsInt, powerIsInt)
@@ -127,6 +141,12 @@ func GetPowerDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{Name: "Expand"})
+	defs = append(defs, Definition{
+		Name: "Log",
+		legacyEvalFn: bigMathFnOneParam(mathbigext.Log, true),
+	})
+	defs = append(defs, Definition{Name: "Sqrt"})
+	defs = append(defs, Definition{Name: "I"})
 	defs = append(defs, Definition{Name: "PolynomialQ"})
 	defs = append(defs, Definition{Name: "Exponent"})
 	defs = append(defs, Definition{Name: "Coefficient"})

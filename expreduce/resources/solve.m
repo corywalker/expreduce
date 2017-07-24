@@ -2,7 +2,7 @@ Solve::usage = "`Solve[eqn, var]` solves `eqn` for `var`.";
 Solve[x_ == expr_, x_] := {{x -> expr}};
 Solve[x_ * exprB__ == exprA_, x_] := {{x -> exprA / Times[exprB]}};
 Solve[x_ * exprB__ + exprC_ == exprA_, x_] := {{x -> (exprA-exprC) / Times[exprB]}};
-Solve[a_*x_^2 + b_*x_ + c_ == d_, x_] := {{x -> (-b - Sqrt[b^2 - 4 a c + 4 a d])/(2 a)}, {x -> (-b + Sqrt[b^2 - 4 a c + 4 a d])/(2 a)}};
+Solve[a_.*x_^2 + b_.*x_ + c_ == d_, x_] := {{x -> (-b - Sqrt[b^2 - 4 a c + 4 a d])/(2 a)}, {x -> (-b + Sqrt[b^2 - 4 a c + 4 a d])/(2 a)}};
 Attributes[Solve] = {Protected};
 Tests`Solve = {
     ESimpleExamples[

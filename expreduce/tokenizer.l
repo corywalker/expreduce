@@ -97,7 +97,12 @@ comment         "(*"([^*\x80]|\*+[^*)\x80])*\*+\)
 
 {S}
     tmps := string(y.buf)
-    lval.val = &String{tmps[1:len(tmps)-1]}
+    tmps = tmps[1:len(tmps)-1]
+    // Handle some escape characters
+    tmps = strings.Replace(tmps, "\\\"", "\"", -1)
+    tmps = strings.Replace(tmps, "\\n", "\n", -1)
+    tmps = strings.Replace(tmps, "\\t", "\t", -1)
+    lval.val = &String{tmps}
     return STRING
 
 \( return LPARSYM /* skipped */

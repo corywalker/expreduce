@@ -1,13 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"bytes"
 	"flag"
-	"strings"
-	"regexp"
-	"log"
+	"fmt"
 	"github.com/corywalker/expreduce/expreduce"
+	"log"
+	"regexp"
+	"strings"
 )
 
 var modules = flag.String("modules", "",

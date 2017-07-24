@@ -35,29 +35,29 @@ go run calc.go
 
 Welcome to Expreduce!
 
-In[1]:= D[Sin[x]/x,x]
+In[1]:= D[Cos[Log[Sin[x]]+x]+x,x]
 
-Out[1]= ((-1 * x^-2 * Sin[x]) + (Cos[x] * x^-1))
+Out[1]= (1 + (-1 * (1 + Cot[x]) * Sin[(x + Log[Sin[x]])]))
 
-In[2]:= Table[a^2,{a,1,10}]
+In[2]:= Integrate[5*E^(3*x),{x,2,a}] // Expand
 
-Out[2]= {1, 4, 9, 16, 25, 36, 49, 64, 81, 100}
+Out[2]= ((-5/3 * E^6) + (5/3 * E^(3 * a)))
 
 In[3]:= Sum[i, {i, 1, n}]
 
-Out[3]= (1/2 * (1 + n) * n)
+Out[3]= (1/2 * n * (1 + n))
 
-In[4]:= (2^(-1) * n * (1 + n)) /. n->5
+In[4]:= Together[(1/2 + 3/a)^2+b/c]
 
-Out[4]= 15
+Out[4]= (1/4 * a^-2 * c^-1 * ((4 * a^2 * b) + (36 * c) + (12 * a * c) + (a^2 * c)))
 
-In[5]:= Total[Table[i,{i,1,5}]]
+In[5]:= 40!
 
-Out[5]= 15
+Out[5]= 815915283247897734345611269596115894272000000000
 
-In[6]:= bar[1, foo[a, b]] + bar[2, foo[a, b]] /. bar[amatch_Integer, foo[cmatch__]] + bar[bmatch_Integer, foo[cmatch__]] -> bar[amatch + bmatch, foo[cmatch]]
+In[6]:= Solve[x^2-x-2.5==0,x]
 
-Out[6]= bar[3, foo[a, b]]
+Out[6]= {{(x) -> (-1.15831)}, {(x) -> (2.15831)}}
 ```
 
 # Other projects

@@ -69,6 +69,16 @@ func DefaultStringFormArgs() (*String, *Expression) {
 	})
 }
 
+func DefinitionComplexityStringFormArgs() (*String, *Expression) {
+	// This was created because the "Private`" names in the blanks were
+	// indicating greater complexity than they deserved.
+	return &String{"Global`"}, NewExpression([]Ex{
+		&Symbol{"System`List"},
+		&String{"System`"},
+		&String{"Private`"},
+	})
+}
+
 func ActualStringFormArgs(es *EvalState) (*String, *Expression) {
 	return &String{es.GetStringDef("System`$Context", "Global`")}, es.GetListDef("System`$ContextPath")
 }

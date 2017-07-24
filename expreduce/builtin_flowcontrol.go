@@ -72,5 +72,24 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Return",
 	})
+	defs = append(defs, Definition{
+		Name: "Which",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) % 2 != 1 {
+				return this
+			}
+			for i := 1; i < len(this.Parts); i += 2 {
+				condRes := this.Parts[i].Eval(es)
+				resSym, resIsSym := condRes.(*Symbol)
+				if !resIsSym {
+					continue
+				}
+				if resSym.Name == "System`True" {
+					return this.Parts[i+1]
+				}
+			}
+			return &Symbol{"System`Null"}
+		},
+	})
 	return
 }

@@ -3,7 +3,48 @@ Power::usage = "`base^exp` finds `base` raised to the power of `exp`.";
 Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
 Power[Power[a_,b_Real],c_Integer] := a^(b*c);
 Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
+Power[Infinity, 0] := Indeterminate;
+Power[-Infinity, 0] := Indeterminate;
+Power[_, 0] := 1;
+Power[Infinity, 0.] := Indeterminate;
+Power[-Infinity, 0.] := Indeterminate;
+Power[_, 0.] := 1;
 Power[Infinity, -1] := 0;
+Power[Indeterminate, _] := Indeterminate;
+Power[_, Indeterminate] := Indeterminate;
+Power[1, a_] := 1;
+Power[b_?NumberQ, Infinity] := Which[
+    b < -1,
+    ComplexInfinity,
+    b === -1,
+    Indeterminate,
+    b < 1,
+    0,
+    b === 1,
+    Indeterminate,
+    b > 1,
+    Infinity,
+    True,
+    UnexpectedInfinitePowerBase
+];
+Power[b_, Infinity] := Indeterminate;
+Power[b_?NumberQ, -Infinity] := Which[
+    b < -1,
+    0,
+    b === -1,
+    Indeterminate,
+    b <= 0,
+    ComplexInfinity,
+    b < 1,
+    Infinity,
+    b === 1,
+    Indeterminate,
+    b > 1,
+    0,
+    True,
+    UnexpectedInfinitePowerBase
+];
+Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)
 (Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
 (first_ * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
@@ -98,7 +139,18 @@ Tests`Power = {
 
         ESameTest[ComplexInfinity, 0^(-1)],
 
-        ESameTest[{1}, ReplaceAll[a, a^p_. -> {p}]]
+        ESameTest[{1}, ReplaceAll[a, a^p_. -> {p}]],
+
+        ESameTest[0, 2^(-Infinity)],
+        ESameTest[0, (-2)^(-Infinity)],
+        ESameTest[Indeterminate, (-1)^(-Infinity)],
+        ESameTest[Indeterminate, (1)^(-Infinity)],
+        ESameTest[Indeterminate, (d)^(-Infinity)],
+        ESameTest[Infinity, 2^(Infinity)],
+        ESameTest[ComplexInfinity, (-2)^(Infinity)],
+        ESameTest[Indeterminate, (-1)^(Infinity)],
+        ESameTest[Indeterminate, (1)^(Infinity)],
+        ESameTest[Indeterminate, (d)^(Infinity)]
     ], EKnownFailures[
         (*Fix these when I have Abs functionality*)
         EStringTest["2.975379863266329e+1589", "39^999."],
@@ -107,6 +159,48 @@ Tests`Power = {
         EStringTest["1.9950631168791027e+3010", ".5^-10000"]
     ]
 };
+
+Log::usage = "`Log[e]` finds the natural logarithm of `e`.";
+Log[-1] := I*Pi;
+Log[ComplexInfinity] := Infinity;
+Log[Infinity] := Infinity;
+Log[-ComplexInfinity] := Infinity;
+Log[-Infinity] := Infinity;
+Log[0] := -Infinity;
+Log[1] := 0;
+Log[E] := 1;
+Log[E^p_?NumberQ] := p;
+Log[Rational[1,b_]] := -Log[a];
+Attributes[Log] = {Listable,NumericFunction,Protected};
+Tests`Log = {
+    ESimpleExamples[
+        ESameTest[1, Log[E]],
+        ESameTest[-2, Log[E^(-2)]],
+        ESameTest[Log[2], Log[2]]
+    ]
+};
+
+Sqrt::usage = "`Sqrt[e]` finds the square root of `e`.";
+(*TODO: automatically simplify perfect squares*)
+Attributes[Sqrt] = {Listable, NumericFunction, Protected};
+Sqrt[0] := 0;
+Sqrt[1] := 1;
+Sqrt[a_Integer?Negative] := I*Sqrt[-a];
+Sqrt[-a_] := I*Sqrt[a];
+Sqrt[a_Real?Positive] := a^.5;
+Tests`Sqrt = {
+    ESimpleExamples[
+        ESameTest[Sqrt[3], Sqrt[3]],
+        ESameTest[I, Sqrt[-1]],
+        ESameTest[I * Sqrt[3], Sqrt[-3]],
+        ESameTest[1, Sqrt[1]],
+        ESameTest[0, Sqrt[0]]
+    ]
+};
+
+(*TODO: actually use Complex atom type*)
+I::usage = "`I` is the imaginary number representing `Sqrt[-1]`.";
+Attributes[I] = {Locked, Protected, ReadProtected};
 
 possibleExponents[n_Integer, m_Integer] := 
  Flatten[Permutations /@ ((PadRight[#, m]) & /@ 
@@ -446,13 +540,14 @@ Tests`Variables = {
         ESameTest[{a^"Hello"}, Variables[a^"Hello"]],
         ESameTest[{}, Variables[2^"Hello"]],
         ESameTest[{}, Variables[2^"Hello"^2]],
-        ESameTest[{a^"Hello"^2}, Variables[a^"Hello"^2]]
+        ESameTest[{a^"Hello"^2}, Variables[a^"Hello"^2]],
+
+        ESameTest[{}, Variables[Pi^y]]
     ], EKnownFailures[
         (*I think these have to do with NumericQ.*)
         ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
         ESameTest[{a}, Variables[Sqrt[a]]],
-        ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]],
-        ESameTest[{}, Variables[Pi^y]]
+        ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]]
     ]
 };
 

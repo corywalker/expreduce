@@ -144,7 +144,8 @@ Tests`Order = {
         ESameTest[1, Order[x^4*y^2,x^2*y^4]],
         ESameTest[1, Order[x^2*y,2*x*y^2]],
         ESameTest[1, Order[c, 5 * b * c]],
-        ESameTest[{-1,-1.,-0.1,0,0.1,0.11,2,2,2.,0.5^x,2^x,x,2 x,x^2,x^x,x^(2 x),xxx,2 y}, Sort[{-1,-1.,0.1,0.11,2.,-.1,2,0,2,2*x,2*y,x,xxx,2^x,x^2,x^x,x^(2*x),.5^x}]]
+        ESameTest[{-1,-1.,-0.1,0,0.1,0.11,2,2,2.,0.5^x,2^x,x,2 x,x^2,x^x,x^(2 x),xxx,2 y}, Sort[{-1,-1.,0.1,0.11,2.,-.1,2,0,2,2*x,2*y,x,xxx,2^x,x^2,x^x,x^(2*x),.5^x}]],
+        ESameTest[-1, Order[foo[x],-x]]
     ], EKnownFailures[
         ESameTest[{a,A,b,B}, Sort[{a,A,b,B}]]
     ]

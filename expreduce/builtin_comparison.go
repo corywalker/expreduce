@@ -24,11 +24,8 @@ func getComparisonDefinitions() (defs []Definition) {
 			}
 			if isequal {
 				return &Symbol{"System`True"}
-			} else {
-				return &Symbol{"System`False"}
 			}
-
-			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected equality return value."}})
+			return &Symbol{"System`False"}
 		},
 	})
 	defs = append(defs, Definition{

@@ -10,8 +10,7 @@ Tests`NumericQ = {
     ], ETests[
         ESameTest[True, NumericQ[Cos[2]]],
         ESameTest[False, NumericQ[Sqrt[a]]],
-        ESameTest[False, NumericQ[Sqrt[Sin[2]]*Sqrt[Sin[x]]]]
-    ], EKnownFailures[
+        ESameTest[False, NumericQ[Sqrt[Sin[2]]*Sqrt[Sin[x]]]],
         ESameTest[True, NumericQ[Sqrt[2]]]
     ]
 };

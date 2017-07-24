@@ -27,10 +27,20 @@ func exprToN(es *EvalState, e Ex) Ex {
 		toReturn, _ := RationalToFlt(asRat)
 		return toReturn
 	}
+	_, isSym := e.(*Symbol)
+	if isSym {
+		toReturn, defined, _ := es.GetDef(
+			"System`N",
+			NewExpression([]Ex{&Symbol{"System`N"}, e}),
+		)
+		if defined {
+			return toReturn
+		}
+	}
 	asExpr, isExpr := e.(*Expression)
 	if isExpr {
 		toReturn, defined, _ := es.GetDef(
-			"N",
+			"System`N",
 			NewExpression([]Ex{&Symbol{"System`N"}, e}),
 		)
 		if defined {
@@ -39,7 +49,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 		exToReturn := NewEmptyExpression()
 		for _, part := range asExpr.Parts {
 			toAdd, defined, _ := es.GetDef(
-				"N",
+				"System`N",
 				NewExpression([]Ex{&Symbol{"System`N"}, part}),
 			)
 			if !defined {
@@ -174,7 +184,8 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !isd {
 				return &Symbol{"System`Null"}
 			}
-			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{def.String()}})
+			context, contextPath := DefinitionComplexityStringFormArgs()
+			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{def.StringForm("InputForm", context, contextPath)}})
 		},
 	})
 	defs = append(defs, Definition{
@@ -216,10 +227,11 @@ func GetSystemDefinitions() (defs []Definition) {
 			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
 		},
 		KnownFailures: []TestInstruction{
-			// Embarassing known failures until we fix the re-evaluation issue.
-			&SameTest{"a^4", "y=y*y"},
+			// Set up for the known failure:
 			&SameTest{"a^2", "y=a*a"},
+			&SameTest{"a^4", "y=y*y"},
 			&SameTest{"2", "a=2"},
+			// Known failure until we fix the re-evaluation issue.
 			&SameTest{"16", "y"},
 			&SameTest{"Null", "Clear[a]"},
 		},
@@ -426,7 +438,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 			pathSym := &Symbol{"System`$Path"}
-			path, isDef, _ := es.GetDef("$Path", pathSym)
+			path, isDef, _ := es.GetDef("System`$Path", pathSym)
 			if !isDef {
 				return &Symbol{"System`$Failed"}
 			}

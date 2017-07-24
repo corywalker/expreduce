@@ -1,6 +1,7 @@
 package expreduce
 
 import "log"
+import "fmt"
 
 type Rule struct {
 	Lhs string
@@ -87,6 +88,10 @@ func ToTestInstructions(tc *Expression) []TestInstruction {
 			instructions = append(instructions, &ResetState{})
 			continue
 		}
+		if _, isSt := HeadAssertion(tiEx, "System`List"); isSt {
+			fmt.Printf("Ignoring unfilled test: %v\n", tiEx)
+			continue
+		}
 		log.Fatalf("Invalid test case: %v\n", tiEx)
 	}
 	return instructions
@@ -142,10 +147,10 @@ func (def *Definition) AnnotateWithDynamicUsage(es *EvalState) {
 	}
 	lhs := NewExpression([]Ex{
 		&Symbol{"System`MessageName"},
-		&Symbol{def.Name},
+		&Symbol{"System`" + def.Name},
 		&String{"usage"},
 	})
-	usage, usageIsDef, _ := es.GetDef("MessageName", lhs)
+	usage, usageIsDef, _ := es.GetDef("System`MessageName", lhs)
 	if !usageIsDef {
 		return
 	}

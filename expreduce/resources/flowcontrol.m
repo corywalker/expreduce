@@ -58,3 +58,15 @@ Tests`Return = {
         ESameTest[Null, retother:=(Return[];hello);retother]
     ]
 };
+
+Which::usage = "`Which[cond, res, cond, res, ...]` tries each `cond` in sequence and returns the corresponding result if True.";
+Attributes[Which] = {HoldAll, Protected};
+Tests`Which = {
+    ESimpleExamples[
+        ESameTest[b, Which[1>2, a, 1<2, b]],
+        ESameTest[Null, Which[2>2, a, 2<2, b]]
+    ], ETests[
+        ESameTest[Which[True, a, b], Which[True, a, b]],
+        ESameTest[Null, Which[False,a,False,b]]
+    ]
+};

@@ -103,7 +103,22 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
 }
 
 func Replace(this Ex, r *Expression, es *EvalState) (Ex, bool) {
-	if res, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es); res {
+	if asCond, isCond := HeadAssertion(r.Parts[2], "System`Condition"); isCond {
+		mi, cont := NewMatchIter(this, r.Parts[1], EmptyPD(), es)
+		for cont {
+			res, matches, done := mi.next()
+			cont = !done
+			if res {
+				condRes := ReplacePD(asCond.Parts[2], es, matches).Eval(es)
+				condResSymbol, condResIsSymbol := condRes.(*Symbol)
+				if condResIsSymbol {
+					if condResSymbol.Name == "System`True" {
+						return ReplacePD(asCond.Parts[1], es, matches), true
+					}
+				}
+			}
+		}
+	} else if res, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es); res {
 		return ReplacePD(r.Parts[2], es, matches), true
 	}
 	return this, false
