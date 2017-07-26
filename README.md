@@ -13,26 +13,18 @@ Now that the kernel understands the product rule, when it later encounters a pat
 
 The term rewriting system and pattern matching engine is fairly advanced. The computer algebra system at this stage is extremely limited, but simple calculus and algebraic manipulation is certainly supported (see examples below). If you are looking for a more mature computer algebra system, please consider using Mathematica (proprietary) or Mathics (open source, Sympy-backed).
 
+# Install and run
+```
+go get github.com/corywalker/expreduce
+expreduce
+```
+
 ## Documentation
 
 Expreduce has documentation for every function that is supported. [Link to documentation](https://corywalker.github.io/expreduce-docs/).
 
-# Installation
-```
-go get github.com/corywalker/expreduce/expreduce
-```
-
 # Example
-To run the example CAS prompt:
-
 ```
-cd example
-go run calc.go
-```
-
-```
-# go run calc.go
-
 Welcome to Expreduce!
 
 In[1]:= D[Cos[Log[Sin[x]]+x]+x,x]
@@ -87,8 +79,12 @@ Also of interest is to build up some formal theory on the rule definitions. Ther
 
 # Development
 
-To run the tests:
+Pretty standard Go workflow. Just remember to `go generate`.
 ```
-cd expreduce
-go test
+# To update any .m changes or changes to the parser:
+go generate ./...
+# To run the test suite:
+go test ./...
 ```
+
+The use of `go generate` might require the download of additional dependencies.
