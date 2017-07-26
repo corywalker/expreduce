@@ -1,3 +1,5 @@
+CAUTION: may be outdated
+
 a + 2*b + 5*b /. (c1_Integer*matcha_Symbol) + (c2_Integer*matcha_Symbol) -> (c1+c2)*matcha
 a + b * b /. matcha_Symbol * matcha_Symbol -> matcha^2
 a + b - b /. matcha_ - matcha_ -> 0
