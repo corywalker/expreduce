@@ -464,7 +464,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					continue
 				}
 				fileData := string(dat)
-				return Interp(fileData[:len(fileData)-1], es)
+				return EvalInterpMany(fileData[:len(fileData)-1], es)
 			}
 			return &Symbol{"System`$Failed"}
 		},

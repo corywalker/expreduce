@@ -207,6 +207,10 @@ func Interp(line string, es *EvalState) Ex {
 	parser.Parse(lex)
 
 	parsed := parser.(*CalcParserImpl).lval.val
+	// This can happen when we only enter a comment.
+	if parsed == nil {
+		return &Symbol{"System`Null"}
+	}
 	// Remove outer parens
 	parens, isParens := NewEmptyExpression(), true
 	for isParens {
@@ -233,6 +237,9 @@ func EvalInterp(line string, es *EvalState) Ex {
 func EvalInterpMany(doc string, es *EvalState) Ex {
 	var last Ex
 	for _, expr := range strings.Split(doc, "\n\n\n") {
+		if len(strings.TrimSpace(expr)) == 0 {
+			continue
+		}
 		last = EvalInterp(expr, es)
 	}
 	return last
