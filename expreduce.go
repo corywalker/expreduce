@@ -72,7 +72,8 @@ func main() {
 			}
 			wasSpecialForm := false
 			for _, specialForm := range specialForms {
-				asSpecialForm, isSpecialForm := expreduce.HeadAssertion(res, specialForm)
+				asSpecialForm, isSpecialForm := expreduce.HeadAssertion(
+					res, specialForm)
 				if !isSpecialForm {
 					continue
 				}
@@ -83,12 +84,14 @@ func main() {
 					"Out[%d]//%s= %s\n\n",
 					promptNum,
 					specialForm[7:],
-					asSpecialForm.Parts[1].StringForm(specialForm[7:], context, contextPath),
+					asSpecialForm.Parts[1].StringForm(
+						specialForm[7:], context, contextPath),
 				)
 				wasSpecialForm = true
 			}
 			if !wasSpecialForm {
-				fmt.Printf("Out[%d]= %s\n\n", promptNum, res.StringForm("InputForm", context, contextPath))
+				fmt.Printf("Out[%d]= %s\n\n", promptNum, res.StringForm(
+					"InputForm", context, contextPath))
 			}
 		}
 
