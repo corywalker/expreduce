@@ -14,6 +14,12 @@ Now that the kernel understands the product rule, when it later encounters a pat
 The term rewriting system and pattern matching engine is fairly advanced. The computer algebra system at this stage is extremely limited, but simple calculus and algebraic manipulation is certainly supported (see examples below). If you are looking for a more mature computer algebra system, please consider using Mathematica (proprietary) or Mathics (open source, Sympy-backed).
 
 # Install and run
+
+[DOWNLOAD HERE](https://github.com/corywalker/expreduce/releases/latest)
+
+If you just want to get started, you can download a binary release and run the software without any downloading Go or compiling. Head over to the [latest release](https://github.com/corywalker/expreduce/releases/latest) and download the correct package for your OS.
+
+## From source
 ```
 go get github.com/corywalker/expreduce
 expreduce
