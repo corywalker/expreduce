@@ -37,3 +37,23 @@ Tests`Infix = {
         ESameTest["(bar|fuzz|zip)", Infix[foo[Global`bar, Global`fuzz, Global`zip], "|"] // ToString]
     ]
 };
+
+StringLength::usage = "`StringLength[s]` returns the length of s.";
+Attributes[StringLength] = {Listable, Protected};
+Tests`StringLength = {
+    ESimpleExamples[
+        ESameTest[5, StringLength["Hello"]]
+    ]
+};
+
+StringTake::usage = "`StringTake[s, {start, end}]` takes a substring of s.";
+Attributes[StringTake] = {Protected};
+Tests`StringTake = {
+    ESimpleExamples[
+        ESameTest["h", StringTake["hello", {1, 1}]],
+        ESameTest[StringTake["hello", {0, 1}], StringTake["hello", {0, 1}]],
+        ESameTest["hello", StringTake["hello", {1, StringLength["hello"]}]],
+        ESameTest["", StringTake["hello", {2, 1}]],
+        ESameTest[StringTake["hello", {2, 999}], StringTake["hello", {2, 999}]]
+    ]
+};
