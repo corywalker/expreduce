@@ -574,5 +574,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			return &Integer{i}
 		},
 	})
+	defs = append(defs, Definition{Name: "BeginPackage"})
+	defs = append(defs, Definition{Name: "EndPackage"})
 	return
 }
