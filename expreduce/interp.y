@@ -5,6 +5,7 @@ package expreduce
 import (
 	"math/big"
 	"strings"
+	/*"fmt"*/
 )
 
 %}
@@ -22,7 +23,7 @@ import (
 %type <valSeq> exprseq
 
 // same for terminals
-%token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM PATTESTSYM ALTSYM SAMESYM EQUALSYM UNEQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM EXCLAMATIONSYM FUNCTIONSYM SPANSYM LESSEQUALSYM LESSSYM GREATEREQUALSYM GREATERSYM ORSYM ANDSYM COLONSYM GETSYM UNSAMESYM
+%token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM NAME PATTERN
 
 /*Adding some of the tokens above to this precedence list can decrease the*/
 /*number of conflicts*/
@@ -60,7 +61,7 @@ import (
 %left STRINGJOINSYM
 %left EXCLAMATIONSYM
 %right APPLYSYM
-%right MAPSYN
+%right MAPSYM
 %right FUNCAPPSYM
 %left PATTESTSYM
 %left GETSYM
@@ -97,7 +98,7 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  fullyAssoc("System`CompoundExpression", $1, $3) }
 	|    expr SEMISYM
 		{ $$  =  fullyAssoc("System`CompoundExpression", $1, &Symbol{"System`Null"}) }
-	|    expr EXCLAMATIONSYM expr
+	|    expr EXCLAMATIONSYM expr %prec MULTSYM
 		{ $$  =  NewExpression([]Ex{
 		             &Symbol{"System`Times"},
 		             NewExpression([]Ex{
@@ -107,9 +108,9 @@ expr	:    LPARSYM expr RPARSYM
 					 $3,
 			      })
 		}
-	|    expr EXCLAMATIONSYM
+	|    expr EXCLAMATIONSYM %prec APPLYSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Factorial"}, $1}) }
-	|    EXCLAMATIONSYM expr
+	|    EXCLAMATIONSYM expr %prec ANDSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Not"}, $2}) }
 	|    expr FUNCTIONSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Function"}, $1}) }
@@ -228,9 +229,9 @@ expr	:    LPARSYM expr RPARSYM
 				$$  =  NewExpression([]Ex{&Symbol{"System`Times"}, $2, &Integer{big.NewInt(-1)}})
 			}
 		}
-	|    SLOTSYM
+	|    SLOTSYM %prec PLUSSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Slot"}, &Integer{big.NewInt(1)}}) }
-	|    SLOTSYM INTEGER
+	|    SLOTSYM INTEGER %prec DIVSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Slot"}, $2}) }
 	|    GETSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Get"}, $2}) }
@@ -336,6 +337,7 @@ func Interp(line string, es *EvalState) Ex {
 	CalcParse(lex)
 
 	parsed := lex.expr
+	/*fmt.Printf("%v\n", parsed)*/
 	// This can happen when we only enter a comment.
 	if parsed == nil {
 		return &Symbol{"System`Null"}
