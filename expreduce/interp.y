@@ -22,7 +22,7 @@ import (
 %type <valSeq> exprseq
 
 // same for terminals
-%token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM PATTESTSYM ALTSYM SAMESYM EQUALSYM UNEQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM EXCLAMATIONSYM FUNCTIONSYM SPANSYM LESSEQUALSYM LESSSYM GREATEREQUALSYM GREATERSYM ORSYM ANDSYM COLONSYM GETSYM UNSAMESYM
+%token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM ALTSYM SAMESYM EQUALSYM UNEQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM FUNCTIONSYM SPANSYM LESSEQUALSYM LESSSYM GREATEREQUALSYM GREATERSYM ORSYM ANDSYM COLONSYM GETSYM UNSAMESYM
 
 /*Adding some of the tokens above to this precedence list can decrease the*/
 /*number of conflicts*/
@@ -58,11 +58,9 @@ import (
 %left DOTSYM
 %right EXPSYM
 %left STRINGJOINSYM
-%nonassoc EXCLAMATIONSYM
 %right APPLYSYM
 %right MAPSYN
 %right FUNCAPPSYM
-%nonassoc PATTESTSYM
 %left GETSYM
 %nonassoc PATTERN
 %nonassoc SLOTSYM
@@ -97,20 +95,6 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  fullyAssoc("System`CompoundExpression", $1, $3) }
 	|    expr SEMISYM
 		{ $$  =  fullyAssoc("System`CompoundExpression", $1, &Symbol{"System`Null"}) }
-	|    expr EXCLAMATIONSYM expr
-		{ $$  =  NewExpression([]Ex{
-		             &Symbol{"System`Times"},
-		             NewExpression([]Ex{
-			             &Symbol{"System`Factorial"},
-						 $1,
-					 }),
-					 $3,
-			      })
-		}
-	|    expr EXCLAMATIONSYM
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Factorial"}, $1}) }
-	|    EXCLAMATIONSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Not"}, $2}) }
 	|    expr FUNCTIONSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Function"}, $1}) }
 	|    expr LBRACKETSYM LBRACKETSYM exprseq RBRACKETSYM RBRACKETSYM
@@ -162,8 +146,6 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  NewExpression([]Ex{$3, $1}) }
 	|    expr FUNCAPPSYM expr
 		{ $$  =  NewExpression([]Ex{$1, $3}) }
-	|    expr PATTESTSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`PatternTest"}, $1, $3}) }
 	|    expr ALTSYM expr
 		{ $$  =  fullyAssoc("System`Alternatives", $1, $3) }
 	|    expr REPEATEDSYM
