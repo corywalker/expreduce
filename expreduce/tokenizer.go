@@ -15,6 +15,7 @@ type Calclexer struct {
 	buf     []rune
 	empty   bool
 	current rune
+	expr    Ex
 }
 
 func newLexer(s string) (y *Calclexer) {

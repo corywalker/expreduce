@@ -22,7 +22,7 @@ import (
 %type <valSeq> exprseq
 
 // same for terminals
-%token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM ALTSYM SAMESYM EQUALSYM UNEQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM FUNCTIONSYM SPANSYM LESSEQUALSYM LESSSYM GREATEREQUALSYM GREATERSYM ORSYM ANDSYM COLONSYM GETSYM UNSAMESYM
+%token <val> FLOAT INTEGER STRING LPARSYM RPARSYM COMMASYM SEMISYM LBRACKETSYM RBRACKETSYM LCURLYSYM RCURLYSYM REPLACEREPSYM REPLACEALLSYM CONDITIONSYM PLUSSYM MINUSSYM MULTSYM DIVSYM EXPSYM RULESYM RULEDELAYEDSYM POSTFIXSYM FUNCAPPSYM APPLYSYM MAPSYM PATTESTSYM ALTSYM SAMESYM EQUALSYM UNEQUALSYM SETSYM SETDELAYEDSYM SLOTSYM NAME PATTERN MESSAGENAMESYM STRINGJOINSYM EXCLAMATIONSYM FUNCTIONSYM SPANSYM LESSEQUALSYM LESSSYM GREATEREQUALSYM GREATERSYM ORSYM ANDSYM COLONSYM GETSYM UNSAMESYM
 
 /*Adding some of the tokens above to this precedence list can decrease the*/
 /*number of conflicts*/
@@ -58,9 +58,11 @@ import (
 %left DOTSYM
 %right EXPSYM
 %left STRINGJOINSYM
+%left EXCLAMATIONSYM
 %right APPLYSYM
 %right MAPSYN
 %right FUNCAPPSYM
+%left PATTESTSYM
 %left GETSYM
 %nonassoc PATTERN
 %nonassoc SLOTSYM
@@ -81,8 +83,8 @@ high precedence. */
 %%
 
 list	: /* empty */
-	| list expr {Calcrcvr.lval.val = $2}
-	| list error {Calcrcvr.lval.val = &Symbol{"System`Null"}}
+	| list expr {yylex.(*Calclexer).expr = $2}
+	| list error {yylex.(*Calclexer).expr = &Symbol{"System`Null"}}
 	;
 
 expr	:    LPARSYM expr RPARSYM
@@ -95,6 +97,20 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  fullyAssoc("System`CompoundExpression", $1, $3) }
 	|    expr SEMISYM
 		{ $$  =  fullyAssoc("System`CompoundExpression", $1, &Symbol{"System`Null"}) }
+	|    expr EXCLAMATIONSYM expr
+		{ $$  =  NewExpression([]Ex{
+		             &Symbol{"System`Times"},
+		             NewExpression([]Ex{
+			             &Symbol{"System`Factorial"},
+						 $1,
+					 }),
+					 $3,
+			      })
+		}
+	|    expr EXCLAMATIONSYM
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Factorial"}, $1}) }
+	|    EXCLAMATIONSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Not"}, $2}) }
 	|    expr FUNCTIONSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Function"}, $1}) }
 	|    expr LBRACKETSYM LBRACKETSYM exprseq RBRACKETSYM RBRACKETSYM
@@ -146,6 +162,8 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  NewExpression([]Ex{$3, $1}) }
 	|    expr FUNCAPPSYM expr
 		{ $$  =  NewExpression([]Ex{$1, $3}) }
+	|    expr PATTESTSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`PatternTest"}, $1, $3}) }
 	|    expr ALTSYM expr
 		{ $$  =  fullyAssoc("System`Alternatives", $1, $3) }
 	|    expr REPEATEDSYM
@@ -315,10 +333,9 @@ func Interp(line string, es *EvalState) Ex {
 	// expression to the list of statements. Actually, we should read until the
 	// lines no longer produce a valid expression or until we reach EOF.
 	lex := newLexer(line + "\n")
-	var parser CalcParser = CalcNewParser()
-	parser.Parse(lex)
+	CalcParse(lex)
 
-	parsed := parser.(*CalcParserImpl).lval.val
+	parsed := lex.expr
 	// This can happen when we only enter a comment.
 	if parsed == nil {
 		return &Symbol{"System`Null"}
