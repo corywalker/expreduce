@@ -44,5 +44,48 @@ func GetStringDefinitions() (defs []Definition) {
 		Name:     "Infix",
 		toString: (*Expression).ToStringInfix,
 	})
+	defs = append(defs, Definition{
+		Name: "StringLength",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			asStr, isStr := this.Parts[1].(*String)
+			if !isStr {
+				return this
+			}
+			return NewInt(int64(len(asStr.Val)))
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "StringTake",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			asStr, isStr := this.Parts[1].(*String)
+			if !isStr {
+				return this
+			}
+			asList, isList := HeadAssertion(this.Parts[2], "System`List")
+			if !isList || len(asList.Parts) != 3 {
+				return this
+			}
+			sInt, sIsInt := asList.Parts[1].(*Integer)
+			eInt, eIsInt := asList.Parts[2].(*Integer)
+			if !sIsInt || !eIsInt {
+				return this
+			}
+			s := int(sInt.Val.Int64()-1)
+			e := int(eInt.Val.Int64()-1)
+			if s < 0 || e >= len(asStr.Val) {
+				return this
+			}
+			if e < s {
+				return &String{""}
+			}
+			return &String{asStr.Val[s:e+1]}
+		},
+	})
 	return
 }

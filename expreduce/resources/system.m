@@ -136,3 +136,26 @@ Tests`Module = {
 
 Hash::usage = "`Hash[expr]` returns an integer hash of `expr`.";
 Attributes[Hash] = {Protected};
+
+BeginPackage::usage = "`BeginPackage[context]` updates the context and sets the context path to only the current context and System.";
+Attributes[BeginPackage] = {Protected};
+BeginPackage[c_String] := (
+    $ExpreduceOldContext = $Context;
+    $Context = c;
+    $ExpreduceOldContextPath = $ContextPath;
+    $ContextPath = {c, "System`"};
+
+    $ExpreducePkgContext = c;
+);
+
+EndPackage::usage = "`EndPackage[]` resets the contexts to the original values, but with the package context prepended.";
+Attributes[EndPackage] = {Protected};
+EndPackage[] := (
+    $Context = $ExpreduceOldContext;
+    $ExpreduceOldContext = Null;
+    $ContextPath = Prepend[$ExpreduceOldContextPath, $ExpreducePkgContext];
+    $ExpreduceOldContextPath = Null;
+
+    $ExpreducePkgContext = Null;
+);
+
