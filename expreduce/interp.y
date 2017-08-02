@@ -84,8 +84,8 @@ high precedence. */
 %%
 
 list	: /* empty */
-	| list expr {yylex.(*Calclexer).expr = $2}
-	| list error {yylex.(*Calclexer).expr = &Symbol{"System`Null"}}
+	| expr {yylex.(*Calclexer).expr = $1}
+	| error {yylex.(*Calclexer).expr = &Symbol{"System`Null"}}
 	;
 
 expr	:    LPARSYM expr RPARSYM
