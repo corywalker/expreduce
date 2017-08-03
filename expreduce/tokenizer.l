@@ -71,7 +71,7 @@ comment         "(*"([^*\x80]|\*+[^*)\x80])*\*+\)
 %%
     y.buf = y.buf[:0]
 
-[ \t\r\n]+
+[ \t\r]+
 
 {comment}
 
@@ -153,6 +153,18 @@ comment         "(*"([^*\x80]|\*+[^*)\x80])*\*+\)
 \|\| return ORSYM /* Or */
 && return ANDSYM /* And */
 :: return MESSAGENAMESYM /* MessageName */
+\n
+    /*for _, v := range CalcFollow[lval.yys] {*/
+        /*if v == CalcEofCode {*/
+            /*fmt.Printf("in state %v. found valid ending newline!\n", lval.yys)*/
+            /*return -1*/
+        /*}*/
+    /*}*/
+    /*fmt.Printf("Should ignore newline\n")*/
+    /*goto yystate1*/
+    /*if (false) {*/
+        /*return NEWLINESYM*/
+    /*}*/
 
 {pattern}
     delim := "_"

@@ -1,4 +1,4 @@
-//go:generate goyacc -p Calc -o interp.go interp.y
+//go:generate goyacc -p Calc -fs -o interp.go interp.y
 //go:generate golex -o tokenizer.go tokenizer.l
 //go:generate go-bindata -pkg expreduce -o resources.go resources/...
 

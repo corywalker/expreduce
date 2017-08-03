@@ -83,49 +83,33 @@ high precedence. */
 
 %%
 
-list	: /* empty */
-	| expr {yylex.(*Calclexer).expr = $1}
+stmt	:
+	expr {yylex.(*Calclexer).expr = $1}
 	| error {yylex.(*Calclexer).expr = &Symbol{"System`Null"}}
 	;
 
-expr	:    LPARSYM expr RPARSYM
-		/*This sentinel expression could be removed by attaching metadata to*/
-		/*either the val object or the Expression object.*/
-		{ $$  =  NewExpression([]Ex{&Symbol{"Internal`Parens"}, $2}) }
+expr	:
 	/*|    INTEGER NAME*/
 		/*{ $$  =  NewExpression([]Ex{&Symbol{"System`Times"}, $1, $2}) }*/
-	|    expr SEMISYM expr
+	/*Lower precedence than times*/
+	expr SEMISYM expr
 		{ $$  =  fullyAssoc("System`CompoundExpression", $1, $3) }
 	|    expr SEMISYM
 		{ $$  =  fullyAssoc("System`CompoundExpression", $1, &Symbol{"System`Null"}) }
-	|    expr EXCLAMATIONSYM expr %prec MULTSYM
-		{ $$  =  NewExpression([]Ex{
-		             &Symbol{"System`Times"},
-		             NewExpression([]Ex{
-			             &Symbol{"System`Factorial"},
-						 $1,
-					 }),
-					 $3,
-			      })
-		}
-	|    expr EXCLAMATIONSYM %prec APPLYSYM
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Factorial"}, $1}) }
+	|    expr SETSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Set"}, $1, $3}) }
+	|    expr SETDELAYEDSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`SetDelayed"}, $1, $3}) }
 	|    EXCLAMATIONSYM expr %prec ANDSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Not"}, $2}) }
 	|    expr FUNCTIONSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Function"}, $1}) }
-	|    expr LBRACKETSYM LBRACKETSYM exprseq RBRACKETSYM RBRACKETSYM
-		{
-			ex := NewEmptyExpression()
-			ex.Parts = append([]Ex{&Symbol{"System`Part"}, $1}, $4...)
-			$$ = ex
-		}
-	|    expr LBRACKETSYM exprseq RBRACKETSYM
-		{
-			ex := NewEmptyExpression()
-			ex.Parts = append([]Ex{$1}, $3...)
-			$$ = ex
-		}
+	|    expr PLUSSYM expr
+		{ $$  =  fullyAssoc("System`Plus", $1, $3) }
+	|    expr MINUSSYM expr
+		{ $$  =  fullyAssoc("System`Plus", $1, NewExpression([]Ex{&Symbol{"System`Times"}, $3, &Integer{big.NewInt(-1)}})) }
+
+	/*Don't know about the precedence here... */
 	|    LCURLYSYM exprseq RCURLYSYM
 		{
 			ex := NewEmptyExpression()
@@ -133,12 +117,69 @@ expr	:    LPARSYM expr RPARSYM
 			ex.Parts = append(ex.Parts, $2...)
 			$$ = ex
 		}
-	|    expr PLUSSYM expr
-		{ $$  =  fullyAssoc("System`Plus", $1, $3) }
-	|    expr MINUSSYM expr
-		{ $$  =  fullyAssoc("System`Plus", $1, NewExpression([]Ex{&Symbol{"System`Times"}, $3, &Integer{big.NewInt(-1)}})) }
+
+
+	|    expr POSTFIXSYM expr
+		{ $$  =  NewExpression([]Ex{$3, $1}) }
+	|    expr REPLACEREPSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`ReplaceRepeated"}, $1, $3}) }
+	|    expr REPLACEALLSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`ReplaceAll"}, $1, $3}) }
+	|    expr RULEDELAYEDSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`RuleDelayed"}, $1, $3}) }
+	|    expr RULESYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Rule"}, $1, $3}) }
+	|    expr CONDITIONSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Condition"}, $1, $3}) }
+	|    PATTERN COLONSYM INTEGER
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Optional"}, $1, $3}) }
+	|    PATTERN COLONSYM NAME
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Optional"}, $1, $3}) }
+	|    NAME COLONSYM expr
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Pattern"}, $1, $3}) }
+	|    expr ALTSYM expr
+		{ $$  =  fullyAssoc("System`Alternatives", $1, $3) }
+	|    expr REPEATEDSYM
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Repeated"}, $1}) }
+	|    expr REPEATEDNULLSYM
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`RepeatedNull"}, $1}) }
+	|    expr ORSYM expr
+		{ $$  =  fullyAssoc("System`Or", $1, $3) }
+	|    expr ANDSYM expr
+		{ $$  =  fullyAssoc("System`And", $1, $3) }
+	|    expr UNSAMESYM expr
+		{ $$  =  fullyAssoc("System`UnsameQ", $1, $3) }
+	|    expr SAMESYM expr
+		{ $$  =  fullyAssoc("System`SameQ", $1, $3) }
+	|    expr LESSSYM expr
+		{ $$  =  fullyAssoc("System`Less", $1, $3) }
+	|    expr LESSEQUALSYM expr
+		{ $$  =  fullyAssoc("System`LessEqual", $1, $3) }
+	|    expr GREATERSYM expr
+		{ $$  =  fullyAssoc("System`Greater", $1, $3) }
+	|    expr GREATEREQUALSYM expr
+		{ $$  =  fullyAssoc("System`GreaterEqual", $1, $3) }
+	|    expr EQUALSYM expr
+		{ $$  =  fullyAssoc("System`Equal", $1, $3) }
+	|    expr UNEQUALSYM expr
+		{ $$  =  fullyAssoc("System`Unequal", $1, $3) }
+	|    expr SPANSYM expr
+		{ $$  =  fullyAssoc("System`Span", $1, $3) }
+	|    MINUSSYM expr
+		{
+			if integer, isInteger := $2.(*Integer); isInteger {
+				$$  =  &Integer{integer.Val.Neg(integer.Val)}
+			} else if flt, isFlt := $2.(*Flt); isFlt {
+				$$  =  &Flt{flt.Val.Neg(flt.Val)}
+			} else {
+				$$  =  NewExpression([]Ex{&Symbol{"System`Times"}, $2, &Integer{big.NewInt(-1)}})
+			}
+		}
+
+	/*Same precedence!!*/
 	|    expr MULTSYM expr
 		{ $$  =  fullyAssoc("System`Times", $1, $3) }
+		/*I have foundthe source of all rr conflicts:*/
 	|    expr expr %prec MULTSYM
 		{ $$  =  rightFullyAssoc("System`Times", $1, $2) }
 	|    expr DIVSYM expr
@@ -152,6 +193,26 @@ expr	:    LPARSYM expr RPARSYM
 				   }),
 			     })
 		}
+
+
+
+	/*Higher precedence than multiplication*/
+
+	/*from way up*/
+	|    expr LBRACKETSYM LBRACKETSYM exprseq RBRACKETSYM RBRACKETSYM
+		{
+			ex := NewEmptyExpression()
+			ex.Parts = append([]Ex{&Symbol{"System`Part"}, $1}, $4...)
+			$$ = ex
+		}
+	|    expr LBRACKETSYM exprseq RBRACKETSYM
+		{
+			ex := NewEmptyExpression()
+			ex.Parts = append([]Ex{$1}, $3...)
+			$$ = ex
+		}
+	|    expr DOTSYM expr
+		{ $$  =  fullyAssoc("System`Dot", $1, $3) }
 	|    expr EXPSYM expr
 		{ $$  =  NewExpression([]Ex{
 		           &Symbol{"System`Power"},
@@ -159,76 +220,18 @@ expr	:    LPARSYM expr RPARSYM
 				   $3,
 				 })
 		}
-	|    expr POSTFIXSYM expr
-		{ $$  =  NewExpression([]Ex{$3, $1}) }
 	|    expr FUNCAPPSYM expr
 		{ $$  =  NewExpression([]Ex{$1, $3}) }
 	|    expr PATTESTSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`PatternTest"}, $1, $3}) }
-	|    expr ALTSYM expr
-		{ $$  =  fullyAssoc("System`Alternatives", $1, $3) }
-	|    expr REPEATEDSYM
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Repeated"}, $1}) }
-	|    expr REPEATEDNULLSYM
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`RepeatedNull"}, $1}) }
 	|    expr APPLYSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Apply"}, $1, $3}) }
 	|    expr MAPSYM expr
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Map"}, $1, $3}) }
-	|    expr RULESYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Rule"}, $1, $3}) }
-	|    expr RULEDELAYEDSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`RuleDelayed"}, $1, $3}) }
-	|    expr REPLACEREPSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`ReplaceRepeated"}, $1, $3}) }
-	|    expr REPLACEALLSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`ReplaceAll"}, $1, $3}) }
-	|    expr CONDITIONSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Condition"}, $1, $3}) }
-	|    PATTERN COLONSYM INTEGER
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Optional"}, $1, $3}) }
-	|    PATTERN COLONSYM NAME
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Optional"}, $1, $3}) }
-	|    NAME COLONSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Pattern"}, $1, $3}) }
-	|    expr SETSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`Set"}, $1, $3}) }
-	|    expr SETDELAYEDSYM expr
-		{ $$  =  NewExpression([]Ex{&Symbol{"System`SetDelayed"}, $1, $3}) }
-	|    expr SAMESYM expr
-		{ $$  =  fullyAssoc("System`SameQ", $1, $3) }
-	|    expr UNSAMESYM expr
-		{ $$  =  fullyAssoc("System`UnsameQ", $1, $3) }
-	|    expr EQUALSYM expr
-		{ $$  =  fullyAssoc("System`Equal", $1, $3) }
-	|    expr UNEQUALSYM expr
-		{ $$  =  fullyAssoc("System`Unequal", $1, $3) }
-	|    expr LESSSYM expr
-		{ $$  =  fullyAssoc("System`Less", $1, $3) }
-	|    expr LESSEQUALSYM expr
-		{ $$  =  fullyAssoc("System`LessEqual", $1, $3) }
-	|    expr GREATERSYM expr
-		{ $$  =  fullyAssoc("System`Greater", $1, $3) }
-	|    expr GREATEREQUALSYM expr
-		{ $$  =  fullyAssoc("System`GreaterEqual", $1, $3) }
-	|    expr SPANSYM expr
-		{ $$  =  fullyAssoc("System`Span", $1, $3) }
-	|    expr DOTSYM expr
-		{ $$  =  fullyAssoc("System`Dot", $1, $3) }
-	|    expr ANDSYM expr
-		{ $$  =  fullyAssoc("System`And", $1, $3) }
-	|    expr ORSYM expr
-		{ $$  =  fullyAssoc("System`Or", $1, $3) }
-	|    MINUSSYM expr
-		{
-			if integer, isInteger := $2.(*Integer); isInteger {
-				$$  =  &Integer{integer.Val.Neg(integer.Val)}
-			} else if flt, isFlt := $2.(*Flt); isFlt {
-				$$  =  &Flt{flt.Val.Neg(flt.Val)}
-			} else {
-				$$  =  NewExpression([]Ex{&Symbol{"System`Times"}, $2, &Integer{big.NewInt(-1)}})
-			}
-		}
+
+	/*in same order*/
+	|    expr EXCLAMATIONSYM %prec APPLYSYM
+		{ $$  =  NewExpression([]Ex{&Symbol{"System`Factorial"}, $1}) }
 	|    SLOTSYM %prec PLUSSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Slot"}, &Integer{big.NewInt(1)}}) }
 	|    SLOTSYM INTEGER %prec DIVSYM
@@ -255,6 +258,10 @@ expr	:    LPARSYM expr RPARSYM
 		{ $$  =  $1 }
 	|    INTEGER
 		{ $$  =  $1 }
+	 | LPARSYM expr RPARSYM
+		/*This sentinel expression could be removed by attaching metadata to*/
+		/*either the val object or the Expression object.*/
+		{ $$  =  NewExpression([]Ex{&Symbol{"Internal`Parens"}, $2}) }
 	;
 exprseq:
 	/* empty */
