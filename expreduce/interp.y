@@ -20,6 +20,8 @@ import (
 // any non-terminal which returns a value needs a type, which is
 // really a field name in the above union struct
 %type <val> expr
+%type <val> term
+%type <val> factor
 %type <valSeq> exprseq
 
 // same for terminals
@@ -175,13 +177,8 @@ expr	:
 				$$  =  NewExpression([]Ex{&Symbol{"System`Times"}, $2, &Integer{big.NewInt(-1)}})
 			}
 		}
-
-	/*Same precedence!!*/
 	|    expr MULTSYM expr
 		{ $$  =  fullyAssoc("System`Times", $1, $3) }
-		/*I have foundthe source of all rr conflicts:*/
-	|    expr expr %prec MULTSYM
-		{ $$  =  rightFullyAssoc("System`Times", $1, $2) }
 	|    expr DIVSYM expr
 		{ $$  =  NewExpression([]Ex{
 		           &Symbol{"System`Times"},
@@ -193,52 +190,63 @@ expr	:
 				   }),
 			     })
 		}
+	| factor
+	;
+
+factor  :
+	term
+	/*Same precedence!!*/
+		/*I have foundthe source of all rr conflicts:*/
+	|    factor term
+		{ $$  =  fullyAssoc("System`Times", $1, $2) }
+	;
 
 
 
 	/*Higher precedence than multiplication*/
+term	:
 
 	/*from way up*/
-	|    expr LBRACKETSYM LBRACKETSYM exprseq RBRACKETSYM RBRACKETSYM
+	term LBRACKETSYM LBRACKETSYM exprseq RBRACKETSYM RBRACKETSYM
 		{
 			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{&Symbol{"System`Part"}, $1}, $4...)
 			$$ = ex
 		}
-	|    expr LBRACKETSYM exprseq RBRACKETSYM
+	|    term LBRACKETSYM exprseq RBRACKETSYM
 		{
 			ex := NewEmptyExpression()
 			ex.Parts = append([]Ex{$1}, $3...)
 			$$ = ex
 		}
-	|    expr DOTSYM expr
+	|    term DOTSYM term
 		{ $$  =  fullyAssoc("System`Dot", $1, $3) }
-	|    expr EXPSYM expr
+	|    term EXPSYM term
 		{ $$  =  NewExpression([]Ex{
 		           &Symbol{"System`Power"},
 				   $1,
 				   $3,
 				 })
 		}
-	|    expr FUNCAPPSYM expr
+	|    term FUNCAPPSYM term
 		{ $$  =  NewExpression([]Ex{$1, $3}) }
-	|    expr PATTESTSYM expr
+	|    term PATTESTSYM term
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`PatternTest"}, $1, $3}) }
-	|    expr APPLYSYM expr
+	|    term APPLYSYM term
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Apply"}, $1, $3}) }
-	|    expr MAPSYM expr
+	|    term MAPSYM term
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Map"}, $1, $3}) }
 
 	/*in same order*/
-	|    expr EXCLAMATIONSYM %prec APPLYSYM
+	|    term EXCLAMATIONSYM %prec APPLYSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Factorial"}, $1}) }
 	|    SLOTSYM %prec PLUSSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Slot"}, &Integer{big.NewInt(1)}}) }
 	|    SLOTSYM INTEGER %prec DIVSYM
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Slot"}, $2}) }
-	|    GETSYM expr
+	|    GETSYM term
 		{ $$  =  NewExpression([]Ex{&Symbol{"System`Get"}, $2}) }
-	|    expr MESSAGENAMESYM expr
+	|    term MESSAGENAMESYM term
 		{
 			if sym, isSym := $3.(*Symbol); isSym {
 				$$  =  fullyAssoc("System`MessageName", $1, &String{sym.Name})
@@ -246,7 +254,7 @@ expr	:
 				$$  =  fullyAssoc("System`MessageName", $1, $3)
 			}
 		}
-	|    expr STRINGJOINSYM expr
+	|    term STRINGJOINSYM term
 		{ $$  =  fullyAssoc("System`StringJoin", $1, $3) }
 	|    PATTERN
 		{ $$  =  $1 }
@@ -258,7 +266,7 @@ expr	:
 		{ $$  =  $1 }
 	|    INTEGER
 		{ $$  =  $1 }
-	 | LPARSYM expr RPARSYM
+	 | LPARSYM term RPARSYM
 		/*This sentinel expression could be removed by attaching metadata to*/
 		/*either the val object or the Expression object.*/
 		{ $$  =  NewExpression([]Ex{&Symbol{"Internal`Parens"}, $2}) }
@@ -340,6 +348,7 @@ func Interp(line string, es *EvalState) Ex {
 	// lines finally produce a valid expression, we can add that parsed
 	// expression to the list of statements. Actually, we should read until the
 	// lines no longer produce a valid expression or until we reach EOF.
+	/*fmt.Println(line)*/
 	lex := newLexer(line + "\n")
 	CalcParse(lex)
 
