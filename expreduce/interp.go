@@ -7,7 +7,6 @@ import (
 	"os"
 	"log"
 	"bytes"
-	"fmt"
 	"github.com/corywalker/wl"
 )
 
@@ -32,8 +31,8 @@ func rightFullyAssoc(op string, lhs Ex, rhs Ex) Ex {
 func addContextAndDefine(e Ex, context string, contextPath []string, es *EvalState) {
 	if sym, isSym := e.(*Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
-		    for _, toTry := range contextPath {
-			    if es.IsDef(toTry + sym.Name) {
+			for _, toTry := range contextPath {
+				if es.IsDef(toTry + sym.Name) {
 					sym.Name = toTry + sym.Name
 					return
 				}
@@ -50,8 +49,41 @@ func addContextAndDefine(e Ex, context string, contextPath []string, es *EvalSta
 	}
 }
 
+func parsePattern(buf string) Ex {
+	delim := "_"
+	blankType := &Symbol{"System`Blank"}
+	if strings.Contains(buf, "___") {
+		delim = "___"
+		blankType = &Symbol{"System`BlankNullSequence"}
+	} else if strings.Contains(buf, "__") {
+		delim = "__"
+		blankType = &Symbol{"System`BlankSequence"}
+	}
+	parts := strings.Split(buf, delim)
+	if len(parts) == 1 {
+		return NewExpression([]Ex{&Symbol{"System`Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
+	}
+	if len(parts) == 2 {
+		if parts[0] == "" {
+			if parts[1] == "" {
+				return NewExpression([]Ex{blankType})
+			} else if delim == "_" && parts[1] == "." {
+				return NewExpression([]Ex{&Symbol{"System`Optional"}, NewExpression([]Ex{blankType})})
+			}
+			return NewExpression([]Ex{blankType, &Symbol{parts[1]}})
+		} else {
+			if parts[1] == "" {
+				return NewExpression([]Ex{&Symbol{"System`Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})
+			} else if delim == "_" && parts[1] == "." {
+				return NewExpression([]Ex{&Symbol{"System`Optional"}, NewExpression([]Ex{&Symbol{"System`Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType})})})
+			}
+			return NewExpression([]Ex{&Symbol{"System`Pattern"}, &Symbol{parts[0]}, NewExpression([]Ex{blankType, &Symbol{parts[1]}})})
+		}
+	}
+	return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Pattern parse error."}})
+}
+
 func ParserTokenConv(tk wl.Token) Ex {
-	fmt.Println(tk)
 	switch tk.Rune {
 	case wl.IDENT:
 		return &Symbol{tk.Val}
@@ -72,6 +104,8 @@ func ParserTokenConv(tk wl.Token) Ex {
 		return &Flt{tmpf}
 	case wl.STRING:
 		return &String{tk.Val[1:len(tk.Val)-1]}
+	case wl.PATTERN:
+		return parsePattern(tk.Val)
 	default:
 		return &Symbol{"System`UnParsedToken"}
 	}
@@ -80,6 +114,18 @@ func ParserTokenConv(tk wl.Token) Ex {
 
 func ParserTagConv(tag *wl.Tag) Ex {
 	return ParserTokenConv(tag.Token)
+}
+
+func ParserExprListConv(l *wl.ExprList) (res []Ex) {
+	for l != nil {
+		if l.Expression != nil {
+			res = append(res, ParserExprConv(l.Expression))
+		} else {
+			res = append(res, ParserTokenConv(l.Token))
+		}
+		l = l.ExprList
+	}
+	return
 }
 
 func ParserTermConv(term *wl.Term) Ex {
@@ -91,6 +137,20 @@ func ParserTermConv(term *wl.Term) Ex {
 				ParserTokenConv(term.Token),
 				&String{ParserTagConv(term.Tag).(*Symbol).Name},
 			})
+		case ']':
+			e := NewExpression([]Ex{
+				ParserTermConv(term.Term),
+			})
+			e.appendExArray(ParserExprListConv(term.ExprList))
+			return e
+		case '}':
+			e := NewExpression([]Ex{
+				&Symbol{"System`List"},
+			})
+			e.appendExArray(ParserExprListConv(term.ExprList))
+			return e
+		case ')':
+			return ParserExprConv(term.Expression)
 		default:
 			return &Symbol{"System`UnParsedTermWithToken2"}
 		}
@@ -103,7 +163,15 @@ func ParserTermConv(term *wl.Term) Ex {
 
 func ParserFactorConv(fact *wl.Factor) Ex {
 	if fact.Term != nil {
-		return ParserTermConv(fact.Term)
+		tv := ParserTermConv(fact.Term)
+		if fact.Factor != nil {
+			return NewExpression([]Ex{
+				&Symbol{"System`Times"},
+				tv,
+				ParserFactorConv(fact.Factor),
+			})
+		}
+		return tv
 	}
 	return &Symbol{"System`UnParsedFactor"}
 }
@@ -111,11 +179,22 @@ func ParserFactorConv(fact *wl.Factor) Ex {
 var binaryOps = map[rune]string{
 	'=': "Set",
 	wl.SET_DELAYED: "SetDelayed",
+	wl.REPLACEREP: "ReplaceRepeated",
+	wl.RULE: "Rule",
+	wl.RULEDELAYED: "RuleDelayed",
+	'^': "Power",
+	'?': "PatternTest",
+	':': "Optional",
+	wl.CONDITION: "Condition",
 }
 
 var fullyAssocOps = map[rune]string{
 	'+': "Plus",
 	'*': "Times",
+	wl.EQUAL: "Equals",
+	wl.SAME: "SameQ",
+	wl.STRINGJOIN: "StringJoin",
+	//';': "CompoundExpression",
 }
 
 func ParserExprConv(expr *wl.Expression) Ex {
@@ -139,6 +218,12 @@ func ParserExprConv(expr *wl.Expression) Ex {
 				ParserExprConv(expr.Expression2),
 			)
 		}
+	}
+	if expr.Token.Rune == wl.POSTFIX {
+		return NewExpression([]Ex{
+			ParserExprConv(expr.Expression2),
+			ParserExprConv(expr.Expression),
+		})
 	}
 	return &Symbol{"System`UnParsed"}
 }

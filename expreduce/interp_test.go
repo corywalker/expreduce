@@ -3,13 +3,13 @@ package expreduce
 import (
 	"fmt"
 	"testing"
-	"github.com/stretchr/testify/assert"
+	//"github.com/stretchr/testify/assert"
 )
 
 func TestInterp(t *testing.T) {
 	fmt.Println("Testing interp")
 
-	es := NewEvalStateNoLog(false)
+	/*es := NewEvalStateNoLog(false)
 	assert.Equal(t, "a", Interp("a", es).String())
 	assert.Equal(t, "1", Interp("1", es).String())
 	assert.Equal(t, "1.", Interp("1.", es).String())
@@ -19,7 +19,14 @@ func TestInterp(t *testing.T) {
 	assert.Equal(t, "SetDelayed[a, c]", Interp("a:=c", es).String())
 	assert.Equal(t, "SetDelayed[a, Plus[c, d]]", Interp("a:=c+d", es).String())
 	assert.Equal(t, "MessageName[a, \"bd\"]", Interp("a::bd", es).String())
-	/*
+	assert.Equal(t, "Times[5, foo[x]]", Interp("5*foo[x]", es).String())
+	assert.Equal(t, "Times[5, foo[x, Plus[y, 2]]]", Interp("5*foo[x,y+2]", es).String())
+	assert.Equal(t, "List[5, a]", Interp("{5, a}", es).String())
+	assert.Equal(t, "a[b]", Interp("b // a", es).String())
+	assert.Equal(t, "ReplaceRepeated[a, Rule[b, c]]", Interp("a //. b -> c", es).String())
+	assert.Equal(t, "Times[a, Plus[b, c]]", Interp("a*(b+c)", es).String())
+	//assert.Equal(t, "Times[Power[x, 2], y]", Interp("x^2 y", es).String())*/
+
 	es := NewEvalState()
 
 	CasAssertSame(t, es, "2*x", "2x")
@@ -87,5 +94,4 @@ func TestInterp(t *testing.T) {
 	//assert.Equal(t, "c = (a * b)", Interp("c = (a\nb)\n", es).String())
 	//fmt.Println("marker 5")
 	//assert.Equal(t, "c = (a * b)", Interp("c = (a\n\nb)\n", es).String())
-	*/
 }

@@ -461,6 +461,10 @@ func (this *Expression) appendEx(e Ex) {
 	this.Parts = append(this.Parts, e)
 }
 
+func (this *Expression) appendExArray(e []Ex) {
+	this.Parts = append(this.Parts, e...)
+}
+
 func (this *Expression) NeedsEval() bool {
 	return this.needsEval
 }
