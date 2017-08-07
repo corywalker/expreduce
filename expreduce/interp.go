@@ -7,7 +7,7 @@ import (
 	"os"
 	"log"
 	"bytes"
-	"github.com/corywalker/wl"
+	"github.com/cznic/wl"
 )
 
 func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
@@ -103,9 +103,22 @@ func ParserTokenConv(tk wl.Token) Ex {
 		}
 		return &Flt{tmpf}
 	case wl.STRING:
-		return &String{tk.Val[1:len(tk.Val)-1]}
+		return &String{tk.Val}
 	case wl.PATTERN:
 		return parsePattern(tk.Val)
+	case wl.SLOT:
+		tmpi := big.NewInt(1)
+		if tk.Val != "#" {
+			_, ok := tmpi.SetString(tk.Val[1:], 10)
+			if !ok {
+				log.Fatal("Failed in integer parsing.")
+			}
+		}
+		return NewExpression([]Ex{
+			&Symbol{"System`Slot"},
+			&Integer{tmpi},
+		})
+
 	default:
 		return &Symbol{"System`UnParsedToken"}
 	}
@@ -131,7 +144,7 @@ func ParserExprListConv(l *wl.ExprList) (res []Ex) {
 func ParserTermConv(term *wl.Term) Ex {
 	if term.Token2.Rune > 0 {
 		switch term.Token2.Rune {
-		case wl.MESSAGE:
+		case wl.MESSAGE_NAME:
 			return NewExpression([]Ex{
 				&Symbol{"System`MessageName"},
 				ParserTokenConv(term.Token),
@@ -156,6 +169,13 @@ func ParserTermConv(term *wl.Term) Ex {
 		}
 	}
 	if term.Token.Rune > 0 {
+		switch term.Token.Rune {
+		case '!':
+			return NewExpression([]Ex{
+				&Symbol{"System`Factorial"},
+				ParserTermConv(term.Term),
+			})
+		}
 		return ParserTokenConv(term.Token)
 	}
 	return &Symbol{"System`UnParsedTerm"}
@@ -180,6 +200,7 @@ var binaryOps = map[rune]string{
 	'=': "Set",
 	wl.SET_DELAYED: "SetDelayed",
 	wl.REPLACEREP: "ReplaceRepeated",
+	wl.REPLACEALL: "ReplaceAll",
 	wl.RULE: "Rule",
 	wl.RULEDELAYED: "RuleDelayed",
 	'^': "Power",
@@ -191,10 +212,9 @@ var binaryOps = map[rune]string{
 var fullyAssocOps = map[rune]string{
 	'+': "Plus",
 	'*': "Times",
-	wl.EQUAL: "Equals",
+	wl.EQUAL: "Equal",
 	wl.SAME: "SameQ",
 	wl.STRINGJOIN: "StringJoin",
-	//';': "CompoundExpression",
 }
 
 func ParserExprConv(expr *wl.Expression) Ex {
@@ -219,11 +239,32 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			)
 		}
 	}
-	if expr.Token.Rune == wl.POSTFIX {
+	switch expr.Token.Rune {
+	case wl.POSTFIX:
 		return NewExpression([]Ex{
 			ParserExprConv(expr.Expression2),
 			ParserExprConv(expr.Expression),
 		})
+	case '@':
+		return NewExpression([]Ex{
+			ParserExprConv(expr.Expression),
+			ParserExprConv(expr.Expression2),
+		})
+	case '!':
+		return NewExpression([]Ex{
+			&Symbol{"System`Not"},
+			ParserExprConv(expr.Expression),
+		})
+	case ';':
+		var e2 Ex = &Symbol{"System`Null"}
+		if expr.Expression2 != nil {
+			e2 = ParserExprConv(expr.Expression2)
+		}
+		return fullyAssoc(
+			"System`CompoundExpression",
+			ParserExprConv(expr.Expression),
+			e2,
+		)
 	}
 	return &Symbol{"System`UnParsed"}
 }
