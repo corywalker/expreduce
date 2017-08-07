@@ -5,6 +5,7 @@ import (
 	"strings"
 	"go/token"
 	"os"
+	//"fmt"
 	"log"
 	"bytes"
 	"github.com/cznic/wl"
@@ -215,6 +216,10 @@ var fullyAssocOps = map[rune]string{
 	wl.EQUAL: "Equal",
 	wl.SAME: "SameQ",
 	wl.STRINGJOIN: "StringJoin",
+	'<': "Less",
+	wl.LEQ: "LessEqual",
+	'>': "Greater",
+	wl.GEQ: "GreaterEqual",
 }
 
 func ParserExprConv(expr *wl.Expression) Ex {
@@ -265,13 +270,32 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			ParserExprConv(expr.Expression),
 			e2,
 		)
+	case '-':
+		if expr.Expression2 == nil {
+			return NewExpression([]Ex{
+				&Symbol{"System`Times"},
+				&Integer{big.NewInt(-1)},
+				ParserExprConv(expr.Expression),
+			})
+		}
+		return fullyAssoc(
+			"System`Plus",
+			ParserExprConv(expr.Expression),
+			NewExpression([]Ex{
+				&Symbol{"System`Times"},
+				&Integer{big.NewInt(-1)},
+				ParserExprConv(expr.Expression2),
+			}),
+		)
 	}
 	return &Symbol{"System`UnParsed"}
 }
 
 func Interp(src string, es *EvalState) Ex {
+	//fmt.Printf("Parsing %s\n", src)
 	buf := bytes.NewBufferString(src)
-	in, err := wl.NewInput(buf, true)
+	// TODO(corywalker): use the interactive mode for proper newline handling.
+	in, err := wl.NewInput(buf, false)
 	if err != nil {
 		return &Symbol{"System`Null"}
 	}
@@ -287,6 +311,7 @@ func Interp(src string, es *EvalState) Ex {
 		contextPath = append(contextPath, pathPart.(*String).Val)
 	}
 	addContextAndDefine(parsed, context, contextPath, es)
+	//fmt.Printf("result %s\n", parsed)
 	return parsed
 }
 
