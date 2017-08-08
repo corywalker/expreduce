@@ -151,6 +151,13 @@ func ParserTermConv(term *wl.Term) Ex {
 				ParserTokenConv(term.Token),
 				&String{ParserTagConv(term.Tag).(*Symbol).Name},
 			})
+		case wl.RPART:
+			e := NewExpression([]Ex{
+				&Symbol{"System`Part"},
+				ParserTermConv(term.Term),
+			})
+			e.appendExArray(ParserExprListConv(term.ExprList))
+			return e
 		case ']':
 			e := NewExpression([]Ex{
 				ParserTermConv(term.Term),
@@ -174,6 +181,11 @@ func ParserTermConv(term *wl.Term) Ex {
 		case '!':
 			return NewExpression([]Ex{
 				&Symbol{"System`Factorial"},
+				ParserTermConv(term.Term),
+			})
+		case '&':
+			return NewExpression([]Ex{
+				&Symbol{"System`Function"},
 				ParserTermConv(term.Term),
 			})
 		}
@@ -208,6 +220,8 @@ var binaryOps = map[int]string{
 	46: "PatternTest",
 	40: "Optional",
 	17: "Condition",
+	28: "Apply",
+	18: "Map",
 }
 
 var fullyAssocOps = map[int]string{
@@ -215,11 +229,15 @@ var fullyAssocOps = map[int]string{
 	35: "Times",
 	24: "Equal",
 	25: "SameQ",
+	23: "UnsameQ",
 	22: "StringJoin",
 	43: "Less",
 	21: "LessEqual",
 	45: "Greater",
 	26: "GreaterEqual",
+	34: "Or",
+	8: "And",
+	49: "Alternatives",
 }
 
 func ParserExprConv(expr *wl.Expression) Ex {
@@ -287,6 +305,16 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			&Symbol{"System`Times"},
 			&Integer{big.NewInt(-1)},
 			ParserExprConv(expr.Expression),
+		})
+	case 39:
+		return NewExpression([]Ex{
+			&Symbol{"System`Times"},
+			ParserExprConv(expr.Expression),
+			NewExpression([]Ex{
+				&Symbol{"System`Power"},
+				ParserExprConv(expr.Expression2),
+				&Integer{big.NewInt(-1)},
+			}),
 		})
 	}
 	return &Symbol{"System`UnParsed"}
