@@ -3,29 +3,10 @@ package expreduce
 import (
 	"fmt"
 	"testing"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestInterp(t *testing.T) {
 	fmt.Println("Testing interp")
-
-	esnl := NewEvalStateNoLog(false)
-	assert.Equal(t, "a", Interp("a", esnl).String())
-	assert.Equal(t, "1", Interp("1", esnl).String())
-	assert.Equal(t, "1.", Interp("1.", esnl).String())
-	assert.Equal(t, "\"hello\"", Interp("\"hello\"", esnl).String())
-	assert.Equal(t, "Plus[a, b]", Interp("a+b", esnl).String())
-	assert.Equal(t, "Plus[a, b, c]", Interp("a+b+c", esnl).String())
-	assert.Equal(t, "SetDelayed[a, c]", Interp("a:=c", esnl).String())
-	assert.Equal(t, "SetDelayed[a, Plus[c, d]]", Interp("a:=c+d", esnl).String())
-	assert.Equal(t, "MessageName[a, \"bd\"]", Interp("a::bd", esnl).String())
-	assert.Equal(t, "Times[5, foo[x]]", Interp("5*foo[x]", esnl).String())
-	assert.Equal(t, "Times[5, foo[x, Plus[y, 2]]]", Interp("5*foo[x,y+2]", esnl).String())
-	assert.Equal(t, "List[5, a]", Interp("{5, a}", esnl).String())
-	assert.Equal(t, "a[b]", Interp("b // a", esnl).String())
-	assert.Equal(t, "ReplaceRepeated[a, Rule[b, c]]", Interp("a //. b -> c", esnl).String())
-	assert.Equal(t, "Times[a, Plus[b, c]]", Interp("a*(b+c)", esnl).String())
-	//assert.Equal(t, "Times[Power[x, 2], y]", Interp("x^2 y", esnl).String())
 
 	es := NewEvalState()
 
