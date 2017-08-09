@@ -228,6 +228,7 @@ var fullyAssocOps = map[int]string{
 	36: "Plus",
 	35: "Times",
 	24: "Equal",
+	70: "Unequal",
 	25: "SameQ",
 	23: "UnsameQ",
 	22: "StringJoin",
@@ -237,6 +238,7 @@ var fullyAssocOps = map[int]string{
 	26: "GreaterEqual",
 	34: "Or",
 	8: "And",
+	38: "Dot",
 	49: "Alternatives",
 }
 
@@ -296,15 +298,21 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			ParserExprConv(expr.Expression),
 			NewExpression([]Ex{
 				&Symbol{"System`Times"},
-				&Integer{big.NewInt(-1)},
 				ParserExprConv(expr.Expression2),
+				&Integer{big.NewInt(-1)},
 			}),
 		)
 	case 7:
+		e := ParserExprConv(expr.Expression)
+		if integer, isInteger := e.(*Integer); isInteger {
+			return &Integer{integer.Val.Neg(integer.Val)}
+		} else if flt, isFlt := e.(*Flt); isFlt {
+			return &Flt{flt.Val.Neg(flt.Val)}
+		}
 		return NewExpression([]Ex{
 			&Symbol{"System`Times"},
-			&Integer{big.NewInt(-1)},
 			ParserExprConv(expr.Expression),
+			&Integer{big.NewInt(-1)},
 		})
 	case 39:
 		return NewExpression([]Ex{
