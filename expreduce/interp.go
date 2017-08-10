@@ -218,7 +218,6 @@ var binaryOps = map[int]string{
 	20: "RuleDelayed",
 	48: "Power",
 	46: "PatternTest",
-	40: "Optional",
 	17: "Condition",
 	28: "Apply",
 	18: "Map",
@@ -323,6 +322,20 @@ func ParserExprConv(expr *wl.Expression) Ex {
 				ParserExprConv(expr.Expression2),
 				&Integer{big.NewInt(-1)},
 			}),
+		})
+	case 40:
+		e := ParserExprConv(expr.Expression)
+		if _, isPat := HeadAssertion(e, "System`Pattern"); isPat {
+			return NewExpression([]Ex{
+				&Symbol{"System`Optional"},
+				e,
+				ParserExprConv(expr.Expression2),
+			})
+		}
+		return NewExpression([]Ex{
+			&Symbol{"System`Pattern"},
+			e,
+			ParserExprConv(expr.Expression2),
 		})
 	}
 	return &Symbol{"System`UnParsed"}
