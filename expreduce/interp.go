@@ -323,19 +323,17 @@ func ParserExprConv(expr *wl.Expression) Ex {
 				&Integer{big.NewInt(-1)},
 			}),
 		})
-	case 40:
-		e := ParserExprConv(expr.Expression)
-		if _, isPat := HeadAssertion(e, "System`Pattern"); isPat {
-			return NewExpression([]Ex{
-				&Symbol{"System`Optional"},
-				e,
-				ParserExprConv(expr.Expression2),
-			})
-		}
+	case 40, 71:
+		return NewExpression([]Ex{
+			&Symbol{"System`Optional"},
+			ParserTokenConv(expr.Token),
+			ParserTokenConv(expr.Token3),
+		})
+	case 72:
 		return NewExpression([]Ex{
 			&Symbol{"System`Pattern"},
-			e,
-			ParserExprConv(expr.Expression2),
+			ParserTokenConv(expr.Token),
+			ParserExprConv(expr.Expression),
 		})
 	}
 	return &Symbol{"System`UnParsed"}
