@@ -62,6 +62,16 @@ In[7]:= Solve[x^2-x-2.5==0,x]
 Out[7]= {{(x) -> (-1.15831)}, {(x) -> (2.15831)}}
 ```
 
+# Technical notes
+
+In Expreduce, everything is an expression, which can either be an atomic value like an Integer or a Symbol, or it can be an ordered list of subexpressions. In the case of an ordered list of subexpressions, the first element is known as the Head. It specifies what kind of data follows. For example, `a + 1` is represented as `Plus[a, 1]`. Here the head is `Plus` and the two subexpressions that follow are the symbol `a` and the integer `1`.
+
+When the interpreter encounters an expression that it has not yet evaluated, it checks for a match with the internal database of rules. The internal rule collection is keyed on the head of the expression. An example would be `Cos[n_Integer?EvenQ*Pi] := 1`, which means that taking the cosine of an even multiple of pi should evaluate to 1.
+
+The pattern matching must be fast for efficient evaluation. Internally, all expressions maintain a corresponding [Merkle tree](https://en.wikipedia.org/wiki/Merkle_tree). Each expression and subexpression will often know the hash of its contents without any computation. This makes checking for expression sameness as simple as checking for the equality of two int64 values. When there are patterns in the RHS of the match, we can no longer rely only on the hash, but Expreduce has a mostly efficient match iterator that checks for any possible matches.
+
+It's important to note that an expression can match a pattern in multiple ways. A simple example is `MatchQ[x + y, a_ + b_]`. Here, a could hold x and b could hold y or a could hold y and b could hold x. The match iterator iterates over all possible allocations (how many expressions a pattern will match with). The match iterator will also iterate over all possible assignments for each allocation. An assignment specifies which subexpressions would match to a pattern, not just how many.
+
 # Other projects
 
 Expreduce is indeed very similar to Mathics, a similar term rewriting system that uses Sympy as a backend for CAS operations. I created expreduce for a few reasons. The first is that I wanted to learn everything I could about term rewriting systems. The second is that I believe the syntax implemented in here is better suited for building a computer algebra system than using Python to manipulate expressions (as Sympy, and thus Mathics does). Using a language with first-class support for pattern matching and replacement across expression trees is ideal for writing a computer algebra system. This combined with an optimized core can lead to efficient and informed evaluation without much translation work for the programmer when translating equations to code.
