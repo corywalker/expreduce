@@ -323,13 +323,13 @@ func ParserExprConv(expr *wl.Expression) Ex {
 				&Integer{big.NewInt(-1)},
 			}),
 		})
-	case 40, 71:
+	case 40:
 		return NewExpression([]Ex{
 			&Symbol{"System`Optional"},
 			ParserTokenConv(expr.Token),
-			ParserTokenConv(expr.Token3),
+			ParserTermConv(expr.Term),
 		})
-	case 72:
+	case 128:
 		return NewExpression([]Ex{
 			&Symbol{"System`Pattern"},
 			ParserTokenConv(expr.Token),
