@@ -121,9 +121,10 @@ func ParserTokenConv(tk wl.Token) Ex {
 		})
 
 	default:
-		return &Symbol{"System`UnParsedToken"}
+		log.Fatalf("System`UnParsedToken")
 	}
-	return &Symbol{"System`UnParsedToken"}
+	log.Fatalf("System`UnParsedToken")
+	return nil
 }
 
 func ParserTagConv(tag *wl.Tag) Ex {
@@ -173,7 +174,7 @@ func ParserTermConv(term *wl.Term) Ex {
 		case ')':
 			return ParserExprConv(term.Expression)
 		default:
-			return &Symbol{"System`UnParsedTermWithToken2"}
+			log.Fatalf("System`UnParsedTermWithToken2")
 		}
 	}
 	if term.Token.Rune > 0 {
@@ -191,7 +192,8 @@ func ParserTermConv(term *wl.Term) Ex {
 		}
 		return ParserTokenConv(term.Token)
 	}
-	return &Symbol{"System`UnParsedTerm"}
+	log.Fatalf("System`UnParsedTerm")
+	return nil
 }
 
 func ParserFactorConv(fact *wl.Factor) Ex {
@@ -206,7 +208,8 @@ func ParserFactorConv(fact *wl.Factor) Ex {
 		}
 		return tv
 	}
-	return &Symbol{"System`UnParsedFactor"}
+	log.Fatalf("System`UnParsedFactor")
+	return nil
 }
 
 var binaryOps = map[int]string{
@@ -336,7 +339,8 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			ParserExprConv(expr.Expression),
 		})
 	}
-	return &Symbol{"System`UnParsed"}
+	log.Fatalf("System`UnParsed")
+	return nil
 }
 
 func Interp(src string, es *EvalState) Ex {
