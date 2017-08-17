@@ -5,7 +5,6 @@ import (
 	"strings"
 	"go/token"
 	"os"
-	//"fmt"
 	"log"
 	"bytes"
 	"github.com/cznic/wl"
@@ -143,168 +142,125 @@ func ParserExprListConv(l *wl.ExprList) (res []Ex) {
 	return
 }
 
-func ParserTermConv(term *wl.Term) Ex {
-	if term.Token2.Rune > 0 {
-		switch term.Token2.Rune {
-		case wl.MESSAGE_NAME:
-			return NewExpression([]Ex{
-				&Symbol{"System`MessageName"},
-				ParserTokenConv(term.Token),
-				&String{ParserTagConv(term.Tag).(*Symbol).Name},
-			})
-		case wl.RPART:
-			e := NewExpression([]Ex{
-				&Symbol{"System`Part"},
-				ParserTermConv(term.Term),
-			})
-			e.appendExArray(ParserExprListConv(term.ExprList))
-			return e
-		case ']':
-			e := NewExpression([]Ex{
-				ParserTermConv(term.Term),
-			})
-			e.appendExArray(ParserExprListConv(term.ExprList))
-			return e
-		case '}':
-			e := NewExpression([]Ex{
-				&Symbol{"System`List"},
-			})
-			e.appendExArray(ParserExprListConv(term.ExprList))
-			return e
-		case ')':
-			return ParserExprConv(term.Expression)
-		default:
-			log.Fatalf("System`UnParsedTermWithToken2")
-		}
-	}
-	if term.Token.Rune > 0 {
-		switch term.Token.Rune {
-		case '!':
-			return NewExpression([]Ex{
-				&Symbol{"System`Factorial"},
-				ParserTermConv(term.Term),
-			})
-		case '&':
-			return NewExpression([]Ex{
-				&Symbol{"System`Function"},
-				ParserTermConv(term.Term),
-			})
-		}
-		return ParserTokenConv(term.Token)
-	}
-	log.Fatalf("System`UnParsedTerm")
-	return nil
+var terminals = map[int]bool{
+	138: true,  // FLOAT
+	139: true,  // IDENT
+	142: true,  // INT
+	144: true,  // PATTERN
+	145: true,  // SLOT
+	146: true,  // STRING
 }
 
-func ParserFactorConv(fact *wl.Factor) Ex {
-	if fact.Term != nil {
-		tv := ParserTermConv(fact.Term)
-		if fact.Factor != nil {
-			return NewExpression([]Ex{
-				&Symbol{"System`Times"},
-				tv,
-				ParserFactorConv(fact.Factor),
-			})
-		}
-		return tv
-	}
-	log.Fatalf("System`UnParsedFactor")
-	return nil
+var unaryOps = map[int]string{
+	13: "Not",
+	115: "Factorial",
+	117: "Function",
 }
 
 var binaryOps = map[int]string{
-	44: "Set",
-	19: "SetDelayed",
-	15: "ReplaceRepeated",
-	13: "ReplaceAll",
-	11: "Rule",
-	20: "RuleDelayed",
-	48: "Power",
-	46: "PatternTest",
-	17: "Condition",
-	28: "Apply",
-	18: "Map",
+	128: "Set",
+	39: "SetDelayed",
+	33: "ReplaceRepeated",
+	31: "ReplaceAll",
+	27: "Rule",
+	40: "RuleDelayed",
+	134: "Power",
+	130: "PatternTest",
+	36: "Condition",
+	52: "Apply",
+	38: "Map",
+
+	123: "Pattern",  // TODO(corywalker): Needs work
 }
 
 var fullyAssocOps = map[int]string{
-	36: "Plus",
-	35: "Times",
-	24: "Equal",
-	70: "Unequal",
-	25: "SameQ",
-	23: "UnsameQ",
-	22: "StringJoin",
-	43: "Less",
-	21: "LessEqual",
-	45: "Greater",
-	26: "GreaterEqual",
-	34: "Or",
-	8: "And",
-	38: "Dot",
-	49: "Alternatives",
+	125: "CompoundExpression",
+	119: "Plus",
+	118: "Times",
+	46: "Equal",
+	19: "Unequal",
+	47: "SameQ",
+	45: "UnsameQ",
+	44: "StringJoin",
+	126: "Less",
+	43: "LessEqual",
+	129: "Greater",
+	48: "GreaterEqual",
+	113: "Or",
+	20: "And",
+	121: "Dot",
+	135: "Alternatives",
 }
 
 func ParserExprConv(expr *wl.Expression) Ex {
-	if expr.Factor != nil {
-		return ParserFactorConv(expr.Factor)
+	if _, ok := terminals[expr.Case]; ok {
+		return ParserTokenConv(expr.Token)
 	}
-	for c, head := range binaryOps {
-		if expr.Case == c {
-			return NewExpression([]Ex{
-				&Symbol{"System`" + head},
-				ParserExprConv(expr.Expression),
-				ParserExprConv(expr.Expression2),
-			})
-		}
+	if head, ok := binaryOps[expr.Case]; ok {
+		return NewExpression([]Ex{
+			&Symbol{"System`" + head},
+			ParserExprConv(expr.Expression),
+			ParserExprConv(expr.Expression2),
+		})
 	}
-	for c, head := range fullyAssocOps {
-		if expr.Case == c {
-			return fullyAssoc(
-				"System`" + head,
-				ParserExprConv(expr.Expression),
-				ParserExprConv(expr.Expression2),
-			)
-		}
+	if head, ok := fullyAssocOps[expr.Case]; ok {
+		return fullyAssoc(
+			"System`" + head,
+			ParserExprConv(expr.Expression),
+			ParserExprConv(expr.Expression2),
+		)
 	}
+	if head, ok := unaryOps[expr.Case]; ok {
+		return NewExpression([]Ex{
+			&Symbol{"System`" + head},
+			ParserExprConv(expr.Expression),
+		})
+	}
+
+	// Special handling.
 	switch expr.Case {
-	case 14:
-		return NewExpression([]Ex{
-			ParserExprConv(expr.Expression2),
-			ParserExprConv(expr.Expression),
-		})
-	case 47:
-		return NewExpression([]Ex{
-			ParserExprConv(expr.Expression),
-			ParserExprConv(expr.Expression2),
-		})
-	case 6:
-		return NewExpression([]Ex{
-			&Symbol{"System`Not"},
-			ParserExprConv(expr.Expression),
-		})
-	case 41:
+	case 124:
 		return fullyAssoc(
 			"System`CompoundExpression",
 			ParserExprConv(expr.Expression),
 			&Symbol{"System`Null"},
 		)
-	case 42:
-		return fullyAssoc(
-			"System`CompoundExpression",
+	case 140:
+		return NewExpression([]Ex{
+			&Symbol{"System`MessageName"},
+			ParserTokenConv(expr.Token),
+			ParserTagConv(expr.Tag),
+		})
+	case 132:  // a[]
+		return NewExpression([]Ex{
 			ParserExprConv(expr.Expression),
-			ParserExprConv(expr.Expression2),
-		)
-	case 37:
-		return fullyAssoc(
-			"System`Plus",
+		})
+	case 133:  // a[b]
+		e := NewExpression([]Ex{
 			ParserExprConv(expr.Expression),
-			NewExpression([]Ex{
-				&Symbol{"System`Times"},
-				ParserExprConv(expr.Expression2),
-				&Integer{big.NewInt(-1)},
-			}),
-		)
-	case 7:
+		})
+		e.appendExArray(ParserExprListConv(expr.ExprList))
+		return e
+	case 17:  // {}
+		return NewExpression([]Ex{
+			&Symbol{"System`List"},
+		})
+	case 18:  // {a}
+		e := NewExpression([]Ex{
+			&Symbol{"System`List"},
+		})
+		e.appendExArray(ParserExprListConv(expr.ExprList))
+		return e
+	case 14:  // (a)
+		return ParserExprConv(expr.Expression)
+	case 54:  // a[[b]]
+		e := NewExpression([]Ex{
+			&Symbol{"System`Part"},
+			ParserExprConv(expr.Expression),
+		})
+		e.appendExArray(ParserExprListConv(expr.ExprList))
+		return e
+	case 16:
 		e := ParserExprConv(expr.Expression)
 		if integer, isInteger := e.(*Integer); isInteger {
 			return &Integer{integer.Val.Neg(integer.Val)}
@@ -313,10 +269,10 @@ func ParserExprConv(expr *wl.Expression) Ex {
 		}
 		return NewExpression([]Ex{
 			&Symbol{"System`Times"},
-			ParserExprConv(expr.Expression),
+			e,
 			&Integer{big.NewInt(-1)},
 		})
-	case 39:
+	case 122:
 		return NewExpression([]Ex{
 			&Symbol{"System`Times"},
 			ParserExprConv(expr.Expression),
@@ -326,25 +282,32 @@ func ParserExprConv(expr *wl.Expression) Ex {
 				&Integer{big.NewInt(-1)},
 			}),
 		})
-	case 40:
+	case 120:
+		return fullyAssoc(
+			"System`Plus",
+			ParserExprConv(expr.Expression),
+			NewExpression([]Ex{
+				&Symbol{"System`Times"},
+				ParserExprConv(expr.Expression2),
+				&Integer{big.NewInt(-1)},
+			}),
+		)
+	case 32:
 		return NewExpression([]Ex{
-			&Symbol{"System`Optional"},
-			ParserTokenConv(expr.Token),
-			ParserTermConv(expr.Term),
-		})
-	case 128:
-		return NewExpression([]Ex{
-			&Symbol{"System`Pattern"},
-			ParserTokenConv(expr.Token),
+			ParserExprConv(expr.Expression2),
 			ParserExprConv(expr.Expression),
 		})
+	case 131:
+		return NewExpression([]Ex{
+			ParserExprConv(expr.Expression),
+			ParserExprConv(expr.Expression2),
+		})
 	}
-	log.Fatalf("System`UnParsed")
+	log.Fatalf("System`UnParsed: %+v %+v %+v", expr.Token, expr.Case, expr)
 	return nil
 }
 
 func Interp(src string, es *EvalState) Ex {
-	//fmt.Printf("Parsing %s\n", src)
 	buf := bytes.NewBufferString(src)
 	// TODO(corywalker): use the interactive mode for proper newline handling.
 	in, err := wl.NewInput(buf, false)
@@ -363,7 +326,6 @@ func Interp(src string, es *EvalState) Ex {
 		contextPath = append(contextPath, pathPart.(*String).Val)
 	}
 	addContextAndDefine(parsed, context, contextPath, es)
-	//fmt.Printf("result %s\n", parsed)
 	return parsed
 }
 
