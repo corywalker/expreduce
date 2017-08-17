@@ -28,6 +28,23 @@ func rightFullyAssoc(op string, lhs Ex, rhs Ex) Ex {
 	return NewExpression([]Ex{&Symbol{op}, lhs, rhs})
 }
 
+func removeParens(ex Ex) {
+	expr, isExpr := ex.(*Expression)
+	if isExpr {
+		for i := range expr.Parts {
+			parens, isParens := NewEmptyExpression(), true
+			for isParens {
+				parens, isParens = HeadAssertion(expr.Parts[i], "Internal`Parens")
+				if isParens {
+					expr.Parts[i] = parens.Parts[1]
+				}
+			}
+			removeParens(expr.Parts[i])
+		}
+	}
+	return
+}
+
 func addContextAndDefine(e Ex, context string, contextPath []string, es *EvalState) {
 	if sym, isSym := e.(*Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
@@ -229,7 +246,7 @@ func ParserExprConv(expr *wl.Expression) Ex {
 		return NewExpression([]Ex{
 			&Symbol{"System`MessageName"},
 			ParserTokenConv(expr.Token),
-			ParserTagConv(expr.Tag),
+			&String{ParserTagConv(expr.Tag).(*Symbol).Name},
 		})
 	case 132:  // a[]
 		return NewExpression([]Ex{
@@ -252,7 +269,12 @@ func ParserExprConv(expr *wl.Expression) Ex {
 		e.appendExArray(ParserExprListConv(expr.ExprList))
 		return e
 	case 14:  // (a)
-		return ParserExprConv(expr.Expression)
+		// Internal`Parens are a placeholder to prevent fullyAssoc from
+		// translating "(x==2) == (x==2)" to "x == 2 == (x == 2)"
+		return NewExpression([]Ex{
+			&Symbol{"Internal`Parens"},
+			ParserExprConv(expr.Expression),
+		})
 	case 54:  // a[[b]]
 		e := NewExpression([]Ex{
 			&Symbol{"System`Part"},
@@ -319,6 +341,18 @@ func Interp(src string, es *EvalState) Ex {
 		return &Symbol{"System`Null"}
 	}
 	parsed := ParserExprConv(expr)
+
+	// Remove outer parens
+	parens, isParens := NewEmptyExpression(), true
+	for isParens {
+		parens, isParens = HeadAssertion(parsed, "Internal`Parens")
+		if isParens {
+			parsed = parens.Parts[1]
+		}
+	}
+	// Remove inner parens
+	removeParens(parsed)
+
 	context := es.GetStringDef("System`$Context", "")
 	contextPathEx := es.GetListDef("System`$ContextPath")
 	contextPath := []string{}
