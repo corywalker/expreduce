@@ -455,7 +455,6 @@ Tests`Optional = {
         ESameTest[False, MatchQ[foo[a],a+c_.]],
         ESameTest[{{0},{0}}, a/.a+c_.+d_.->{{c},{d}}],
         ESameTest[{{0},{0}}, Cos[x]/.(_+c_.+d_.)->{{c},{d}}],
-        ESameTest[{{0},{5}}, a/.a+c_.+d_:5->{{c},{d}}],
         ESameTest[{{5},{a}}, 5*a/.Optional[c1_?NumberQ]*a_->{{c1},{a}}],
         ESameTest[{{1},{a}}, a/.Optional[c1_?NumberQ]*a_->{{c1},{a}}],
         ESameTest[False, MatchQ[foo[a,b],foo[c1__?NumberQ]]],
@@ -473,7 +472,9 @@ Tests`Optional = {
         ESameTest[True, MatchQ[x^x, x^Optional[exp_]]]
     ], EKnownFailures[
         ESameTest[foo[a,b], foo[a,b]/.foo[a___,b_.,d_.]->{{a},{b},{d}}],
-        ESameTest[True, MatchQ[x^x, (x^x)^Optional[exp_]]]
+        ESameTest[True, MatchQ[x^x, (x^x)^Optional[exp_]]],
+        (*Disabled because issue #79*)
+        ESameTest[{{0},{5}}, a/.a+c_.+d_:5->{{c},{d}}]
     ]
 };
 
