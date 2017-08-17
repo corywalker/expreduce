@@ -186,8 +186,6 @@ var binaryOps = map[int]string{
 	36: "Condition",
 	52: "Apply",
 	38: "Map",
-
-	123: "Pattern",  // TODO(corywalker): Needs work
 }
 
 var fullyAssocOps = map[int]string{
@@ -242,6 +240,19 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			ParserExprConv(expr.Expression),
 			&Symbol{"System`Null"},
 		)
+	case 123:
+		// TODO(corywalker): Fix parsing of "a + a_:5 + a". It should contain
+		// the expression Optional[a_, 5].
+		e := ParserExprConv(expr.Expression)
+		head := "System`Pattern"
+		if _, isPat := HeadAssertion(e, "System`Pattern"); isPat {
+			head = "System`Optional"
+		}
+		return NewExpression([]Ex{
+			&Symbol{head},
+			e,
+			ParserExprConv(expr.Expression2),
+		})
 	case 140:
 		return NewExpression([]Ex{
 			&Symbol{"System`MessageName"},
