@@ -3,6 +3,7 @@ package expreduce
 import (
 	"fmt"
 	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestInterp(t *testing.T) {
@@ -66,14 +67,9 @@ func TestInterp(t *testing.T) {
 	// Test newline handling
 	CasAssertSame(t, es, "a*b*c", "a\nb\nc")
 
-	//fmt.Println("marker 1")
-	//assert.Equal(t, "CompoundExpression[a, b]", Interp("a;b\n", es).String())
-	//fmt.Println("marker 2")
-	//assert.Equal(t, "CompoundExpression[a, b]", Interp("a;\nb\n", es).String())
-	//fmt.Println("marker 3")
+	assert.Equal(t, "CompoundExpression[a, b]", Interp("a;b\n", es).String())
+	assert.Equal(t, "CompoundExpression[a, b]", Interp("a;\nb\n", es).String())
 	//assert.Equal(t, "Sequence[a, b]", Interp("a\nb\n", es).String())
-	//fmt.Println("marker 4")
-	//assert.Equal(t, "c = (a * b)", Interp("c = (a\nb)\n", es).String())
-	//fmt.Println("marker 5")
-	//assert.Equal(t, "c = (a * b)", Interp("c = (a\n\nb)\n", es).String())
+	assert.Equal(t, "(c) = ((a * b))", Interp("c = (a\nb)\n", es).String())
+	assert.Equal(t, "(c) = ((a * b))", Interp("c = (a\n\nb)\n", es).String())
 }
