@@ -5,6 +5,7 @@ import (
 	"strings"
 	"go/token"
 	"os"
+	"fmt"
 	"log"
 	"bytes"
 	"github.com/cznic/wl"
@@ -345,10 +346,11 @@ func Interp(src string, es *EvalState) Ex {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
 	in, err := wl.NewInput(buf, false)
 	if err != nil {
-		return &Symbol{"System`Null"}
+		panic(err)
 	}
 	expr, err := in.ParseExpression(token.NewFileSet().AddFile(os.Stdin.Name(), -1, 1e6))
 	if err != nil {
+		fmt.Printf("Syntax::sntx: %v.\n\n\n", err)
 		return &Symbol{"System`Null"}
 	}
 	parsed := ParserExprConv(expr)
