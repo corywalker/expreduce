@@ -159,3 +159,21 @@ EndPackage[] := (
     $ExpreducePkgContext = Null;
 );
 
+Begin::usage = "`Begin[context]` updates the context.";
+Attributes[Begin] = {Protected};
+Begin[c_String] := (
+    $ExpreduceOldContext2 = $Context;
+    If[StringTake[c, {1, 1}] == "`",
+        $Context = $Context <> StringTake[c, {2, StringLength[c]}],
+        $Context = c
+    ];
+    $Context
+);
+
+End::usage = "`End[]` updates the context to rever the changes caused by `Begin`.";
+Attributes[End] = {Protected};
+End[] := (
+    expreduceToReturn = $Context;
+    $Context = $ExpreduceOldContext2;
+    expreduceToReturn
+);
