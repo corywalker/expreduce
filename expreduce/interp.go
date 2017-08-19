@@ -341,8 +341,7 @@ func ParserExprConv(expr *wl.Expression) Ex {
 	return nil
 }
 
-func Interp(src string, es *EvalState) Ex {
-	buf := bytes.NewBufferString(src)
+func InterpBuf(buf *bytes.Buffer, es *EvalState) (Ex, error) {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
 	in, err := wl.NewInput(buf, false)
 	if err != nil {
@@ -350,8 +349,7 @@ func Interp(src string, es *EvalState) Ex {
 	}
 	expr, err := in.ParseExpression(token.NewFileSet().AddFile(os.Stdin.Name(), -1, 1e6))
 	if err != nil {
-		fmt.Printf("Syntax::sntx: %v.\n\n\n", err)
-		return &Symbol{"System`Null"}
+		return &Symbol{"System`Null"}, err
 	}
 	parsed := ParserExprConv(expr)
 
@@ -373,7 +371,17 @@ func Interp(src string, es *EvalState) Ex {
 		contextPath = append(contextPath, pathPart.(*String).Val)
 	}
 	addContextAndDefine(parsed, context, contextPath, es)
-	return parsed
+	return parsed, nil
+}
+
+func Interp(src string, es *EvalState) Ex {
+	buf := bytes.NewBufferString(src)
+	expr, err := InterpBuf(buf, es)
+	if err != nil {
+		fmt.Printf("Syntax::sntx: %v.\n\n\n", err)
+		return &Symbol{"System`Null"}
+	}
+	return expr
 }
 
 func EvalInterp(src string, es *EvalState) Ex {
@@ -381,14 +389,17 @@ func EvalInterp(src string, es *EvalState) Ex {
 }
 
 func EvalInterpMany(doc string, es *EvalState) Ex {
-	var last Ex
-	for _, expr := range strings.Split(doc, "\n\n\n") {
-		if len(strings.TrimSpace(expr)) == 0 {
-			continue
-		}
-		last = EvalInterp(expr, es)
+	buf := bytes.NewBufferString(doc)
+	var lastExpr Ex = &Symbol{"System`Null"}
+	expr, err := InterpBuf(buf, es)
+	for err == nil {
+		lastExpr = expr.Eval(es)
+		expr, err = InterpBuf(buf, es)
 	}
-	return last
+	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
+		fmt.Printf("Syntax::sntx: %v.\n\n\n", err)
+	}
+	return lastExpr
 }
 
 func EasyRun(src string, es *EvalState) string {

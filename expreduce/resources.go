@@ -388,7 +388,7 @@ func resourcesPatternM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/pattern.m", size: 29166, mode: os.FileMode(420), modTime: time.Unix(1502951596, 0)}
+	info := bindataFileInfo{name: "resources/pattern.m", size: 29166, mode: os.FileMode(420), modTime: time.Unix(1503170057, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
