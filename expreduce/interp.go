@@ -343,7 +343,7 @@ func ParserExprConv(expr *wl.Expression) Ex {
 
 func InterpBuf(buf *bytes.Buffer, es *EvalState) (Ex, error) {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
-	in, err := wl.NewInput(buf, false)
+	in, err := wl.NewInput(buf, true)
 	if err != nil {
 		panic(err)
 	}
