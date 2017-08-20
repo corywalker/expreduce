@@ -130,6 +130,25 @@ Tests`Union = {
     ]
 };
 
+Complement::usage = "`Complement[expr1, expr2, ...]` returns a sorted union of the items in the expressions.";
+Attributes[Complement] = {Protected};
+Tests`Complement = {
+    ESimpleExamples[
+        ESameTest[{b}, Complement[{a, b}, {a}]],
+        ESameTest[{c}, Complement[{a, b, c}, {a}, {b}]]
+    ], ETests[
+        ESameTest[foo[], Complement[foo[a], foo[a]]],
+        ESameTest[Complement[], Complement[]],
+        ESameTest[{}, Complement[{}]],
+        ESameTest[Complement[{}, foo[a]], Complement[{}, foo[a]]],
+        ESameTest[{b, c}, Complement[{a, b, c}, {a}, {_}]],
+        ESameTest[{b, c}, Complement[{a, b, c, _}, {a}, {_}]],
+        ESameTest[{b, c}, Complement[{a, b, c, _}, {a}, {_}, {}]],
+        ESameTest[{b, c}, Complement[{a, c, b, _}, {a}, {_}, {}]],
+        ESameTest[{b, c}, Complement[{a, c, c, b, _}, {a}, {_}, {}]]
+    ]
+};
+
 Range::usage = "`Range[n]` returns a `List` of integers from 1 to `n`.
 
 `Range[m, n]` returns a `List` of integers from `m` to `n`.";

@@ -177,3 +177,19 @@ End[] := (
     $Context = $ExpreduceOldContext2;
     expreduceToReturn
 );
+
+PrintTemporary::usage = "`PrintTemporary[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.";
+Attributes[PrintTemporary] = {Protected};
+PrintTemporary[exprs___] := Print[exprs];
+
+SetAttributes::usage = "`SetAttributes[sym, attributes]` adds the `attributes` to `sym`.";
+Attributes[SetAttributes] = {HoldFirst, Protected};
+SetAttributes[s_Symbol, attrs_List] := (
+    Attributes[s] = Union[Attributes[s], attrs];
+);
+
+ClearAttributes::usage = "`ClearAttributes[sym, attributes]` clears the `attributes` from `sym`.";
+Attributes[ClearAttributes] = {HoldFirst, Protected};
+ClearAttributes[s_Symbol, attrs_List] := (
+    Attributes[s] = Complement[Attributes[s], attrs];
+);

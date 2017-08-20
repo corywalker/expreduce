@@ -578,5 +578,8 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "EndPackage"})
 	defs = append(defs, Definition{Name: "Begin"})
 	defs = append(defs, Definition{Name: "End"})
+	defs = append(defs, Definition{Name: "PrintTemporary"})
+	defs = append(defs, Definition{Name: "SetAttributes"})
+	defs = append(defs, Definition{Name: "ClearAttributes"})
 	return
 }

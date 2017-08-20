@@ -251,6 +251,44 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name: "Complement",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) == 1 {
+				return this
+			}
+			var firstHead Ex = nil
+			exclusions := map[uint64]bool{}
+			for _, part := range this.Parts[1:] {
+				expr, isExpr := part.(*Expression)
+				if !isExpr {
+					return this
+				}
+				if firstHead == nil {
+					firstHead = expr.Parts[0]
+					continue
+				} else if !IsSameQ(firstHead, expr.Parts[0], &es.CASLogger) {
+					return this
+				}
+				for _, excludedPart := range expr.Parts[1:] {
+					exclusions[hashEx(excludedPart)] = true
+				}
+			}
+			toReturn := NewExpression([]Ex{firstHead})
+			added := map[uint64]bool{}
+			for _, part := range this.Parts[1].(*Expression).Parts[1:] {
+				hash := hashEx(part)
+				_, alreadyAdded := added[hash]
+				_, excluded := exclusions[hash]
+				if !excluded && !alreadyAdded {
+					added[hash] = true
+					toReturn.Parts = append(toReturn.Parts, part)
+				}
+			}
+			sort.Sort(toReturn)
+			return toReturn
+		},
+	})
+	defs = append(defs, Definition{
 		Name: "PadRight",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			list, n, x, valid := ValidatePadParams(this)
