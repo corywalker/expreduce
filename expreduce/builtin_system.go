@@ -581,5 +581,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "PrintTemporary"})
 	defs = append(defs, Definition{Name: "SetAttributes"})
 	defs = append(defs, Definition{Name: "ClearAttributes"})
+	defs = append(defs, Definition{Name: "Protect"})
+	defs = append(defs, Definition{Name: "Unprotect"})
 	return
 }

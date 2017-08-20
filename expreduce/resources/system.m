@@ -193,3 +193,11 @@ Attributes[ClearAttributes] = {HoldFirst, Protected};
 ClearAttributes[s_Symbol, attrs_List] := (
     Attributes[s] = Complement[Attributes[s], attrs];
 );
+
+Protect::usage = "`Protect[sym]` adds the `Protected` attribute to `sym`.";
+Attributes[Protect] = {HoldAll, Protected};
+Protect[s_Symbol] := SetAttributes[s, {Protected}];
+
+Unprotect::usage = "`Unprotect[sym]` clears the `Protected` attribute from `sym`.";
+Attributes[Unprotect] = {HoldAll, Protected};
+Unprotect[s_Symbol] := ClearAttributes[s, {Protected}];
