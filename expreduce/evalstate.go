@@ -161,16 +161,18 @@ func (es *EvalState) Init(loadAllDefs bool) {
 					es.Load(def)
 				}
 			}
-			data, err := Asset(fmt.Sprintf("resources/%v.m", defSet.Name))
+			fn := fmt.Sprintf("resources/%v.m", defSet.Name)
+			data, err := Asset(fn)
 			if err == nil {
 				EvalInterp("$Context = \"Private`\"", es)
-				EvalInterpMany(string(data), es)
+				EvalInterpMany(string(data), fn, es)
 				EvalInterp("$Context = \"System`\"", es)
 			}
 		}
 		// System initialization
-		data := MustAsset("resources/init.m")
-		EvalInterpMany(string(data), es)
+		fn := "resources/init.m"
+		data := MustAsset(fn)
+		EvalInterpMany(string(data), fn, es)
 	}
 	EvalInterp("$Context = \"Global`\"", es)
 	EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
