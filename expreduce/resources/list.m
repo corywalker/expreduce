@@ -307,3 +307,14 @@ Tests`Select = {
         ESameTest[Select[2,EvenQ], Select[2,EvenQ]]
     ]
 };
+
+ListQ::usage = "`ListQ[expr]` checks if `expr` has a head of `List`.";
+ListQ[expr_] := Head[expr] === List;
+Attributes[ListQ] = {Protected};
+Tests`ListQ = {
+    ESimpleExamples[
+        ESameTest[True, ListQ[{a}]],
+        ESameTest[False, ListQ[a]],
+        ESameTest[True, ListQ[{}]]
+    ]
+};

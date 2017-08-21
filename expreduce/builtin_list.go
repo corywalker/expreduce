@@ -489,5 +489,6 @@ func GetListDefinitions() (defs []Definition) {
 			return this
 		},
 	})
+	defs = append(defs, Definition{Name: "ListQ"})
 	return
 }

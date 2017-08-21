@@ -583,5 +583,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "ClearAttributes"})
 	defs = append(defs, Definition{Name: "Protect"})
 	defs = append(defs, Definition{Name: "Unprotect"})
+	defs = append(defs, Definition{Name: "Quiet"})
 	return
 }

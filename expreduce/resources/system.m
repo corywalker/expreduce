@@ -201,3 +201,7 @@ Protect[s_Symbol] := SetAttributes[s, {Protected}];
 Unprotect::usage = "`Unprotect[sym]` clears the `Protected` attribute from `sym`.";
 Attributes[Unprotect] = {HoldAll, Protected};
 Unprotect[s_Symbol] := ClearAttributes[s, {Protected}];
+
+Quiet::usage = "`Quiet[e]` runs `e` without printing any messages.";
+Attributes[Quiet] = {HoldAll, Protected};
+Quiet[e_] := e;
