@@ -62,6 +62,44 @@ func exprToN(es *EvalState, e Ex) Ex {
 	return e.DeepCopy()
 }
 
+func TryReadFile(fn Ex, es *EvalState) (string, string, bool) {
+	pathSym := &Symbol{"System`$Path"}
+	path, isDef, _ := es.GetDef("System`$Path", pathSym)
+	if !isDef {
+		return "", "", false
+	}
+	pathL, pathIsList := HeadAssertion(path, "System`List")
+	if !pathIsList {
+		return "", "", false
+	}
+	filenameString, fnIsStr := fn.(*String)
+	if !fnIsStr {
+		return "", "", false
+	}
+	rawFn := filenameString.Val
+	pathsToTry := []string{}
+	for _, pathEx := range pathL.Parts[1:] {
+		pathString, pathIsString := pathEx.(*String)
+		if !pathIsString {
+			fmt.Printf("Invalid path: %v\n", pathEx)
+			continue
+		}
+		rawDir := pathString.Val
+		rawPath := rawDir + string(os.PathSeparator) + rawFn
+		pathsToTry = append(pathsToTry, rawPath)
+	}
+	pathsToTry = append(pathsToTry, rawFn)
+	for _, rawPath := range pathsToTry {
+		dat, err := ioutil.ReadFile(rawPath)
+		if err != nil {
+			continue
+		}
+		fileData := string(dat)
+		return fileData, rawPath, true
+	}
+	return "", "", false
+}
+
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceSetLogging",
@@ -437,36 +475,11 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			pathSym := &Symbol{"System`$Path"}
-			path, isDef, _ := es.GetDef("System`$Path", pathSym)
-			if !isDef {
+			fileData, rawPath, ok := TryReadFile(this.Parts[1], es)
+			if !ok {
 				return &Symbol{"System`$Failed"}
 			}
-			pathL, pathIsList := HeadAssertion(path, "System`List")
-			if !pathIsList {
-				return &Symbol{"System`$Failed"}
-			}
-			filenameString, fnIsStr := this.Parts[1].(*String)
-			if !fnIsStr {
-				return &Symbol{"System`$Failed"}
-			}
-			for _, pathEx := range pathL.Parts[1:] {
-				pathString, pathIsString := pathEx.(*String)
-				if !pathIsString {
-					fmt.Printf("Invalid path: %v\n", pathEx)
-					continue
-				}
-				rawDir := pathString.Val
-				rawFn := filenameString.Val
-				rawPath := rawDir + string(os.PathSeparator) + rawFn
-				dat, err := ioutil.ReadFile(rawPath)
-				if err != nil {
-					continue
-				}
-				fileData := string(dat)
-				return EvalInterpMany(fileData, rawPath, es)
-			}
-			return &Symbol{"System`$Failed"}
+			return EvalInterpMany(fileData, rawPath, es)
 		},
 	})
 	defs = append(defs, Definition{
@@ -572,6 +585,19 @@ func GetSystemDefinitions() (defs []Definition) {
 			i := big.NewInt(0)
 			i.SetUint64(hashEx(this.Parts[1]))
 			return &Integer{i}
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "ReadList",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			fileData, rawPath, ok := TryReadFile(this.Parts[1], es)
+			if !ok {
+				return &Symbol{"System`$Failed"}
+			}
+			return ReadList(fileData, rawPath, es)
 		},
 	})
 	defs = append(defs, Definition{Name: "BeginPackage"})

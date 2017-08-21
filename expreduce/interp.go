@@ -415,6 +415,20 @@ func EvalInterpMany(doc string, fn string, es *EvalState) Ex {
 	return lastExpr
 }
 
+func ReadList(doc string, fn string, es *EvalState) Ex {
+	buf := bytes.NewBufferString(doc)
+	l := NewExpression([]Ex{&Symbol{"System`List"}})
+	expr, err := InterpBuf(buf, fn, es)
+	for err == nil {
+		l.appendEx(expr.Eval(es))
+		expr, err = InterpBuf(buf, fn, es)
+	}
+	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
+		fmt.Printf("Syntax::sntx: %v.\nWhile parsing: %v\n\n\n", err, buf.String()[:100])
+	}
+	return l
+}
+
 func EasyRun(src string, es *EvalState) string {
 	context, contextPath := ActualStringFormArgs(es)
 	return EvalInterp(src, es).StringForm("InputForm", context, contextPath)
