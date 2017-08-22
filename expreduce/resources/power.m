@@ -52,6 +52,7 @@ Power[b_, -Infinity] := Indeterminate;
 (*These take up time. Possibly convert to Upvalues.*)
 Power[Rational[a_,b_], -1] := Rational[b,a];
 Power[Rational[a_,b_], e_?Positive] := Rational[a^e,b^e];
+Power[Power[x_, y_Rational], -1] := Power[x, -y];
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[
@@ -183,11 +184,16 @@ Tests`Log = {
 Sqrt::usage = "`Sqrt[e]` finds the square root of `e`.";
 (*TODO: automatically simplify perfect squares*)
 Attributes[Sqrt] = {Listable, NumericFunction, Protected};
-Sqrt[0] := 0;
-Sqrt[1] := 1;
 Sqrt[a_Integer?Negative] := I*Sqrt[-a];
 Sqrt[-a_] := I*Sqrt[a];
 Sqrt[a_Real?Positive] := a^.5;
+Sqrt[x_] := Which[
+    (*Normally we would define these directly, but right now "x_" is
+    considered more specific than 0 or 1. *)
+    x===0, 0,
+    x===1, 1,
+    True,  x^(1/2)
+];
 Tests`Sqrt = {
     ESimpleExamples[
         ESameTest[Sqrt[3], Sqrt[3]],
@@ -542,11 +548,11 @@ Tests`Variables = {
         ESameTest[{}, Variables[2^"Hello"^2]],
         ESameTest[{a^"Hello"^2}, Variables[a^"Hello"^2]],
 
-        ESameTest[{}, Variables[Pi^y]]
+        ESameTest[{}, Variables[Pi^y]],
+        ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
+        ESameTest[{a}, Variables[Sqrt[a]]]
     ], EKnownFailures[
         (*I think these have to do with NumericQ.*)
-        ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
-        ESameTest[{a}, Variables[Sqrt[a]]],
         ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]]
     ]
 };

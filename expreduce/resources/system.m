@@ -205,3 +205,6 @@ Unprotect[s_Symbol] := ClearAttributes[s, {Protected}];
 Quiet::usage = "`Quiet[e]` runs `e` without printing any messages.";
 Attributes[Quiet] = {HoldAll, Protected};
 Quiet[e_] := e;
+
+ReadList::usage = "`ReadList[file]` reads expressions in `file` into a list.";
+Attributes[ReadList] = {Protected};
