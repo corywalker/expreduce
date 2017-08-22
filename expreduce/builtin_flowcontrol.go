@@ -69,9 +69,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		},
 	})
 	// https://mathematica.stackexchange.com/questions/29353/how-does-return-work
-	defs = append(defs, Definition{
-		Name: "Return",
-	})
+	defs = append(defs, Definition{Name: "Return"})
 	defs = append(defs, Definition{
 		Name: "Which",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -89,6 +87,44 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				}
 			}
 			return &Symbol{"System`Null"}
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "With",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			vars, isList := HeadAssertion(this.Parts[1], "System`List")
+			if !isList {
+				return this
+			}
+			rules := []*Expression{}
+			for _, vDef := range vars.Parts[1:] {
+				set, isSet := HeadAssertion(vDef, "System`Set")
+				setDelayed, isSetDelayed := HeadAssertion(vDef, "System`SetDelayed")
+				if !(isSet || isSetDelayed) {
+					return this
+				}
+				var setEx *Expression = nil
+				ruleHead := ""
+				if isSet {
+					setEx = set
+					ruleHead = "System`Rule"
+				} else {
+					setEx = setDelayed
+					ruleHead = "System`RuleDelayed"
+				}
+				if len(setEx.Parts) != 3 {
+					return this
+				}
+				rules = append(rules, NewExpression([]Ex{
+					&Symbol{ruleHead},
+					setEx.Parts[1],
+					setEx.Parts[2],
+				}))
+			}
+			return rulesReplace(this.Parts[2], rules, es)
 		},
 	})
 	return

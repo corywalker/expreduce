@@ -25,6 +25,15 @@ func getValidRules(ruleArg Ex) (rules []*Expression) {
 	return
 }
 
+func rulesReplace(e Ex, rules []*Expression, es *EvalState) Ex {
+	// TODO: fix the case where ReplaceAll[{x},{x->y,y->z}] returns incorrectly.
+	toReturn := e
+	for _, rule := range rules {
+		toReturn = ReplaceAll(toReturn, rule, es, EmptyPD(), "")
+	}
+	return toReturn
+}
+
 func getReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceAll",
@@ -43,11 +52,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(rules) == 0 {
 				return this
 			}
-			toReturn := this.Parts[1]
-			for _, rule := range rules {
-				toReturn = ReplaceAll(toReturn, rule, es, EmptyPD(), "")
-			}
-			return toReturn
+			return rulesReplace(this.Parts[1], rules, es)
 		},
 	})
 	defs = append(defs, Definition{
