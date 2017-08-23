@@ -18,5 +18,6 @@ func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "String"})
 	defs = append(defs, Definition{Name: "Real"})
 	defs = append(defs, Definition{Name: "Integer"})
+	defs = append(defs, Definition{Name: "IntegerQ"})
 	return
 }
