@@ -1,5 +1,41 @@
 package expreduce
 
+func applyWithFn(e *Expression, es *EvalState) (Ex, bool) {
+	if len(e.Parts) != 3 {
+		return nil, false
+	}
+	vars, isList := HeadAssertion(e.Parts[1], "System`List")
+	if !isList {
+		return nil, false
+	}
+	rules := []*Expression{}
+	for _, vDef := range vars.Parts[1:] {
+		set, isSet := HeadAssertion(vDef, "System`Set")
+		setDelayed, isSetDelayed := HeadAssertion(vDef, "System`SetDelayed")
+		if !(isSet || isSetDelayed) {
+			return nil, false
+		}
+		var setEx *Expression = nil
+		ruleHead := ""
+		if isSet {
+			setEx = set
+			ruleHead = "System`Rule"
+		} else {
+			setEx = setDelayed
+			ruleHead = "System`RuleDelayed"
+		}
+		if len(setEx.Parts) != 3 {
+			return nil, false
+		}
+		rules = append(rules, NewExpression([]Ex{
+			&Symbol{ruleHead},
+			setEx.Parts[1],
+			setEx.Parts[2],
+		}))
+	}
+	return rulesReplace(e.Parts[2], rules, es), true
+}
+
 func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "If",
@@ -92,39 +128,11 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "With",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+			res, ok := applyWithFn(this, es)
+			if !ok {
 				return this
 			}
-			vars, isList := HeadAssertion(this.Parts[1], "System`List")
-			if !isList {
-				return this
-			}
-			rules := []*Expression{}
-			for _, vDef := range vars.Parts[1:] {
-				set, isSet := HeadAssertion(vDef, "System`Set")
-				setDelayed, isSetDelayed := HeadAssertion(vDef, "System`SetDelayed")
-				if !(isSet || isSetDelayed) {
-					return this
-				}
-				var setEx *Expression = nil
-				ruleHead := ""
-				if isSet {
-					setEx = set
-					ruleHead = "System`Rule"
-				} else {
-					setEx = setDelayed
-					ruleHead = "System`RuleDelayed"
-				}
-				if len(setEx.Parts) != 3 {
-					return this
-				}
-				rules = append(rules, NewExpression([]Ex{
-					&Symbol{ruleHead},
-					setEx.Parts[1],
-					setEx.Parts[2],
-				}))
-			}
-			return rulesReplace(this.Parts[2], rules, es)
+			return res
 		},
 	})
 	return

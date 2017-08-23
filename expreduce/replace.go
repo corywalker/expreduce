@@ -104,6 +104,18 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
 
 func tryCondWithMatches(rhs Ex, matches *PDManager, es *EvalState) (Ex, bool) {
 	asCond, isCond := HeadAssertion(rhs, "System`Condition")
+	if !isCond {
+		if asWith, isWith := HeadAssertion(rhs, "System`With"); isWith {
+			if len(asWith.Parts) == 3 {
+				if _, hasCond := HeadAssertion(asWith.Parts[2], "System`Condition"); hasCond {
+					appliedWith, ok := applyWithFn(asWith, es)
+					if ok {
+						asCond, isCond = HeadAssertion(appliedWith, "System`Condition")
+					}
+				}
+			}
+		}
+	}
 	if isCond {
 		condRes := asCond.Parts[2].Eval(es)
 		condResSymbol, condResIsSymbol := condRes.(*Symbol)
