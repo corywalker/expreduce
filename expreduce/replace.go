@@ -102,36 +102,36 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
 	return this
 }
 
-func tryCondWithMatches(asCond *Expression, matches *PDManager, es *EvalState) (Ex, bool) {
-	condRes := ReplacePD(asCond.Parts[2], es, matches).Eval(es)
-	condResSymbol, condResIsSymbol := condRes.(*Symbol)
-	if condResIsSymbol {
-		if condResSymbol.Name == "System`True" {
-			toReturn := ReplacePD(asCond.Parts[1], es, matches)
-			if rCond, isRCond := HeadAssertion(toReturn, "System`Condition"); isRCond {
-				return tryCondWithMatches(rCond, matches, es)
+func tryCondWithMatches(rhs Ex, matches *PDManager, es *EvalState) (Ex, bool) {
+	asCond, isCond := HeadAssertion(rhs, "System`Condition")
+	if isCond {
+		condRes := ReplacePD(asCond.Parts[2], es, matches).Eval(es)
+		condResSymbol, condResIsSymbol := condRes.(*Symbol)
+		if condResIsSymbol {
+			if condResSymbol.Name == "System`True" {
+				toReturn := ReplacePD(asCond.Parts[1], es, matches)
+				if rCond, isRCond := HeadAssertion(toReturn, "System`Condition"); isRCond {
+					return tryCondWithMatches(rCond, matches, es)
+				}
+				return toReturn, true
 			}
-			return toReturn, true
 		}
+		return nil, false
 	}
-	return nil, false
+	return ReplacePD(rhs, es, matches), true
 }
 
 func Replace(this Ex, r *Expression, es *EvalState) (Ex, bool) {
-	if asCond, isCond := HeadAssertion(r.Parts[2], "System`Condition"); isCond {
-		mi, cont := NewMatchIter(this, r.Parts[1], EmptyPD(), es)
-		for cont {
-			res, matches, done := mi.next()
-			cont = !done
-			if res {
-				toReturn, ok := tryCondWithMatches(asCond, matches, es)
-				if ok {
-					return toReturn, true
-				}
+	mi, cont := NewMatchIter(this, r.Parts[1], EmptyPD(), es)
+	for cont {
+		res, matches, done := mi.next()
+		cont = !done
+		if res {
+			toReturn, ok := tryCondWithMatches(r.Parts[2], matches, es)
+			if ok {
+				return toReturn, true
 			}
 		}
-	} else if res, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es); res {
-		return ReplacePD(r.Parts[2], es, matches), true
 	}
 	return this, false
 }
