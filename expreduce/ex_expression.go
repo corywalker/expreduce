@@ -188,6 +188,9 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			}
 			oldHash := curr.Parts[i].Hash()
 			curr.Parts[i] = curr.Parts[i].Eval(es)
+			if es.HasThrown() {
+				return es.thrown
+			}
 			if oldHash != curr.Parts[i].Hash() {
 				curr.cachedHash = 0
 			}

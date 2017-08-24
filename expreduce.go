@@ -54,6 +54,7 @@ func main() {
 
 		exp := expreduce.Interp(line, es)
 		res := exp.Eval(es)
+		res = es.ProcessTopLevelResult(res)
 
 		isNull := false
 		asSym, isSym := res.(*expreduce.Symbol)

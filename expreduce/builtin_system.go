@@ -617,6 +617,30 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name: "TimeConstrained",
 		OmitDocumentation: true,
 	})
-	//defs = append(defs, Definition{Name: "Throw"})
+	defs = append(defs, Definition{
+		Name: "Throw",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			es.Throw(this)
+			return this
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Catch",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			res := this.Parts[1].Eval(es)
+			if es.HasThrown() {
+				toReturn := es.thrown.Parts[1]
+				es.Throw(nil)
+				return toReturn
+			}
+			return res
+		},
+	})
 	return
 }

@@ -215,5 +215,14 @@ TimeConstrained[e_, t_] := TimeConstrained[e, t, $Aborted];
 (* Hack just to get this function returning useful values for Rubi. *)
 TimeConstrained[e_, t_, f_] := e;
 
-(*Throw::usage = "`Throw[e]` stops all execution, propagating the value down with the intention of it being caught.";*)
-(*Attributes[Throw] = {Protected};*)
+Throw::usage = "`Throw[e]` stops all execution, propagating the value down with the intention of it being caught. Only some of the flow control statements in the language actually support execution interruption right now.";
+Attributes[Throw] = {Protected};
+
+Catch::usage = "`Catch[e]` catches and returns any `Thrown` expressions, if any. Otherwise returns the result of `e`.";
+Attributes[Catch] = {HoldFirst, Protected};
+Tests`Catch = {
+    ESimpleExamples[
+        ESameTest[c, Catch[a; b; Throw[c]; d; e]],
+        ESameTest[c, Catch[{a, b, Throw[c], d}]]
+    ]
+};

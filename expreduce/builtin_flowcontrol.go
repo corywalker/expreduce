@@ -97,6 +97,9 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			var toReturn Ex
 			for i := 1; i < len(this.Parts); i++ {
 				toReturn = this.Parts[i].Eval(es)
+				if es.HasThrown() {
+					return es.thrown
+				}
 				if _, isReturn := HeadAssertion(toReturn, "System`Return"); isReturn {
 					return toReturn
 				}

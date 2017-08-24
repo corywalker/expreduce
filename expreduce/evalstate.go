@@ -20,6 +20,7 @@ type EvalState struct {
 	NoInit      bool
 	timeCounter TimeCounterGroup
 	freeze      bool
+	thrown		*Expression
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -444,4 +445,26 @@ func (this *EvalState) GetListDef(name string) *Expression {
 		return NewExpression([]Ex{&Symbol{"System`List"}})
 	}
 	return defList
+}
+
+func (es *EvalState) Throw(e *Expression) {
+	es.thrown = e
+}
+
+func (es *EvalState) HasThrown() bool {
+	return es.thrown != nil
+}
+
+func (es *EvalState) ProcessTopLevelResult(e Ex) Ex {
+	if es.HasThrown() {
+		fmt.Printf("Throw::nocatch: %v returned to top level but uncaught.\n\n", es.thrown)
+		toReturn := NewExpression([]Ex{
+			&Symbol{"System`Hold"},
+			es.thrown,
+		})
+		// Clear exception
+		es.Throw(nil)
+		return toReturn
+	}
+	return e
 }
