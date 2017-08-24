@@ -208,3 +208,12 @@ Quiet[e_] := e;
 
 ReadList::usage = "`ReadList[file]` reads expressions in `file` into a list.";
 Attributes[ReadList] = {Protected};
+
+TimeConstrained::usage = "`TimeConstrained[expr, limit]` evaluates `expr` but expires after `limit`.";
+Attributes[TimeConstrained] = {HoldAll, Protected};
+TimeConstrained[e_, t_] := TimeConstrained[e, t, $Aborted];
+(* Hack just to get this function returning useful values for Rubi. *)
+TimeConstrained[e_, t_, f_] := e;
+
+(*Throw::usage = "`Throw[e]` stops all execution, propagating the value down with the intention of it being caught.";*)
+(*Attributes[Throw] = {Protected};*)

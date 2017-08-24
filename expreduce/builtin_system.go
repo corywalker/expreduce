@@ -609,6 +609,14 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "ClearAttributes"})
 	defs = append(defs, Definition{Name: "Protect"})
 	defs = append(defs, Definition{Name: "Unprotect"})
-	defs = append(defs, Definition{Name: "Quiet"})
+	defs = append(defs, Definition{
+		Name: "Quiet",
+		OmitDocumentation: true,
+	})
+	defs = append(defs, Definition{
+		Name: "TimeConstrained",
+		OmitDocumentation: true,
+	})
+	//defs = append(defs, Definition{Name: "Throw"})
 	return
 }
