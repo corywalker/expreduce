@@ -4,11 +4,14 @@ testproblems = DeleteCases[testproblems, Null];
 testi = 1;
 
 While[testi <= Length[testproblems],
-    testp = testproblems[[testi]];
-    (*Print[testp];*)
-    res = Int[testp[[1]], testp[[2]]];
-    (*Print[res];*)
-    (*Print[res === testp[[4]]];*)
-    If[res === testp[[4]], Print[testi]];
+    (*Print["hi ", testi]*)
+    If[(testi>34&&testi<47)||MemberQ[{50, 52, 53, 54, 55, 56, 57, 58, 59, 211, 214, 215, 216, 218, 222, 223, 224, 225, 228, 229, 231, 232, 233}, testi] || (testi>=160&&testi<=166), Null,
+        testp = testproblems[[testi]];
+        (*Print[testp];*)
+        res = Int[testp[[1]], testp[[2]]];
+        (*Print[res];*)
+        (*Print[res === testp[[4]]];*)
+        If[res === testp[[4]], Print[testi]];
+    ];
     testi = testi+1;
 ];

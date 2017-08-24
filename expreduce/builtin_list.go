@@ -446,23 +446,6 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Last",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
-				return this
-			}
-
-			expr, isExpr := this.Parts[1].(*Expression)
-			if isExpr {
-				if len(expr.Parts) < 2 {
-					return this
-				}
-				return expr.Parts[len(expr.Parts)-1]
-			}
-			return this
-		},
-	})
-	defs = append(defs, Definition{
 		Name: "Select",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -490,5 +473,7 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{Name: "ListQ"})
+	defs = append(defs, Definition{Name: "Last"})
+	defs = append(defs, Definition{Name: "First"})
 	return
 }

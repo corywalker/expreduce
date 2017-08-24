@@ -280,6 +280,7 @@ Tests`DeleteDuplicates = {
 };
 
 Last::usage = "`Last[expr]` returns the last part of `expr`.";
+Last[e_?((Length[#]>=1)&)] := e[[Length[e]]];
 Attributes[Last] = {Protected};
 Tests`Last = {
     ESimpleExamples[
@@ -289,6 +290,20 @@ Tests`Last = {
         ESameTest[Last[a], Last[a]],
         ESameTest[Last[{}], Last[{}]],
         ESameTest[a, Last[{a}]]
+    ]
+};
+
+First::usage = "`First[expr]` returns the first part of `expr`.";
+First[e_?((Length[#]>=1)&)] := e[[1]];
+Attributes[First] = {Protected};
+Tests`First = {
+    ESimpleExamples[
+        ESameTest[1, First[{1,5,6}]],
+        ESameTest[a, First[a+b]]
+    ], ETests[
+        ESameTest[First[a], First[a]],
+        ESameTest[First[{}], First[{}]],
+        ESameTest[a, First[{a}]]
     ]
 };
 
