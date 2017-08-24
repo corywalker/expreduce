@@ -210,6 +210,8 @@ ReadList::usage = "`ReadList[file]` reads expressions in `file` into a list.";
 Attributes[ReadList] = {Protected};
 
 TimeConstrained::usage = "`TimeConstrained[expr, limit]` evaluates `expr` but expires after `limit`.";
+(*TODO: Perhaps we can convert the checks to HasThrown to be more generic.*)
+(*They can just check if we should abort and return a certain vailue*)
 Attributes[TimeConstrained] = {HoldAll, Protected};
 TimeConstrained[e_, t_] := TimeConstrained[e, t, $Aborted];
 (* Hack just to get this function returning useful values for Rubi. *)

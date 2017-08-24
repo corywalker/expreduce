@@ -115,6 +115,16 @@ func tryCondWithMatches(rhs Ex, matches *PDManager, es *EvalState) (Ex, bool) {
 				}
 			}
 		}
+		if asMod, isMod := HeadAssertion(rhs, "System`Module"); isMod {
+			if len(asMod.Parts) == 3 {
+				if _, hasCond := HeadAssertion(asMod.Parts[2], "System`Condition"); hasCond {
+					appliedMod, ok := applyModuleFn(asMod, es)
+					if ok {
+						asCond, isCond = HeadAssertion(appliedMod, "System`Condition")
+					}
+				}
+			}
+		}
 	}
 	if isCond {
 		condRes := asCond.Parts[2].Eval(es)

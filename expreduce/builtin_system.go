@@ -100,6 +100,91 @@ func TryReadFile(fn Ex, es *EvalState) (string, string, bool) {
 	return "", "", false
 }
 
+func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
+	// Coarse parsing of arguments.
+	if len(this.Parts) != 3 {
+		return nil, false
+	}
+	locals, localsIsList := HeadAssertion(this.Parts[1], "System`List")
+	if !localsIsList {
+		return nil, false
+	}
+	mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
+	if !mnIsDef {
+		return nil, false
+	}
+	mnInteger, mnIsInt := mnExpr.(*Integer)
+	if !mnIsInt {
+		return nil, false
+	}
+	mn := mnInteger.Val.Int64()
+
+	// Parse locals into a struct
+	type parsedLocal struct {
+		sym          *Symbol
+		uniqueName   string
+		setValue     Ex
+		isSet        bool
+		isSetDelayed bool
+	}
+	var parsedLocals []parsedLocal
+	for _, localEx := range locals.Parts[1:] {
+		pl := parsedLocal{}
+		symEx := localEx
+		localSet, localIsSet := HeadAssertion(localEx, "System`Set")
+		pl.isSet = localIsSet
+		localSetDelayed, localIsSetDelayed := HeadAssertion(localEx, "System`SetDelayed")
+		pl.isSetDelayed = localIsSetDelayed
+		if localIsSet && len(localSet.Parts) == 3 {
+			symEx = localSet.Parts[1]
+			pl.setValue = localSet.Parts[2]
+		}
+		if localIsSetDelayed && len(localSetDelayed.Parts) == 3 {
+			symEx = localSetDelayed.Parts[1]
+			pl.setValue = localSetDelayed.Parts[2]
+		}
+		localSym, localIsSym := symEx.(*Symbol)
+		pl.sym = localSym
+		if !localIsSym {
+			return nil, false
+		}
+		parsedLocals = append(parsedLocals, pl)
+	}
+
+	// Find the next ModuleNumber to use.
+	tryingNew := true
+	for tryingNew {
+		tryingNew = false
+		for i := range parsedLocals {
+			parsedLocals[i].uniqueName = fmt.Sprintf("%v$%v", parsedLocals[i].sym.Name, mn)
+			if es.IsDef(parsedLocals[i].uniqueName) {
+				mn += 1
+				tryingNew = true
+				break
+			}
+		}
+	}
+	es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn + 1)})
+	toReturn := this.Parts[2]
+	pm := EmptyPD()
+	for _, pl := range parsedLocals {
+		if pl.isSet || pl.isSetDelayed {
+			rhs := pl.setValue
+			if pl.isSet {
+				rhs = rhs.Eval(es)
+			}
+			es.defined[pl.uniqueName] = Def{
+				downvalues: []Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, &Symbol{pl.uniqueName}, rhs})},
+			}
+		} else {
+			es.defined[pl.uniqueName] = Def{}
+		}
+		pm.patternDefined[pl.sym.Name] = &Symbol{pl.uniqueName}
+	}
+	toReturn = ReplacePD(toReturn, es, pm)
+	return toReturn, true
+}
+
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceSetLogging",
@@ -485,88 +570,11 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Module",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			// Coarse parsing of arguments.
-			if len(this.Parts) != 3 {
+			res, ok := applyModuleFn(this, es)
+			if !ok {
 				return this
 			}
-			locals, localsIsList := HeadAssertion(this.Parts[1], "System`List")
-			if !localsIsList {
-				return this
-			}
-			mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
-			if !mnIsDef {
-				return this
-			}
-			mnInteger, mnIsInt := mnExpr.(*Integer)
-			if !mnIsInt {
-				return this
-			}
-			mn := mnInteger.Val.Int64()
-
-			// Parse locals into a struct
-			type parsedLocal struct {
-				sym          *Symbol
-				uniqueName   string
-				setValue     Ex
-				isSet        bool
-				isSetDelayed bool
-			}
-			var parsedLocals []parsedLocal
-			for _, localEx := range locals.Parts[1:] {
-				pl := parsedLocal{}
-				symEx := localEx
-				localSet, localIsSet := HeadAssertion(localEx, "System`Set")
-				pl.isSet = localIsSet
-				localSetDelayed, localIsSetDelayed := HeadAssertion(localEx, "System`SetDelayed")
-				pl.isSetDelayed = localIsSetDelayed
-				if localIsSet && len(localSet.Parts) == 3 {
-					symEx = localSet.Parts[1]
-					pl.setValue = localSet.Parts[2]
-				}
-				if localIsSetDelayed && len(localSetDelayed.Parts) == 3 {
-					symEx = localSetDelayed.Parts[1]
-					pl.setValue = localSetDelayed.Parts[2]
-				}
-				localSym, localIsSym := symEx.(*Symbol)
-				pl.sym = localSym
-				if !localIsSym {
-					return this
-				}
-				parsedLocals = append(parsedLocals, pl)
-			}
-
-			// Find the next ModuleNumber to use.
-			tryingNew := true
-			for tryingNew {
-				tryingNew = false
-				for i := range parsedLocals {
-					parsedLocals[i].uniqueName = fmt.Sprintf("%v$%v", parsedLocals[i].sym.Name, mn)
-					if es.IsDef(parsedLocals[i].uniqueName) {
-						mn += 1
-						tryingNew = true
-						break
-					}
-				}
-			}
-			es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn + 1)})
-			toReturn := this.Parts[2]
-			pm := EmptyPD()
-			for _, pl := range parsedLocals {
-				if pl.isSet || pl.isSetDelayed {
-					rhs := pl.setValue
-					if pl.isSet {
-						rhs = rhs.Eval(es)
-					}
-					es.defined[pl.uniqueName] = Def{
-						downvalues: []Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, &Symbol{pl.uniqueName}, rhs})},
-					}
-				} else {
-					es.defined[pl.uniqueName] = Def{}
-				}
-				pm.patternDefined[pl.sym.Name] = &Symbol{pl.uniqueName}
-			}
-			toReturn = ReplacePD(toReturn, es, pm)
-			return toReturn
+			return res
 		},
 	})
 	defs = append(defs, Definition{

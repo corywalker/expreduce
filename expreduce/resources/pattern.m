@@ -321,11 +321,19 @@ Tests`Condition = {
         ESameTest[{1,2,3,5}, {3, 5, 2, 1} //. {x___, y_, z_, k___} /; (Order[y, z] == -1) -> {x, z, y, k}],
         ESameTest[myfn[1], Replace[1,a_Integer:>myfn[a]/;a>0]],
         ESameTest[-1, Replace[-1,a_Integer:>myfn[a]/;a>0]],
+
         ESameTest[4, Replace[foo[2,3],foo[x_,y_]:>With[{a=x},x^2/;a==2]/;y==3]],
         ESameTest[foo[3,3], Replace[foo[3,3],foo[x_,y_]:>With[{a=x},x^2/;a==2]/;y==3]],
         ESameTest[foo[2,4], Replace[foo[2,4],foo[x_,y_]:>With[{a=x},x^2/;a==2]/;y==3]],
         ESameTest[4, Replace[bar[2],bar[x_]:>With[{a=x},x^2/;a==2]]],
         ESameTest[bar[3], Replace[bar[3],bar[x_]:>With[{a=x},x^2/;a==2]]],
+
+        ESameTest[4, Replace[foo[2,3],foo[x_,y_]:>Module[{a=x},x^2/;a==2]/;y==3]],
+        ESameTest[foo[3,3], Replace[foo[3,3],foo[x_,y_]:>Module[{a=x},x^2/;a==2]/;y==3]],
+        ESameTest[foo[2,4], Replace[foo[2,4],foo[x_,y_]:>Module[{a=x},x^2/;a==2]/;y==3]],
+        ESameTest[4, Replace[bar[2],bar[x_]:>Module[{a=x},x^2/;a==2]]],
+        ESameTest[bar[3], Replace[bar[3],bar[x_]:>Module[{a=x},x^2/;a==2]]],
+
         ESameTest[4, Replace[2,x_:>Condition[Condition[Condition[x^2,x==2],x==2],x==2]]],
         ESameTest[3, Replace[3,x_:>Condition[Condition[Condition[x^2,x==2],x==2],x==2]]]
     ]
