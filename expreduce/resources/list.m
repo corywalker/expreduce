@@ -333,3 +333,14 @@ Tests`ListQ = {
         ESameTest[True, ListQ[{}]]
     ]
 };
+
+Scan::usage = "`Scan[fn, list]` evaluates `fn[elem]` for each element in `list`.";
+Attributes[Scan] = {Protected};
+Tests`Scan = {
+    ESimpleExamples[
+        ESameTest[6, Scan[(If[# > 5, Return[#]]) &, {1, 6, 9}]],
+        ESameTest[False, Catch[Scan[Function[If[IntegerQ[#], Null, Throw[False]]], {a}]; True]],
+        ESameTest[True, Catch[Scan[Function[If[IntegerQ[#], Null, Throw[False]]], {1, 2}]; True]],
+        ESameTest[False, Catch[Scan[Function[If[IntegerQ[#], Null, Throw[False]]], {1, a}]; True]]
+    ]
+};

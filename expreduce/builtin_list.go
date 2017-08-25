@@ -472,6 +472,35 @@ func GetListDefinitions() (defs []Definition) {
 			return this
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Scan",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			expr, isExpr := this.Parts[2].(*Expression)
+			if !isExpr {
+				return this
+			}
+			for _, part := range expr.Parts[1:] {
+				res := (NewExpression([]Ex{
+					this.Parts[1],
+					part,
+				})).Eval(es)
+				if es.HasThrown() {
+					return es.thrown
+				}
+				if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
+					if len(asReturn.Parts) < 2 {
+						return &Symbol{"System`Null"}
+					}
+					return asReturn.Parts[1]
+				}
+			}
+			return &Symbol{"System`Null"}
+		},
+	})
 	defs = append(defs, Definition{Name: "ListQ"})
 	defs = append(defs, Definition{Name: "Last"})
 	defs = append(defs, Definition{Name: "First"})
