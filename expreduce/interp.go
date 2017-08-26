@@ -4,7 +4,6 @@ import (
 	"math/big"
 	"strings"
 	"go/token"
-	"os"
 	"fmt"
 	"log"
 	"bytes"
@@ -336,24 +335,36 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			ParserExprConv(expr.Expression),
 			ParserExprConv(expr.Expression2),
 		})
+	case 35:
+	    set := ParserExprConv(expr.Expression2).(*Expression)
+		head := "System`TagSet"
+		if _, isDelayed := HeadAssertion(set, "System`SetDelayed"); isDelayed {
+			head = "System`TagSetDelayed"
+		}
+		e := NewExpression([]Ex{
+			&Symbol{head},
+			ParserExprConv(expr.Expression),
+			set.Parts[1],
+			set.Parts[2],
+		})
+		return e
 	}
 	log.Fatalf("System`UnParsed: %+v %+v %+v", expr.Token, expr.Case, expr)
 	return nil
 }
 
-func Interp(src string, es *EvalState) Ex {
-	buf := bytes.NewBufferString(src)
+func InterpBuf(buf *bytes.Buffer, fn string, es *EvalState) (Ex, error) {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
-	in, err := wl.NewInput(buf, false)
+	in, err := wl.NewInput(buf, true)
 	if err != nil {
 		panic(err)
 	}
-	expr, err := in.ParseExpression(token.NewFileSet().AddFile(os.Stdin.Name(), -1, 1e6))
+	expr, err := in.ParseExpression(token.NewFileSet().AddFile(fn, -1, 1e6))
 	if err != nil {
-		fmt.Printf("Syntax::sntx: %v.\n\n\n", err)
-		return &Symbol{"System`Null"}
+		return &Symbol{"System`Null"}, err
 	}
 	parsed := ParserExprConv(expr)
+	//fmt.Println(parsed)
 
 	// Remove outer parens
 	parens, isParens := NewEmptyExpression(), true
@@ -373,22 +384,49 @@ func Interp(src string, es *EvalState) Ex {
 		contextPath = append(contextPath, pathPart.(*String).Val)
 	}
 	addContextAndDefine(parsed, context, contextPath, es)
-	return parsed
+	return parsed, nil
+}
+
+func Interp(src string, es *EvalState) Ex {
+	buf := bytes.NewBufferString(src)
+	expr, err := InterpBuf(buf, "nofile", es)
+	if err != nil {
+		fmt.Printf("Syntax::sntx: %v.\n\n\n", err)
+		return &Symbol{"System`Null"}
+	}
+	return expr
 }
 
 func EvalInterp(src string, es *EvalState) Ex {
 	return Interp(src, es).Eval(es)
 }
 
-func EvalInterpMany(doc string, es *EvalState) Ex {
-	var last Ex
-	for _, expr := range strings.Split(doc, "\n\n\n") {
-		if len(strings.TrimSpace(expr)) == 0 {
-			continue
-		}
-		last = EvalInterp(expr, es)
+func EvalInterpMany(doc string, fn string, es *EvalState) Ex {
+	buf := bytes.NewBufferString(doc)
+	var lastExpr Ex = &Symbol{"System`Null"}
+	expr, err := InterpBuf(buf, fn, es)
+	for err == nil {
+		lastExpr = expr.Eval(es)
+		expr, err = InterpBuf(buf, fn, es)
 	}
-	return last
+	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
+		fmt.Printf("Syntax::sntx: %v.\nWhile parsing: %v\n\n\n", err, buf.String()[:100])
+	}
+	return lastExpr
+}
+
+func ReadList(doc string, fn string, es *EvalState) Ex {
+	buf := bytes.NewBufferString(doc)
+	l := NewExpression([]Ex{&Symbol{"System`List"}})
+	expr, err := InterpBuf(buf, fn, es)
+	for err == nil {
+		l.appendEx(expr.Eval(es))
+		expr, err = InterpBuf(buf, fn, es)
+	}
+	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
+		fmt.Printf("Syntax::sntx: %v.\nWhile parsing: %v\n\n\n", err, buf.String()[:100])
+	}
+	return l
 }
 
 func EasyRun(src string, es *EvalState) string {

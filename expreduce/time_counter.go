@@ -7,17 +7,21 @@ import (
 )
 
 type TimeMap map[string]float64
+type CountMap map[string]int64
 
 type TimeCounter struct {
 	times TimeMap
+	counts CountMap
 }
 
 func (tc *TimeCounter) Init() {
 	tc.times = make(TimeMap)
+	tc.counts = make(CountMap)
 }
 
 func (tc *TimeCounter) AddTime(key string, elapsed float64) {
 	tc.times[key] += elapsed
+	tc.counts[key] += 1
 }
 
 func (tc *TimeCounter) Update(other *TimeCounter) {
@@ -43,7 +47,8 @@ func (tc *TimeCounter) TruncatedString(numToPrint int) string {
 			break
 		}
 		for _, s := range n[k] {
-			buffer.WriteString(fmt.Sprintf("%v, %v\n", k, s))
+			count := tc.counts[s]
+			buffer.WriteString(fmt.Sprintf("%v, %v, %v\n", k, count, s))
 			numPrinted++
 		}
 	}

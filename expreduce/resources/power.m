@@ -52,6 +52,7 @@ Power[b_, -Infinity] := Indeterminate;
 (*These take up time. Possibly convert to Upvalues.*)
 Power[Rational[a_,b_], -1] := Rational[b,a];
 Power[Rational[a_,b_], e_?Positive] := Rational[a^e,b^e];
+Power[Power[x_, y_Rational], -1] := Power[x, -y];
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[
@@ -183,11 +184,16 @@ Tests`Log = {
 Sqrt::usage = "`Sqrt[e]` finds the square root of `e`.";
 (*TODO: automatically simplify perfect squares*)
 Attributes[Sqrt] = {Listable, NumericFunction, Protected};
-Sqrt[0] := 0;
-Sqrt[1] := 1;
 Sqrt[a_Integer?Negative] := I*Sqrt[-a];
 Sqrt[-a_] := I*Sqrt[a];
 Sqrt[a_Real?Positive] := a^.5;
+Sqrt[x_] := Which[
+    (*Normally we would define these directly, but right now "x_" is
+    considered more specific than 0 or 1. *)
+    x===0, 0,
+    x===1, 1,
+    True,  x^(1/2)
+];
 Tests`Sqrt = {
     ESimpleExamples[
         ESameTest[Sqrt[3], Sqrt[3]],
@@ -376,7 +382,6 @@ Tests`Coefficient = {
     ]
 };
 
-(*TODO: timing counter of head evals*)
 PolynomialQuotientRemainder::usage =  "`PolynomialQuotientRemainder[poly_, div_, var_]` returns the quotient and remainder of `poly` divided by `div` treating `var` as the polynomial variable.";
 ExpreduceLeadingCoeff[p_, x_] := Coefficient[p, x^Exponent[p, x]];
 PolynomialQuotientRemainder[inp_, inq_, v_] :=
@@ -385,7 +390,10 @@ PolynomialQuotientRemainder[inp_, inq_, v_] :=
    q = 0;
    r = a;
    d = Exponent[b, x];
-   c = Coefficient[b, x^d];
+   pow = x^d;
+   (* This should happen any time that inq is free of v, or if inq === 1. *)
+   If[pow === 1, Return[{a/b//Distribute, 0}]];
+   c = Coefficient[b, pow];
    i = 1;
    While[rExp = Exponent[r, x]; rExp >= d && i < 20,
     (*Looks like we get the coefficient and the exponent of the leading term here. Perhaps we can just grab the leading term and get both at once. And maybe we can exploit the canonical ordering*)
@@ -412,6 +420,10 @@ Tests`PolynomialQuotientRemainder = {
         ESameTest[{x^2/2,2}, PolynomialQuotientRemainder[2 + x^2 + x^3, 2 + 2*x, x]],
         ESameTest[{x^2-x y+y^2,-y^3}, PolynomialQuotientRemainder[x^3, x + y, x]],
         ESameTest[{x/a,1-x/a}, PolynomialQuotientRemainder[1 + x^3, 1 + a*x^2, x]]
+    ], ETests[
+        ESameTest[{b+a/x,0}, PolynomialQuotientRemainder[a+b*x,x,a]],
+        ESameTest[{a+b x,0}, PolynomialQuotientRemainder[a+b*x,1,a]],
+        ESameTest[{a/c+(b x)/c,0}, PolynomialQuotientRemainder[a+b*x,c,a]]
     ]
 };
 Tests`PolynomialQuotient = {
@@ -473,6 +485,33 @@ Tests`FactorTermsList = {
         ESameTest[{-(2800301/67344500),1-2 x+x^3}, FactorTermsList[(-2800301/538756 + (2800301*x)/269378 - (2800301*x^3)/538756)/125]]
     ]
 };
+
+FactorTerms::usage =  "`FactorTerms[expr]` factors out the constant term of `expr`, if any.";
+FactorTerms[expr_] := Module[{e = expr, factored},
+    factored = FactorTermsList[e];
+    If[factored[[1]] === 1,
+      factored[[2]],
+      Times@@factored
+    ]
+   ];
+Attributes[FactorTerms] = {Protected};
+Tests`FactorTerms = {
+    ESimpleExamples[
+        ESameTest[2*Sin[8 k], FactorTerms[2*Sin[8*k]]],
+        ESameTest[(1/2)*(a+x), FactorTerms[a/2 + x/2]],
+        ESameTest[a+x, FactorTerms[a + x]]
+    ]
+};
+
+ExpreduceFactorConstant[p_Plus] := Module[{e = p, cTerms, c},
+   (* Parens are necessary due to precedence issue. *)
+   cTerms = ((ExpreduceConstantTerm /@ (List @@ e)) // Transpose)[[1]];
+   c = GCD @@ cTerms;
+   If[Last[cTerms] < 0, c = -c];
+   c * Distribute[e/c]
+   ];
+ExpreduceFactorConstant[e_] := e;
+Attributes[ExpreduceFactorConstant] = {Protected};
 
 Varibles::usage = "`Variables[expr]` returns the variables in `expr`.";
 Variables[s_Symbol] := {s};
@@ -542,11 +581,11 @@ Tests`Variables = {
         ESameTest[{}, Variables[2^"Hello"^2]],
         ESameTest[{a^"Hello"^2}, Variables[a^"Hello"^2]],
 
-        ESameTest[{}, Variables[Pi^y]]
+        ESameTest[{}, Variables[Pi^y]],
+        ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
+        ESameTest[{a}, Variables[Sqrt[a]]]
     ], EKnownFailures[
         (*I think these have to do with NumericQ.*)
-        ESameTest[{a, Log[b]}, Variables[Sqrt[a] + Log[b]]],
-        ESameTest[{a}, Variables[Sqrt[a]]],
         ESameTest[{(a*b)^c, (a*b)^d}, Variables[(a*b)^(c + d)]]
     ]
 };

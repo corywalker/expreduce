@@ -70,3 +70,24 @@ Tests`Which = {
         ESameTest[Null, Which[False,a,False,b]]
     ]
 };
+
+With::usage = "`With[{s1=v1, s2=v2, ...}, body]` locally replaces the specified symbols in body with their respective values.";
+Attributes[With] = {HoldAll, Protected};
+Tests`With = {
+    ESimpleExamples[
+        ESameTest[{2, 6}, With[{x=2},{x,3*x}]],
+        ESameTest[{2, 9}, With[{x:=2,y:=3},{x,3*y}]]
+    ]
+};
+
+Do::usage = "`Do[expr, n]` evaluates `expr` `n` times.
+
+`Table[expr, {sym, n}]` evaluates `expr` with `sym` = 1 to `n`.
+
+`Table[expr, {sym, m, n}]` evaluates `expr` with `sym` = `m` to `n`.";
+Attributes[Do] = {HoldAll, Protected};
+Tests`Do = {
+    ESimpleExamples[
+        ESameTest[7, Catch[Do[If[a > 6, Throw[a]], {a, 10}]; False]]
+    ]
+};

@@ -159,3 +159,72 @@ EndPackage[] := (
     $ExpreducePkgContext = Null;
 );
 
+Begin::usage = "`Begin[context]` updates the context.";
+Attributes[Begin] = {Protected};
+Begin[c_String] := (
+    $ExpreduceOldContext2 = $Context;
+    If[StringTake[c, {1, 1}] == "`",
+        $Context = $Context <> StringTake[c, {2, StringLength[c]}],
+        $Context = c
+    ];
+    $Context
+);
+
+End::usage = "`End[]` updates the context to rever the changes caused by `Begin`.";
+Attributes[End] = {Protected};
+End[] := (
+    expreduceToReturn = $Context;
+    $Context = $ExpreduceOldContext2;
+    expreduceToReturn
+);
+
+PrintTemporary::usage = "`PrintTemporary[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.";
+Attributes[PrintTemporary] = {Protected};
+PrintTemporary[exprs___] := Print[exprs];
+
+SetAttributes::usage = "`SetAttributes[sym, attributes]` adds the `attributes` to `sym`.";
+Attributes[SetAttributes] = {HoldFirst, Protected};
+SetAttributes[s_Symbol, attrs_List] := (
+    Attributes[s] = Union[Attributes[s], attrs];
+);
+
+ClearAttributes::usage = "`ClearAttributes[sym, attributes]` clears the `attributes` from `sym`.";
+Attributes[ClearAttributes] = {HoldFirst, Protected};
+ClearAttributes[s_Symbol, attrs_List] := (
+    Attributes[s] = Complement[Attributes[s], attrs];
+);
+
+Protect::usage = "`Protect[sym]` adds the `Protected` attribute to `sym`.";
+Attributes[Protect] = {HoldAll, Protected};
+Protect[s_Symbol] := SetAttributes[s, {Protected}];
+
+Unprotect::usage = "`Unprotect[sym]` clears the `Protected` attribute from `sym`.";
+Attributes[Unprotect] = {HoldAll, Protected};
+Unprotect[s_Symbol] := ClearAttributes[s, {Protected}];
+
+Quiet::usage = "`Quiet[e]` runs `e` without printing any messages.";
+Attributes[Quiet] = {HoldAll, Protected};
+Quiet[e_] := e;
+
+ReadList::usage = "`ReadList[file]` reads expressions in `file` into a list.";
+Attributes[ReadList] = {Protected};
+
+TimeConstrained::usage = "`TimeConstrained[expr, limit]` evaluates `expr` but expires after `limit`.";
+(*TODO: Perhaps we can convert the checks to HasThrown to be more generic.*)
+(*They can just check if we should abort and return a certain vailue*)
+Attributes[TimeConstrained] = {HoldAll, Protected};
+TimeConstrained[e_, t_] := TimeConstrained[e, t, $Aborted];
+(* Hack just to get this function returning useful values for Rubi. *)
+TimeConstrained[e_, t_, f_] := e;
+
+Throw::usage = "`Throw[e]` stops all execution, propagating the value down with the intention of it being caught. Only some of the flow control statements in the language actually support execution interruption right now.";
+Attributes[Throw] = {Protected};
+
+Catch::usage = "`Catch[e]` catches and returns any `Thrown` expressions, if any. Otherwise returns the result of `e`.";
+Attributes[Catch] = {HoldFirst, Protected};
+Tests`Catch = {
+    ESimpleExamples[
+        ESameTest[c, Catch[a; b; Throw[c]; d; e]],
+        ESameTest[c, Catch[{a, b, Throw[c], d}]]
+    ]
+};

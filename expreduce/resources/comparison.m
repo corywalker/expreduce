@@ -262,3 +262,13 @@ Tests`Max = {
         ESameTest[Max[a,b,c,d], Max[{c,{d}},{b,a}]]
     ]
 };
+
+PossibleZeroQ::usage = "`PossibleZeroQ[e]` returns True if `e` is most likely equivalent to zero.";
+Attributes[PossibleZeroQ] = {Listable, Protected};
+PossibleZeroQ[e_] := e === 0 || e === 0.;
+Tests`PossibleZeroQ = {
+    ESimpleExamples[
+        ESameTest[True, PossibleZeroQ[a-a]],
+        ESameTest[False, PossibleZeroQ[a-b]]
+    ]
+};

@@ -251,6 +251,44 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name: "Complement",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) == 1 {
+				return this
+			}
+			var firstHead Ex = nil
+			exclusions := map[uint64]bool{}
+			for _, part := range this.Parts[1:] {
+				expr, isExpr := part.(*Expression)
+				if !isExpr {
+					return this
+				}
+				if firstHead == nil {
+					firstHead = expr.Parts[0]
+					continue
+				} else if !IsSameQ(firstHead, expr.Parts[0], &es.CASLogger) {
+					return this
+				}
+				for _, excludedPart := range expr.Parts[1:] {
+					exclusions[hashEx(excludedPart)] = true
+				}
+			}
+			toReturn := NewExpression([]Ex{firstHead})
+			added := map[uint64]bool{}
+			for _, part := range this.Parts[1].(*Expression).Parts[1:] {
+				hash := hashEx(part)
+				_, alreadyAdded := added[hash]
+				_, excluded := exclusions[hash]
+				if !excluded && !alreadyAdded {
+					added[hash] = true
+					toReturn.Parts = append(toReturn.Parts, part)
+				}
+			}
+			sort.Sort(toReturn)
+			return toReturn
+		},
+	})
+	defs = append(defs, Definition{
 		Name: "PadRight",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			list, n, x, valid := ValidatePadParams(this)
@@ -408,23 +446,6 @@ func GetListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Last",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
-				return this
-			}
-
-			expr, isExpr := this.Parts[1].(*Expression)
-			if isExpr {
-				if len(expr.Parts) < 2 {
-					return this
-				}
-				return expr.Parts[len(expr.Parts)-1]
-			}
-			return this
-		},
-	})
-	defs = append(defs, Definition{
 		Name: "Select",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -451,5 +472,37 @@ func GetListDefinitions() (defs []Definition) {
 			return this
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Scan",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			expr, isExpr := this.Parts[2].(*Expression)
+			if !isExpr {
+				return this
+			}
+			for _, part := range expr.Parts[1:] {
+				res := (NewExpression([]Ex{
+					this.Parts[1],
+					part,
+				})).Eval(es)
+				if es.HasThrown() {
+					return es.thrown
+				}
+				if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
+					if len(asReturn.Parts) < 2 {
+						return &Symbol{"System`Null"}
+					}
+					return asReturn.Parts[1]
+				}
+			}
+			return &Symbol{"System`Null"}
+		},
+	})
+	defs = append(defs, Definition{Name: "ListQ"})
+	defs = append(defs, Definition{Name: "Last"})
+	defs = append(defs, Definition{Name: "First"})
 	return
 }

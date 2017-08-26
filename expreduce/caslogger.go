@@ -40,11 +40,13 @@ func (this *CASLogger) Errorf(fmt string, args ...interface{}) {
 func (this *CASLogger) DebugOn(level logging.Level) {
 	this.leveled.SetLevel(level, "")
 	this.debugState = true
+	this.SetProfiling(true)
 }
 
 func (this *CASLogger) DebugOff() {
 	this.leveled.SetLevel(logging.ERROR, "")
 	this.debugState = false
+	this.SetProfiling(false)
 }
 
 func (this *CASLogger) DebugState() bool {

@@ -62,6 +62,129 @@ func exprToN(es *EvalState, e Ex) Ex {
 	return e.DeepCopy()
 }
 
+func TryReadFile(fn Ex, es *EvalState) (string, string, bool) {
+	pathSym := &Symbol{"System`$Path"}
+	path, isDef, _ := es.GetDef("System`$Path", pathSym)
+	if !isDef {
+		return "", "", false
+	}
+	pathL, pathIsList := HeadAssertion(path, "System`List")
+	if !pathIsList {
+		return "", "", false
+	}
+	filenameString, fnIsStr := fn.(*String)
+	if !fnIsStr {
+		return "", "", false
+	}
+	rawFn := filenameString.Val
+	pathsToTry := []string{}
+	for _, pathEx := range pathL.Parts[1:] {
+		pathString, pathIsString := pathEx.(*String)
+		if !pathIsString {
+			fmt.Printf("Invalid path: %v\n", pathEx)
+			continue
+		}
+		rawDir := pathString.Val
+		rawPath := rawDir + string(os.PathSeparator) + rawFn
+		pathsToTry = append(pathsToTry, rawPath)
+	}
+	pathsToTry = append(pathsToTry, rawFn)
+	for _, rawPath := range pathsToTry {
+		dat, err := ioutil.ReadFile(rawPath)
+		if err != nil {
+			continue
+		}
+		fileData := string(dat)
+		return fileData, rawPath, true
+	}
+	return "", "", false
+}
+
+func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
+	// Coarse parsing of arguments.
+	if len(this.Parts) != 3 {
+		return nil, false
+	}
+	locals, localsIsList := HeadAssertion(this.Parts[1], "System`List")
+	if !localsIsList {
+		return nil, false
+	}
+	mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
+	if !mnIsDef {
+		return nil, false
+	}
+	mnInteger, mnIsInt := mnExpr.(*Integer)
+	if !mnIsInt {
+		return nil, false
+	}
+	mn := mnInteger.Val.Int64()
+
+	// Parse locals into a struct
+	type parsedLocal struct {
+		sym          *Symbol
+		uniqueName   string
+		setValue     Ex
+		isSet        bool
+		isSetDelayed bool
+	}
+	var parsedLocals []parsedLocal
+	for _, localEx := range locals.Parts[1:] {
+		pl := parsedLocal{}
+		symEx := localEx
+		localSet, localIsSet := HeadAssertion(localEx, "System`Set")
+		pl.isSet = localIsSet
+		localSetDelayed, localIsSetDelayed := HeadAssertion(localEx, "System`SetDelayed")
+		pl.isSetDelayed = localIsSetDelayed
+		if localIsSet && len(localSet.Parts) == 3 {
+			symEx = localSet.Parts[1]
+			pl.setValue = localSet.Parts[2]
+		}
+		if localIsSetDelayed && len(localSetDelayed.Parts) == 3 {
+			symEx = localSetDelayed.Parts[1]
+			pl.setValue = localSetDelayed.Parts[2]
+		}
+		localSym, localIsSym := symEx.(*Symbol)
+		pl.sym = localSym
+		if !localIsSym {
+			return nil, false
+		}
+		parsedLocals = append(parsedLocals, pl)
+	}
+
+	// Find the next ModuleNumber to use.
+	tryingNew := true
+	for tryingNew {
+		tryingNew = false
+		for i := range parsedLocals {
+			parsedLocals[i].uniqueName = fmt.Sprintf("%v$%v", parsedLocals[i].sym.Name, mn)
+			if es.IsDef(parsedLocals[i].uniqueName) {
+				mn += 1
+				tryingNew = true
+				break
+			}
+		}
+	}
+	es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn + 1)})
+	toReturn := this.Parts[2]
+	pm := EmptyPD()
+	for _, pl := range parsedLocals {
+		if pl.isSet || pl.isSetDelayed {
+			rhs := pl.setValue
+			if pl.isSet {
+				rhs = rhs.Eval(es)
+			}
+			es.defined[pl.uniqueName] = Def{
+				downvalues: []Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, &Symbol{pl.uniqueName}, rhs})},
+			}
+		} else {
+			es.defined[pl.uniqueName] = Def{}
+		}
+		pm.patternDefined[pl.sym.Name] = &Symbol{pl.uniqueName}
+	}
+	toReturn = ReplacePD(toReturn, es, pm)
+	return toReturn, true
+}
+
 func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceSetLogging",
@@ -75,9 +198,10 @@ func GetSystemDefinitions() (defs []Definition) {
 			sym, ok := this.Parts[1].(*Symbol)
 			if ok {
 				if sym.Name == "System`True" {
+					errorStr := "Invalid level. Must be one of {Debug, Info, Notice}."
 					levelSym, lsOk := this.Parts[2].(*Symbol)
 					if !lsOk {
-						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
+						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{errorStr}})
 					}
 					if levelSym.Name == "System`Debug" {
 						es.DebugOn(logging.DEBUG)
@@ -86,7 +210,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					} else if levelSym.Name == "System`Notice" {
 						es.DebugOn(logging.NOTICE)
 					} else {
-						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
+						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{errorStr}})
 					}
 					return &Symbol{"System`Null"}
 				} else if sym.Name == "System`False" {
@@ -437,123 +561,21 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			pathSym := &Symbol{"System`$Path"}
-			path, isDef, _ := es.GetDef("System`$Path", pathSym)
-			if !isDef {
+			fileData, rawPath, ok := TryReadFile(this.Parts[1], es)
+			if !ok {
 				return &Symbol{"System`$Failed"}
 			}
-			pathL, pathIsList := HeadAssertion(path, "System`List")
-			if !pathIsList {
-				return &Symbol{"System`$Failed"}
-			}
-			filenameString, fnIsStr := this.Parts[1].(*String)
-			if !fnIsStr {
-				return &Symbol{"System`$Failed"}
-			}
-			for _, pathEx := range pathL.Parts[1:] {
-				pathString, pathIsString := pathEx.(*String)
-				if !pathIsString {
-					fmt.Printf("Invalid path: %v\n", pathEx)
-					continue
-				}
-				rawDir := pathString.Val
-				rawFn := filenameString.Val
-				rawPath := rawDir + string(os.PathSeparator) + rawFn
-				dat, err := ioutil.ReadFile(rawPath)
-				if err != nil {
-					continue
-				}
-				fileData := string(dat)
-				return EvalInterpMany(fileData[:len(fileData)-1], es)
-			}
-			return &Symbol{"System`$Failed"}
+			return EvalInterpMany(fileData, rawPath, es)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Module",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			// Coarse parsing of arguments.
-			if len(this.Parts) != 3 {
+			res, ok := applyModuleFn(this, es)
+			if !ok {
 				return this
 			}
-			locals, localsIsList := HeadAssertion(this.Parts[1], "System`List")
-			if !localsIsList {
-				return this
-			}
-			mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
-			if !mnIsDef {
-				return this
-			}
-			mnInteger, mnIsInt := mnExpr.(*Integer)
-			if !mnIsInt {
-				return this
-			}
-			mn := mnInteger.Val.Int64()
-
-			// Parse locals into a struct
-			type parsedLocal struct {
-				sym          *Symbol
-				uniqueName   string
-				setValue     Ex
-				isSet        bool
-				isSetDelayed bool
-			}
-			var parsedLocals []parsedLocal
-			for _, localEx := range locals.Parts[1:] {
-				pl := parsedLocal{}
-				symEx := localEx
-				localSet, localIsSet := HeadAssertion(localEx, "System`Set")
-				pl.isSet = localIsSet
-				localSetDelayed, localIsSetDelayed := HeadAssertion(localEx, "System`SetDelayed")
-				pl.isSetDelayed = localIsSetDelayed
-				if localIsSet && len(localSet.Parts) == 3 {
-					symEx = localSet.Parts[1]
-					pl.setValue = localSet.Parts[2]
-				}
-				if localIsSetDelayed && len(localSetDelayed.Parts) == 3 {
-					symEx = localSetDelayed.Parts[1]
-					pl.setValue = localSetDelayed.Parts[2]
-				}
-				localSym, localIsSym := symEx.(*Symbol)
-				pl.sym = localSym
-				if !localIsSym {
-					return this
-				}
-				parsedLocals = append(parsedLocals, pl)
-			}
-
-			// Find the next ModuleNumber to use.
-			tryingNew := true
-			for tryingNew {
-				tryingNew = false
-				for i := range parsedLocals {
-					parsedLocals[i].uniqueName = fmt.Sprintf("%v$%v", parsedLocals[i].sym.Name, mn)
-					if es.IsDef(parsedLocals[i].uniqueName) {
-						mn += 1
-						tryingNew = true
-						break
-					}
-				}
-			}
-			es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn + 1)})
-			toReturn := this.Parts[2]
-			pm := EmptyPD()
-			for _, pl := range parsedLocals {
-				if pl.isSet || pl.isSetDelayed {
-					rhs := pl.setValue
-					if pl.isSet {
-						rhs = rhs.Eval(es)
-					}
-					es.defined[pl.uniqueName] = Def{
-						downvalues: []Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, &Symbol{pl.uniqueName}, rhs})},
-					}
-				} else {
-					es.defined[pl.uniqueName] = Def{}
-				}
-				pm.patternDefined[pl.sym.Name] = &Symbol{pl.uniqueName}
-			}
-			toReturn = ReplacePD(toReturn, es, pm)
-			return toReturn
+			return res
 		},
 	})
 	defs = append(defs, Definition{
@@ -574,7 +596,60 @@ func GetSystemDefinitions() (defs []Definition) {
 			return &Integer{i}
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "ReadList",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			fileData, rawPath, ok := TryReadFile(this.Parts[1], es)
+			if !ok {
+				return &Symbol{"System`$Failed"}
+			}
+			return ReadList(fileData, rawPath, es)
+		},
+	})
 	defs = append(defs, Definition{Name: "BeginPackage"})
 	defs = append(defs, Definition{Name: "EndPackage"})
+	defs = append(defs, Definition{Name: "Begin"})
+	defs = append(defs, Definition{Name: "End"})
+	defs = append(defs, Definition{Name: "PrintTemporary"})
+	defs = append(defs, Definition{Name: "SetAttributes"})
+	defs = append(defs, Definition{Name: "ClearAttributes"})
+	defs = append(defs, Definition{Name: "Protect"})
+	defs = append(defs, Definition{Name: "Unprotect"})
+	defs = append(defs, Definition{
+		Name: "Quiet",
+		OmitDocumentation: true,
+	})
+	defs = append(defs, Definition{
+		Name: "TimeConstrained",
+		OmitDocumentation: true,
+	})
+	defs = append(defs, Definition{
+		Name: "Throw",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			es.Throw(this)
+			return this
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Catch",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			res := this.Parts[1].Eval(es)
+			if es.HasThrown() {
+				toReturn := es.thrown.Parts[1]
+				es.Throw(nil)
+				return toReturn
+			}
+			return res
+		},
+	})
 	return
 }

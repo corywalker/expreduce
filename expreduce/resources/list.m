@@ -130,6 +130,25 @@ Tests`Union = {
     ]
 };
 
+Complement::usage = "`Complement[expr1, expr2, ...]` returns a sorted union of the items in the expressions.";
+Attributes[Complement] = {Protected};
+Tests`Complement = {
+    ESimpleExamples[
+        ESameTest[{b}, Complement[{a, b}, {a}]],
+        ESameTest[{c}, Complement[{a, b, c}, {a}, {b}]]
+    ], ETests[
+        ESameTest[foo[], Complement[foo[a], foo[a]]],
+        ESameTest[Complement[], Complement[]],
+        ESameTest[{}, Complement[{}]],
+        ESameTest[Complement[{}, foo[a]], Complement[{}, foo[a]]],
+        ESameTest[{b, c}, Complement[{a, b, c}, {a}, {_}]],
+        ESameTest[{b, c}, Complement[{a, b, c, _}, {a}, {_}]],
+        ESameTest[{b, c}, Complement[{a, b, c, _}, {a}, {_}, {}]],
+        ESameTest[{b, c}, Complement[{a, c, b, _}, {a}, {_}, {}]],
+        ESameTest[{b, c}, Complement[{a, c, c, b, _}, {a}, {_}, {}]]
+    ]
+};
+
 Range::usage = "`Range[n]` returns a `List` of integers from 1 to `n`.
 
 `Range[m, n]` returns a `List` of integers from `m` to `n`.";
@@ -261,6 +280,7 @@ Tests`DeleteDuplicates = {
 };
 
 Last::usage = "`Last[expr]` returns the last part of `expr`.";
+Last[e_?((Length[#]>=1)&)] := e[[Length[e]]];
 Attributes[Last] = {Protected};
 Tests`Last = {
     ESimpleExamples[
@@ -270,6 +290,20 @@ Tests`Last = {
         ESameTest[Last[a], Last[a]],
         ESameTest[Last[{}], Last[{}]],
         ESameTest[a, Last[{a}]]
+    ]
+};
+
+First::usage = "`First[expr]` returns the first part of `expr`.";
+First[e_?((Length[#]>=1)&)] := e[[1]];
+Attributes[First] = {Protected};
+Tests`First = {
+    ESimpleExamples[
+        ESameTest[1, First[{1,5,6}]],
+        ESameTest[a, First[a+b]]
+    ], ETests[
+        ESameTest[First[a], First[a]],
+        ESameTest[First[{}], First[{}]],
+        ESameTest[a, First[{a}]]
     ]
 };
 
@@ -286,5 +320,27 @@ Tests`Select = {
         ESameTest[Select[foo[1,2,3,4]], Select[foo[1,2,3,4]]],
         ESameTest[foo[], Select[foo[1,2,3,4],notfunction]],
         ESameTest[Select[2,EvenQ], Select[2,EvenQ]]
+    ]
+};
+
+ListQ::usage = "`ListQ[expr]` checks if `expr` has a head of `List`.";
+ListQ[expr_] := Head[expr] === List;
+Attributes[ListQ] = {Protected};
+Tests`ListQ = {
+    ESimpleExamples[
+        ESameTest[True, ListQ[{a}]],
+        ESameTest[False, ListQ[a]],
+        ESameTest[True, ListQ[{}]]
+    ]
+};
+
+Scan::usage = "`Scan[fn, list]` evaluates `fn[elem]` for each element in `list`.";
+Attributes[Scan] = {Protected};
+Tests`Scan = {
+    ESimpleExamples[
+        ESameTest[6, Scan[(If[# > 5, Return[#]]) &, {1, 6, 9}]],
+        ESameTest[False, Catch[Scan[Function[If[IntegerQ[#], Null, Throw[False]]], {a}]; True]],
+        ESameTest[True, Catch[Scan[Function[If[IntegerQ[#], Null, Throw[False]]], {1, 2}]; True]],
+        ESameTest[False, Catch[Scan[Function[If[IntegerQ[#], Null, Throw[False]]], {1, a}]; True]]
     ]
 };

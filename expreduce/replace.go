@@ -102,24 +102,55 @@ func ReplaceAll(this Ex, r *Expression, es *EvalState, pm *PDManager,
 	return this
 }
 
-func Replace(this Ex, r *Expression, es *EvalState) (Ex, bool) {
-	if asCond, isCond := HeadAssertion(r.Parts[2], "System`Condition"); isCond {
-		mi, cont := NewMatchIter(this, r.Parts[1], EmptyPD(), es)
-		for cont {
-			res, matches, done := mi.next()
-			cont = !done
-			if res {
-				condRes := ReplacePD(asCond.Parts[2], es, matches).Eval(es)
-				condResSymbol, condResIsSymbol := condRes.(*Symbol)
-				if condResIsSymbol {
-					if condResSymbol.Name == "System`True" {
-						return ReplacePD(asCond.Parts[1], es, matches), true
+func tryCondWithMatches(rhs Ex, matches *PDManager, es *EvalState) (Ex, bool) {
+	asCond, isCond := HeadAssertion(rhs, "System`Condition")
+	if !isCond {
+		if asWith, isWith := HeadAssertion(rhs, "System`With"); isWith {
+			if len(asWith.Parts) == 3 {
+				if _, hasCond := HeadAssertion(asWith.Parts[2], "System`Condition"); hasCond {
+					appliedWith, ok := applyWithFn(asWith, es)
+					if ok {
+						asCond, isCond = HeadAssertion(appliedWith, "System`Condition")
 					}
 				}
 			}
 		}
-	} else if res, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es); res {
-		return ReplacePD(r.Parts[2], es, matches), true
+		if asMod, isMod := HeadAssertion(rhs, "System`Module"); isMod {
+			if len(asMod.Parts) == 3 {
+				if _, hasCond := HeadAssertion(asMod.Parts[2], "System`Condition"); hasCond {
+					appliedMod, ok := applyModuleFn(asMod, es)
+					if ok {
+						asCond, isCond = HeadAssertion(appliedMod, "System`Condition")
+					}
+				}
+			}
+		}
+	}
+	if isCond {
+		condRes := asCond.Parts[2].Eval(es)
+		condResSymbol, condResIsSymbol := condRes.(*Symbol)
+		if condResIsSymbol {
+			if condResSymbol.Name == "System`True" {
+				return tryCondWithMatches(asCond.Parts[1], matches, es)
+			}
+		}
+		return nil, false
+	}
+	return rhs, true
+}
+
+func Replace(this Ex, r *Expression, es *EvalState) (Ex, bool) {
+	mi, cont := NewMatchIter(this, r.Parts[1], EmptyPD(), es)
+	for cont {
+		res, matches, done := mi.next()
+		cont = !done
+		if res {
+			replacedRhs := ReplacePD(r.Parts[2], es, matches)
+			toReturn, ok := tryCondWithMatches(replacedRhs, matches, es)
+			if ok {
+				return toReturn, true
+			}
+		}
 	}
 	return this, false
 }

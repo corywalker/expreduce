@@ -1,5 +1,41 @@
 package expreduce
 
+func applyWithFn(e *Expression, es *EvalState) (Ex, bool) {
+	if len(e.Parts) != 3 {
+		return nil, false
+	}
+	vars, isList := HeadAssertion(e.Parts[1], "System`List")
+	if !isList {
+		return nil, false
+	}
+	rules := []*Expression{}
+	for _, vDef := range vars.Parts[1:] {
+		set, isSet := HeadAssertion(vDef, "System`Set")
+		setDelayed, isSetDelayed := HeadAssertion(vDef, "System`SetDelayed")
+		if !(isSet || isSetDelayed) {
+			return nil, false
+		}
+		var setEx *Expression = nil
+		ruleHead := ""
+		if isSet {
+			setEx = set
+			ruleHead = "System`Rule"
+		} else {
+			setEx = setDelayed
+			ruleHead = "System`RuleDelayed"
+		}
+		if len(setEx.Parts) != 3 {
+			return nil, false
+		}
+		rules = append(rules, NewExpression([]Ex{
+			&Symbol{ruleHead},
+			setEx.Parts[1],
+			setEx.Parts[2],
+		}))
+	}
+	return rulesReplace(e.Parts[2], rules, es), true
+}
+
 func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "If",
@@ -61,6 +97,9 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			var toReturn Ex
 			for i := 1; i < len(this.Parts); i++ {
 				toReturn = this.Parts[i].Eval(es)
+				if es.HasThrown() {
+					return es.thrown
+				}
 				if _, isReturn := HeadAssertion(toReturn, "System`Return"); isReturn {
 					return toReturn
 				}
@@ -69,9 +108,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		},
 	})
 	// https://mathematica.stackexchange.com/questions/29353/how-does-return-work
-	defs = append(defs, Definition{
-		Name: "Return",
-	})
+	defs = append(defs, Definition{Name: "Return"})
 	defs = append(defs, Definition{
 		Name: "Which",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -89,6 +126,45 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				}
 			}
 			return &Symbol{"System`Null"}
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "With",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			res, ok := applyWithFn(this, es)
+			if !ok {
+				return this
+			}
+			return res
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Do",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) >= 3 {
+				mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
+				if isOk {
+					// Simulate evaluation within Block[]
+					mis.takeVarSnapshot(es)
+					for mis.cont() {
+						mis.defineCurrent(es)
+						res := this.Parts[1].DeepCopy().Eval(es)
+						if es.HasThrown() {
+							return es.thrown
+						}
+						if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
+							if len(asReturn.Parts) < 2 {
+								return &Symbol{"System`Null"}
+							}
+							return asReturn.Parts[1]
+						}
+						mis.next()
+					}
+					mis.restoreVarSnapshot(es)
+					return &Symbol{"System`Null"}
+				}
+			}
+			return this
 		},
 	})
 	return

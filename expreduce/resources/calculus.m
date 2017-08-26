@@ -68,7 +68,8 @@ Integrate[Sec[x_Symbol]^2,x_Symbol] := Tan[x];
 Integrate[Csc[x_Symbol]^2,x_Symbol] := -Cot[x];
 Integrate[Sec[x_Symbol]Tan[x_Symbol],x_Symbol] := Sec[x];
 Integrate[Csc[x_Symbol]Cot[x_Symbol],x_Symbol] := -Csc[x];
-Integrate[Sqrt[1-x_Symbol^2]^(-1),x_Symbol] := ArcSin[x];
+(* At this point Sqrt is not defined, so we raise to the (-1/2) explicitly *)
+Integrate[Power[1-x_Symbol^2,Rational[-1,2]],x_Symbol] := ArcSin[x];
 Integrate[(1+x_Symbol^2)^(-1),x_Symbol] := ArcTan[x];
 
 (*This may not always reduce. Look into this*)

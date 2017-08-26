@@ -239,5 +239,6 @@ func getComparisonDefinitions() (defs []Definition) {
 			return NewExpression(append([]Ex{this.Parts[0]}, this.Parts[i:]...))
 		},
 	})
+	defs = append(defs, Definition{Name: "PossibleZeroQ"})
 	return
 }

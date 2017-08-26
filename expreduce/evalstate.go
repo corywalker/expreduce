@@ -20,6 +20,7 @@ type EvalState struct {
 	NoInit      bool
 	timeCounter TimeCounterGroup
 	freeze      bool
+	thrown		*Expression
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -161,16 +162,18 @@ func (es *EvalState) Init(loadAllDefs bool) {
 					es.Load(def)
 				}
 			}
-			data, err := Asset(fmt.Sprintf("resources/%v.m", defSet.Name))
+			fn := fmt.Sprintf("resources/%v.m", defSet.Name)
+			data, err := Asset(fn)
 			if err == nil {
 				EvalInterp("$Context = \"Private`\"", es)
-				EvalInterpMany(string(data), es)
+				EvalInterpMany(string(data), fn, es)
 				EvalInterp("$Context = \"System`\"", es)
 			}
 		}
 		// System initialization
-		data := MustAsset("resources/init.m")
-		EvalInterpMany(string(data), es)
+		fn := "resources/init.m"
+		data := MustAsset(fn)
+		EvalInterpMany(string(data), fn, es)
 	}
 	EvalInterp("$Context = \"Global`\"", es)
 	EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
@@ -270,6 +273,25 @@ func (this *EvalState) MarkSeen(name string) {
 	}
 }
 
+// Attempts to compute a specificity metric for a rule. Higher specificity rules
+// should be tried first.
+func ruleSpecificity(lhs Ex, rhs Ex) int {
+	// I define complexity as the length of the Lhs.String()
+	// because it is simple, and it works for most of the common cases. We wish
+	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
+	// "complexity" score, order then matters. TODO: Create better measure of
+	// complexity (or specificity)
+	context, contextPath := DefinitionComplexityStringFormArgs()
+	specificity := len(lhs.StringForm("InputForm", context, contextPath))
+	if _, rhsIsCond := HeadAssertion(rhs, "System`Condition"); rhsIsCond {
+		// Condition rules will be ranked in order of definition, not
+		// specificity. I'm not entirely sure if this is correct, but it seems
+		// to be the case for all the Rubi rules.
+		specificity = 15
+	}
+	return specificity
+}
+
 func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	if this.IsFrozen() {
 		return
@@ -327,18 +349,23 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	}
 
 	// Insert into definitions for name. Maintain order of decreasing
-	// complexity. I define complexity as the length of the Lhs.String()
-	// because it is simple, and it works for most of the common cases. We wish
-	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
-	// "complexity" score, order then matters. TODO: Create better measure of
-	// complexity (or specificity)
+	// complexity.
 	var tmp = this.defined[name]
-	context, contextPath := DefinitionComplexityStringFormArgs()
-	newLhsLen := len(lhs.StringForm("InputForm", context, contextPath))
+	newSpecificity := ruleSpecificity(lhs, rhs)
 	for i := range this.defined[name].downvalues {
-		thisLhsLen := len(this.defined[name].downvalues[i].Parts[1].StringForm("InputForm", context, contextPath))
-		if thisLhsLen < newLhsLen {
-			tmp.downvalues = append(tmp.downvalues[:i], append([]Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})}, this.defined[name].downvalues[i:]...)...)
+		thisSpecificity := ruleSpecificity(
+			this.defined[name].downvalues[i].Parts[1],
+			this.defined[name].downvalues[i].Parts[2],
+		)
+		if thisSpecificity < newSpecificity {
+			newRule := *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})
+			tmp.downvalues = append(
+				tmp.downvalues[:i],
+				append(
+					[]Expression{newRule},
+					this.defined[name].downvalues[i:]...,
+				)...,
+			)
 			this.defined[name] = tmp
 			return
 		}
@@ -418,4 +445,26 @@ func (this *EvalState) GetListDef(name string) *Expression {
 		return NewExpression([]Ex{&Symbol{"System`List"}})
 	}
 	return defList
+}
+
+func (es *EvalState) Throw(e *Expression) {
+	es.thrown = e
+}
+
+func (es *EvalState) HasThrown() bool {
+	return es.thrown != nil
+}
+
+func (es *EvalState) ProcessTopLevelResult(e Ex) Ex {
+	if es.HasThrown() {
+		fmt.Printf("Throw::nocatch: %v returned to top level but uncaught.\n\n", es.thrown)
+		toReturn := NewExpression([]Ex{
+			&Symbol{"System`Hold"},
+			es.thrown,
+		})
+		// Clear exception
+		es.Throw(nil)
+		return toReturn
+	}
+	return e
 }

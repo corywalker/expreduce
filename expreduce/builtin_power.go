@@ -112,18 +112,6 @@ func GetPowerDefinitions() (defs []Definition) {
 			if baseIsFlt && powerIsFlt {
 				return &Flt{mathbigext.Pow(baseFlt.Val, powerFlt.Val)}
 			}
-
-			powerRat, powerIsRat := this.Parts[2].(*Rational)
-			if powerIsRat {
-				if powerRat.Num.Cmp(big.NewInt(1)) == 0 && powerRat.Den.Cmp(big.NewInt(2)) == 0 {
-					return NewExpression([]Ex{
-						&Symbol{"System`Sqrt"},
-						this.Parts[1],
-					})
-
-				}
-			}
-
 			return this
 		},
 	})
@@ -154,6 +142,8 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "PolynomialQuotient"})
 	defs = append(defs, Definition{Name: "PolynomialRemainder"})
 	defs = append(defs, Definition{Name: "FactorTermsList"})
+	defs = append(defs, Definition{Name: "FactorTerms"})
+	defs = append(defs, Definition{Name: "ExpreduceFactorConstant"})
 	defs = append(defs, Definition{Name: "Variables"})
 	defs = append(defs, Definition{Name: "PolynomialGCD"})
 	defs = append(defs, Definition{Name: "SquareFreeQ"})

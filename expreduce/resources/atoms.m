@@ -84,3 +84,14 @@ Tests`Integer = {
         ESameTest[True, MatchQ[153, _Integer]]
     ]
 };
+
+IntegerQ::usage = "`IntegerQ[e]` returns True if `e` is an Integer, False otherwise.";
+IntegerQ[e_] := Head[e] === Integer;
+Attributes[IntegerQ] = {Protected};
+Tests`IntegerQ = {
+    ESimpleExamples[
+        ESameTest[False, IntegerQ[a]],
+        ESameTest[True, IntegerQ[1]],
+        ESameTest[False, IntegerQ[2.]]
+    ]
+};
