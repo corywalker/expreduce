@@ -143,6 +143,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "PolynomialRemainder"})
 	defs = append(defs, Definition{Name: "FactorTermsList"})
 	defs = append(defs, Definition{Name: "FactorTerms"})
+	defs = append(defs, Definition{Name: "ExpreduceFactorConstant"})
 	defs = append(defs, Definition{Name: "Variables"})
 	defs = append(defs, Definition{Name: "PolynomialGCD"})
 	defs = append(defs, Definition{Name: "SquareFreeQ"})

@@ -497,6 +497,16 @@ Tests`FactorTerms = {
     ]
 };
 
+ExpreduceFactorConstant[p_Plus] := Module[{e = p, cTerms, c},
+   (* Parens are necessary due to precedence issue. *)
+   cTerms = ((ExpreduceConstantTerm /@ (List @@ e)) // Transpose)[[1]];
+   c = GCD @@ cTerms;
+   If[Last[cTerms] < 0, c = -c];
+   c * Distribute[e/c]
+   ];
+ExpreduceFactorConstant[e_] := e;
+Attributes[ExpreduceFactorConstant] = {Protected};
+
 Varibles::usage = "`Variables[expr]` returns the variables in `expr`.";
 Variables[s_Symbol] := {s};
 Variables[s_^p_Integer] := Variables[s];

@@ -4,17 +4,18 @@ ExpreduceDistributeMultiply[e_, multiplicand_] :=
 Together::usage = "`Together[e]` attempts to put the terms in `e` under the same denominator.";
 
 (*Factor out some operations*)
-Together[a_Plus*b_] := Together[a]*b;
-Together[e_^p_?NumberQ] := Together[e]^p;
+ExpreduceTogether[a_Plus*b_] := ExpreduceTogether[a]*b;
+ExpreduceTogether[e_^p_?NumberQ] := ExpreduceTogether[e]^p;
 
 (*Process any denominator*)
-Together[c_.*1/d_ + rest_] := Together[(c+Expand[ExpreduceDistributeMultiply[rest, d]])/d];
+ExpreduceTogether[c_.*1/d_ + rest_] := ExpreduceTogether[(c+Expand[ExpreduceDistributeMultiply[rest, d]])/d];
 (*Rationals have denominators too. Rational denominators are integers, and
 thus automatically distributed through Plus, so no need for the distribute
 function.*)
-Together[c_.*Rational[n_,d_] + rest_] := Together[(c n+Expand[rest d])/d];
+ExpreduceTogether[c_.*Rational[n_,d_] + rest_] := ExpreduceTogether[(c n+Expand[rest d])/d];
 
-Together[e_] := e;
+ExpreduceTogether[e_] := e;
+Together[e_] := ExpreduceFactorConstant[ExpreduceTogether[e]];
 
 Attributes[Together] = {Listable, Protected};
 Tests`Together = {
@@ -57,7 +58,8 @@ Tests`Together = {
         ESameTest[(1+c d)/c, 1/c+d//Together],
         ESameTest[1/2*(1+2 a), 1/2+a//Together],
         ESameTest[(a+b+c+d)/((a+b) (c+d)), (1+a/(c+d)+b/(c+d))/(a+b)//Together],
-        ESameTest[(a+b+a b c+a b d)/(a b), 1/a+1/b+c+d//Together]
+        ESameTest[(a+b+a b c+a b d)/(a b), 1/a+1/b+c+d//Together],
+        ESameTest[2(a+b), 2a+2b//Together]
     ]
 };
 
