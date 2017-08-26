@@ -198,9 +198,10 @@ func GetSystemDefinitions() (defs []Definition) {
 			sym, ok := this.Parts[1].(*Symbol)
 			if ok {
 				if sym.Name == "System`True" {
+					errorStr := "Invalid level. Must be one of {Debug, Info, Notice}."
 					levelSym, lsOk := this.Parts[2].(*Symbol)
 					if !lsOk {
-						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
+						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{errorStr}})
 					}
 					if levelSym.Name == "System`Debug" {
 						es.DebugOn(logging.DEBUG)
@@ -209,7 +210,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					} else if levelSym.Name == "System`Notice" {
 						es.DebugOn(logging.NOTICE)
 					} else {
-						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Invalid level."}})
+						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{errorStr}})
 					}
 					return &Symbol{"System`Null"}
 				} else if sym.Name == "System`False" {
