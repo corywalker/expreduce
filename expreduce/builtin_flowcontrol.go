@@ -138,5 +138,34 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			return res
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Do",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) >= 3 {
+				mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
+				if isOk {
+					// Simulate evaluation within Block[]
+					mis.takeVarSnapshot(es)
+					for mis.cont() {
+						mis.defineCurrent(es)
+						res := this.Parts[1].DeepCopy().Eval(es)
+						if es.HasThrown() {
+							return es.thrown
+						}
+						if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
+							if len(asReturn.Parts) < 2 {
+								return &Symbol{"System`Null"}
+							}
+							return asReturn.Parts[1]
+						}
+						mis.next()
+					}
+					mis.restoreVarSnapshot(es)
+					return &Symbol{"System`Null"}
+				}
+			}
+			return this
+		},
+	})
 	return
 }
