@@ -480,6 +480,23 @@ Tests`FactorTermsList = {
     ]
 };
 
+FactorTerms::usage =  "`FactorTerms[expr]` factors out the constant term of `expr`, if any.";
+FactorTerms[expr_] := Module[{e = expr, factored},
+    factored = FactorTermsList[e];
+    If[factored[[1]] === 1,
+      factored[[2]],
+      Times@@factored
+    ]
+   ];
+Attributes[FactorTerms] = {Protected};
+Tests`FactorTerms = {
+    ESimpleExamples[
+        ESameTest[2*Sin[8 k], FactorTerms[2*Sin[8*k]]],
+        ESameTest[(1/2)*(a+x), FactorTerms[a/2 + x/2]],
+        ESameTest[a+x, FactorTerms[a + x]]
+    ]
+};
+
 Varibles::usage = "`Variables[expr]` returns the variables in `expr`.";
 Variables[s_Symbol] := {s};
 Variables[s_^p_Integer] := Variables[s];
