@@ -313,6 +313,35 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name:              "DownValues",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+
+			sym, ok := this.Parts[1].(*Symbol)
+			if !ok {
+				return this
+			}
+			res := NewExpression([]Ex{&Symbol{"System`List"}})
+			def, isd := es.defined[sym.Name]
+			if !isd {
+				return res
+			}
+			for _, dv := range def.downvalues {
+				res.Parts = append(res.Parts, NewExpression([]Ex{
+					&Symbol{"System`RuleDelayed"},
+					NewExpression([]Ex{
+						&Symbol{"System`HoldPattern"},
+						dv.Parts[1],
+					}),
+					dv.Parts[2],
+				}))
+			}
+			return res
+		},
+	})
+	defs = append(defs, Definition{
 		Name:       "Set",
 		Usage:      "`lhs = rhs` sets `lhs` to stand for `rhs`.",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
@@ -618,6 +647,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "ClearAttributes"})
 	defs = append(defs, Definition{Name: "Protect"})
 	defs = append(defs, Definition{Name: "Unprotect"})
+	defs = append(defs, Definition{Name: "ClearAll"})
 	defs = append(defs, Definition{
 		Name: "Quiet",
 		OmitDocumentation: true,

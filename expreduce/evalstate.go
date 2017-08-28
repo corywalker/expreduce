@@ -287,7 +287,7 @@ func ruleSpecificity(lhs Ex, rhs Ex) int {
 		// Condition rules will be ranked in order of definition, not
 		// specificity. I'm not entirely sure if this is correct, but it seems
 		// to be the case for all the Rubi rules.
-		specificity = 15
+		specificity = 40
 	}
 	return specificity
 }
@@ -341,6 +341,8 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 		return
 	}
 
+	// Overwrite identical rules.
+	// TODO: also check that the conditional part of the lhs is identical.
 	for i := range this.defined[name].downvalues {
 		if IsSameQ(this.defined[name].downvalues[i].Parts[1], lhs, &this.CASLogger) {
 			this.defined[name].downvalues[i].Parts[2] = rhs

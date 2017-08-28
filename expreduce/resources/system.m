@@ -228,3 +228,34 @@ Tests`Catch = {
         ESameTest[c, Catch[{a, b, Throw[c], d}]]
     ]
 };
+
+DownValues::usage = "`DownValues[sym]` returns a list of downvalues for `sym`.";
+Attributes[DownValues] = {HoldAll, Protected};
+Tests`DownValues = {
+    ETests[
+        ESameTest[Null, ClearAll[myfoo]],
+        ESameTest[Null, myfoo[_] := a /; b;]
+    ]
+};
+
+ClearAll::usage = "`ClearAll[s1, s2, ...]` clears all definitions associated with the symbols.";
+Attributes[ClearAll] = {HoldAll, Protected};
+ClearAll[syms___] := Scan[
+   (
+      Attributes[#] = {};
+      Clear[#];
+   )&,
+   {syms}
+];
+Tests`ClearAll = {
+    ESimpleExamples[
+        ESameTest[{HoldAll}, Attributes[mytestsym] = {HoldAll}],
+        ESameTest[Null, mytestsym[5] := 6],
+        ESameTest[Null, mytestsym[7] := 8],
+        ESameTest[1, Length[Attributes[mytestsym]]],
+        ESameTest[2, Length[DownValues[mytestsym]]],
+        ESameTest[Null, ClearAll[mytestsym]],
+        ESameTest[0, Length[Attributes[mytestsym]]],
+        ESameTest[0, Length[DownValues[mytestsym]]]
+    ]
+};
