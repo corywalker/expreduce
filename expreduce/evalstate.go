@@ -109,6 +109,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`EExampleOnlyInstruction")
 		es.MarkSeen("System`EComment")
 		es.MarkSeen("System`EResetState")
+		es.MarkSeen("System`ExpreduceNonConditional")
 		es.MarkSeen("System`Debug")
 		es.MarkSeen("System`Info")
 		es.MarkSeen("System`Notice")
@@ -342,11 +343,16 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	}
 
 	// Overwrite identical rules.
-	// TODO: also check that the conditional part of the lhs is identical.
 	for i := range this.defined[name].downvalues {
-		if IsSameQ(this.defined[name].downvalues[i].Parts[1], lhs, &this.CASLogger) {
-			this.defined[name].downvalues[i].Parts[2] = rhs
-			return
+		existingRule := this.defined[name].downvalues[i]
+		existingLhs := existingRule.Parts[1]
+		if IsSameQ(existingLhs, lhs, &this.CASLogger) {
+			existingRhsCond := maskNonConditional(existingRule.Parts[2])
+			newRhsCond := maskNonConditional(rhs)
+			if IsSameQ(existingRhsCond, newRhsCond, &this.CASLogger) {
+				this.defined[name].downvalues[i].Parts[2] = rhs
+				return
+			}
 		}
 	}
 
@@ -469,4 +475,30 @@ func (es *EvalState) ProcessTopLevelResult(e Ex) Ex {
 		return toReturn
 	}
 	return e
+}
+
+func maskNonConditional(e Ex) Ex {
+	var res Ex = &Symbol{"System`ExpreduceNonConditional"}
+	if asHead, isHead := HeadAssertion(e, "System`Condition"); isHead {
+		res = NewExpression([]Ex{
+			&Symbol{"System`Condition"},
+			maskNonConditional(asHead.Parts[1]),
+			asHead.Parts[2],
+		})
+	}
+	heads := []string{"System`With", "System`Module"}
+	for _, head := range heads {
+		if asHead, isHead := HeadAssertion(e, head); isHead {
+			if len(asHead.Parts) == 3 {
+				if _, hasCond := HeadAssertion(asHead.Parts[2], "System`Condition"); hasCond {
+					res = NewExpression([]Ex{
+						&Symbol{head},
+						asHead.Parts[1],
+						maskNonConditional(asHead.Parts[2]),
+					})
+				}
+			}
+		}
+	}
+	return res
 }

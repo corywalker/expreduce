@@ -681,5 +681,19 @@ func GetSystemDefinitions() (defs []Definition) {
 			return res
 		},
 	})
+	defs = append(defs, Definition{
+		Name:              "ExpreduceMaskNonConditional",
+		OmitDocumentation: true,
+		ExpreduceSpecific: true,
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			return NewExpression([]Ex{
+				&Symbol{"System`Hold"},
+				maskNonConditional(this.Parts[1]),
+			})
+		},
+	})
 	return
 }
