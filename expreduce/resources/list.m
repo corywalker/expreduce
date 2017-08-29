@@ -202,6 +202,15 @@ Tests`Part = {
     ]
 };
 
+Span::usage = "`start ;; end` represents an index span to select using Part.";
+Attributes[Span] = {Protected};
+Tests`Span = {
+    ESimpleExamples[
+        ESameTest[{b, c}, {a, b, c, d}[[2 ;; 3]]],
+        ESameTest[{b, c, d}, {a, b, c, d}[[2 ;; All]]]
+    ]
+};
+
 All::usage = "`All` allows selection along a dimension in `Part`.";
 Attributes[All] = {Protected};
 Tests`All = {
@@ -304,6 +313,20 @@ Tests`First = {
         ESameTest[First[a], First[a]],
         ESameTest[First[{}], First[{}]],
         ESameTest[a, First[{a}]]
+    ]
+};
+
+Rest::usage = "`Rest[expr]` returns all but the first part of `expr`.";
+Rest[e_?((Length[#]>=1)&)] := e[[2;;All]];
+Attributes[Rest] = {Protected};
+Tests`Rest = {
+    ESimpleExamples[
+        ESameTest[{5,6}, Rest[{1,5,6}]],
+        ESameTest[b+c, Rest[a+b+c]]
+    ], ETests[
+        ESameTest[Rest[a], Rest[a]],
+        ESameTest[Rest[{}], Rest[{}]],
+        ESameTest[{}, Rest[{a}]]
     ]
 };
 
