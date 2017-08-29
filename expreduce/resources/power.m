@@ -46,8 +46,10 @@ Power[b_?NumberQ, -Infinity] := Which[
 ];
 Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)
-(Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
-(first_ * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
+(*Distribute any kind of power for numeric values in Times:*)
+((first:(_Integer | _Real | _Rational)) * inner__)^pow_ := first^pow * Times[inner]^pow;
+(*Otherwise, only distribute integer powers*)
+(first_ * inner___)^pow_Integer := first^pow * Times[inner]^pow;
 (*Rational simplifications*)
 (*These take up time. Possibly convert to Upvalues.*)
 Power[Rational[a_,b_], -1] := Rational[b,a];
