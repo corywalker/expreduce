@@ -29,6 +29,17 @@ func flattenExpr(src *Expression, dst *Expression, level int64, cl *CASLogger) {
 	}
 }
 
+func leafCount(e Ex) int64 {
+	if asExpr, isExpr := e.(*Expression); isExpr {
+		res := int64(0)
+		for _, part := range asExpr.Parts {
+			res += leafCount(part)
+		}
+		return res
+	}
+	return 1
+}
+
 func GetExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Head",
@@ -129,6 +140,15 @@ func GetExpressionDefinitions() (defs []Definition) {
 			dst := NewExpression([]Ex{expr.Parts[0]})
 			flattenExpr(expr, dst, level, &es.CASLogger)
 			return dst
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "LeafCount",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			return NewInt(leafCount(this.Parts[1]))
 		},
 	})
 	defs = append(defs, Definition{

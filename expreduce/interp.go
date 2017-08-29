@@ -205,6 +205,7 @@ var fullyAssocOps = map[int]string{
 	20: "And",
 	121: "Dot",
 	135: "Alternatives",
+	42: "Span",
 }
 
 func ParserExprConv(expr *wl.Expression) Ex {

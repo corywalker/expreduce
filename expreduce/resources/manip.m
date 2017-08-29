@@ -63,6 +63,15 @@ Tests`Together = {
     ]
 };
 
+Apart::usage = "`Apart[e]` attempts to break apart the terms in `e`. Warning: not fully implemented.";
+Apart[e_] := Expand[e];
+Attributes[Apart] = {Listable, Protected};
+Tests`Apart = {
+    ESimpleExamples[
+        ESameTest[a^3+3 a^2 b+3 a b^2+b^3, Apart[(a + b)^3]]
+    ]
+};
+
 Distribute::usage = "`Distribute[e]` distributes the function over the `Plus` expressions.";
 Tests`Distribute = {
     ESimpleExamples[

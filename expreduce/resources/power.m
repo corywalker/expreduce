@@ -46,8 +46,10 @@ Power[b_?NumberQ, -Infinity] := Which[
 ];
 Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)
-(Except[_Symbol, first_] * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
-(first_ * inner___)^Except[_Symbol, pow_] := first^pow * Times[inner]^pow;
+(*Distribute any kind of power for numeric values in Times:*)
+((first:(_Integer | _Real | _Rational)) * inner__)^pow_ := first^pow * Times[inner]^pow;
+(*Otherwise, only distribute integer powers*)
+(first_ * inner___)^pow_Integer := first^pow * Times[inner]^pow;
 (*Rational simplifications*)
 (*These take up time. Possibly convert to Upvalues.*)
 Power[Rational[a_,b_], -1] := Rational[b,a];
@@ -350,13 +352,25 @@ Tests`Exponent = {
 ExpreduceSingleCoefficient[inP_, inTerm_] :=
   Module[{p = inP, term = inTerm, pat},
    (*If[MatchQ[p,term],Return[1]];*)
-   pat = If[term === 1, a_?NumberQ, Optional[a_]*term];
+   pat = If[term === 1, Print["Warning: term of 1 used"]; a_?NumberQ, Optional[a_]*term];
    (*pat=Optional[a_]*term;*)
    If[MatchQ[p, pat],
     (p) /. pat -> a, 0]
    ];
+ExpreduceNonProp[inP_, inTerm_] :=
+  Module[{p = inP, term = inTerm, toMatch, pat},
+   toMatch = p // Expand;
+   pat = Except[Optional[a_]*term^n_.];
+   If[Head[toMatch] === Plus,
+    Plus@@Cases[toMatch, pat],
+    If[MatchQ[toMatch, pat], toMatch, 0]]
+   ];
 Coefficient::usage =  "`Coefficient[p, form]` returns the coefficient of form `form` in polynomial `p`.";
-Coefficient[p_, var_, exp_] := Coefficient[p, var^exp];
+Coefficient[p_, var_, exp_] := 
+    If[exp === 0,
+        ExpreduceNonProp[p, var],
+        Coefficient[p, var^exp]
+    ];
 Coefficient[inP_, inTerm_] :=
   Module[{p = inP, term = inTerm, toMatch},
    toMatch = p // Expand;
@@ -378,7 +392,12 @@ Tests`Coefficient = {
         ESameTest[1, Coefficient[x^2, x^2]],
         ESameTest[-a, Coefficient[x^2 - x*(a + x), x]],
         ESameTest[-(1/a)+b, Coefficient[1 + b*x + x^2 - (x*(1 + a*x))/a, x]],
-        ESameTest[1/2, Coefficient[1 + x + x^2 - (x*(1 + 2*x))/2, x]]
+        ESameTest[1/2, Coefficient[1 + x + x^2 - (x*(1 + 2*x))/2, x]],
+        ESameTest[a, Coefficient[a,x,0]],
+        ESameTest[a b, Coefficient[a*b,x,0]],
+        ESameTest[a b+c^d, Coefficient[a*b+c^d,x,0]],
+        ESameTest[a b+c^d, Coefficient[a*b+c^d+5x,x,0]],
+        ESameTest[0, Coefficient[(a*b+c^d)*x^2+5x,x,0]]
     ]
 };
 

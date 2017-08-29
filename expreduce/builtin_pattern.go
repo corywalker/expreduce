@@ -119,6 +119,18 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Optional",
+		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+			if len(this.Parts) != 2 {
+				return false, ""
+			}
+			if form != "InputForm" && form != "OutputForm" {
+				return false, ""
+			}
+			var buffer bytes.Buffer
+			buffer.WriteString(this.Parts[1].StringForm(form, context, contextPath))
+			buffer.WriteString(".")
+			return true, buffer.String()
+		},
 	})
 	defs = append(defs, Definition{
 		Name: "Verbatim",

@@ -53,17 +53,51 @@ func ValidatePadParams(this *Expression) (list *Expression, n int64, x Ex, valid
 	return
 }
 
+func validateIndex(i Ex, l int) (int64, bool) {
+	iInt, iIsInt := i.(*Integer)
+	if !iIsInt {
+		return 0, false
+	}
+	if iInt.Val.Int64() >= int64(l) {
+		return 0, false
+	}
+	// TODO: support this in the future.
+	if iInt.Val.Int64() < 0 {
+		return 0, false
+	}
+	return iInt.Val.Int64(), true
+}
+
 func applyIndex(ex Ex, index Ex) (Ex, bool) {
 	expr, isExpr := ex.(*Expression)
 	if !isExpr {
 		return nil, false
 	}
-	iInt, iIsInt := index.(*Integer)
-	if iIsInt {
-		if iInt.Val.Int64() >= int64(len(expr.Parts)) {
+	if iSpan, iIsSpan := HeadAssertion(index, "System`Span"); iIsSpan {
+		if len(iSpan.Parts) != 3 {
 			return nil, false
 		}
-		return expr.Parts[iInt.Val.Int64()], true
+		start, startOk := validateIndex(iSpan.Parts[1], len(expr.Parts)+1)
+		end, endOk := validateIndex(iSpan.Parts[2], len(expr.Parts))
+		if endSym, endIsSym := iSpan.Parts[2].(*Symbol); endIsSym {
+			if endSym.Name == "System`All" {
+				end, endOk = int64(len(expr.Parts)-1), true
+			}
+		}
+		if !startOk || !endOk {
+			return nil, false
+		}
+		return NewExpression(append(
+			[]Ex{expr.Parts[0]},
+			expr.Parts[start:end+1]...,
+		)), true
+	}
+	if _, iIsInt := index.(*Integer) ; iIsInt {
+		indexVal, indexOk := validateIndex(index, len(expr.Parts))
+		if !indexOk {
+			return nil, false
+		}
+		return expr.Parts[indexVal], true
 	}
 	iSym, iIsSym := index.(*Symbol)
 	if iIsSym {
@@ -367,9 +401,8 @@ func GetListDefinitions() (defs []Definition) {
 			return applied
 		},
 	})
-	defs = append(defs, Definition{
-		Name: "All",
-	})
+	defs = append(defs, Definition{Name: "Span"})
+	defs = append(defs, Definition{Name: "All"})
 	defs = append(defs, Definition{
 		Name: "Thread",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -448,14 +481,28 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Select",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+			maxN := MaxInt64
+			if len(this.Parts) == 4 {
+				if asInt, isInt := this.Parts[3].(*Integer); isInt {
+					maxN = asInt.Val.Int64()
+					if maxN < 0 {
+						return this
+					}
+				} else {
+					return this
+				}
+			} else if len(this.Parts) != 3 {
 				return this
 			}
 
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
 				res := NewExpression([]Ex{expr.Parts[0]})
+				added := int64(0)
 				for _, part := range expr.Parts[1:] {
+					if added >= maxN {
+						break
+					}
 					pass := (NewExpression([]Ex{
 						this.Parts[2],
 						part,
@@ -464,6 +511,7 @@ func GetListDefinitions() (defs []Definition) {
 					if passIsSymbol {
 						if passSymbol.Name == "System`True" {
 							res.Parts = append(res.Parts, part)
+							added += 1
 						}
 					}
 				}
@@ -504,5 +552,6 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "ListQ"})
 	defs = append(defs, Definition{Name: "Last"})
 	defs = append(defs, Definition{Name: "First"})
+	defs = append(defs, Definition{Name: "Rest"})
 	return
 }

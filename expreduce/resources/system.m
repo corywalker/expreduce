@@ -228,3 +228,69 @@ Tests`Catch = {
         ESameTest[c, Catch[{a, b, Throw[c], d}]]
     ]
 };
+
+DownValues::usage = "`DownValues[sym]` returns a list of downvalues for `sym`.";
+Attributes[DownValues] = {HoldAll, Protected};
+Tests`DownValues = {
+    ETests[
+        ESameTest[Null, ClearAll[myfoo]],
+        ESameTest[Null, myfoo[_] := a /; b;],
+        ESameTest[1, Length[DownValues[myfoo]]],
+        (*Defining the exact same definition has no effect.*)
+        ESameTest[Null, myfoo[_] := a /; b;],
+        ESameTest[1, Length[DownValues[myfoo]]],
+        (*Defining the same condition but with a different RHS will overwrite.*)
+        ESameTest[Null, myfoo[_] := b /; b;],
+        ESameTest[1, Length[DownValues[myfoo]]],
+        (*While this new definition has the same LHS, the condition on the RHS*)
+        (*is different so it should count as a separate DownValue.*)
+        ESameTest[Null, myfoo[_] := a /; c;],
+        ESameTest[2, Length[DownValues[myfoo]]],
+        ESameTest[Null, myfoo[_] := With[{}, a /; c];],
+        ESameTest[3, Length[DownValues[myfoo]]],
+        ESameTest[Null, myfoo[_] := With[{}, b /; c];],
+        ESameTest[3, Length[DownValues[myfoo]]],
+        ESameTest[Null, myfoo[_] := With[{a=2}, b /; c];],
+        ESameTest[4, Length[DownValues[myfoo]]],
+        ESameTest[Null, myfoo[_] := With[{a=3}, b /; c];],
+        ESameTest[5, Length[DownValues[myfoo]]],
+        ESameTest[Null, myfoo[_] := With[{a=2}, c /; c];],
+        ESameTest[5, Length[DownValues[myfoo]]],
+        ESameTest[Null, myfoo[_] := With[{a=2}, c /; c] /; True;],
+        ESameTest[6, Length[DownValues[myfoo]]],
+        ESameTest[6, Length[DownValues[myfoo]]]
+    ]
+};
+
+ClearAll::usage = "`ClearAll[s1, s2, ...]` clears all definitions associated with the symbols.";
+Attributes[ClearAll] = {HoldAll, Protected};
+ClearAll[syms___] := Scan[
+   (
+      Attributes[#] = {};
+      Clear[#];
+   )&,
+   {syms}
+];
+Tests`ClearAll = {
+    ESimpleExamples[
+        ESameTest[{HoldAll}, Attributes[mytestsym] = {HoldAll}],
+        ESameTest[Null, mytestsym[5] := 6],
+        ESameTest[Null, mytestsym[7] := 8],
+        ESameTest[1, Length[Attributes[mytestsym]]],
+        ESameTest[2, Length[DownValues[mytestsym]]],
+        ESameTest[Null, ClearAll[mytestsym]],
+        ESameTest[0, Length[Attributes[mytestsym]]],
+        ESameTest[0, Length[DownValues[mytestsym]]]
+    ]
+};
+
+ExpreduceMaskNonConditional::usage = "`ExpreduceMaskNonConditional[expr]` returns a version of `expr` with the nonconditional part masked out. Used internally for definitions.";
+Attributes[ExpreduceMaskNonConditional] = {HoldAll, Protected};
+Tests`ExpreduceMaskNonConditional = {
+    ETests[
+        ESameTest[Hold[ExpreduceNonConditional], ExpreduceMaskNonConditional[a+b]],
+        ESameTest[Hold[With[{}, ExpreduceNonConditional /; c]], ExpreduceMaskNonConditional[With[{}, a /; c]]],
+        ESameTest[Hold[With[{a=2}, ExpreduceNonConditional /; c] /; True], ExpreduceMaskNonConditional[With[{a=2}, c /; c] /; True]],
+        ESameTest[Hold[ExpreduceNonConditional], ExpreduceMaskNonConditional[With[{}, a]]],
+    ]
+};
