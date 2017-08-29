@@ -126,3 +126,13 @@ Tests`Flatten = {
         ESameTest[{-1, 1[{{1}, 2}], 3, 4}, Flatten[{-1, {1[{{1}, 2}]}, 3, 4}, 999]]
     ]
 };
+
+LeafCount::usage = "`LeafCount[e]` returns the count of leaves in `e`.";
+Attributes[LeafCount] = {Protected};
+Tests`LeafCount = {
+    ESimpleExamples[
+        ESameTest[3, LeafCount[a+b]],
+        ESameTest[8, LeafCount[a^2 + b^(c!)]],
+        ESameTest[1, LeafCount[a]]
+    ]
+};
