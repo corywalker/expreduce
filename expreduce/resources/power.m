@@ -352,13 +352,25 @@ Tests`Exponent = {
 ExpreduceSingleCoefficient[inP_, inTerm_] :=
   Module[{p = inP, term = inTerm, pat},
    (*If[MatchQ[p,term],Return[1]];*)
-   pat = If[term === 1, a_?NumberQ, Optional[a_]*term];
+   pat = If[term === 1, Print["Warning: term of 1 used"]; a_?NumberQ, Optional[a_]*term];
    (*pat=Optional[a_]*term;*)
    If[MatchQ[p, pat],
     (p) /. pat -> a, 0]
    ];
+ExpreduceNonProp[inP_, inTerm_] :=
+  Module[{p = inP, term = inTerm, toMatch, pat},
+   toMatch = p // Expand;
+   pat = Except[Optional[a_]*term^n_.];
+   If[Head[toMatch] === Plus,
+    Plus@@Cases[toMatch, pat],
+    If[MatchQ[toMatch, pat], toMatch, 0]]
+   ];
 Coefficient::usage =  "`Coefficient[p, form]` returns the coefficient of form `form` in polynomial `p`.";
-Coefficient[p_, var_, exp_] := Coefficient[p, var^exp];
+Coefficient[p_, var_, exp_] := 
+    If[exp === 0,
+        ExpreduceNonProp[p, var],
+        Coefficient[p, var^exp]
+    ];
 Coefficient[inP_, inTerm_] :=
   Module[{p = inP, term = inTerm, toMatch},
    toMatch = p // Expand;
@@ -380,7 +392,12 @@ Tests`Coefficient = {
         ESameTest[1, Coefficient[x^2, x^2]],
         ESameTest[-a, Coefficient[x^2 - x*(a + x), x]],
         ESameTest[-(1/a)+b, Coefficient[1 + b*x + x^2 - (x*(1 + a*x))/a, x]],
-        ESameTest[1/2, Coefficient[1 + x + x^2 - (x*(1 + 2*x))/2, x]]
+        ESameTest[1/2, Coefficient[1 + x + x^2 - (x*(1 + 2*x))/2, x]],
+        ESameTest[a, Coefficient[a,x,0]],
+        ESameTest[a b, Coefficient[a*b,x,0]],
+        ESameTest[a b+c^d, Coefficient[a*b+c^d,x,0]],
+        ESameTest[a b+c^d, Coefficient[a*b+c^d+5x,x,0]],
+        ESameTest[0, Coefficient[(a*b+c^d)*x^2+5x,x,0]]
     ]
 };
 

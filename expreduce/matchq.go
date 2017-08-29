@@ -2,6 +2,8 @@ package expreduce
 
 const MaxUint = ^uint(0)
 const MaxInt = int(MaxUint >> 1)
+const MaxUint64 = ^uint64(0)
+const MaxInt64 = int64(MaxUint64 >> 1)
 
 type matchIter interface {
 	// returns ismatch, pd, isdone

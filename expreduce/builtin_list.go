@@ -448,14 +448,28 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Select",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+			maxN := MaxInt64
+			if len(this.Parts) == 4 {
+				if asInt, isInt := this.Parts[3].(*Integer); isInt {
+					maxN = asInt.Val.Int64()
+					if maxN < 0 {
+						return this
+					}
+				} else {
+					return this
+				}
+			} else if len(this.Parts) != 3 {
 				return this
 			}
 
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
 				res := NewExpression([]Ex{expr.Parts[0]})
+				added := int64(0)
 				for _, part := range expr.Parts[1:] {
+					if added >= maxN {
+						break
+					}
 					pass := (NewExpression([]Ex{
 						this.Parts[2],
 						part,
@@ -464,6 +478,7 @@ func GetListDefinitions() (defs []Definition) {
 					if passIsSymbol {
 						if passSymbol.Name == "System`True" {
 							res.Parts = append(res.Parts, part)
+							added += 1
 						}
 					}
 				}

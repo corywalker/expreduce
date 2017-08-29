@@ -312,7 +312,8 @@ Attributes[Select] = {Protected};
 Tests`Select = {
     ESimpleExamples[
         ESameTest[{1,3,5,7,9,11,13,15,17,19}, Select[Range[20],OddQ]],
-        ESameTest[{1,2,3,4}, Select[{1,2,3,4},(True)&]]
+        ESameTest[{1,2,3,4}, Select[{1,2,3,4},(True)&]],
+        ESameTest[{1,2}, Select[{1,2,3,4},(True)&,2]]
     ], ETests[
         ESameTest[{}, Select[{1,2,3,4},(False)&]],
         ESameTest[{}, Select[{1,2,3,4},(hello)&]],
