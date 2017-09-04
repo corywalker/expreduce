@@ -389,7 +389,8 @@ func (this *EvalState) ClearAll() {
 func (this *EvalState) Clear(name string) {
 	_, ok := this.defined[name]
 	if ok {
-		delete(this.defined, name)
+		this.defined[name] = Def{}
+		//delete(this.defined, name)
 	}
 }
 
