@@ -172,6 +172,7 @@ var unaryOps = map[int]string{
 	13: "Not",
 	115: "Factorial",
 	117: "Function",
+	15: "Plus",
 }
 
 var binaryOps = map[int]string{
@@ -349,6 +350,14 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			set.Parts[2],
 		})
 		return e
+	case 137:
+		return NewExpression([]Ex{
+			NewExpression([]Ex{
+				&Symbol{"System`Derivative"},
+				NewInt(1),
+			}),
+			ParserExprConv(expr.Expression),
+		})
 	}
 	log.Fatalf("System`UnParsed: %+v %+v %+v", expr.Token, expr.Case, expr)
 	return nil

@@ -68,7 +68,6 @@ LoadRules["9.1 Integrand simplification rules"];
 LoadRules["1.1.1 Linear binomial products"];
 LoadRules["1.1.3 General binomial products"];
 
-(*
 LoadRules["1.2.1 Quadratic trinomial products"];
 LoadRules["1.2.2 Quartic trinomial products"];
 LoadRules["1.2.3 General trinomial products"];
@@ -91,7 +90,6 @@ LoadRules["7 Inverse hyperbolic functions"];
 LoadRules["8 Special functions"];
 LoadRules["9.2 Derivative integration rules"];
 LoadRules["9.4 Miscellaneous integration rules"];
-*)
 
 
 (*FixIntRules[];*)
