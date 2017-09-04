@@ -401,6 +401,22 @@ Tests`Coefficient = {
     ]
 };
 
+CoefficientList::usage =  "`CoefficientList[p, var]` returns the list of coefficients associated with variable `var`.";
+CoefficientList[p_, var_] :=
+    Table[Coefficient[p,var,i],{i,0,Exponent[p,var]}];
+Attributes[CoefficientList] = {Protected};
+Tests`CoefficientList = {
+    ESimpleExamples[
+        ESameTest[{b,3,5}, CoefficientList[b+3x+5x^2,x]],
+        ESameTest[{0,0,5}, CoefficientList[5x^2,x]],
+        ESameTest[{-(a/b),1/b}, CoefficientList[(-a+x)/b,x]]
+    ], ETests[
+        ESameTest[{b,3,0,5}, CoefficientList[b+3x+5x^3,x]],
+        ESameTest[{b+3 x+5 x^3}, CoefficientList[b+3x+5x^3,y]],
+        ESameTest[{3 x+5 x^3,1}, CoefficientList[b+3x+5x^3,b]]
+    ]
+};
+
 PolynomialQuotientRemainder::usage =  "`PolynomialQuotientRemainder[poly_, div_, var_]` returns the quotient and remainder of `poly` divided by `div` treating `var` as the polynomial variable.";
 ExpreduceLeadingCoeff[p_, x_] := Coefficient[p, x^Exponent[p, x]];
 PolynomialQuotientRemainder[inp_, inq_, v_] :=

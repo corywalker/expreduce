@@ -505,3 +505,13 @@ Tests`Verbatim = {
         ESameTest[{}, ReplaceList[(a+b)[a,b,c,d],Verbatim[a+_][___,x_,y_,___]->{x,y}]]
     ]
 };
+
+HoldPattern::usage = "`HoldPattern[expr]` leaves `expr` unevaluated but is seen as just `expr` for the purposes of pattern matching.";
+Attributes[HoldPattern] = {HoldAll, Protected};
+Tests`HoldPattern = {
+    ESimpleExamples[
+        ESameTest[False, MatchQ[2x+2y,2_+2_]],
+        ESameTest[True, MatchQ[2x+2y,HoldPattern[2_+2_]]],
+        ESameTest[True, MatchQ[2x+2y,HoldPattern[2_+HoldPattern[2_]]]]
+    ]
+};

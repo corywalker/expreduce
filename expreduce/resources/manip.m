@@ -63,12 +63,120 @@ Tests`Together = {
     ]
 };
 
+Numerator::usage = "`Numerator[e]` returns the numerator of `e`.";
+denPattern := b_^n_?Negative | b_^(n : (-_Symbol));
+Numerator[prod_Times] := Times@@Cases[prod, Except[denPattern]];
+Numerator[Rational[n_,d_]] := n;
+Numerator[e_] := e;
+Attributes[Numerator] = {Listable, Protected};
+Tests`Numerator = {
+    ESimpleExamples[
+        ESameTest[a, Numerator[a/b]],
+        ESameTest[a^2 b, Numerator[a^2*b]],
+        ESameTest[a^2, Numerator[a^2*b^-2]],
+        ESameTest[a^2 c, Numerator[a^2*b^-a*c]],
+        ESameTest[2, Numerator[2/3]]
+    ]
+};
+
+Denominator::usage = "`Denominator[e]` returns the denominator of `e`.";
+Denominator[prod_Times] := Times@@Cases[prod, denPattern -> b^(-n)];
+Denominator[Rational[n_,d_]] := d;
+Denominator[e_] := 1;
+Attributes[Denominator] = {Listable, Protected};
+Tests`Denominator = {
+    ESimpleExamples[
+        ESameTest[b c, Denominator[a/(b*c)]],
+        ESameTest[1, Denominator[a^2*b]],
+        ESameTest[b^2 c^3, Denominator[a^2*b^-2*c^-3]],
+        ESameTest[b^a c^d, Denominator[a^2*b^-a*c^-d]],
+        ESameTest[3, Denominator[2/3]]
+    ]
+};
+
 Apart::usage = "`Apart[e]` attempts to break apart the terms in `e`. Warning: not fully implemented.";
+termsWithout[dTerms_, i_] := 
+  Product[If[index === i, 1, dTerms[[index]]], {index, 
+    Length[dTerms]}];
+getPowerApartForm[base_, exp_, denTerms_] := 
+  Module[{b = base, n = exp, holders, form, dTerms = denTerms, 
+    unDivForm, finalForm},
+   holders = Table[Unique[], n//Evaluate];
+   finalForm = Sum[(holders[[i]]/b^i), {i, n}];
+   form = Sum[(holders[[i]]/b^i)*Times @@ dTerms, {i, n}];
+   {finalForm, form, holders}
+   ];
+getApartForm[denTerms_, iVar_] := 
+  Module[{dTerms = denTerms, i = iVar, holder, powerPattern},
+   powerPattern := b_^n_Integer;
+   If[MatchQ[dTerms[[i]], powerPattern],
+    Replace[dTerms[[i]], 
+     powerPattern :> getPowerApartForm[b, n, dTerms]],
+    holder = Unique[];
+    {holder/dTerms[[i]], 
+     holder*If[Length[dTerms] === 1, dTerms[[1]], 
+       termsWithout[dTerms, i]], {holder}}]
+   ];
+myLinearApart[num_, denTerms_, var_] := 
+  Module[{n = num, dTerms = denTerms, v = var, lhs, rhs, coeffs, 
+    apartForm, coeffHolders, tmp, toSolve, finalForm},
+   coeffHolders = {};
+   apartForm = {};
+   finalForm = {};
+   Do[
+    tmp = getApartForm[dTerms, i];
+    coeffHolders = Join[coeffHolders, tmp[[3]]];
+    AppendTo[apartForm, tmp[[2]]];
+    AppendTo[finalForm, tmp[[1]]];
+    , {i, Length[dTerms]}];
+   apartForm = Plus @@ apartForm;
+   
+   lhs = CoefficientList[apartForm, v];
+   rhs = PadRight[CoefficientList[n, v], Length[lhs]];
+   toSolve = Table[lhs[[i]] == rhs[[i]], {i, Length[lhs]}];
+   (*Print[toSolve, coeffHolders];*)
+   coeffs = Solve[toSolve, coeffHolders];
+   If[Length[coeffs] === 0 || Head[coeffs] === Solve,
+    num/(Times @@ denTerms),
+    Plus @@ (finalForm /. coeffs[[1]])
+    ]
+   ];
+ClearAll[denTerms];
+getDenTerms[den_Times] := List @@ den;
+getDenTerms[den_] := {den};
+validDenTermQ[t_, x_] := 
+  MatchQ[t, (Optional[a_?((FreeQ[#, x]) &)]*
+      x^Optional[n_Integer]) | (Optional[a_?((FreeQ[#, x]) &)]*x + 
+       Optional[b_?((FreeQ[#, x]) &)])^Optional[n_?((FreeQ[#, x]) &)]];
+myApartUnexpanded[expr_Times, var_] := 
+  Module[{e = expr, v = var, denTerms, num, den, divRes},
+   num = Numerator[e];
+   den = Denominator[e];
+   If[Exponent[num, v] > Exponent[den, v], Return[
+     divRes = PolynomialQuotientRemainder[num, den, v];
+     divRes[[1]] + myApartUnexpanded[divRes[[2]]/den, v]
+     ]];
+   denTerms = getDenTerms[den];
+   (*If[Length[denTerms]<2,Return[e]];*)
+   
+   If[! AllTrue[denTerms, validDenTermQ[#, v] &], Return[e]];
+   myLinearApart[num, denTerms, v]
+   ];
+myApartUnexpanded[expr_, var_] := expr;
+
+Apart[expr_, var_] := myApartUnexpanded[expr, var] // Expand;
 Apart[e_] := Expand[e];
+
 Attributes[Apart] = {Listable, Protected};
 Tests`Apart = {
     ESimpleExamples[
-        ESameTest[a^3+3 a^2 b+3 a b^2+b^3, Apart[(a + b)^3]]
+        ESameTest[a^3+3 a^2 b+3 a b^2+b^3, Apart[(a + b)^3]],
+        ESameTest[7/(6 (-5+x))+11/(6 (1+x)), Apart[(3x-8)/((x+1)*(x-5)),x]],
+        (*ESameTest[13/(10 (-1+x))-5/(6 (1+x))-7/(15 (4+x)), Apart[(4x+9)/((-1+x) (1+x) (4+x)),x]],*)
+        (*ESameTest[1/b-a/(b (a+b x)), Apart[(x/(a+(b*x))),x]],*)
+        ESameTest[(5 a^4)/b^6-(4 a^3 x)/b^5+(3 a^2 x^2)/b^4-(2 a x^3)/b^3+x^4/b^2+a^6/(b^6 (a+b x)^2)-(6 a^5)/(b^6 (a+b x)), Apart[(x^6/((a+(b*x))*(a+(b*x)))),x]],
+        ESameTest[(5 a^4)/b^6-(4 a^3 x)/b^5+(3 a^2 x^2)/b^4-(2 a x^3)/b^3+x^4/b^2+a^6/(b^6 (a+b x)^2)-(6 a^5)/(b^6 (a+b x)), Apart[(x^6*(a+(b*x))^-2),x]],
+        (*ESameTest[2/(27 (-2+x))+1/(3 (1+x)^3)+7/(9 (1+x)^2)-2/(27 (1+x)), Apart[(x^2-2)/((x-2)(x+1)^3),x]]*)
     ]
 };
 

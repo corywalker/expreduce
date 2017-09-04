@@ -294,3 +294,6 @@ Tests`ExpreduceMaskNonConditional = {
         ESameTest[Hold[ExpreduceNonConditional], ExpreduceMaskNonConditional[With[{}, a]]],
     ]
 };
+
+Unique::usage = "`Unique[]` returns a unique symbol.";
+Attributes[Unique] = {Protected};

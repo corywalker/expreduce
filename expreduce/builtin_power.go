@@ -138,6 +138,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "PolynomialQ"})
 	defs = append(defs, Definition{Name: "Exponent"})
 	defs = append(defs, Definition{Name: "Coefficient"})
+	defs = append(defs, Definition{Name: "CoefficientList"})
 	defs = append(defs, Definition{Name: "PolynomialQuotientRemainder"})
 	defs = append(defs, Definition{Name: "PolynomialQuotient"})
 	defs = append(defs, Definition{Name: "PolynomialRemainder"})

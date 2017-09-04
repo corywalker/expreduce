@@ -28,6 +28,8 @@ func distribute(e *Expression, built *Expression, res *Expression) {
 
 func GetManipDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Together"})
+	defs = append(defs, Definition{Name: "Numerator"})
+	defs = append(defs, Definition{Name: "Denominator"})
 	defs = append(defs, Definition{
 		Name: "Apart",
 		// Not fully implemented.
