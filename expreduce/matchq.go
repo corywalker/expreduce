@@ -124,6 +124,13 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			}
 		}
 	}
+	// Special case for HoldPattern
+	holdPattern, isHoldPattern := HeadAssertion(b, "System`HoldPattern")
+	if isHoldPattern {
+		if len(holdPattern.Parts) == 2 {
+			return NewMatchIter(a, holdPattern.Parts[1], pm, es)
+		}
+	}
 
 	// Continue normally
 	_, aIsFlt := a.(*Flt)

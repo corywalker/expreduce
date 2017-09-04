@@ -114,9 +114,7 @@ func GetPatternDefinitions() (defs []Definition) {
 			return res
 		},
 	})
-	defs = append(defs, Definition{
-		Name: "Repeated",
-	})
+	defs = append(defs, Definition{Name: "Repeated"})
 	defs = append(defs, Definition{
 		Name: "Optional",
 		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
@@ -137,5 +135,6 @@ func GetPatternDefinitions() (defs []Definition) {
 		// Not fully supported. Don't document
 		OmitDocumentation: true,
 	})
+	defs = append(defs, Definition{Name: "HoldPattern"})
 	return
 }
