@@ -368,3 +368,13 @@ Tests`Scan = {
         ESameTest[False, Catch[Scan[Function[If[IntegerQ[#], Null, Throw[False]]], {1, a}]; True]]
     ]
 };
+
+Join::usage = "`Join[l1, l2, ...]` joins the lists into a single list.";
+Attributes[Join] = {Flat, OneIdentity, Protected};
+Tests`Join = {
+    ESimpleExamples[
+        ESameTest[{a,b,c}, Join[{a},{b,c}]],
+        ESameTest[{}, Join[]],
+        ESameTest[foo[a,b,c], Join[foo[a],foo[b,c]]]
+    ]
+};

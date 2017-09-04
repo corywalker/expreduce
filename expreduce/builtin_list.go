@@ -549,6 +549,31 @@ func GetListDefinitions() (defs []Definition) {
 			return &Symbol{"System`Null"}
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Join",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) <= 1 {
+				return NewHead("System`List")
+			}
+
+			res := NewEmptyExpression()
+			for _, part := range this.Parts[1:] {
+				expr, isExpr := part.(*Expression)
+				if !isExpr {
+					return this
+				}
+				if len(res.Parts) == 0 {
+					res.appendExArray(expr.Parts)
+				} else {
+					if !IsSameQ(expr.Parts[0], res.Parts[0], &es.CASLogger) {
+						return this
+					}
+					res.appendExArray(expr.Parts[1:])
+				}
+			}
+			return res
+		},
+	})
 	defs = append(defs, Definition{Name: "ListQ"})
 	defs = append(defs, Definition{Name: "Last"})
 	defs = append(defs, Definition{Name: "First"})

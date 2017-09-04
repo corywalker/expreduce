@@ -100,6 +100,30 @@ func TryReadFile(fn Ex, es *EvalState) (string, string, bool) {
 	return "", "", false
 }
 
+func snagUnique(prefix string, es *EvalState) (string, bool) {
+	mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
+	if !mnIsDef {
+		return "", false
+	}
+	mnInteger, mnIsInt := mnExpr.(*Integer)
+	if !mnIsInt {
+		return "", false
+	}
+	mn := mnInteger.Val.Int64()
+
+	// Find the next ModuleNumber to use.
+	for {
+		toTry := fmt.Sprintf("%v$%v", prefix, mn)
+		if !es.IsDef(toTry) {
+			es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn + 1)})
+			return toTry, true
+		}
+		mn += 1
+	}
+	return "", false
+}
+
+
 func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 	// Coarse parsing of arguments.
 	if len(this.Parts) != 3 {
@@ -109,15 +133,6 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 	if !localsIsList {
 		return nil, false
 	}
-	mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
-	if !mnIsDef {
-		return nil, false
-	}
-	mnInteger, mnIsInt := mnExpr.(*Integer)
-	if !mnIsInt {
-		return nil, false
-	}
-	mn := mnInteger.Val.Int64()
 
 	// Parse locals into a struct
 	type parsedLocal struct {
@@ -151,20 +166,13 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 		parsedLocals = append(parsedLocals, pl)
 	}
 
-	// Find the next ModuleNumber to use.
-	tryingNew := true
-	for tryingNew {
-		tryingNew = false
-		for i := range parsedLocals {
-			parsedLocals[i].uniqueName = fmt.Sprintf("%v$%v", parsedLocals[i].sym.Name, mn)
-			if es.IsDef(parsedLocals[i].uniqueName) {
-				mn += 1
-				tryingNew = true
-				break
-			}
+	for i := range parsedLocals {
+		unique, ok := snagUnique(parsedLocals[i].sym.Name, es)
+		if !ok {
+			log.Fatal("Error snagging unique.")
 		}
+		parsedLocals[i].uniqueName = unique
 	}
-	es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn + 1)})
 	toReturn := this.Parts[2]
 	pm := EmptyPD()
 	for _, pl := range parsedLocals {
@@ -693,6 +701,19 @@ func GetSystemDefinitions() (defs []Definition) {
 				&Symbol{"System`Hold"},
 				maskNonConditional(this.Parts[1]),
 			})
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Unique",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 1 {
+				return this
+			}
+			unique, ok := snagUnique("Global`", es)
+			if !ok {
+				log.Fatal("Error snagging unique.")
+			}
+			return &Symbol{unique}
 		},
 	})
 	return
