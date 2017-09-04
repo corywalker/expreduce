@@ -182,7 +182,15 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 				rhs = rhs.Eval(es)
 			}
 			es.defined[pl.uniqueName] = Def{
-				downvalues: []Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, &Symbol{pl.uniqueName}, rhs})},
+				downvalues: []DownValue{
+					DownValue{
+						rule: *NewExpression([]Ex{
+							&Symbol{"System`Rule"},
+							&Symbol{pl.uniqueName},
+							rhs,
+						}),
+					},
+				},
 			}
 		} else {
 			es.defined[pl.uniqueName] = Def{}
@@ -341,9 +349,9 @@ func GetSystemDefinitions() (defs []Definition) {
 					&Symbol{"System`RuleDelayed"},
 					NewExpression([]Ex{
 						&Symbol{"System`HoldPattern"},
-						dv.Parts[1],
+						dv.rule.Parts[1],
 					}),
-					dv.Parts[2],
+					dv.rule.Parts[2],
 				}))
 			}
 			return res

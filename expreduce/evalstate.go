@@ -209,7 +209,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	for i := range this.defined[name].downvalues {
-		def := this.defined[name].downvalues[i]
+		def := this.defined[name].downvalues[i].rule
 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
@@ -268,7 +268,7 @@ func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
 func (this *EvalState) MarkSeen(name string) {
 	if !this.IsDef(name) {
 		newDef := Def{
-			downvalues: []Expression{},
+			downvalues: []DownValue{},
 		}
 		this.defined[name] = newDef
 	}
@@ -288,7 +288,7 @@ func ruleSpecificity(lhs Ex, rhs Ex) int {
 		// Condition rules will be ranked in order of definition, not
 		// specificity. I'm not entirely sure if this is correct, but it seems
 		// to be the case for all the Rubi rules.
-		specificity = 40
+		specificity = 100
 	}
 	return specificity
 }
@@ -336,7 +336,13 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
 	if !this.IsDef(name) {
 		newDef := Def{
-			downvalues: []Expression{*NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})},
+			downvalues: []DownValue{
+				DownValue{
+					rule: *NewExpression([]Ex{
+						&Symbol{"System`Rule"}, lhs, rhs,
+					}),
+				},
+			},
 		}
 		this.defined[name] = newDef
 		return
@@ -344,13 +350,13 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 
 	// Overwrite identical rules.
 	for i := range this.defined[name].downvalues {
-		existingRule := this.defined[name].downvalues[i]
+		existingRule := this.defined[name].downvalues[i].rule
 		existingLhs := existingRule.Parts[1]
 		if IsSameQ(existingLhs, lhs, &this.CASLogger) {
 			existingRhsCond := maskNonConditional(existingRule.Parts[2])
 			newRhsCond := maskNonConditional(rhs)
 			if IsSameQ(existingRhsCond, newRhsCond, &this.CASLogger) {
-				this.defined[name].downvalues[i].Parts[2] = rhs
+				this.defined[name].downvalues[i].rule.Parts[2] = rhs
 				return
 			}
 		}
@@ -361,16 +367,21 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	var tmp = this.defined[name]
 	newSpecificity := ruleSpecificity(lhs, rhs)
 	for i := range this.defined[name].downvalues {
-		thisSpecificity := ruleSpecificity(
-			this.defined[name].downvalues[i].Parts[1],
-			this.defined[name].downvalues[i].Parts[2],
-		)
-		if thisSpecificity < newSpecificity {
+		if this.defined[name].downvalues[i].specificity == 0 {
+			this.defined[name].downvalues[i].specificity = ruleSpecificity(
+				this.defined[name].downvalues[i].rule.Parts[1],
+				this.defined[name].downvalues[i].rule.Parts[2],
+			)
+		}
+		if this.defined[name].downvalues[i].specificity < newSpecificity {
 			newRule := *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})
 			tmp.downvalues = append(
 				tmp.downvalues[:i],
 				append(
-					[]Expression{newRule},
+					[]DownValue{DownValue{
+						rule: newRule,
+						specificity: newSpecificity,
+					}},
 					this.defined[name].downvalues[i:]...,
 				)...,
 			)
@@ -378,7 +389,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs}))
+	tmp.downvalues = append(tmp.downvalues, DownValue{rule: *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})})
 	this.defined[name] = tmp
 }
 
