@@ -2,8 +2,13 @@ package expreduce
 
 import "bytes"
 
+type DownValue struct {
+	rule		Expression
+	specificity int
+}
+
 type Def struct {
-	downvalues  []Expression
+	downvalues  []DownValue
 	attributes  Attributes
 	defaultExpr Ex
 
@@ -15,8 +20,12 @@ func CopyDefs(in map[string]Def) map[string]Def {
 	out := make(map[string]Def)
 	for k, v := range in {
 		newDef := Def{}
-		for _, rule := range v.downvalues {
-			newDef.downvalues = append(newDef.downvalues, *rule.DeepCopy().(*Expression))
+		for _, dv := range v.downvalues {
+			newDv := DownValue{
+				rule: *dv.rule.DeepCopy().(*Expression),
+				specificity: dv.specificity,
+			}
+			newDef.downvalues = append(newDef.downvalues, newDv)
 		}
 		out[k] = newDef
 	}
@@ -26,8 +35,8 @@ func CopyDefs(in map[string]Def) map[string]Def {
 func (this *Def) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
-	for i, e := range this.downvalues {
-		buffer.WriteString(e.String())
+	for i, dv := range this.downvalues {
+		buffer.WriteString(dv.rule.String())
 		if i != len(this.downvalues)-1 {
 			buffer.WriteString("\n")
 		}
@@ -39,8 +48,8 @@ func (this *Def) String() string {
 func (def *Def) StringForm(form string, context *String, contextPath *Expression) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
-	for i, e := range def.downvalues {
-		buffer.WriteString(e.StringForm(form, context, contextPath))
+	for i, dv := range def.downvalues {
+		buffer.WriteString(dv.rule.StringForm(form, context, contextPath))
 		if i != len(def.downvalues)-1 {
 			buffer.WriteString("\n")
 		}
