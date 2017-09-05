@@ -21,9 +21,16 @@ func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
 }
 
 func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
-	// Special case for Except
-	except, isExcept := HeadAssertion(b, "System`Except")
-	if isExcept {
+	patternHead := ""
+	patExpr, patIsExpr := b.(*Expression)
+	if patIsExpr {
+		sym, isSym := patExpr.Parts[0].(*Symbol)
+		if isSym {
+			patternHead = sym.Name
+		}
+	}
+	if patternHead == "System`Except" {
+		except := patExpr
 		if len(except.Parts) == 2 {
 			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), es)
 			return &dummyMatchIter{!matchq, pm, true}, true
@@ -35,10 +42,8 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			}
 			return &dummyMatchIter{false, pm, true}, true
 		}
-	}
-	// Special case for Alternatives
-	alts, isAlts := HeadAssertion(b, "System`Alternatives")
-	if isAlts {
+	} else if patternHead == "System`Alternatives" {
+		alts := patExpr
 		for _, alt := range alts.Parts[1:] {
 			// I recently changed the third argument from EmptyPD() to pm
 			// because MatchQ[{a, b}, {a_, k | a_}] was returning True, causing
@@ -50,10 +55,8 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			}
 		}
 		return &dummyMatchIter{false, pm, true}, true
-	}
-	// Special case for PatternTest
-	patternTest, isPT := HeadAssertion(b, "System`PatternTest")
-	if isPT {
+	} else if patternHead == "System`PatternTest" {
+		patternTest := patExpr
 		if len(patternTest.Parts) == 3 {
 			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), es)
 			if matchq {
@@ -91,10 +94,8 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			}
 			return &dummyMatchIter{false, pm, true}, true
 		}
-	}
-	// Special case for Condition
-	condition, isCond := HeadAssertion(b, "System`Condition")
-	if isCond {
+	} else if patternHead == "System`Condition" {
+		condition := patExpr
 		if len(condition.Parts) == 3 {
 			mi, cont := NewMatchIter(a, condition.Parts[1], EmptyPD(), es)
 			for cont {
@@ -113,20 +114,16 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 				}
 			}
 		}
-	}
-	// Special case for Optional
-	optional, isOptional := HeadAssertion(b, "System`Optional")
-	if isOptional {
+	} else if patternHead == "System`Optional" {
+		optional := patExpr
 		if len(optional.Parts) == 2 {
 			matchq, newPD := IsMatchQ(a, optional.Parts[1], pm, es)
 			if matchq {
 				return &dummyMatchIter{matchq, newPD, true}, true
 			}
 		}
-	}
-	// Special case for HoldPattern
-	holdPattern, isHoldPattern := HeadAssertion(b, "System`HoldPattern")
-	if isHoldPattern {
+	} else if patternHead == "System`HoldPattern" {
+		holdPattern := patExpr
 		if len(holdPattern.Parts) == 2 {
 			return NewMatchIter(a, holdPattern.Parts[1], pm, es)
 		}
