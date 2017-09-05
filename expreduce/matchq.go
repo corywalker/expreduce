@@ -11,13 +11,11 @@ type matchIter interface {
 }
 
 type dummyMatchIter struct {
-	isMatchQ bool
 	pm       *PDManager
-	isDone   bool
 }
 
 func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
-	return this.isMatchQ, this.pm, this.isDone
+	return true, this.pm, true
 }
 
 func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
@@ -33,12 +31,17 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		except := patExpr
 		if len(except.Parts) == 2 {
 			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), es)
-			return &dummyMatchIter{!matchq, pm, true}, true
+			if !matchq {
+				return &dummyMatchIter{pm}, true
+			}
+			return nil, false
 		} else if len(except.Parts) == 3 {
 			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), es)
 			if !matchq {
 				matchqb, newPm := IsMatchQ(a, except.Parts[2], pm, es)
-				return &dummyMatchIter{matchqb, newPm, true}, true
+				if matchqb {
+					return &dummyMatchIter{newPm}, true
+				}
 			}
 			return nil, false
 		}
@@ -51,7 +54,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			// similar changes to the other pattern clauses.
 			matchq, newPD := IsMatchQ(a, alt, pm, es)
 			if matchq {
-				return &dummyMatchIter{matchq, newPD, true}, true
+				return &dummyMatchIter{newPD}, true
 			}
 		}
 		return nil, false
@@ -71,7 +74,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 					}
 					if qFunction != nil {
 						if qFunction(a) {
-							return &dummyMatchIter{true, newPD, true}, true
+							return &dummyMatchIter{newPD}, true
 						} else {
 							return nil, false
 						}
@@ -88,7 +91,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 				resSymbol, resIsSymbol := res.(*Symbol)
 				if resIsSymbol {
 					if resSymbol.Name == "System`True" {
-						return &dummyMatchIter{true, newPD, true}, true
+						return &dummyMatchIter{newPD}, true
 					}
 				}
 			}
@@ -108,7 +111,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 					resSymbol, resIsSymbol := res.(*Symbol)
 					if resIsSymbol {
 						if resSymbol.Name == "System`True" {
-							return &dummyMatchIter{true, newPD, true}, true
+							return &dummyMatchIter{newPD}, true
 						}
 					}
 				}
@@ -119,7 +122,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		if len(optional.Parts) == 2 {
 			matchq, newPD := IsMatchQ(a, optional.Parts[1], pm, es)
 			if matchq {
-				return &dummyMatchIter{matchq, newPD, true}, true
+				return &dummyMatchIter{newPD}, true
 			}
 		}
 	} else if patternHead == "System`HoldPattern" {
@@ -171,7 +174,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	if IsBlankTypeOnly(b) {
 		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headEx, pm, &es.CASLogger)
 		if ibtc {
-			return &dummyMatchIter{true, ibtcNewPDs, true}, true
+			return &dummyMatchIter{ibtcNewPDs}, true
 		}
 		return nil, false
 	}
@@ -179,10 +182,16 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	// Handle special case for matching Rational[a_Integer, b_Integer]
 	if aIsRational && bIsExpression {
 		matchq, newPm := isMatchQRational(aRational, bExpression, pm, es)
-		return &dummyMatchIter{matchq, newPm, true}, true
+		if matchq {
+			return &dummyMatchIter{newPm}, true
+		}
+		return nil, false
 	} else if aIsExpression && bIsRational {
 		matchq, newPm := isMatchQRational(bRational, aExpression, pm, es)
-		return &dummyMatchIter{matchq, newPm, true}, true
+		if matchq {
+			return &dummyMatchIter{newPm}, true
+		}
+		return nil, false
 	}
 
 	canAssumeHead := false
@@ -228,7 +237,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	if !assumingHead {
 		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
 			if IsSameQ(a, b, &es.CASLogger) {
-				return &dummyMatchIter{true, nil, true}, true
+				return &dummyMatchIter{nil}, true
 			}
 			return nil, false
 		} else if !(aIsExpression && bIsExpression) {
