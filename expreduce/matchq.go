@@ -40,7 +40,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 				matchqb, newPm := IsMatchQ(a, except.Parts[2], pm, es)
 				return &dummyMatchIter{matchqb, newPm, true}, true
 			}
-			return &dummyMatchIter{false, pm, true}, true
+			return nil, false
 		}
 	} else if patternHead == "System`Alternatives" {
 		alts := patExpr
@@ -54,7 +54,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 				return &dummyMatchIter{matchq, newPD, true}, true
 			}
 		}
-		return &dummyMatchIter{false, pm, true}, true
+		return nil, false
 	} else if patternHead == "System`PatternTest" {
 		patternTest := patExpr
 		if len(patternTest.Parts) == 3 {
@@ -73,7 +73,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 						if qFunction(a) {
 							return &dummyMatchIter{true, newPD, true}, true
 						} else {
-							return &dummyMatchIter{false, pm, true}, true
+							return nil, false
 						}
 					}
 				}
@@ -92,7 +92,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 					}
 				}
 			}
-			return &dummyMatchIter{false, pm, true}, true
+			return nil, false
 		}
 	} else if patternHead == "System`Condition" {
 		condition := patExpr
@@ -173,7 +173,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		if ibtc {
 			return &dummyMatchIter{true, ibtcNewPDs, true}, true
 		}
-		return &dummyMatchIter{false, EmptyPD(), true}, true
+		return nil, false
 	}
 
 	// Handle special case for matching Rational[a_Integer, b_Integer]
@@ -227,9 +227,12 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 
 	if !assumingHead {
 		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
-			return &dummyMatchIter{IsSameQ(a, b, &es.CASLogger), EmptyPD(), true}, true
+			if IsSameQ(a, b, &es.CASLogger) {
+				return &dummyMatchIter{true, nil, true}, true
+			}
+			return nil, false
 		} else if !(aIsExpression && bIsExpression) {
-			return &dummyMatchIter{false, EmptyPD(), true}, true
+			return nil, false
 		}
 	}
 
@@ -250,7 +253,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	isFlat := attrs.Flat && !forceOrdered
 	nomi, ok := NewSequenceMatchIter(aExpression.Parts[startI:], bExpression.Parts[startI:], isOrderless, isFlat, sequenceHead, pm, es)
 	if !ok {
-		return &dummyMatchIter{false, pm, true}, true
+		return nil, false
 	}
 	return nomi, true
 }
@@ -342,7 +345,7 @@ func (ami *assignedMatchIter) next() bool {
 		}
 		for i := len(toAddReversed) - 1; i >= 0; i-- {
 			updatedPm := p.pm
-			if toAddReversed[i].Len() > 0 {
+			if toAddReversed[i] != nil && toAddReversed[i].Len() > 0 {
 				if len(toAddReversed) > 1 {
 					updatedPm = CopyPD(p.pm)
 				}

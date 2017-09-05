@@ -62,6 +62,9 @@ func ReplacePDInternal(e Ex, pm *PDManager) Ex {
 }
 
 func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
+	if pm == nil {
+		return this
+	}
 	containsAny := false
 	for k := range pm.patternDefined {
 		if ContainsSymbol(this, k) {
