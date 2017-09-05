@@ -30,13 +30,13 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	if patternHead == "System`Except" {
 		except := patExpr
 		if len(except.Parts) == 2 {
-			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), es)
+			matchq, _ := IsMatchQ(a, except.Parts[1], pm, es)
 			if !matchq {
 				return &dummyMatchIter{pm}, true
 			}
 			return nil, false
 		} else if len(except.Parts) == 3 {
-			matchq, _ := IsMatchQ(a, except.Parts[1], EmptyPD(), es)
+			matchq, _ := IsMatchQ(a, except.Parts[1], pm, es)
 			if !matchq {
 				matchqb, newPm := IsMatchQ(a, except.Parts[2], pm, es)
 				if matchqb {
@@ -61,7 +61,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	} else if patternHead == "System`PatternTest" {
 		patternTest := patExpr
 		if len(patternTest.Parts) == 3 {
-			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], EmptyPD(), es)
+			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], pm, es)
 			if matchq {
 				// Some Q functions are very simple and occur very often. For
 				// some of these, skip the Eval() call and return the boolean
@@ -100,7 +100,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	} else if patternHead == "System`Condition" {
 		condition := patExpr
 		if len(condition.Parts) == 3 {
-			mi, cont := NewMatchIter(a, condition.Parts[1], EmptyPD(), es)
+			mi, cont := NewMatchIter(a, condition.Parts[1], pm, es)
 			for cont {
 				matchq, newPD, done := mi.next()
 				cont = !done
