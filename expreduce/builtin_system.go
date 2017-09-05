@@ -195,6 +195,7 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 		} else {
 			es.defined[pl.uniqueName] = Def{}
 		}
+		pm.LazyMakeMap()
 		pm.patternDefined[pl.sym.Name] = &Symbol{pl.uniqueName}
 	}
 	toReturn = ReplacePD(toReturn, es, pm)

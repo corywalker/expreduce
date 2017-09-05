@@ -11,19 +11,31 @@ type PDManager struct {
 }
 
 func EmptyPD() *PDManager {
-	return &PDManager{make(map[string]Ex)}
+	return &PDManager{nil}
 }
 
 func CopyPD(orig *PDManager) (dest *PDManager) {
 	dest = EmptyPD()
 	// We do not care that this iterates in a random order.
-	for k, v := range (*orig).patternDefined {
-		(*dest).patternDefined[k] = v.DeepCopy()
+	if (*orig).Len() > 0 {
+		dest.LazyMakeMap()
+		for k, v := range (*orig).patternDefined {
+			(*dest).patternDefined[k] = v.DeepCopy()
+		}
 	}
 	return
 }
 
+func (this *PDManager) LazyMakeMap() {
+	if this.patternDefined == nil {
+		this.patternDefined = make(map[string]Ex)
+	}
+}
+
 func (this *PDManager) Update(toAdd *PDManager) {
+	if (*toAdd).Len() > 0 {
+		this.LazyMakeMap()
+	}
 	// We do not care that this iterates in a random order.
 	for k, v := range (*toAdd).patternDefined {
 		(*this).patternDefined[k] = v
@@ -31,6 +43,9 @@ func (this *PDManager) Update(toAdd *PDManager) {
 }
 
 func (this *PDManager) Len() int {
+	if this.patternDefined == nil {
+		return 0
+	}
 	return len(this.patternDefined)
 }
 
@@ -94,11 +109,14 @@ func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead s
 			attemptDefine = NewExpression(append([]Ex{head}, sequence...))
 		}
 
-		defined, ispd := pm.patternDefined[lhs.patSym.Name]
-		if ispd && !IsSameQ(defined, attemptDefine, &es.CASLogger) {
-			es.Debugf("patterns do not match! continuing.")
-			return false
+		if pm.patternDefined != nil {
+			defined, ispd := pm.patternDefined[lhs.patSym.Name]
+			if ispd && !IsSameQ(defined, attemptDefine, &es.CASLogger) {
+				es.Debugf("patterns do not match! continuing.")
+				return false
+			}
 		}
+		pm.LazyMakeMap()
 		pm.patternDefined[lhs.patSym.Name] = attemptDefine
 	}
 	return true

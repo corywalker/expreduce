@@ -56,6 +56,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger
 					toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
 					if !ispd {
 						toMatch = target
+						pm.LazyMakeMap()
 						pm.patternDefined[sAsSymbol.Name] = target
 					}
 					if !IsSameQ(toMatch, target, cl) {
