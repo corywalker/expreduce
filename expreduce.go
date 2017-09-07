@@ -8,10 +8,13 @@ import (
 	"log"
 	"os"
 	"runtime/pprof"
+	"net/http"
+	_ "net/http/pprof"
 )
 
 var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
+var netprofile = flag.Bool("netprofile", false, "Enable live profiling at http://localhost:8080/debug/pprof/")
 
 func main() {
 	flag.Parse()
@@ -22,6 +25,9 @@ func main() {
 		}
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
+	}
+	if *netprofile {
+		go http.ListenAndServe(":8080", nil)
 	}
 
 	rl, err := readline.NewEx(&readline.Config{
