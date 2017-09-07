@@ -219,7 +219,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 			started = time.Now().UnixNano()
 		}
 
-		res, replaced := Replace(lhs, &def, this)
+		res, replaced := Replace(lhs, def, this)
 
 		if this.isProfiling {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
@@ -228,7 +228,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 		}
 
 		if replaced {
-			return res, true, &def
+			return res, true, def
 		}
 	}
 	return nil, false, nil
@@ -338,7 +338,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 		newDef := Def{
 			downvalues: []DownValue{
 				DownValue{
-					rule: *NewExpression([]Ex{
+					rule: NewExpression([]Ex{
 						&Symbol{"System`Rule"}, lhs, rhs,
 					}),
 				},
@@ -374,7 +374,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			)
 		}
 		if this.defined[name].downvalues[i].specificity < newSpecificity {
-			newRule := *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})
+			newRule := NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})
 			tmp.downvalues = append(
 				tmp.downvalues[:i],
 				append(
@@ -389,7 +389,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, DownValue{rule: *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})})
+	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})})
 	this.defined[name] = tmp
 }
 

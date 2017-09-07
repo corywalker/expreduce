@@ -184,7 +184,7 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 			es.defined[pl.uniqueName] = Def{
 				downvalues: []DownValue{
 					DownValue{
-						rule: *NewExpression([]Ex{
+						rule: NewExpression([]Ex{
 							&Symbol{"System`Rule"},
 							&Symbol{pl.uniqueName},
 							rhs,
