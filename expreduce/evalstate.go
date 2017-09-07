@@ -287,7 +287,10 @@ func (this *EvalState) MarkSeen(name string) {
 
 // Attempts to compute a specificity metric for a rule. Higher specificity rules
 // should be tried first.
-func ruleSpecificity(lhs Ex, rhs Ex) int {
+func ruleSpecificity(lhs Ex, rhs Ex, name string) int {
+	if name == "Rubi`Int" {
+		return 100
+	}
 	// I define complexity as the length of the Lhs.String()
 	// because it is simple, and it works for most of the common cases. We wish
 	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
@@ -376,12 +379,13 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	// Insert into definitions for name. Maintain order of decreasing
 	// complexity.
 	var tmp = this.defined[name]
-	newSpecificity := ruleSpecificity(lhs, rhs)
+	newSpecificity := ruleSpecificity(lhs, rhs, name)
 	for i, dv := range this.defined[name].downvalues {
 		if dv.specificity == 0 {
 			dv.specificity = ruleSpecificity(
 				dv.rule.Parts[1],
 				dv.rule.Parts[2],
+				name,
 			)
 		}
 		if dv.specificity < newSpecificity {

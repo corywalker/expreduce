@@ -1,5 +1,7 @@
-testproblems = ReadList["/Users/cwalker32/Code/gocode/src/github.com/corywalker/expreduce/test_rubi/test_rubi.m"];
-testproblems = DeleteCases[testproblems, Null];
+(*testproblems = ReadList["/Users/cwalker32/Code/gocode/src/github.com/corywalker/expreduce/test_rubi/test_rubi.m"];*)
+(*testproblems = DeleteCases[testproblems, Null];*)
+testproblems = ReadList["/Users/cwalker32/Downloads/test.m"][[1]];
+Print[Length[testproblems]];
 
 testi = 1;
 
