@@ -207,6 +207,17 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	if !this.IsDef(name) {
 		return nil, false, nil
 	}
+	// Special case for checking simple variable definitions like "a = 5".
+	// TODO: Perhaps split out single var values into the Definition to avoid
+	// iterating over every one.
+	if _, lhsIsSym := lhs.(*Symbol); lhsIsSym {
+		for _, def := range this.defined[name].downvalues {
+			if _, symDef := def.rule.Parts[1].(*Symbol); symDef {
+				return def.rule.Parts[2], true, def.rule
+			}
+		}
+		return nil, false, nil
+	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	for i := range this.defined[name].downvalues {
 		def := this.defined[name].downvalues[i].rule
