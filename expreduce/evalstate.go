@@ -360,14 +360,14 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	}
 
 	// Overwrite identical rules.
-	for i := range this.defined[name].downvalues {
-		existingRule := this.defined[name].downvalues[i].rule
+	for _, dv := range this.defined[name].downvalues {
+		existingRule := dv.rule
 		existingLhs := existingRule.Parts[1]
 		if IsSameQ(existingLhs, lhs, &this.CASLogger) {
 			existingRhsCond := maskNonConditional(existingRule.Parts[2])
 			newRhsCond := maskNonConditional(rhs)
 			if IsSameQ(existingRhsCond, newRhsCond, &this.CASLogger) {
-				this.defined[name].downvalues[i].rule.Parts[2] = rhs
+				dv.rule.Parts[2] = rhs
 				return
 			}
 		}
@@ -377,14 +377,14 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	// complexity.
 	var tmp = this.defined[name]
 	newSpecificity := ruleSpecificity(lhs, rhs)
-	for i := range this.defined[name].downvalues {
-		if this.defined[name].downvalues[i].specificity == 0 {
-			this.defined[name].downvalues[i].specificity = ruleSpecificity(
-				this.defined[name].downvalues[i].rule.Parts[1],
-				this.defined[name].downvalues[i].rule.Parts[2],
+	for i, dv := range this.defined[name].downvalues {
+		if dv.specificity == 0 {
+			dv.specificity = ruleSpecificity(
+				dv.rule.Parts[1],
+				dv.rule.Parts[2],
 			)
 		}
-		if this.defined[name].downvalues[i].specificity < newSpecificity {
+		if dv.specificity < newSpecificity {
 			newRule := NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})
 			tmp.downvalues = append(
 				tmp.downvalues[:i],
