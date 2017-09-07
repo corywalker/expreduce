@@ -110,6 +110,31 @@ func TestLowLevel(t *testing.T) {
 
 	es := NewEvalState()
 
+	lhs := NewExpression([]Ex{
+		&Symbol{"System`Power"},
+		NewExpression([]Ex{
+			&Symbol{"System`Plus"},
+			&Symbol{"Global`a"},
+			&Symbol{"Global`b"},
+			&Symbol{"Global`c"},
+		}),
+		NewInt(0),
+	})
+	rule := NewExpression([]Ex{
+		&Symbol{"System`Rule"},
+		NewExpression([]Ex{
+			&Symbol{"System`Power"},
+			NewExpression([]Ex{
+				&Symbol{"System`Blank"},
+			}),
+			NewInt(0),
+		}),
+		NewInt(99),
+	})
+	for numi := 0; numi < 700000; numi++ {
+		Replace(lhs, rule, es)
+	}
+
 	// Test basic float functionality
 	var f *Flt = &Flt{big.NewFloat(5.5)}
 	assert.Equal(t, "5.5", f.String())

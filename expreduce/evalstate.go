@@ -207,6 +207,17 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	if !this.IsDef(name) {
 		return nil, false, nil
 	}
+	// Special case for checking simple variable definitions like "a = 5".
+	// TODO: Perhaps split out single var values into the Definition to avoid
+	// iterating over every one.
+	if _, lhsIsSym := lhs.(*Symbol); lhsIsSym {
+		for _, def := range this.defined[name].downvalues {
+			if _, symDef := def.rule.Parts[1].(*Symbol); symDef {
+				return def.rule.Parts[2], true, def.rule
+			}
+		}
+		return nil, false, nil
+	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
 	for i := range this.defined[name].downvalues {
 		def := this.defined[name].downvalues[i].rule
@@ -219,7 +230,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 			started = time.Now().UnixNano()
 		}
 
-		res, replaced := Replace(lhs, &def, this)
+		res, replaced := Replace(lhs, def, this)
 
 		if this.isProfiling {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
@@ -228,7 +239,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 		}
 
 		if replaced {
-			return res, true, &def
+			return res, true, def
 		}
 	}
 	return nil, false, nil
@@ -276,7 +287,10 @@ func (this *EvalState) MarkSeen(name string) {
 
 // Attempts to compute a specificity metric for a rule. Higher specificity rules
 // should be tried first.
-func ruleSpecificity(lhs Ex, rhs Ex) int {
+func ruleSpecificity(lhs Ex, rhs Ex, name string) int {
+	if name == "Rubi`Int" {
+		return 100
+	}
 	// I define complexity as the length of the Lhs.String()
 	// because it is simple, and it works for most of the common cases. We wish
 	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
@@ -338,7 +352,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 		newDef := Def{
 			downvalues: []DownValue{
 				DownValue{
-					rule: *NewExpression([]Ex{
+					rule: NewExpression([]Ex{
 						&Symbol{"System`Rule"}, lhs, rhs,
 					}),
 				},
@@ -349,14 +363,14 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	}
 
 	// Overwrite identical rules.
-	for i := range this.defined[name].downvalues {
-		existingRule := this.defined[name].downvalues[i].rule
+	for _, dv := range this.defined[name].downvalues {
+		existingRule := dv.rule
 		existingLhs := existingRule.Parts[1]
 		if IsSameQ(existingLhs, lhs, &this.CASLogger) {
 			existingRhsCond := maskNonConditional(existingRule.Parts[2])
 			newRhsCond := maskNonConditional(rhs)
 			if IsSameQ(existingRhsCond, newRhsCond, &this.CASLogger) {
-				this.defined[name].downvalues[i].rule.Parts[2] = rhs
+				dv.rule.Parts[2] = rhs
 				return
 			}
 		}
@@ -365,16 +379,17 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	// Insert into definitions for name. Maintain order of decreasing
 	// complexity.
 	var tmp = this.defined[name]
-	newSpecificity := ruleSpecificity(lhs, rhs)
-	for i := range this.defined[name].downvalues {
-		if this.defined[name].downvalues[i].specificity == 0 {
-			this.defined[name].downvalues[i].specificity = ruleSpecificity(
-				this.defined[name].downvalues[i].rule.Parts[1],
-				this.defined[name].downvalues[i].rule.Parts[2],
+	newSpecificity := ruleSpecificity(lhs, rhs, name)
+	for i, dv := range this.defined[name].downvalues {
+		if dv.specificity == 0 {
+			dv.specificity = ruleSpecificity(
+				dv.rule.Parts[1],
+				dv.rule.Parts[2],
+				name,
 			)
 		}
-		if this.defined[name].downvalues[i].specificity < newSpecificity {
-			newRule := *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})
+		if dv.specificity < newSpecificity {
+			newRule := NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})
 			tmp.downvalues = append(
 				tmp.downvalues[:i],
 				append(
@@ -389,7 +404,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, DownValue{rule: *NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})})
+	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})})
 	this.defined[name] = tmp
 }
 

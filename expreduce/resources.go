@@ -108,7 +108,7 @@ func resourcesArithmeticM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/arithmetic.m", size: 9505, mode: os.FileMode(420), modTime: time.Unix(1502176362, 0)}
+	info := bindataFileInfo{name: "resources/arithmetic.m", size: 9505, mode: os.FileMode(420), modTime: time.Unix(1504586851, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

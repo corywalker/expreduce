@@ -3,7 +3,7 @@ package expreduce
 import "bytes"
 
 type DownValue struct {
-	rule		Expression
+	rule		*Expression
 	specificity int
 }
 
@@ -22,7 +22,7 @@ func CopyDefs(in map[string]Def) map[string]Def {
 		newDef := Def{}
 		for _, dv := range v.downvalues {
 			newDv := DownValue{
-				rule: *dv.rule.DeepCopy().(*Expression),
+				rule: dv.rule.DeepCopy().(*Expression),
 				specificity: dv.specificity,
 			}
 			newDef.downvalues = append(newDef.downvalues, newDv)

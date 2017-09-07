@@ -31,7 +31,7 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 			}
 		}
 	}
-	return NewEmptyExpression(), false
+	return nil, false
 }
 
 func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
@@ -41,7 +41,7 @@ func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
 			return expr, true
 		}
 	}
-	return NewEmptyExpression(), false
+	return nil, false
 }
 
 func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
@@ -57,7 +57,7 @@ func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
 			}
 		}
 	}
-	return NewEmptyExpression(), NewEmptyExpression(), false
+	return nil, nil, false
 }
 
 func tryReturnValue(e Ex) (Ex, bool) {
