@@ -75,13 +75,13 @@ Switch::usage = "`Switch[e, case1, val1, case2, val2, ...]` attempts to match `e
 Attributes[Switch] = {HoldRest, Protected, ReadProtected};
 Tests`Switch = {
     ESimpleExamples[
-        ESameTest[b, Switch[a,_,b,a,c]],
-        ESameTest[k, Switch[a,k_Symbol,k]],
-        ESameTest[Switch[a,1], Switch[a,1]],
-        ESameTest[Switch[a,d,b,l,c], Switch[a,d,b,l,c]]
+        ESameTest[b, Switch[z,_,b,z,c]],
+        ESameTest[k, Switch[z,k_Symbol,k]],
+        ESameTest[Switch[z,1], Switch[z,1]],
+        ESameTest[Switch[z,d,b,l,c], Switch[z,d,b,l,c]]
     ], ETests[
         ESameTest[Switch[], Switch[]],
-        ESameTest[Switch[a], Switch[a]]
+        ESameTest[Switch[z], Switch[z]]
     ]
 };
 
