@@ -146,5 +146,9 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 	})*/
 	defs = append(defs, Definition{Name: "EvenQ"})
 	defs = append(defs, Definition{Name: "OddQ"})
+	defs = append(defs, Definition{
+		Name:         "FactorInteger",
+		OmitDocumentation: true,
+	})
 	return
 }

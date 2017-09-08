@@ -129,6 +129,20 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name: "Switch",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) < 4  || len(this.Parts) % 2 != 0 {
+				return this
+			}
+			for i := 2; i < len(this.Parts); i += 2 {
+				if match, _ := IsMatchQ(this.Parts[1], this.Parts[i], EmptyPD(), es); match {
+					return this.Parts[i+1]
+				}
+			}
+			return this
+		},
+	})
+	defs = append(defs, Definition{
 		Name: "With",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			res, ok := applyWithFn(this, es)
