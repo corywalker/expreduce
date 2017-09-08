@@ -71,6 +71,20 @@ Tests`Which = {
     ]
 };
 
+Switch::usage = "`Switch[e, case1, val1, case2, val2, ...]` attempts to match `e` with the cases in order. If a match is found, returns the corresponding value..";
+Attributes[Switch] = {HoldRest, Protected, ReadProtected};
+Tests`Switch = {
+    ESimpleExamples[
+        ESameTest[b, Switch[z,_,b,z,c]],
+        ESameTest[k, Switch[z,k_Symbol,k]],
+        ESameTest[Switch[z,1], Switch[z,1]],
+        ESameTest[Switch[z,d,b,l,c], Switch[z,d,b,l,c]]
+    ], ETests[
+        ESameTest[Switch[], Switch[]],
+        ESameTest[Switch[z], Switch[z]]
+    ]
+};
+
 With::usage = "`With[{s1=v1, s2=v2, ...}, body]` locally replaces the specified symbols in body with their respective values.";
 Attributes[With] = {HoldAll, Protected};
 Tests`With = {

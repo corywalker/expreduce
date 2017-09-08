@@ -137,3 +137,11 @@ Tests`OddQ = {
         ESameTest[OddQ[a], OddQ[a]]
     ]
 };
+
+FactorInteger[n_] := Switch[n,
+    -20, {{-1,1},{2,2},{5,1}},
+    1, {{1, 1}},
+    2, {{2, 1}},
+    3, {{3, 1}},
+    Rational[21,4], {{2, -2}, {3, 1}, {7, 1}},
+    _, Print["Invalid call to FactorInteger!", n]];

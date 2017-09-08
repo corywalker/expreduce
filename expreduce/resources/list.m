@@ -378,3 +378,10 @@ Tests`Join = {
         ESameTest[foo[a,b,c], Join[foo[a],foo[b,c]]]
     ]
 };
+
+ReplacePart[e_?((! AtomQ[#]) &), r_, i_Integer?Positive] :=
+  
+  If[i <= Length[e] === True,
+   Join[e[[1 ;; i - 1]], Head[e][r], e[[i + 1 ;; Length[e]]]],
+   Print["Index too large for ReplacePart!"]];
+ReplacePart[___] := Print["Invalid call to ReplacePart!"];

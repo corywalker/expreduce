@@ -578,5 +578,9 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Last"})
 	defs = append(defs, Definition{Name: "First"})
 	defs = append(defs, Definition{Name: "Rest"})
+	defs = append(defs, Definition{
+		Name:         "ReplacePart",
+		OmitDocumentation: true,
+	})
 	return
 }
