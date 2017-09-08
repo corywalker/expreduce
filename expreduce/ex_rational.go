@@ -54,7 +54,7 @@ func (this *Rational) Eval(es *EvalState) Ex {
 }
 
 func (this *Rational) StringForm(form string, context *String, contextPath *Expression) string {
-	return fmt.Sprintf("%d/%d", this.Num, this.Den)
+	return fmt.Sprintf("(%d/%d)", this.Num, this.Den)
 }
 
 func (this *Rational) String() string {
