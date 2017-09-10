@@ -3,3 +3,11 @@ calc.go
 y.output
 rubi
 test_rubi
+
+.idea/expreduce.iml
+
+.idea/modules.xml
+
+.idea/vcs.xml
+
+.idea/workspace.xml

@@ -68,6 +68,106 @@ Tests`Map = {
     ]
 };
 
+FoldList::usage = "`FoldList[f, x, {a, b}] returns {x, f[x, a], f[f[x, a], b]}"
+FoldList[f_, expr_] := FoldList[f, First[expr], Rest[expr]]
+(* FoldList[f_][expr__] := FoldList[f, expr] When subvalues are allowed *)
+Attributes[FoldList] = {Protected};
+Tests`FoldList = {
+    ESimpleExamples[
+        ESameTest[{1, f[1, 2], f[f[1, 2], 3]}, FoldList[f, 1, {2, 3}]],
+        ESameTest[{1, f[1, 2], f[f[1, 2], 3]}, FoldList[f, {1, 2, 3}]],
+        (* ESameTest[{1, f[1, 2], f[f[1, 2], 3]}, FoldList[f][{1, 2, 3}]], *)
+        ESameTest[{1, f[1, 2], f[f[1, 2], 3]}, FoldList[f][1, {2, 3}]],
+        ESameTest[h[e1, f[e1, e2], f[f[e1, e2], e3], f[f[f[e1, e2], e3], e4]], FoldList[f, e1, h[e2, e3, e4]]],
+        ESameTest[{h}, FoldList[f, h, {}]]
+        EComment["Known problem: FoldList[f, , {1}] ? this is because Null is not handled correctly. Try evaluating e.g. f[,]"]
+    ]
+}
+
+Fold::usage = "`Fold[f, x, {a, b}]` returns `f[f[x, a], b]`, and this nesting continues for lists of arbitrary length. `Fold[f, {a, b, c}]` returns `Fold[f, a, {b, c}]`. `Fold[f]` is an operator form that can be applied to expressions such as `{a, b, c}`."
+Fold[f_, x_, expr_] := Last[FoldList[f, x, expr]]
+Fold[f_, expr_] := Last[FoldList[f, First[expr], Rest[expr]]]
+(* Fold[f_][expr__] := Last[FoldList[f, expr]] When subvalues are allowed *)
+Attributes[Fold] = {Protected};
+Tests`Fold = {
+    ESimpleExamples[
+        ESameTest[f[f[1, 2], 3], Fold[f, 1, {2, 3}]],
+        ESameTest[f[f[1, 2], 3], Fold[f, {1, 2, 3}]],
+        (* ESameTest[f[f[1, 2], 3], Fold[f][{1, 2, 3}]], *)
+        ESameTest[f[f[1, 2], 3], Fold[f][1, {2, 3}]],
+        ESameTest[f[f[f[e1, e2], e3], e4], Fold[f, e1, h[e2, e3, e4]]],
+        ESameTest[h, Fold[f, h, {}]]
+        EComment["Known problem: Fold[f, , {1}] ? this is because Null is not handled correctly. Try evaluating e.g. f[,]"]
+    ]
+}
+
+NestList::usage = "`NestList[f, expr, n]` returns `f` wrapped around `expr` first once, then twice, and so on up to `n` times."
+Attributes[NestList] = {Protected}
+Tests`NestList = {
+    ESimpleExamples[
+        ESameTest[{x, f[x], f[f[x]], f[f[f[x]]]}, NestList[f, x, 3]],
+        ESameTest[{{1, 2, 3}, {1, 4, 9}, {1, 16, 81}, {1, 256, 6561}}, NestList[#^2 &, {1, 2, 3}, 3]]
+    ]
+}
+
+Nest::usage = "`Nest[f, expr, n]` returns `f` wrapped around `expr` `n` times."
+Nest[f_, expr_, n_] := Last[NestList[f, expr, n]]
+Attributes[Nest] = {Protected}
+Tests`Nest = {
+    ESimpleExamples[
+        ESameTest[f[f[f[x]]], Nest[f, x, 3]],
+        ESameTest[{1, 256, 6561}, Nest[#^2 &, {1, 2, 3}, 3]]
+    ]
+}
+
+NestWhileList::usage = "`NestWhileList[f, expr, test, m, max, n]` applies `f` to `expr` until `test` does not return `True`.
+It returns a list of all intermediate results. `test` is a function that takes as its argument the last `m` results.
+`max` denotes the maximum number of applications of `f` and `n` denotes that `f` should be applied another `n` times after
+`test` has terminated the recursion."
+Attributes[NestWhileList] = {Protected}
+Tests`NestWhileList = {
+    ESimpleExamples[
+        ESameTest[7, Length@NestWhileList[(# + 3/#)/2 &, 1.0, UnsameQ[#1, #2] &, 2]],
+        ESameTest[{2, 4, 16, 256}, NestWhileList[#^2 &, 2, # < 256 &]],
+        ESameTest[{1, 2, 3, 4, 5, 6, 7}, NestWhileList[#+1 &, 1, # + #4 < 10 &, 4]],
+        ESameTest[{1, 2, 3, 4, 5}, NestWhileList[#+1 &, 1, True &, 1, 4]],
+        ESameTest[{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, NestWhileList[#+1 &, 1, True &, 1, 4, 5]]
+    ]
+}
+
+NestWhile::usage = "`NestWhile[f, expr, test, m, max, n]` applies `f` to `expr` until `test` does not return `True`.
+`test` is a function that takes as its argument the last `m` results. `max` denotes the maximum number of applications
+of `f` and `n` denotes that `f` should be applied another `n` times after `test` has terminated the recursion."
+Attributes[NestWhile] = {Protected}
+NestWhile[args__] := Last[NestWhileList[args]]
+Tests`NestWhile = {
+    ESimpleExamples[
+        ESameTest[256, NestWhile[#^2 &, 2, # < 256 &]],
+        ESameTest[7, NestWhile[#+1 &, 1, # + #4 < 10 &, 4]],
+        ESameTest[5, NestWhile[#+1 &, 1, True &, 1, 4]],
+        ESameTest[10, NestWhile[#+1 &, 1, True &, 1, 4, 5]]
+    ]
+}
+
+FixedPointList::usage = "`FixedPointList[f, expr]` applies `f` to `expr` until `UnsameQ` applied to the two most recent results
+returns False. It returns a list of all intermediate results."
+FixedPointList[f_, expr_] := NestWhileList[f, expr, UnsameQ, 2]
+Tests`FixedPointList = {
+    ESimpleExamples[
+        ESameTest[7, Length@FixedPointList[(# + 3/#)/2 &, 1.0]],
+        ESameTest[{x^3, 3 x^2, 6 x, 6, 0, 0}, FixedPointList[D[#, x] &, x^3]]
+    ]
+}
+
+FixedPoint::usage = "`FixedPointList[f, expr]` applies `f` to `expr` until `UnsameQ` applied to the two most recent results
+returns False."
+FixedPoint[f_, expr_] := Last[NestWhileList[f, expr, UnsameQ, 2]]
+Tests`FixedPoint = {
+    ESimpleExamples[
+        ESameTest[0, FixedPoint[D[#, x] &, x^3]]
+    ]
+}
+
 Array::usage = "`Array[f, n]` creates a list of `f[i]`, with `i` = 1 to `n`.";
 Attributes[Array] = {Protected};
 Tests`Array = {
