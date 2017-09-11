@@ -77,10 +77,8 @@ Tests`FoldList = {
         ESameTest[{1, f[1, 2], f[f[1, 2], 3]}, FoldList[f, 1, {2, 3}]],
         ESameTest[{1, f[1, 2], f[f[1, 2], 3]}, FoldList[f, {1, 2, 3}]],
         (* ESameTest[{1, f[1, 2], f[f[1, 2], 3]}, FoldList[f][{1, 2, 3}]], *)
-        ESameTest[{1, f[1, 2], f[f[1, 2], 3]}, FoldList[f][1, {2, 3}]],
         ESameTest[h[e1, f[e1, e2], f[f[e1, e2], e3], f[f[f[e1, e2], e3], e4]], FoldList[f, e1, h[e2, e3, e4]]],
         ESameTest[{h}, FoldList[f, h, {}]]
-        EComment["Known problem: FoldList[f, , {1}] ? this is because Null is not handled correctly. Try evaluating e.g. f[,]"]
     ]
 }
 
@@ -94,10 +92,8 @@ Tests`Fold = {
         ESameTest[f[f[1, 2], 3], Fold[f, 1, {2, 3}]],
         ESameTest[f[f[1, 2], 3], Fold[f, {1, 2, 3}]],
         (* ESameTest[f[f[1, 2], 3], Fold[f][{1, 2, 3}]], *)
-        ESameTest[f[f[1, 2], 3], Fold[f][1, {2, 3}]],
         ESameTest[f[f[f[e1, e2], e3], e4], Fold[f, e1, h[e2, e3, e4]]],
         ESameTest[h, Fold[f, h, {}]]
-        EComment["Known problem: Fold[f, , {1}] ? this is because Null is not handled correctly. Try evaluating e.g. f[,]"]
     ]
 }
 
@@ -159,7 +155,7 @@ Tests`FixedPointList = {
     ]
 }
 
-FixedPoint::usage = "`FixedPointList[f, expr]` applies `f` to `expr` until `UnsameQ` applied to the two most recent results
+FixedPoint::usage = "`FixedPoint[f, expr]` applies `f` to `expr` until `UnsameQ` applied to the two most recent results
 returns False."
 FixedPoint[f_, expr_] := Last[NestWhileList[f, expr, UnsameQ, 2]]
 Tests`FixedPoint = {

@@ -23,7 +23,12 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 			// https://stackoverflow.com/questions/46136886/comparing-floats-by-ignoring-last-bit-in-golang
 			aVal, _ := aFlt.Val.Float64()
 			bVal, _ := bFlt.Val.Float64()
-			return almostEqual(aVal, bVal)
+
+			if math.IsInf(aVal, 0) || math.IsInf(bVal, 0) {
+				return a.IsEqual(b, cl) == "EQUAL_TRUE"
+			} else {
+				return almostEqual(aVal, bVal)
+			}
 		} else {
 			return a.IsEqual(b, cl) == "EQUAL_TRUE"
 		}

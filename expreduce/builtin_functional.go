@@ -64,11 +64,11 @@ func getFunctionalDefinitions() (defs []Definition) {
 				return this
 			}
 
-			if len(values.Parts) < 2 {
-				return first
-			}
+			toReturn := NewExpression([]Ex{values.Parts[0], first})
 
-			toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
+			if len(values.Parts) < 2 {
+				return toReturn
+			}
 
 			expr := NewExpression([]Ex{
 				f,
