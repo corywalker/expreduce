@@ -106,7 +106,7 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:         "NumberQ",
+		Name: "NumberQ",
 		legacyEvalFn: singleParamQEval(numberQ),
 	})
 	defs = append(defs, Definition{
@@ -121,11 +121,16 @@ func getComparisonDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			if !numberQ(this.Parts[1]) || !numberQ(this.Parts[2]) {
+
+			a := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[1]}).Eval(es)
+			b := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[2]}).Eval(es)
+
+			if !numberQ(a) || !numberQ(b) {
 				return this
 			}
+
 			// Less
-			if ExOrder(this.Parts[1], this.Parts[2]) == 1 {
+			if ExOrder(a, b) == 1 {
 				return &Symbol{"System`True"}
 			}
 			return &Symbol{"System`False"}
@@ -140,11 +145,15 @@ func getComparisonDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			if !numberQ(this.Parts[1]) || !numberQ(this.Parts[2]) {
+
+			a := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[1]}).Eval(es)
+			b := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[2]}).Eval(es)
+
+			if !numberQ(a) || !numberQ(b) {
 				return this
 			}
 			// Greater
-			if ExOrder(this.Parts[1], this.Parts[2]) == -1 {
+			if ExOrder(a, b) == -1 {
 				return &Symbol{"System`True"}
 			}
 			return &Symbol{"System`False"}
@@ -159,15 +168,19 @@ func getComparisonDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			if !numberQ(this.Parts[1]) || !numberQ(this.Parts[2]) {
+
+			a := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[1]}).Eval(es)
+			b := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[2]}).Eval(es)
+
+			if !numberQ(a) || !numberQ(b) {
 				return this
 			}
 			// Less
-			if ExOrder(this.Parts[1], this.Parts[2]) == 1 {
+			if ExOrder(a, b) == 1 {
 				return &Symbol{"System`True"}
 			}
 			// Equal
-			if ExOrder(this.Parts[1], this.Parts[2]) == 0 {
+			if ExOrder(a, b) == 0 {
 				return &Symbol{"System`True"}
 			}
 			return &Symbol{"System`False"}
@@ -182,15 +195,19 @@ func getComparisonDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			if !numberQ(this.Parts[1]) || !numberQ(this.Parts[2]) {
+
+			a := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[1]}).Eval(es)
+			b := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[2]}).Eval(es)
+
+			if !numberQ(a) || !numberQ(b) {
 				return this
 			}
 			// Greater
-			if ExOrder(this.Parts[1], this.Parts[2]) == -1 {
+			if ExOrder(a, b) == -1 {
 				return &Symbol{"System`True"}
 			}
 			// Equal
-			if ExOrder(this.Parts[1], this.Parts[2]) == 0 {
+			if ExOrder(a, b) == 0 {
 				return &Symbol{"System`True"}
 			}
 			return &Symbol{"System`False"}
