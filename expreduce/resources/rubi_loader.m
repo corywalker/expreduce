@@ -47,7 +47,8 @@ Begin["`Private`"]
 
 LoadRules[filename_String] := (
   Print["Loading "<>filename<>".m..."];
-  Get["rubi/"<>filename<>".m"];
+  loadRes = Get["__res__/rubi/"<>filename<>".m"];
+  If[loadRes === $Failed, Print["Loading failed!"]];
 )
 
 
@@ -61,7 +62,7 @@ ShowSteps = Global`$LoadShowSteps===True;
 
 
 (*LoadRules["ShowStep routines"];*)
-LoadRules["Integration utility functions"];
+LoadRules["Integration Utility Functions"];
 LoadRules["9.1 Integrand simplification rules"];
 
 
@@ -78,18 +79,18 @@ LoadRules["1.3 Miscellaneous algebraic functions"];
 
 
 LoadRules["9.3 Piecewise linear functions"];
-LoadRules["2 Exponentials"];
-LoadRules["3 Logarithms"];
-LoadRules["4.1 Sine"];
-LoadRules["4.2 Tangent"];
-LoadRules["4.3 Secant"];
-LoadRules["4.4 Miscellaneous trig functions"];
-LoadRules["5 Inverse trig functions"];
-LoadRules["6 Hyperbolic functions"];
-LoadRules["7 Inverse hyperbolic functions"];
-LoadRules["8 Special functions"];
-LoadRules["9.2 Derivative integration rules"];
-LoadRules["9.4 Miscellaneous integration rules"];
+(*LoadRules["2 Exponentials"];*)
+(*LoadRules["3 Logarithms"];*)
+(*LoadRules["4.1 Sine"];*)
+(*LoadRules["4.2 Tangent"];*)
+(*LoadRules["4.3 Secant"];*)
+(*LoadRules["4.4 Miscellaneous trig functions"];*)
+(*LoadRules["5 Inverse trig functions"];*)
+(*LoadRules["6 Hyperbolic functions"];*)
+(*LoadRules["7 Inverse hyperbolic functions"];*)
+(*LoadRules["8 Special functions"];*)
+(*LoadRules["9.2 Derivative integration rules"];*)
+(*LoadRules["9.4 Miscellaneous integration rules"];*)
 
 
 (*FixIntRules[];*)

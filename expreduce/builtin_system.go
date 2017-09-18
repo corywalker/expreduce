@@ -4,6 +4,7 @@ import "math/big"
 import "time"
 import "fmt"
 import "os"
+import "strings"
 import "runtime/pprof"
 import "log"
 import "io/ioutil"
@@ -77,6 +78,16 @@ func TryReadFile(fn Ex, es *EvalState) (string, string, bool) {
 		return "", "", false
 	}
 	rawFn := filenameString.Val
+
+	// Handle resource file reads
+	if strings.HasPrefix(rawFn, "__res__/") {
+
+		fileData, err := Asset("resources/" + rawFn[8:])
+		if err == nil {
+			return string(fileData), rawFn, true
+		}
+	}
+
 	pathsToTry := []string{}
 	for _, pathEx := range pathL.Parts[1:] {
 		pathString, pathIsString := pathEx.(*String)

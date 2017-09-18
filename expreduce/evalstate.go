@@ -135,6 +135,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`SequenceHold")
 		es.MarkSeen("System`Temporary")
 		es.MarkSeen("System`Stub")
+		es.MarkSeen("System`$Failed")
 
 		es.MarkSeen("System`Sec")
 		es.MarkSeen("System`Csc")
