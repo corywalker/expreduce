@@ -8,6 +8,8 @@ Tests`LoadRubi = {
         ESameTest[Null, LoadRubi[]],
         ESameTest[x^3/3 + 2*x, Rubi`Int[x^2+2, x]],
         ESameTest[Log[x], Rubi`Int[1/x, x]],
+        ESameTest[-(a/(4 x^4))-b/(3 x^3), Rubi`Int[(a+b x)/x^5,x]],
+        ESameTest[-((3/2+2 x)^2/(3 x^2)), Rubi`Int[(3/2+2 x)/x^3,x]],
     ], ETests[
         ESameTest[x^3/3, Rubi`Int[x^2, x]],
     ]

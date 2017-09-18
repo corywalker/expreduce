@@ -3142,7 +3142,7 @@ CommonFactors [lst_] :=
   common=num;
   lst2=Map[Function[#/num],lst2];
   While[True,
-    Print[{lst1,lst2,lst3,lst4,common,base,num}];lst3=Map[LeadFactor,lst1];
+    lst3=Map[LeadFactor,lst1];
     ( If[Apply[SameQ,lst3],
         common=common*lst3[[1]];
         lst1=Map[RemainingFactors,lst1],
