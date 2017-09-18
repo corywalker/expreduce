@@ -55,6 +55,11 @@ Power[b_, -Infinity] := Indeterminate;
 Power[Rational[a_,b_], -1] := Rational[b,a];
 Power[Rational[a_,b_], e_?Positive] := Rational[a^e,b^e];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
+I^e_Integer := Switch[Mod[e, 4],
+  0, 1,
+  1, I,
+  2, -1,
+  3, -I];
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[
@@ -209,6 +214,12 @@ Tests`Sqrt = {
 (*TODO: actually use Complex atom type*)
 I::usage = "`I` is the imaginary number representing `Sqrt[-1]`.";
 Attributes[I] = {Locked, Protected, ReadProtected};
+Tests`I = {
+    ESimpleExamples[
+        ESameTest[-1, I^2],
+        ESameTest[1, I^4]
+    ]
+};
 
 possibleExponents[n_Integer, m_Integer] := 
  Flatten[Permutations /@ ((PadRight[#, m]) & /@ 
