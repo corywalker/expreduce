@@ -495,6 +495,10 @@ func NewExpression(parts []Ex) *Expression {
 	}
 }
 
+func E(parts ...Ex) *Expression {
+	return NewExpression(parts)
+}
+
 func NewHead(head string) *Expression {
 	return NewExpression([]Ex{&Symbol{head}})
 }

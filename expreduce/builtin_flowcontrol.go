@@ -33,7 +33,7 @@ func applyWithFn(e *Expression, es *EvalState) (Ex, bool) {
 			setEx.Parts[2],
 		}))
 	}
-	return rulesReplace(e.Parts[2], rules, es), true
+	return rulesReplaceAll(e.Parts[2], rules, es), true
 }
 
 func GetFlowControlDefinitions() (defs []Definition) {

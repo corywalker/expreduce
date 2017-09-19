@@ -262,3 +262,7 @@ func ContainsSymbol(e Ex, name string) bool {
 	}
 	return false
 }
+
+func S(name string) Ex {
+	return &Symbol{"System`" + name}
+}

@@ -12,5 +12,9 @@ Tests`LoadRubi = {
         ESameTest[-((3/2+2 x)^2/(3 x^2)), Rubi`Int[(3/2+2 x)/x^3,x]],
     ], ETests[
         ESameTest[x^3/3, Rubi`Int[x^2, x]],
+    ], EKnownFailures[
+        (*Will not work until we add support for FixIntRules. Coefficients
+        will not distribute.*)
+        ESameTest[-(3/8) ArcTanh[Cos[a+x]]-3/8 Cot[a+x] Csc[a+x]-1/4 Cot[a+x] Csc[a+x]^3, Rubi`Int[csc[a+x]^5,x]],
     ]
 };
