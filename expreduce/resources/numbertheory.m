@@ -140,8 +140,11 @@ Tests`OddQ = {
 
 FactorInteger[n_] := Switch[n,
     -20, {{-1,1},{2,2},{5,1}},
+    -2, {{-1,1},{2,1}},
+    0, {{0, 1}},
     1, {{1, 1}},
     2, {{2, 1}},
     3, {{3, 1}},
+    4, {{2, 2}},
     Rational[21,4], {{2, -2}, {3, 1}, {7, 1}},
     _, Print["Invalid call to FactorInteger!", n]];

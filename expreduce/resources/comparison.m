@@ -263,6 +263,24 @@ Tests`Max = {
     ]
 };
 
+Min::usage = "`Min[e1, e2, ...]` the maximum of the expressions.";
+Attributes[Min] = {Flat, NumericFunction, OneIdentity, Orderless, Protected};
+Tests`Min = {
+    ESimpleExamples[
+        ESameTest[1, Min[1,2,3]],
+        ESameTest[Min[1,a], Min[1,a,3]]
+    ], ETests[
+        ESameTest[Min[1,a,b], Min[b,1,a,3]],
+        ESameTest[Min[1,a,b], Min[b,1,a,3,3.]],
+        ESameTest[Min[1,a,b], Min[b,1,a,3,3.,3.1]],
+        ESameTest[Min[1,a,b], Min[b,1,a,3,3.,3.1 ,Rational[99,2]]],
+        ESameTest[Infinity, Min[]],
+    ], EKnownDangerous[
+        ESameTest[Min[a,b,c,d], Min[{c,d},{b,a}]],
+        ESameTest[Min[a,b,c,d], Min[{c,{d}},{b,a}]]
+    ]
+};
+
 PossibleZeroQ::usage = "`PossibleZeroQ[e]` returns True if `e` is most likely equivalent to zero.";
 Attributes[PossibleZeroQ] = {Listable, Protected};
 PossibleZeroQ[e_] := e === 0 || e === 0.;

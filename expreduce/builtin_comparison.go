@@ -1,7 +1,54 @@
 package expreduce
 
-import "math/big"
 import "sort"
+
+type extremaFnType int
+
+const (
+	MaxFn extremaFnType = iota
+	MinFn
+)
+
+func extremaFunction(this *Expression, fnType extremaFnType, es *EvalState) Ex {
+	// Flatten nested lists into arguments.
+	origHead := this.Parts[0]
+	this.Parts[0] = S("List")
+	dst := E(S("List"))
+	flattenExpr(this, dst, 999999999, &es.CASLogger)
+	// Previously I always set the pointer but it led to an endless
+	// eval loop. I think evaluation might use the pointer to make a
+	// "same" comparison.
+	if !IsSameQ(this, dst, &es.CASLogger) {
+		this = dst
+		sort.Sort(this)
+	}
+	this.Parts[0] = origHead
+
+	if len(this.Parts) == 1 {
+		if fnType == MaxFn {
+			return E(S("Times"), NewInt(-1), S("Infinity"))
+		} else {
+			return S("Infinity")
+		}
+	}
+	if len(this.Parts) == 2 {
+		return this.Parts[1]
+	}
+	var i int
+	for i = 1; i < len(this.Parts); i++ {
+		if !numberQ(this.Parts[i]) {
+			break
+		}
+	}
+	if fnType == MaxFn {
+		i -= 1
+		return NewExpression(append([]Ex{this.Parts[0]}, this.Parts[i:]...))
+	}
+	if i == 1 {
+		return this
+	}
+	return NewExpression(append(this.Parts[:2], this.Parts[i:]...))
+}
 
 func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
@@ -222,38 +269,13 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Max",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			// Flatten nested lists into arguments.
-			origHead := this.Parts[0]
-			this.Parts[0] = &Symbol{"System`List"}
-			dst := NewExpression([]Ex{&Symbol{"System`List"}})
-			flattenExpr(this, dst, 999999999, &es.CASLogger)
-			// Previously I always set the pointer but it led to an endless
-			// eval loop. I think evaluation might use the pointer to make a
-			// "same" comparison.
-			if !IsSameQ(this, dst, &es.CASLogger) {
-				this = dst
-				sort.Sort(this)
-			}
-			this.Parts[0] = origHead
-
-			if len(this.Parts) == 1 {
-				return NewExpression([]Ex{
-					&Symbol{"System`Times"},
-					&Integer{big.NewInt(-1)},
-					&Symbol{"System`Infinity"},
-				})
-			}
-			if len(this.Parts) == 2 {
-				return this.Parts[1]
-			}
-			var i int
-			for i = 1; i < len(this.Parts); i++ {
-				if !numberQ(this.Parts[i]) {
-					break
-				}
-			}
-			i -= 1
-			return NewExpression(append([]Ex{this.Parts[0]}, this.Parts[i:]...))
+			return extremaFunction(this, MaxFn, es)
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Min",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			return extremaFunction(this, MinFn, es)
 		},
 	})
 	defs = append(defs, Definition{Name: "PossibleZeroQ"})
