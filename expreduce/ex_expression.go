@@ -177,7 +177,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			if headIsSym && i > 1 && attrs.HoldRest {
 				continue
 			}
-			if headIsSym && attrs.HoldAll {
+			if headIsSym && (attrs.HoldAll || attrs.HoldAllComplete) {
 				continue
 			}
 
@@ -223,13 +223,16 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 		// If any of the parts are Sequence, merge them with parts
 		if headIsSym {
-			if !attrs.SequenceHold {
+			if !attrs.SequenceHold && !attrs.HoldAllComplete {
 				curr = curr.mergeSequences(es, "System`Sequence", false)
 			}
 		} else {
 			curr = curr.mergeSequences(es, "System`Sequence", false)
 		}
-		curr = curr.mergeSequences(es, "System`Evaluate", true)
+		if !attrs.HoldAllComplete {
+			curr = curr.mergeSequences(es, "System`Evaluate", true)
+		}
+		curr = curr.mergeSequences(es, "System`Unevaluated", false)
 		// In case curr changed
 		currEx = curr
 

@@ -163,5 +163,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 		Name:              "OneIdentity",
 		OmitDocumentation: true,
 	})
+	defs = append(defs, Definition{Name: "Unevaluated"})
+	defs = append(defs, Definition{Name: "HoldComplete"})
 	return
 }

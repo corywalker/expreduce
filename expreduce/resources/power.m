@@ -3,6 +3,7 @@ Power::usage = "`base^exp` finds `base` raised to the power of `exp`.";
 Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
 Power[Power[a_,b_Real],c_Integer] := a^(b*c);
 Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
+Power[Power[a_,b_Rational],c_] := a^(b*c);
 Power[Infinity, 0] := Indeterminate;
 Power[-Infinity, 0] := Indeterminate;
 Power[_, 0] := 1;
@@ -53,7 +54,10 @@ Power[b_, -Infinity] := Indeterminate;
 (*Rational simplifications*)
 (*These take up time. Possibly convert to Upvalues.*)
 Power[Rational[a_,b_], -1] := Rational[b,a];
-Power[Rational[a_,b_], e_?Positive] := Rational[a^e,b^e];
+Power[Rational[a_,b_], e_Integer?Positive] := Rational[a^e,b^e];
+Power[-1, -1/2] := -I;
+Power[-1, 1/2] := I;
+Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
 I^e_Integer := Switch[Mod[e, 4],
   0, 1,

@@ -136,3 +136,20 @@ Tests`LeafCount = {
         ESameTest[1, LeafCount[a]]
     ]
 };
+
+Unevaluated::usage = "`Unevaluated[e]` do not evaluate `e` in an expression, but treat as `e`.";
+Attributes[Unevaluated] = {HoldAllComplete, Protected};
+Tests`Unevaluated = {
+    ESimpleExamples[
+        ESameTest[{1,2}, List@@Unevaluated[1+2]],
+    ]
+};
+
+HoldComplete::usage = "`HoldComplete[e1, e2, ...]` holds evaluation of its arguments, even evaluation that would take place under `Hold`.";
+Attributes[HoldComplete] = {HoldAllComplete, Protected};
+Tests`HoldComplete = {
+    ESimpleExamples[
+        ESameTest[HoldComplete[Evaluate[a+a],2+2,Sequence[a,b]], HoldComplete[Evaluate[a+a],2+2,Sequence[a,b]]],
+        ESameTest[3, HoldComplete[Evaluate[a + a], 2 + 2, Sequence[a, b]] // Length],
+    ]
+};

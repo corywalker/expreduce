@@ -137,6 +137,8 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`Stub")
 		es.MarkSeen("System`$Failed")
 
+		es.MarkSeen("System`AppellF1")
+
 		es.MarkSeen("System`Cosh")
 		es.MarkSeen("System`Sinh")
 		es.MarkSeen("System`Tanh")
