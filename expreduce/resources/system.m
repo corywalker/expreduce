@@ -262,7 +262,15 @@ Tests`DownValues = {
         ESameTest[5, Length[DownValues[myfoo]]],
         ESameTest[Null, myfoo[_] := With[{a=2}, c /; c] /; True;],
         ESameTest[6, Length[DownValues[myfoo]]],
-        ESameTest[6, Length[DownValues[myfoo]]]
+        ESameTest[6, Length[DownValues[myfoo]]],
+
+        (*Test assignment.*)
+        ESameTest[Null, DownValues[dvAssignTest] = {
+                HoldPattern[dvAssignTest[1]] :> 123,
+                HoldPattern[dvAssignTest[_]] :> 321
+            };],
+        ESameTest[123, dvAssignTest[1]],
+        ESameTest[321, dvAssignTest[2]],
     ]
 };
 

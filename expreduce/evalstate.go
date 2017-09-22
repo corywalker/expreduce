@@ -225,8 +225,12 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	// iterating over every one.
 	if _, lhsIsSym := lhs.(*Symbol); lhsIsSym {
 		for _, def := range this.defined[name].downvalues {
-			if _, symDef := def.rule.Parts[1].(*Symbol); symDef {
-				return def.rule.Parts[2], true, def.rule
+			if hp, hpDef := HeadAssertion(def.rule.Parts[1], "System`HoldPattern"); hpDef {
+				if len(hp.Parts) == 2 {
+					if _, symDef := hp.Parts[1].(*Symbol); symDef {
+						return def.rule.Parts[2], true, def.rule
+					}
+				}
 			}
 		}
 		return nil, false, nil
@@ -289,6 +293,33 @@ func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
 	this.defined[sym.Name] = tmp
 }
 
+func (this *EvalState) DefineDownValues(sym *Symbol, rhs Ex) {
+	dvList, isList := HeadAssertion(rhs, "System`List")
+	if !isList {
+		fmt.Println("Assignment to DownValues must be List of Rules.")
+		return
+	}
+	dvs := []DownValue{}
+
+	for _, dvEx := range dvList.Parts[1:] {
+		rule, isRule := HeadAssertion(dvEx, "System`Rule")
+		if !isRule {
+			rule, isRule = HeadAssertion(dvEx, "System`RuleDelayed")
+		}
+		if !isRule || len(rule.Parts) != 3 {
+			fmt.Println("Assignment to DownValues must be List of Rules.")
+		}
+		dvs = append(dvs, DownValue{rule: rule})
+	}
+
+	if !this.IsDef(sym.Name) {
+		this.defined[sym.Name] = Def{}
+	}
+	tmp := this.defined[sym.Name]
+	tmp.downvalues = dvs
+	this.defined[sym.Name] = tmp
+}
+
 func (this *EvalState) MarkSeen(name string) {
 	if !this.IsDef(name) {
 		newDef := Def{
@@ -346,6 +377,16 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 				}
 				this.DefineAttrs(modifiedSym, rhs)
 				return
+			} else if name == "System`DownValues" {
+				if len(LhsF.Parts) != 2 {
+					return
+				}
+				modifiedSym, modifiedIsSym := LhsF.Parts[1].(*Symbol)
+				if !modifiedIsSym {
+					return
+				}
+				this.DefineDownValues(modifiedSym, rhs)
+				return
 			}
 		}
 		_, opExpr, isVerbatimOp := OperatorAssertion(lhs, "System`Verbatim")
@@ -361,12 +402,13 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	}
 
 	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
+	heldLhs := E(S("HoldPattern"), lhs)
 	if !this.IsDef(name) {
 		newDef := Def{
 			downvalues: []DownValue{
 				DownValue{
 					rule: NewExpression([]Ex{
-						&Symbol{"System`Rule"}, lhs, rhs,
+						&Symbol{"System`Rule"}, heldLhs, rhs,
 					}),
 				},
 			},
@@ -379,7 +421,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	for _, dv := range this.defined[name].downvalues {
 		existingRule := dv.rule
 		existingLhs := existingRule.Parts[1]
-		if IsSameQ(existingLhs, lhs, &this.CASLogger) {
+		if IsSameQ(existingLhs, heldLhs, &this.CASLogger) {
 			existingRhsCond := maskNonConditional(existingRule.Parts[2])
 			newRhsCond := maskNonConditional(rhs)
 			if IsSameQ(existingRhsCond, newRhsCond, &this.CASLogger) {
@@ -392,7 +434,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	// Insert into definitions for name. Maintain order of decreasing
 	// complexity.
 	var tmp = this.defined[name]
-	newSpecificity := ruleSpecificity(lhs, rhs, name)
+	newSpecificity := ruleSpecificity(heldLhs, rhs, name)
 	for i, dv := range this.defined[name].downvalues {
 		if dv.specificity == 0 {
 			dv.specificity = ruleSpecificity(
@@ -402,7 +444,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			)
 		}
 		if dv.specificity < newSpecificity {
-			newRule := NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})
+			newRule := NewExpression([]Ex{&Symbol{"System`Rule"}, heldLhs, rhs})
 			tmp.downvalues = append(
 				tmp.downvalues[:i],
 				append(
@@ -417,7 +459,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]Ex{&Symbol{"System`Rule"}, lhs, rhs})})
+	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]Ex{&Symbol{"System`Rule"}, heldLhs, rhs})})
 	this.defined[name] = tmp
 }
 

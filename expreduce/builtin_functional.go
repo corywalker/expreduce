@@ -102,9 +102,11 @@ func getFunctionalDefinitions() (defs []Definition) {
 			f := this.Parts[1]
 			expr := this.Parts[2]
 			nInt, isInteger := this.Parts[3].(*Integer)
+			if !isInteger {
+				return this
+			}
 			n := nInt.Val.Int64()
-
-			if !isInteger || n < 0 {
+			if n < 0 {
 				return this
 			}
 

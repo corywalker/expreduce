@@ -197,7 +197,7 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 					DownValue{
 						rule: NewExpression([]Ex{
 							&Symbol{"System`Rule"},
-							&Symbol{pl.uniqueName},
+							E(S("HoldPattern"), &Symbol{pl.uniqueName}),
 							rhs,
 						}),
 					},
@@ -359,10 +359,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			for _, dv := range def.downvalues {
 				res.Parts = append(res.Parts, NewExpression([]Ex{
 					&Symbol{"System`RuleDelayed"},
-					NewExpression([]Ex{
-						&Symbol{"System`HoldPattern"},
-						dv.rule.Parts[1],
-					}),
+					dv.rule.Parts[1],
 					dv.rule.Parts[2],
 				}))
 			}
