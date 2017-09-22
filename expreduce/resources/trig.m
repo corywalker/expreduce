@@ -17,8 +17,13 @@ Cos[n_Integer?OddQ*Pi] := -1;
 Cos[I*a_] := Cosh[a];
 Cos[-x_] := Cos[x];
 Cos[x_Integer?Negative] := Cos[-x];
+Cos[inner : Verbatim[Plus][Repeated[_*I]]] := Cosh[-I*inner // Distribute]
 Cos[Indeterminate] := Indeterminate;
 Attributes[Cos] = {Listable, NumericFunction, Protected};
 
 Tan::usage = "`Tan[x]` is the tangent of `x`.";
 Attributes[Tan] = {Listable, NumericFunction, Protected};
+
+Csc[inner : Verbatim[Plus][Repeated[_*I]]] := -I*Csch[-I*inner // Distribute]
+
+Cosh[a_]*Csch[a_]^(b_Integer?Positive)*rest___ := Coth[a]*Csch[a]^(b - 1)*rest

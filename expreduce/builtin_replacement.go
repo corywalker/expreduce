@@ -47,10 +47,11 @@ func rulesReplace(e Ex, rules []*Expression, es *EvalState) (Ex, bool) {
 func replaceParts(e Ex, rules []*Expression, part *Expression, es *EvalState) Ex {
 	expr, isExpr := e.(*Expression)
 	if !isExpr {
-		return e.DeepCopy()
+		return e
 	}
 	res := E(expr.Parts[0])
 	part.Parts = append(part.Parts, NewInt(0))
+	dirty := false
 	for i, p := range expr.Parts[1:] {
 		part.Parts[len(part.Parts)-1] = NewInt(int64(i+1))
 		repVal, replaced := rulesReplace(part, rules, es)
@@ -59,11 +60,19 @@ func replaceParts(e Ex, rules []*Expression, part *Expression, es *EvalState) Ex
 		}
 		if replaced {
 			res.Parts = append(res.Parts, repVal)
+			dirty = true
 		} else {
-			res.Parts = append(res.Parts, replaceParts(p, rules, part, es))
+			newVal := replaceParts(p, rules, part, es)
+			res.Parts = append(res.Parts, newVal)
+			if newVal != p {
+				dirty = true
+			}
 		}
 	}
 	part.Parts = part.Parts[:len(part.Parts)-1]
+	if !dirty {
+		return e
+	}
 	return res
 }
 
