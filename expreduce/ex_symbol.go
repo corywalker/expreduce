@@ -16,7 +16,14 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	if isdefined {
 		// We must call Eval because, at this point, the expression has broken
 		// out of the evaluation loop.
-		toReturn := definition.Eval(es)
+		toReturn := definition
+		// To handle the case where we set a variable to itself.
+		if sym, isSym := definition.(*Symbol); isSym {
+			if sym.Name == this.Name {
+				return toReturn
+			}
+		}
+		toReturn = toReturn.Eval(es)
 		retVal, isReturn := tryReturnValue(toReturn)
 		if isReturn {
 			return retVal

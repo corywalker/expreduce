@@ -748,3 +748,12 @@ Tests`FactorSquareFree = {
         ESameTest[(3 + x)^3*(-4 + x^2)*(-1 + x^2)^2, FactorSquareFree[-108 - 108*x + 207*x^2 + 239*x^3 - 81*x^4 - 153*x^5 - 27*x^6 + 21*x^7 + 9*x^8 + x^9]]
     ]
 };
+
+Factor::usage = "`Factor[poly]` factors `poly`.";
+Factor[poly_] := poly;
+Attributes[Factor] = {Listable, Protected};
+Tests`Factor = {
+    ETests[
+        ESameTest[a, Factor[a]],
+    ]
+};

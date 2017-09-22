@@ -154,5 +154,9 @@ func GetPowerDefinitions() (defs []Definition) {
 		ExpreduceSpecific: true,
 	})
 	defs = append(defs, Definition{Name: "FactorSquareFree"})
+	defs = append(defs, Definition{
+		Name:              "Factor",
+		OmitDocumentation: true,
+	})
 	return
 }

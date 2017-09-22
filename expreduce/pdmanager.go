@@ -20,7 +20,7 @@ func CopyPD(orig *PDManager) (dest *PDManager) {
 	if (*orig).Len() > 0 {
 		dest.LazyMakeMap()
 		for k, v := range (*orig).patternDefined {
-			(*dest).patternDefined[k] = v.DeepCopy()
+			(*dest).patternDefined[k] = v
 		}
 	}
 	return
