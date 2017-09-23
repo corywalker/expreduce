@@ -82,6 +82,10 @@ func (this *Rational) DeepCopy() Ex {
 	return &Rational{tmpn, tmpd, this.needsEval}
 }
 
+func (this *Rational) Copy() Ex {
+	return this.DeepCopy()
+}
+
 func (this *Rational) AsBigRat() *big.Rat {
 	res := big.NewRat(1, 1)
 	return res.SetFrac(this.Num, this.Den)

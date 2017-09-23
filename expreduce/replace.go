@@ -78,7 +78,7 @@ func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
 
 	// Expressions are immutable. Any time we change an expression, we must
 	// first copy it.
-	return ReplacePDInternal(this.DeepCopy(), pm)
+	return ReplacePDInternal(this.Copy(), pm)
 }
 
 // The goal of this function is to replace all matching expressions with the

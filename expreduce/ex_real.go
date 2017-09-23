@@ -53,6 +53,10 @@ func (this *Flt) DeepCopy() Ex {
 	return NewReal(tmp)
 }
 
+func (this *Flt) Copy() Ex {
+	return this.DeepCopy()
+}
+
 func IntegerToFlt(i *Integer) (*Flt, bool) {
 	newfloat := big.NewFloat(0)
 	newfloat.SetInt(i.Val)

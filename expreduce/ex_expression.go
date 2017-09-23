@@ -458,6 +458,18 @@ func (this *Expression) ShallowCopy() *Expression {
 	return thiscopy
 }
 
+func (this *Expression) Copy() Ex {
+	var thiscopy = NewEmptyExpressionOfLength(len(this.Parts))
+	for i := range this.Parts {
+		thiscopy.Parts[i] = this.Parts[i].Copy()
+	}
+	thiscopy.needsEval = this.needsEval
+	thiscopy.correctlyInstantiated = this.correctlyInstantiated
+	thiscopy.evaledHash = this.evaledHash
+	thiscopy.cachedHash = this.cachedHash
+	return thiscopy
+}
+
 // Implement the sort.Interface
 func (this *Expression) Len() int {
 	return len(this.Parts) - 1
@@ -516,6 +528,14 @@ func NewHead(head string) *Expression {
 
 func NewEmptyExpression() *Expression {
 	return &Expression{
+		needsEval:             true,
+		correctlyInstantiated: true,
+	}
+}
+
+func NewEmptyExpressionOfLength(n int) *Expression {
+	return &Expression{
+		Parts:                 make([]Ex, n),
 		needsEval:             true,
 		correctlyInstantiated: true,
 	}

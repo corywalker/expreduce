@@ -45,7 +45,11 @@ func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {
 func (this *Integer) DeepCopy() Ex {
 	tmp := big.NewInt(0)
 	tmp.Set(this.Val)
-	return &Integer{Val: tmp/*, cachedHash: this.cachedHash*/}
+	return &Integer{Val: tmp, cachedHash: this.cachedHash}
+}
+
+func (this *Integer) Copy() Ex {
+	return this
 }
 
 func (this *Integer) NeedsEval() bool {
@@ -80,8 +84,10 @@ func (this *Integer) AsBigFloat() *big.Float {
 
 func (this *Integer) AddI(i *Integer) {
 	this.Val.Add(this.Val, i.Val)
+	this.cachedHash = 0
 }
 
 func (this *Integer) MulI(i *Integer) {
 	this.Val.Mul(this.Val, i.Val)
+	this.cachedHash = 0
 }

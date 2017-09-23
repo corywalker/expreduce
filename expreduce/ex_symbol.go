@@ -77,6 +77,10 @@ func (this *Symbol) DeepCopy() Ex {
 	return &thiscopy
 }
 
+func (this *Symbol) Copy() Ex {
+	return this
+}
+
 // Functions for working with the attributes of symbols:
 type Attributes struct {
 	Orderless       bool

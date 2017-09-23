@@ -39,6 +39,10 @@ func (this *String) DeepCopy() Ex {
 	return &thiscopy
 }
 
+func (this *String) Copy() Ex {
+	return this.DeepCopy()
+}
+
 func (this *String) NeedsEval() bool {
 	return false
 }

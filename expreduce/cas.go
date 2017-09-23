@@ -14,6 +14,7 @@ type Ex interface {
 	StringForm(form string, context *String, contextPath *Expression) string
 	IsEqual(b Ex, cl *CASLogger) string
 	DeepCopy() Ex
+	Copy() Ex
 	NeedsEval() bool
 	Hash() uint64
 }
