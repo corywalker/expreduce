@@ -111,19 +111,19 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 
 			cmpVal := n.Val.Cmp(big.NewInt(0))
 			if cmpVal == -1 {
-				return NewExpression([]Ex{&Symbol{"System`List"}})
+				return NewExpression([]Ex{NewSymbol("System`List")})
 			} else if cmpVal == 0 {
-				return NewExpression([]Ex{&Symbol{"System`List"}, NewExpression([]Ex{&Symbol{"System`List"}})})
+				return NewExpression([]Ex{NewSymbol("System`List"), NewExpression([]Ex{NewSymbol("System`List")})})
 			}
 
 			var parts [][]int
 			genIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
 
-			exParts := NewExpression([]Ex{&Symbol{"System`List"}})
+			exParts := NewExpression([]Ex{NewSymbol("System`List")})
 			for _, partition := range parts {
-				toAppend := NewExpression([]Ex{&Symbol{"System`List"}})
+				toAppend := NewExpression([]Ex{NewSymbol("System`List")})
 				for _, integer := range partition {
-					toAppend.Parts = append(toAppend.Parts, &Integer{big.NewInt(int64(integer))})
+					toAppend.Parts = append(toAppend.Parts, NewInteger(big.NewInt(int64(integer))))
 				}
 				exParts.Parts = append(exParts.Parts, toAppend)
 			}
@@ -145,9 +145,9 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 
 			perms := genPermutations(list.Parts[1:], &es.CASLogger)
 
-			exPerms := NewExpression([]Ex{&Symbol{"System`List"}})
+			exPerms := NewExpression([]Ex{NewSymbol("System`List")})
 			for _, perm := range perms {
-				toAppend := NewExpression([]Ex{&Symbol{"System`List"}})
+				toAppend := NewExpression([]Ex{NewSymbol("System`List")})
 				for _, ex := range perm {
 					toAppend.Parts = append(toAppend.Parts, ex)
 				}
@@ -169,9 +169,9 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 			asInt, isInt := this.Parts[1].(*Integer)
 			if isInt {
 				if asInt.Val.Cmp(big.NewInt(0)) == -1 {
-					return &Symbol{"System`ComplexInfinity"}
+					return NewSymbol("System`ComplexInfinity")
 				}
-				return &Integer{factorial(asInt.Val)}
+				return NewInteger(factorial(asInt.Val))
 			}
 			return this
 		},

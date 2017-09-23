@@ -49,3 +49,7 @@ func (this *String) Hash() uint64 {
 	h.Write([]byte(this.Val))
 	return h.Sum64()
 }
+
+func NewString(v string) *String {
+	return &String{v}
+}

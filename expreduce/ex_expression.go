@@ -68,7 +68,7 @@ func tryReturnValue(e Ex) (Ex, bool) {
 	if len(asReturn.Parts) >= 2 {
 		return asReturn.Parts[1], true
 	}
-	return &Symbol{"System`Null"}, true
+	return NewSymbol("System`Null"), true
 }
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
@@ -147,7 +147,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			if es.trace != nil && !es.IsFrozen() {
 				toAppend := NewExpression([]Ex{
-					&Symbol{"System`HoldForm"},
+					NewSymbol("System`HoldForm"),
 					toReturn.DeepCopy(),
 				})
 
@@ -192,7 +192,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			traceBak := es.trace
 			if es.trace != nil && !es.IsFrozen() {
-				es.trace = NewExpression([]Ex{&Symbol{"System`List"}})
+				es.trace = NewExpression([]Ex{NewSymbol("System`List")})
 			}
 			oldHash := curr.Parts[i].Hash()
 			curr.Parts[i] = curr.Parts[i].Eval(es)
@@ -216,7 +216,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// Handle tracing
 		if es.trace != nil && !es.IsFrozen() {
 			toAppend := NewExpression([]Ex{
-				&Symbol{"System`HoldForm"},
+				NewSymbol("System`HoldForm"),
 				currEx.DeepCopy(),
 			})
 
@@ -311,10 +311,10 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		for i, arg := range args {
 			toReturn = ReplaceAll(toReturn,
 				NewExpression([]Ex{
-					&Symbol{"System`Rule"},
+					NewSymbol("System`Rule"),
 					NewExpression([]Ex{
-						&Symbol{"System`Slot"},
-						&Integer{big.NewInt(int64(i + 1))},
+						NewSymbol("System`Slot"),
+						NewInteger(big.NewInt(int64(i + 1))),
 					}),
 
 					arg,
@@ -331,7 +331,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		toReturn := this.Parts[2].DeepCopy()
 		toReturn = ReplaceAll(toReturn,
 			NewExpression([]Ex{
-				&Symbol{"System`Rule"},
+				NewSymbol("System`Rule"),
 				repSym,
 				args[0],
 			}),
@@ -511,7 +511,7 @@ func E(parts ...Ex) *Expression {
 }
 
 func NewHead(head string) *Expression {
-	return NewExpression([]Ex{&Symbol{head}})
+	return NewExpression([]Ex{NewSymbol(head)})
 }
 
 func NewEmptyExpression() *Expression {

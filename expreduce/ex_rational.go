@@ -12,13 +12,13 @@ type Rational struct {
 
 func (this *Rational) Eval(es *EvalState) Ex {
 	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
-		return &Symbol{"System`Indeterminate"}
+		return NewSymbol("System`Indeterminate")
 	}
 	if this.Den.Cmp(big.NewInt(0)) == 0 {
-		return &Symbol{"System`ComplexInfinity"}
+		return NewSymbol("System`ComplexInfinity")
 	}
 	if this.Num.Cmp(big.NewInt(0)) == 0 {
-		return &Integer{big.NewInt(0)}
+		return NewInteger(big.NewInt(0))
 	}
 	negNum := this.Num.Cmp(big.NewInt(0)) == -1
 	negDen := this.Den.Cmp(big.NewInt(0)) == -1
@@ -35,9 +35,9 @@ func (this *Rational) Eval(es *EvalState) Ex {
 
 	if absDen.Cmp(big.NewInt(1)) == 0 {
 		if !negateRes {
-			return &Integer{absNum}
+			return NewInteger(absNum)
 		} else {
-			return &Integer{absNum.Neg(absNum)}
+			return NewInteger(absNum.Neg(absNum))
 		}
 	}
 

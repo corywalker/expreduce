@@ -71,9 +71,9 @@ func (this *SameTestEx) Run(t *testing.T, es *EvalState, td TestDesc) bool {
 
 func CasTestInner(es *EvalState, inTree Ex, outTree Ex, inStr string, test bool, desc string) (succ bool, s string) {
 	theTestTree := NewExpression([]Ex{
-		&Symbol{"System`SameQ"},
-		NewExpression([]Ex{&Symbol{"System`Hold"}, inTree}),
-		NewExpression([]Ex{&Symbol{"System`Hold"}, outTree}),
+		NewSymbol("System`SameQ"),
+		NewExpression([]Ex{NewSymbol("System`Hold"), inTree}),
+		NewExpression([]Ex{NewSymbol("System`Hold"), outTree}),
 	})
 
 	theTest := theTestTree.Eval(es)

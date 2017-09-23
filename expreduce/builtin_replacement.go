@@ -53,7 +53,7 @@ func replaceParts(e Ex, rules []*Expression, part *Expression, es *EvalState) Ex
 	part.Parts = append(part.Parts, NewInt(0))
 	dirty := false
 	for i, p := range expr.Parts[1:] {
-		part.Parts[len(part.Parts)-1] = NewInt(int64(i+1))
+		part.Parts[len(part.Parts)-1] = NewInt(int64(i + 1))
 		repVal, replaced := rulesReplace(part, rules, es)
 		if !replaced && len(part.Parts) == 2 {
 			repVal, replaced = rulesReplace(part.Parts[1], rules, es)
@@ -135,7 +135,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 			for !isSame {
 				newEx := (NewExpression([]Ex{
-					&Symbol{"System`ReplaceAll"},
+					NewSymbol("System`ReplaceAll"),
 					oldEx,
 					this.Parts[2],
 				})).Eval(es)
@@ -168,7 +168,7 @@ func getReplacementDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:         "ReplacePart",
+		Name: "ReplacePart",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this

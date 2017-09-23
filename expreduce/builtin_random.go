@@ -14,7 +14,7 @@ func GetRandomDefinitions() (defs []Definition) {
 				return this
 			}
 
-			return &Flt{big.NewFloat(rand.Float64())}
+			return NewReal(big.NewFloat(rand.Float64()))
 		},
 	})
 	defs = append(defs, Definition{
@@ -30,7 +30,7 @@ func GetRandomDefinitions() (defs []Definition) {
 			asInt, isInt := this.Parts[1].(*Integer)
 			if isInt {
 				rand.Seed(asInt.Val.Int64())
-				return &Symbol{"System`Null"}
+				return NewSymbol("System`Null")
 			}
 
 			return this

@@ -20,7 +20,7 @@ type EvalState struct {
 	NoInit      bool
 	timeCounter TimeCounterGroup
 	freeze      bool
-	thrown		*Expression
+	thrown      *Expression
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -33,7 +33,7 @@ func (this *EvalState) Load(def Definition) {
 	// "bootstrap" attribute that SetDelayed has.
 	for _, rule := range def.Rules {
 		(NewExpression([]Ex{
-			&Symbol{"System`SetDelayed"},
+			NewSymbol("System`SetDelayed"),
 			Interp(rule.Lhs, this),
 			Interp(rule.Rhs, this),
 		})).Eval(this)
@@ -41,14 +41,14 @@ func (this *EvalState) Load(def Definition) {
 
 	if len(def.Usage) > 0 {
 		(NewExpression([]Ex{
-			&Symbol{"System`SetDelayed"},
+			NewSymbol("System`SetDelayed"),
 			NewExpression([]Ex{
-				&Symbol{"System`MessageName"},
-				&Symbol{def.Name},
-				&String{"usage"},
+				NewSymbol("System`MessageName"),
+				NewSymbol(def.Name),
+				NewString("usage"),
 			}),
 
-			&String{def.Usage},
+			NewString(def.Usage),
 		})).Eval(this)
 	}
 
@@ -77,10 +77,10 @@ func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string]Def)
 	// These are fundamental symbols that affect even the parsing of
 	// expressions. We must define them before even the bootstrap definitions.
-	es.Define(&Symbol{"System`$Context"}, &String{"System`"})
-	es.Define(&Symbol{"System`$ContextPath"}, NewExpression([]Ex{
-		&Symbol{"System`List"},
-		&String{"System`"},
+	es.Define(NewSymbol("System`$Context"), NewString("System`"))
+	es.Define(NewSymbol("System`$ContextPath"), NewExpression([]Ex{
+		NewSymbol("System`List"),
+		NewString("System`"),
 	}))
 	es.timeCounter.Init()
 
@@ -265,7 +265,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 }
 
 func (this *EvalState) GetSymDef(name string) (Ex, bool) {
-	sym := &Symbol{name}
+	sym := NewSymbol(name)
 	symDef, isDef, _ := this.GetDef(name, sym)
 	return symDef, isDef
 }
@@ -410,7 +410,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			downvalues: []DownValue{
 				DownValue{
 					rule: NewExpression([]Ex{
-						&Symbol{"System`Rule"}, heldLhs, rhs,
+						NewSymbol("System`Rule"), heldLhs, rhs,
 					}),
 				},
 			},
@@ -446,12 +446,12 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			)
 		}
 		if dv.specificity < newSpecificity {
-			newRule := NewExpression([]Ex{&Symbol{"System`Rule"}, heldLhs, rhs})
+			newRule := NewExpression([]Ex{NewSymbol("System`Rule"), heldLhs, rhs})
 			tmp.downvalues = append(
 				tmp.downvalues[:i],
 				append(
 					[]DownValue{DownValue{
-						rule: newRule,
+						rule:        newRule,
 						specificity: newSpecificity,
 					}},
 					this.defined[name].downvalues[i:]...,
@@ -461,7 +461,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]Ex{&Symbol{"System`Rule"}, heldLhs, rhs})})
+	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]Ex{NewSymbol("System`Rule"), heldLhs, rhs})})
 	this.defined[name] = tmp
 }
 
@@ -514,7 +514,7 @@ func (this *EvalState) SetFrozen(frozen bool) {
 }
 
 func (this *EvalState) GetStringDef(name string, defaultVal string) string {
-	nameSym := &Symbol{name}
+	nameSym := NewSymbol(name)
 	def, isDef, _ := this.GetDef(name, nameSym)
 	if !isDef {
 		return defaultVal
@@ -527,14 +527,14 @@ func (this *EvalState) GetStringDef(name string, defaultVal string) string {
 }
 
 func (this *EvalState) GetListDef(name string) *Expression {
-	nameSym := &Symbol{name}
+	nameSym := NewSymbol(name)
 	def, isDef, _ := this.GetDef(name, nameSym)
 	if !isDef {
-		return NewExpression([]Ex{&Symbol{"System`List"}})
+		return NewExpression([]Ex{NewSymbol("System`List")})
 	}
 	defList, defIsList := HeadAssertion(def, "System`List")
 	if !defIsList {
-		return NewExpression([]Ex{&Symbol{"System`List"}})
+		return NewExpression([]Ex{NewSymbol("System`List")})
 	}
 	return defList
 }
@@ -551,7 +551,7 @@ func (es *EvalState) ProcessTopLevelResult(e Ex) Ex {
 	if es.HasThrown() {
 		fmt.Printf("Throw::nocatch: %v returned to top level but uncaught.\n\n", es.thrown)
 		toReturn := NewExpression([]Ex{
-			&Symbol{"System`Hold"},
+			NewSymbol("System`Hold"),
 			es.thrown,
 		})
 		// Clear exception
@@ -562,10 +562,10 @@ func (es *EvalState) ProcessTopLevelResult(e Ex) Ex {
 }
 
 func maskNonConditional(e Ex) Ex {
-	var res Ex = &Symbol{"System`ExpreduceNonConditional"}
+	var res Ex = NewSymbol("System`ExpreduceNonConditional")
 	if asHead, isHead := HeadAssertion(e, "System`Condition"); isHead {
 		res = NewExpression([]Ex{
-			&Symbol{"System`Condition"},
+			NewSymbol("System`Condition"),
 			maskNonConditional(asHead.Parts[1]),
 			asHead.Parts[2],
 		})
@@ -576,7 +576,7 @@ func maskNonConditional(e Ex) Ex {
 			if len(asHead.Parts) == 3 {
 				if _, hasCond := HeadAssertion(asHead.Parts[2], "System`Condition"); hasCond {
 					res = NewExpression([]Ex{
-						&Symbol{head},
+						NewSymbol(head),
 						asHead.Parts[1],
 						maskNonConditional(asHead.Parts[2]),
 					})

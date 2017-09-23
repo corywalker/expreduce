@@ -20,12 +20,12 @@ func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Integer"})
 	defs = append(defs, Definition{Name: "IntegerQ"})
 	defs = append(defs, Definition{
-		Name: "Im",
+		Name:              "Im",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
 	})
 	defs = append(defs, Definition{
-		Name: "Re",
+		Name:              "Re",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
 	})

@@ -63,22 +63,22 @@ func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start
 }
 
 func DefaultStringFormArgs() (*String, *Expression) {
-	return &String{"Global`"}, NewExpression([]Ex{
-		&Symbol{"System`List"},
-		&String{"System`"},
+	return NewString("Global`"), NewExpression([]Ex{
+		NewSymbol("System`List"),
+		NewString("System`"),
 	})
 }
 
 func DefinitionComplexityStringFormArgs() (*String, *Expression) {
 	// This was created because the "Private`" names in the blanks were
 	// indicating greater complexity than they deserved.
-	return &String{"Global`"}, NewExpression([]Ex{
-		&Symbol{"System`List"},
-		&String{"System`"},
-		&String{"Private`"},
+	return NewString("Global`"), NewExpression([]Ex{
+		NewSymbol("System`List"),
+		NewString("System`"),
+		NewString("Private`"),
 	})
 }
 
 func ActualStringFormArgs(es *EvalState) (*String, *Expression) {
-	return &String{es.GetStringDef("System`$Context", "Global`")}, es.GetListDef("System`$ContextPath")
+	return NewString(es.GetStringDef("System`$Context", "Global`")), es.GetListDef("System`$ContextPath")
 }

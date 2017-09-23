@@ -50,19 +50,19 @@ func (this *Flt) IsEqual(other Ex, cl *CASLogger) string {
 func (this *Flt) DeepCopy() Ex {
 	tmp := big.NewFloat(0)
 	tmp.Copy(this.Val)
-	return &Flt{tmp}
+	return NewReal(tmp)
 }
 
 func IntegerToFlt(i *Integer) (*Flt, bool) {
 	newfloat := big.NewFloat(0)
 	newfloat.SetInt(i.Val)
-	return &Flt{newfloat}, true
+	return NewReal(newfloat), true
 }
 
 func RationalToFlt(r *Rational) (*Flt, bool) {
 	newfloat := big.NewFloat(0)
 	newfloat.SetRat(r.AsBigRat())
-	return &Flt{newfloat}, true
+	return NewReal(newfloat), true
 }
 
 func (this *Flt) NeedsEval() bool {
@@ -99,4 +99,8 @@ func (this *Flt) MulR(r *Rational) {
 
 func (this *Flt) MulF(f *Flt) {
 	this.Val.Mul(this.Val, f.Val)
+}
+
+func NewReal(v *big.Float) *Flt {
+	return &Flt{v}
 }

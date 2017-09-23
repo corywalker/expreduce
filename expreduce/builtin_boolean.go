@@ -7,19 +7,19 @@ func GetBooleanDefinitions() (defs []Definition) {
 			return ToStringInfix(this.Parts[1:], " && ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			res := NewExpression([]Ex{&Symbol{"System`And"}})
+			res := NewExpression([]Ex{NewSymbol("System`And")})
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
 				if booleanQ(this.Parts[i], &es.CASLogger) {
 					if falseQ(this.Parts[i], &es.CASLogger) {
-						return &Symbol{"System`False"}
+						return NewSymbol("System`False")
 					}
 				} else {
 					res.appendEx(this.Parts[i])
 				}
 			}
 			if len(res.Parts) == 1 {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
 			if len(res.Parts) == 2 {
 				return res.Parts[1]
@@ -33,19 +33,19 @@ func GetBooleanDefinitions() (defs []Definition) {
 			return ToStringInfix(this.Parts[1:], " || ", form, context, contextPath)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			res := NewExpression([]Ex{&Symbol{"System`Or"}})
+			res := NewExpression([]Ex{NewSymbol("System`Or")})
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
 				if booleanQ(this.Parts[i], &es.CASLogger) {
 					if trueQ(this.Parts[i], &es.CASLogger) {
-						return &Symbol{"System`True"}
+						return NewSymbol("System`True")
 					}
 				} else {
 					res.appendEx(this.Parts[i])
 				}
 			}
 			if len(res.Parts) == 1 {
-				return &Symbol{"System`False"}
+				return NewSymbol("System`False")
 			}
 			if len(res.Parts) == 2 {
 				return res.Parts[1]
@@ -60,10 +60,10 @@ func GetBooleanDefinitions() (defs []Definition) {
 				return this
 			}
 			if trueQ(this.Parts[1], &es.CASLogger) {
-				return &Symbol{"System`False"}
+				return NewSymbol("System`False")
 			}
 			if falseQ(this.Parts[1], &es.CASLogger) {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
 			return this
 		},

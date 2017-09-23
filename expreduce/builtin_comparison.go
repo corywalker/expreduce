@@ -70,9 +70,9 @@ func getComparisonDefinitions() (defs []Definition) {
 				isequal = isequal && (equalstr == "EQUAL_TRUE")
 			}
 			if isequal {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
-			return &Symbol{"System`False"}
+			return NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -89,12 +89,12 @@ func getComparisonDefinitions() (defs []Definition) {
 			if isequal == "EQUAL_UNK" {
 				return this
 			} else if isequal == "EQUAL_TRUE" {
-				return &Symbol{"System`False"}
+				return NewSymbol("System`False")
 			} else if isequal == "EQUAL_FALSE" {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
 
-			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected equality return value."}})
+			return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Unexpected equality return value.")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -112,9 +112,9 @@ func getComparisonDefinitions() (defs []Definition) {
 				issame = issame && IsSameQ(this.Parts[1], this.Parts[i], &es.CASLogger)
 			}
 			if issame {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			} else {
-				return &Symbol{"System`False"}
+				return NewSymbol("System`False")
 			}
 		},
 	})
@@ -131,11 +131,11 @@ func getComparisonDefinitions() (defs []Definition) {
 			for i := 1; i < len(this.Parts); i++ {
 				for j := i + 1; j < len(this.Parts); j++ {
 					if IsSameQ(this.Parts[i], this.Parts[j], &es.CASLogger) {
-						return &Symbol{"System`False"}
+						return NewSymbol("System`False")
 					}
 				}
 			}
-			return &Symbol{"System`True"}
+			return NewSymbol("System`True")
 		},
 	})
 	defs = append(defs, Definition{
@@ -147,13 +147,13 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			_, IsExpr := this.Parts[1].(*Expression)
 			if IsExpr {
-				return &Symbol{"System`False"}
+				return NewSymbol("System`False")
 			}
-			return &Symbol{"System`True"}
+			return NewSymbol("System`True")
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "NumberQ",
+		Name:         "NumberQ",
 		legacyEvalFn: singleParamQEval(numberQ),
 	})
 	defs = append(defs, Definition{
@@ -169,8 +169,8 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			a := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[1]}).Eval(es)
-			b := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[2]}).Eval(es)
+			a := NewExpression([]Ex{NewSymbol("System`N"), this.Parts[1]}).Eval(es)
+			b := NewExpression([]Ex{NewSymbol("System`N"), this.Parts[2]}).Eval(es)
 
 			if !numberQ(a) || !numberQ(b) {
 				return this
@@ -178,9 +178,9 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			// Less
 			if ExOrder(a, b) == 1 {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
-			return &Symbol{"System`False"}
+			return NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -193,17 +193,17 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			a := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[1]}).Eval(es)
-			b := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[2]}).Eval(es)
+			a := NewExpression([]Ex{NewSymbol("System`N"), this.Parts[1]}).Eval(es)
+			b := NewExpression([]Ex{NewSymbol("System`N"), this.Parts[2]}).Eval(es)
 
 			if !numberQ(a) || !numberQ(b) {
 				return this
 			}
 			// Greater
 			if ExOrder(a, b) == -1 {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
-			return &Symbol{"System`False"}
+			return NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -216,21 +216,21 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			a := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[1]}).Eval(es)
-			b := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[2]}).Eval(es)
+			a := NewExpression([]Ex{NewSymbol("System`N"), this.Parts[1]}).Eval(es)
+			b := NewExpression([]Ex{NewSymbol("System`N"), this.Parts[2]}).Eval(es)
 
 			if !numberQ(a) || !numberQ(b) {
 				return this
 			}
 			// Less
 			if ExOrder(a, b) == 1 {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
 			// Equal
 			if ExOrder(a, b) == 0 {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
-			return &Symbol{"System`False"}
+			return NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -243,21 +243,21 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			a := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[1]}).Eval(es)
-			b := NewExpression([]Ex{&Symbol{"System`N"}, this.Parts[2]}).Eval(es)
+			a := NewExpression([]Ex{NewSymbol("System`N"), this.Parts[1]}).Eval(es)
+			b := NewExpression([]Ex{NewSymbol("System`N"), this.Parts[2]}).Eval(es)
 
 			if !numberQ(a) || !numberQ(b) {
 				return this
 			}
 			// Greater
 			if ExOrder(a, b) == -1 {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
 			// Equal
 			if ExOrder(a, b) == 0 {
-				return &Symbol{"System`True"}
+				return NewSymbol("System`True")
 			}
-			return &Symbol{"System`False"}
+			return NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{

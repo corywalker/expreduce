@@ -50,23 +50,23 @@ func GetExpressionDefinitions() (defs []Definition) {
 
 			_, IsFlt := this.Parts[1].(*Flt)
 			if IsFlt {
-				return &Symbol{"System`Real"}
+				return NewSymbol("System`Real")
 			}
 			_, IsInteger := this.Parts[1].(*Integer)
 			if IsInteger {
-				return &Symbol{"System`Integer"}
+				return NewSymbol("System`Integer")
 			}
 			_, IsString := this.Parts[1].(*String)
 			if IsString {
-				return &Symbol{"System`String"}
+				return NewSymbol("System`String")
 			}
 			_, IsSymbol := this.Parts[1].(*Symbol)
 			if IsSymbol {
-				return &Symbol{"System`Symbol"}
+				return NewSymbol("System`Symbol")
 			}
 			_, IsRational := this.Parts[1].(*Rational)
 			if IsRational {
-				return &Symbol{"System`Rational"}
+				return NewSymbol("System`Rational")
 			}
 			asExpr, IsExpression := this.Parts[1].(*Expression)
 			if IsExpression {
@@ -81,7 +81,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			return &Integer{big.NewInt(int64(CalcDepth(this.Parts[1])))}
+			return NewInteger(big.NewInt(int64(CalcDepth(this.Parts[1]))))
 		},
 	})
 	defs = append(defs, Definition{
@@ -93,9 +93,9 @@ func GetExpressionDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.Parts[1].(*Expression)
 			if isExpr {
-				return &Integer{big.NewInt(int64(len(expr.Parts) - 1))}
+				return NewInteger(big.NewInt(int64(len(expr.Parts) - 1)))
 			}
-			return &Integer{big.NewInt(0)}
+			return NewInteger(big.NewInt(0))
 		},
 	})
 	defs = append(defs, Definition{

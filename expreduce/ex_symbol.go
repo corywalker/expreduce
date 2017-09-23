@@ -270,6 +270,10 @@ func ContainsSymbol(e Ex, name string) bool {
 	return false
 }
 
+func NewSymbol(name string) *Symbol {
+	return &Symbol{name}
+}
+
 func S(name string) Ex {
-	return &Symbol{"System`" + name}
+	return NewSymbol("System`" + name)
 }

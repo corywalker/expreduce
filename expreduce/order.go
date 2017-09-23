@@ -69,28 +69,28 @@ func ExOrder(a Ex, b Ex) int64 {
 		_, bIsTimes := HeadAssertion(bAsExp, "System`Times")
 		if !aIsTimes && bIsTimes {
 			return ExOrder(NewExpression([]Ex{
-				&Symbol{"System`Times"},
+				NewSymbol("System`Times"),
 				NewInt(1),
 				aAsExp,
 			}), b)
 		}
 		if aIsPow && !bIsPow {
 			return ExOrder(a, NewExpression([]Ex{
-				&Symbol{"System`Power"},
+				NewSymbol("System`Power"),
 				bAsExp,
 				NewInt(1),
 			}))
 		}
 		if !bIsTimes && aIsTimes {
 			return ExOrder(aAsExp, NewExpression([]Ex{
-				&Symbol{"System`Times"},
+				NewSymbol("System`Times"),
 				NewInt(1),
 				bAsExp,
 			}))
 		}
 		if !aIsPow && bIsPow {
 			return ExOrder(NewExpression([]Ex{
-				&Symbol{"System`Power"},
+				NewSymbol("System`Power"),
 				aAsExp,
 				NewInt(1),
 			}), b)
@@ -178,7 +178,7 @@ func ExOrder(a Ex, b Ex) int64 {
 		_, bIsPow := HeadAssertion(bAsExp, "System`Power")
 		if bIsPow {
 			return ExOrder(NewExpression([]Ex{
-				&Symbol{"System`Power"},
+				NewSymbol("System`Power"),
 				a,
 				NewInt(1),
 			}), b)
@@ -186,7 +186,7 @@ func ExOrder(a Ex, b Ex) int64 {
 		_, bIsTimes := HeadAssertion(bAsExp, "System`Times")
 		if bIsTimes {
 			return ExOrder(NewExpression([]Ex{
-				&Symbol{"System`Times"},
+				NewSymbol("System`Times"),
 				NewInt(1),
 				a,
 			}), b)
@@ -204,7 +204,7 @@ func ExOrder(a Ex, b Ex) int64 {
 		_, aIsPow := HeadAssertion(aAsExp, "System`Power")
 		if aIsPow {
 			return ExOrder(a, NewExpression([]Ex{
-				&Symbol{"System`Power"},
+				NewSymbol("System`Power"),
 				b,
 				NewInt(1),
 			}))
@@ -212,7 +212,7 @@ func ExOrder(a Ex, b Ex) int64 {
 		_, aIsTimes := HeadAssertion(aAsExp, "System`Times")
 		if aIsTimes {
 			return ExOrder(a, NewExpression([]Ex{
-				&Symbol{"System`Times"},
+				NewSymbol("System`Times"),
 				NewInt(1),
 				b,
 			}))

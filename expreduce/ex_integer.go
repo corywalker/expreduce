@@ -44,15 +44,19 @@ func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {
 func (this *Integer) DeepCopy() Ex {
 	tmp := big.NewInt(0)
 	tmp.Set(this.Val)
-	return &Integer{tmp}
+	return NewInteger(tmp)
 }
 
 func (this *Integer) NeedsEval() bool {
 	return false
 }
 
+func NewInteger(i *big.Int) *Integer {
+	return &Integer{i}
+}
+
 func NewInt(i int64) *Integer {
-	return &Integer{big.NewInt(i)}
+	return NewInteger(big.NewInt(i))
 }
 
 func (this *Integer) Hash() uint64 {

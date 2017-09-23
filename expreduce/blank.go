@@ -98,14 +98,14 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger
 
 func BlankNullSequenceToBlank(bns *Expression) *Expression {
 	if len(bns.Parts) < 2 {
-		return NewExpression([]Ex{&Symbol{"System`Blank"}})
+		return NewExpression([]Ex{NewSymbol("System`Blank")})
 	}
-	return NewExpression([]Ex{&Symbol{"System`Blank"}, bns.Parts[1]})
+	return NewExpression([]Ex{NewSymbol("System`Blank"), bns.Parts[1]})
 }
 
 func BlankSequenceToBlank(bs *Expression) *Expression {
 	if len(bs.Parts) < 2 {
-		return NewExpression([]Ex{&Symbol{"System`Blank"}})
+		return NewExpression([]Ex{NewSymbol("System`Blank")})
 	}
-	return NewExpression([]Ex{&Symbol{"System`Blank"}, bs.Parts[1]})
+	return NewExpression([]Ex{NewSymbol("System`Blank"), bs.Parts[1]})
 }

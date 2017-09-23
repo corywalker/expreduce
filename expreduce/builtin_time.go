@@ -11,7 +11,7 @@ func GetTimeDefinitions() (defs []Definition) {
 				return this
 			}
 
-			return &Integer{big.NewInt(time.Now().UTC().Unix())}
+			return NewInteger(big.NewInt(time.Now().UTC().Unix()))
 		},
 	})
 	return

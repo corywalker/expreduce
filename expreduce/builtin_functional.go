@@ -76,9 +76,9 @@ func getFunctionalDefinitions() (defs []Definition) {
 				values.Parts[1],
 			})
 
-			toReturn.Parts = append(toReturn.Parts, expr);
+			toReturn.Parts = append(toReturn.Parts, expr)
 
-			for i:= 2; i < len(values.Parts); i++ {
+			for i := 2; i < len(values.Parts); i++ {
 				expr = NewExpression([]Ex{
 					f,
 					expr,
@@ -110,10 +110,10 @@ func getFunctionalDefinitions() (defs []Definition) {
 				return this
 			}
 
-			toReturn := NewExpression([]Ex{&Symbol{"System`List"}, expr})
+			toReturn := NewExpression([]Ex{NewSymbol("System`List"), expr})
 
 			for i := int64(1); i <= n; i++ {
-				expr = NewExpression([]Ex {
+				expr = NewExpression([]Ex{
 					f,
 					expr,
 				})
@@ -146,7 +146,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 						return this
 					}
 				} else if isSymbol {
-					if mSymbol.IsEqual(&Symbol{"System`All"}, &es.CASLogger) == "EQUAL_TRUE" {
+					if mSymbol.IsEqual(NewSymbol("System`All"), &es.CASLogger) == "EQUAL_TRUE" {
 						m = -1
 					} else {
 						return this
@@ -157,7 +157,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 			}
 
 			max := int64(-1)
-			if len(this.Parts) > 5  {
+			if len(this.Parts) > 5 {
 				maxInt, isInteger := this.Parts[5].(*Integer)
 				maxSymbol, isSymbol := this.Parts[5].(*Symbol)
 				if isInteger {
@@ -166,7 +166,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 						return this
 					}
 				} else if isSymbol {
-					if maxSymbol.IsEqual(&Symbol{"System`Infinity"}, &es.CASLogger) == "EQUAL_TRUE" {
+					if maxSymbol.IsEqual(NewSymbol("System`Infinity"), &es.CASLogger) == "EQUAL_TRUE" {
 						max = -1
 					} else {
 						return this
@@ -185,12 +185,12 @@ func getFunctionalDefinitions() (defs []Definition) {
 			}
 
 			evaluated := []Ex{expr.DeepCopy().Eval(es)}
-			toReturn := NewExpression([]Ex{&Symbol{"System`List"}, expr})
+			toReturn := NewExpression([]Ex{NewSymbol("System`List"), expr})
 
 			isequal := "EQUAL_TRUE"
 			cont := isequal == "EQUAL_TRUE"
 			for i := int64(2); cont; i++ {
-				expr = NewExpression([]Ex {
+				expr = NewExpression([]Ex{
 					f,
 					expr,
 				})
@@ -198,13 +198,13 @@ func getFunctionalDefinitions() (defs []Definition) {
 				evaluated = append(evaluated, expr.DeepCopy().Eval(es)) // Could use a stack of length m
 
 				if i >= m {
-					testExpression := NewExpression([]Ex {test})
+					testExpression := NewExpression([]Ex{test})
 					if m >= 0 {
 						testExpression.Parts = append(testExpression.Parts, evaluated[int64(len(evaluated))-m:]...)
 					} else {
 						testExpression.Parts = append(testExpression.Parts, evaluated...)
 					}
-					isequal = testExpression.Eval(es).IsEqual(&Symbol{"System`True"}, &es.CASLogger)
+					isequal = testExpression.Eval(es).IsEqual(NewSymbol("System`True"), &es.CASLogger)
 					cont = isequal == "EQUAL_TRUE"
 				}
 
@@ -215,7 +215,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 			if n > 0 {
 				for i := int64(0); i < n; i++ {
-					expr = NewExpression([]Ex {
+					expr = NewExpression([]Ex{
 						f,
 						expr,
 					})
@@ -241,11 +241,11 @@ func getFunctionalDefinitions() (defs []Definition) {
 			nInt, nOk := this.Parts[2].(*Integer)
 			if nOk {
 				n := nInt.Val.Int64()
-				toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
+				toReturn := NewExpression([]Ex{NewSymbol("System`List")})
 				for i := int64(1); i <= n; i++ {
 					toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
 						this.Parts[1],
-						&Integer{big.NewInt(i)},
+						NewInteger(big.NewInt(i)),
 					}))
 				}
 				return toReturn

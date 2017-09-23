@@ -30,11 +30,11 @@ func dimensions(ex *Expression, level int, cl *CASLogger) []int64 {
 
 func intSliceToList(ints []int64) Ex {
 	toReturn := NewExpression([]Ex{
-		&Symbol{"System`List"},
+		NewSymbol("System`List"),
 	})
 
 	for _, i := range ints {
-		toReturn.Parts = append(toReturn.Parts, &Integer{big.NewInt(i)})
+		toReturn.Parts = append(toReturn.Parts, NewInteger(big.NewInt(i)))
 	}
 	return toReturn
 }
@@ -46,9 +46,9 @@ func (mat *Expression) matrix2dGetElem(i, j int64) Ex {
 }
 
 func calcIJ(i, j, innerDim int64, a, b *Expression) Ex {
-	toReturn := NewExpression([]Ex{&Symbol{"System`Plus"}})
+	toReturn := NewExpression([]Ex{NewSymbol("System`Plus")})
 	for pairI := int64(1); pairI <= innerDim; pairI++ {
-		toAdd := NewExpression([]Ex{&Symbol{"System`Times"}})
+		toAdd := NewExpression([]Ex{NewSymbol("System`Times")})
 		toAdd.appendEx(a.matrix2dGetElem(i, pairI))
 		toAdd.appendEx(b.matrix2dGetElem(pairI, j))
 		toReturn.appendEx(toAdd)
@@ -69,7 +69,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 			}
 			expr, isExpr := this.Parts[1].(*Expression)
 			if !isExpr {
-				return NewExpression([]Ex{&Symbol{"System`List"}})
+				return NewExpression([]Ex{NewSymbol("System`List")})
 			}
 			return intSliceToList(dimensions(expr, 0, &es.CASLogger))
 		},
@@ -100,10 +100,10 @@ func GetMatrixDefinitions() (defs []Definition) {
 					return this
 				}
 				vecLen := len(aVector.Parts) - 1
-				toReturn := NewExpression([]Ex{&Symbol{"System`Plus"}})
+				toReturn := NewExpression([]Ex{NewSymbol("System`Plus")})
 				for i := 0; i < vecLen; i++ {
 					toReturn.appendEx(NewExpression([]Ex{
-						&Symbol{"System`Times"},
+						NewSymbol("System`Times"),
 						aVector.Parts[i+1],
 						bVector.Parts[i+1],
 					}))
@@ -125,9 +125,9 @@ func GetMatrixDefinitions() (defs []Definition) {
 				if aW != bH {
 					return this
 				}
-				toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
+				toReturn := NewExpression([]Ex{NewSymbol("System`List")})
 				for i := int64(1); i <= aH; i++ {
-					row := NewExpression([]Ex{&Symbol{"System`List"}})
+					row := NewExpression([]Ex{NewSymbol("System`List")})
 					for j := int64(1); j <= bW; j++ {
 						//row.appendEx(&Integer{big.NewInt(0)})
 						row.appendEx(calcIJ(i, j, aW, aEx, bEx))
@@ -154,9 +154,9 @@ func GetMatrixDefinitions() (defs []Definition) {
 				return this
 			}
 			h, w := dims[0], dims[1]
-			toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
+			toReturn := NewExpression([]Ex{NewSymbol("System`List")})
 			for tI := int64(1); tI <= w; tI++ {
-				tRow := NewExpression([]Ex{&Symbol{"System`List"}})
+				tRow := NewExpression([]Ex{NewSymbol("System`List")})
 				for tJ := int64(1); tJ <= h; tJ++ {
 					tRow.appendEx(l.matrix2dGetElem(tJ, tI))
 				}
