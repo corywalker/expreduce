@@ -8,6 +8,7 @@ import "hash/fnv"
 // Symbols are defined by a string-based name
 type Symbol struct {
 	Name string
+	cachedHash            uint64
 }
 
 func (this *Symbol) Eval(es *EvalState) Ex {
@@ -248,9 +249,13 @@ func (this *Symbol) NeedsEval() bool {
 }
 
 func (this *Symbol) Hash() uint64 {
+	if this.cachedHash > 0 {
+		return this.cachedHash
+	}
 	h := fnv.New64a()
 	h.Write([]byte{107, 10, 247, 23, 33, 221, 163, 156})
 	h.Write([]byte(this.Name))
+	this.cachedHash = h.Sum64()
 	return h.Sum64()
 }
 
@@ -271,7 +276,7 @@ func ContainsSymbol(e Ex, name string) bool {
 }
 
 func NewSymbol(name string) *Symbol {
-	return &Symbol{name}
+	return &Symbol{Name: name}
 }
 
 func S(name string) Ex {

@@ -35,6 +35,9 @@ func ExOrder(a Ex, b Ex) int64 {
 	bAsRational, bIsRational := b.(*Rational)
 
 	// Handle number comparisons
+	if aIsInteger && bIsInteger {
+		return int64(bAsInteger.Val.Cmp(aAsInteger.Val))
+	}
 	// Merge Integer and Rational into Flt
 	// TODO: possible precision, round off issue here.
 	if aIsInteger {

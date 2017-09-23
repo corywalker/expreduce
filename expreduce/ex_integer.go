@@ -7,6 +7,7 @@ import "hash/fnv"
 // Integer numbers represented by big.Int
 type Integer struct {
 	Val *big.Int
+	cachedHash            uint64
 }
 
 func (f *Integer) Eval(es *EvalState) Ex {
@@ -44,7 +45,7 @@ func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {
 func (this *Integer) DeepCopy() Ex {
 	tmp := big.NewInt(0)
 	tmp.Set(this.Val)
-	return NewInteger(tmp)
+	return &Integer{Val: tmp/*, cachedHash: this.cachedHash*/}
 }
 
 func (this *Integer) NeedsEval() bool {
@@ -52,7 +53,7 @@ func (this *Integer) NeedsEval() bool {
 }
 
 func NewInteger(i *big.Int) *Integer {
-	return &Integer{i}
+	return &Integer{Val: i}
 }
 
 func NewInt(i int64) *Integer {
@@ -60,10 +61,14 @@ func NewInt(i int64) *Integer {
 }
 
 func (this *Integer) Hash() uint64 {
+	if this.cachedHash > 0 {
+		return this.cachedHash
+	}
 	h := fnv.New64a()
 	h.Write([]byte{242, 99, 84, 113, 102, 46, 118, 94})
 	bytes, _ := this.Val.MarshalText()
 	h.Write(bytes)
+	this.cachedHash = h.Sum64()
 	return h.Sum64()
 }
 
