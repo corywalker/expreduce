@@ -40,25 +40,31 @@ func FlatReplace(e *Expression, lhs *Expression, rhs Ex, orderless bool, es *Eva
 	return e
 }
 
-func ReplacePDInternal(e Ex, pm *PDManager) Ex {
+func ReplacePDInternal(e Ex, pm *PDManager) (Ex, bool) {
 	asSym, isSym := e.(*Symbol)
 	if isSym {
 		for k, def := range pm.patternDefined {
 			if k == asSym.Name {
 				// Shouldn't need the copy
-				return def
+				return def, true
 			}
 		}
 	}
+	thisDirty := false
 	asExpr, isExpr := e.(*Expression)
 	if isExpr {
-		asExpr.evaledHash = 0
-		asExpr.cachedHash = 0
 		for i := range asExpr.Parts {
-			asExpr.Parts[i] = ReplacePDInternal(asExpr.Parts[i], pm)
+			possiblyNewExpr, dirty := ReplacePDInternal(asExpr.Parts[i], pm)
+			if dirty {
+				thisDirty = true
+				// Mark the expression as dirty and needing eval.
+				asExpr.evaledHash = 0
+				asExpr.cachedHash = 0
+			}
+			asExpr.Parts[i] = possiblyNewExpr
 		}
 	}
-	return e
+	return e, thisDirty
 }
 
 func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
@@ -78,7 +84,8 @@ func ReplacePD(this Ex, es *EvalState, pm *PDManager) Ex {
 
 	// Expressions are immutable. Any time we change an expression, we must
 	// first copy it.
-	return ReplacePDInternal(this.Copy(), pm)
+	res, _ := ReplacePDInternal(this.Copy(), pm)
+	return res
 }
 
 // The goal of this function is to replace all matching expressions with the

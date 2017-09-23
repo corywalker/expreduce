@@ -501,8 +501,8 @@ func (this *Expression) Hash() uint64 {
 	}
 	h := fnv.New64a()
 	h.Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
+	b := make([]byte, 8)
 	for _, part := range this.Parts {
-		b := make([]byte, 8)
 		binary.LittleEndian.PutUint64(b, part.Hash())
 		h.Write(b)
 	}
