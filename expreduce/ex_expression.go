@@ -74,16 +74,27 @@ func tryReturnValue(e Ex) (Ex, bool) {
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
 func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval bool) *Expression {
+	encounteredSeq := false
+	for _, e := range this.Parts {
+		if _, isseq := HeadAssertion(e, headStr); isseq {
+			encounteredSeq = true
+			break
+		}
+	}
+	// Only build a new expression if the expression actually has a sequence
+	// needing merging.
+	if !encounteredSeq {
+		return this
+	}
+
 	// TODO: I should not be attempting to merge the head if it happens to be
 	// a Sequence type. This is very similar to the flatten function. Perhaps
 	// it should be combined. This version is not recursive, and it does not
 	// accept level depths. It is a specific case of Flatten.
 	res := NewEmptyExpression()
-	encounteredSeq := false
 	for _, e := range this.Parts {
 		seq, isseq := HeadAssertion(e, headStr)
 		if isseq {
-			encounteredSeq = true
 			for _, seqPart := range seq.Parts[1:] {
 				if shouldEval {
 					res.Parts = append(res.Parts, seqPart.Eval(es))
@@ -95,10 +106,7 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 			res.Parts = append(res.Parts, e)
 		}
 	}
-	if encounteredSeq {
-		return res
-	}
-	return this
+	return res
 }
 
 func (this *Expression) Eval(es *EvalState) Ex {

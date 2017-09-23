@@ -180,6 +180,10 @@ func TestLowLevel(t *testing.T) {
 	es.ClearAll()
 	_, containsTest = es.defined["Global`iubjndxuier"]
 	assert.False(t, containsTest)
+
+	// Test raw recursion speed
+	EvalInterp("DownValues[fib]={HoldPattern[fib[0]]->0,HoldPattern[fib[1]]->1,HoldPattern[fib[x_]]:>fib[x-1]+fib[x-2]}", es)
+	EvalInterp("fib[25]", es)
 }
 
 func TestDeepCopy(t *testing.T) {
