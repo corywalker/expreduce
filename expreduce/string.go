@@ -2,8 +2,14 @@ package expreduce
 
 import "bytes"
 
-func ToStringInfix(parts []Ex, delim string, form string, context *String, contextPath *Expression) (bool, string) {
-	if form != "InputForm" && form != "OutputForm" {
+type ToStringParams struct {
+	form        string
+	context     *String
+	contextPath *Expression
+}
+
+func ToStringInfix(parts []Ex, delim string, p ToStringParams) (bool, string) {
+	if p.form != "InputForm" && p.form != "OutputForm" {
 		return false, ""
 	}
 	if len(parts) < 2 {
@@ -12,7 +18,7 @@ func ToStringInfix(parts []Ex, delim string, form string, context *String, conte
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
 	for i := 0; i < len(parts); i++ {
-		buffer.WriteString(parts[i].StringForm(form, context, contextPath))
+		buffer.WriteString(parts[i].StringForm(ToStringParams{p.form, p.context, p.contextPath}))
 		if i != len(parts)-1 {
 			buffer.WriteString(delim)
 		}
@@ -21,7 +27,7 @@ func ToStringInfix(parts []Ex, delim string, form string, context *String, conte
 	return true, buffer.String()
 }
 
-func (this *Expression) ToStringInfix(form string, context *String, contextPath *Expression) (bool, string) {
+func (this *Expression) ToStringInfix(p ToStringParams) (bool, string) {
 	if len(this.Parts) != 3 {
 		return false, ""
 	}
@@ -30,11 +36,11 @@ func (this *Expression) ToStringInfix(form string, context *String, contextPath 
 	if !isExpr || !delimIsStr {
 		return false, ""
 	}
-	return ToStringInfix(expr.Parts[1:], delim.Val, form, context, contextPath)
+	return ToStringInfix(expr.Parts[1:], delim.Val, p)
 }
 
-func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start string, end string, form string, context *String, contextPath *Expression) (bool, string) {
-	if form != "InputForm" && form != "OutputForm" {
+func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start string, end string, params ToStringParams) (bool, string) {
+	if params.form != "InputForm" && params.form != "OutputForm" {
 		return false, ""
 	}
 	if len(parts) < 2 {
@@ -47,10 +53,10 @@ func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start
 	for i := 0; i < len(parts); i++ {
 		if surroundEachArg {
 			buffer.WriteString("(")
-			buffer.WriteString(parts[i].StringForm(form, context, contextPath))
+			buffer.WriteString(parts[i].StringForm(params))
 			buffer.WriteString(")")
 		} else {
-			buffer.WriteString(parts[i].StringForm(form, context, contextPath))
+			buffer.WriteString(parts[i].StringForm(params))
 		}
 		if i != len(parts)-1 {
 			buffer.WriteString(delim)
@@ -81,4 +87,12 @@ func DefinitionComplexityStringFormArgs() (*String, *Expression) {
 
 func ActualStringFormArgs(es *EvalState) (*String, *Expression) {
 	return NewString(es.GetStringDef("System`$Context", "Global`")), es.GetListDef("System`$ContextPath")
+}
+
+func ActualStringFormArgsFull(form string, es *EvalState) ToStringParams {
+	return ToStringParams{
+		form,
+		NewString(es.GetStringDef("System`$Context", "Global`")),
+		es.GetListDef("System`$ContextPath"),
+	}
 }

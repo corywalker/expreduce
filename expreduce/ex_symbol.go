@@ -7,8 +7,8 @@ import "hash/fnv"
 
 // Symbols are defined by a string-based name
 type Symbol struct {
-	Name string
-	cachedHash            uint64
+	Name       string
+	cachedHash uint64
 }
 
 func (this *Symbol) Eval(es *EvalState) Ex {
@@ -34,14 +34,14 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Symbol) StringForm(form string, context *String, contextPath *Expression) string {
+func (this *Symbol) StringForm(params ToStringParams) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
-	if strings.HasPrefix(this.Name, context.Val) {
-		return fmt.Sprintf("%v", this.Name[len(context.Val):])
+	if strings.HasPrefix(this.Name, params.context.Val) {
+		return fmt.Sprintf("%v", this.Name[len(params.context.Val):])
 	}
-	for _, pathPart := range contextPath.Parts[1:] {
+	for _, pathPart := range params.contextPath.Parts[1:] {
 		path := pathPart.(*String).Val
 		if strings.HasPrefix(this.Name, path) {
 			return fmt.Sprintf("%v", this.Name[len(path):])
@@ -52,7 +52,7 @@ func (this *Symbol) StringForm(form string, context *String, contextPath *Expres
 
 func (this *Symbol) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{"InputForm", context, contextPath})
 }
 
 func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {

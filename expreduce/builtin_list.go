@@ -4,14 +4,14 @@ import "bytes"
 import "math/big"
 import "sort"
 
-func (this *Expression) ToStringList(form string, context *String, contextPath *Expression) (bool, string) {
-	if form == "FullForm" {
+func (this *Expression) ToStringList(params ToStringParams) (bool, string) {
+	if params.form == "FullForm" {
 		return false, ""
 	}
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range this.Parts[1:] {
-		buffer.WriteString(e.StringForm(form, context, contextPath))
+		buffer.WriteString(e.StringForm(params))
 		if i != len(this.Parts[1:])-1 {
 			buffer.WriteString(", ")
 		}

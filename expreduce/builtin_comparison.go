@@ -53,8 +53,8 @@ func extremaFunction(this *Expression, fnType extremaFnType, es *EvalState) Ex {
 func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Equal",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " == ", true, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " == ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 1 {
@@ -77,8 +77,8 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Unequal",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " != ", true, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " != ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -99,8 +99,8 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "SameQ",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " === ", true, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " === ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 1 {
@@ -120,8 +120,8 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "UnsameQ",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " =!= ", true, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " =!= ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 1 {
@@ -161,8 +161,8 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Less",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " < ", true, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " < ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -185,8 +185,8 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Greater",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " > ", true, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " > ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -208,8 +208,8 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "LessEqual",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " <= ", true, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " <= ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -235,8 +235,8 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "GreaterEqual",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " >= ", true, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], " >= ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

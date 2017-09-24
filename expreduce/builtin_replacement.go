@@ -79,11 +79,11 @@ func replaceParts(e Ex, rules []*Expression, part *Expression, es *EvalState) Ex
 func getReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceAll",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -119,11 +119,11 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReplaceRepeated",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -151,20 +151,20 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Rule",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "RuleDelayed",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{

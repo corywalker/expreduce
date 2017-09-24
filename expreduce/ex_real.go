@@ -14,7 +14,7 @@ func (f *Flt) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (f *Flt) StringForm(form string, context *String, contextPath *Expression) string {
+func (f *Flt) StringForm(params ToStringParams) string {
 	var buffer bytes.Buffer
 	buffer.WriteString(fmt.Sprintf("%.6g", f.Val))
 	if bytes.IndexRune(buffer.Bytes(), '.') == -1 {
@@ -25,7 +25,7 @@ func (f *Flt) StringForm(form string, context *String, contextPath *Expression) 
 
 func (this *Flt) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{"InputForm", context, contextPath})
 }
 
 func (this *Flt) IsEqual(other Ex, cl *CASLogger) string {

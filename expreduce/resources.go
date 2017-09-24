@@ -138,7 +138,7 @@ func resourcesArithmeticM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/arithmetic.m", size: 9505, mode: os.FileMode(420), modTime: time.Unix(1504586851, 0)}
+	info := bindataFileInfo{name: "resources/arithmetic.m", size: 9505, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -158,7 +158,7 @@ func resourcesAtomsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/atoms.m", size: 4585, mode: os.FileMode(420), modTime: time.Unix(1506286835, 0)}
+	info := bindataFileInfo{name: "resources/atoms.m", size: 4585, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -178,7 +178,7 @@ func resourcesBooleanM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/boolean.m", size: 3145, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/boolean.m", size: 3145, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -198,7 +198,7 @@ func resourcesCalculusM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/calculus.m", size: 4954, mode: os.FileMode(420), modTime: time.Unix(1506197713, 0)}
+	info := bindataFileInfo{name: "resources/calculus.m", size: 4954, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -218,7 +218,7 @@ func resourcesCombinatoricsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/combinatorics.m", size: 2893, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/combinatorics.m", size: 2893, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -238,7 +238,7 @@ func resourcesComparisonM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/comparison.m", size: 11830, mode: os.FileMode(420), modTime: time.Unix(1505889479, 0)}
+	info := bindataFileInfo{name: "resources/comparison.m", size: 11830, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -258,7 +258,7 @@ func resourcesExpressionM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/expression.m", size: 6226, mode: os.FileMode(420), modTime: time.Unix(1505965326, 0)}
+	info := bindataFileInfo{name: "resources/expression.m", size: 6226, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -278,7 +278,7 @@ func resourcesFlowcontrolM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/flowcontrol.m", size: 4181, mode: os.FileMode(420), modTime: time.Unix(1505695152, 0)}
+	info := bindataFileInfo{name: "resources/flowcontrol.m", size: 4181, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -298,7 +298,7 @@ func resourcesFunctionalM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/functional.m", size: 7951, mode: os.FileMode(420), modTime: time.Unix(1505695173, 0)}
+	info := bindataFileInfo{name: "resources/functional.m", size: 7951, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -318,7 +318,7 @@ func resourcesInitM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/init.m", size: 131, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/init.m", size: 131, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -338,7 +338,7 @@ func resourcesListM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/list.m", size: 14516, mode: os.FileMode(420), modTime: time.Unix(1505797462, 0)}
+	info := bindataFileInfo{name: "resources/list.m", size: 14516, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -358,7 +358,7 @@ func resourcesManipM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/manip.m", size: 9421, mode: os.FileMode(420), modTime: time.Unix(1505695152, 0)}
+	info := bindataFileInfo{name: "resources/manip.m", size: 9421, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -378,7 +378,7 @@ func resourcesMatrixM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/matrix.m", size: 5151, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/matrix.m", size: 5151, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -398,7 +398,7 @@ func resourcesNumbertheoryM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/numbertheory.m", size: 5128, mode: os.FileMode(420), modTime: time.Unix(1506286835, 0)}
+	info := bindataFileInfo{name: "resources/numbertheory.m", size: 5128, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -418,7 +418,7 @@ func resourcesPatternM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/pattern.m", size: 30576, mode: os.FileMode(420), modTime: time.Unix(1505695152, 0)}
+	info := bindataFileInfo{name: "resources/pattern.m", size: 30576, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -438,7 +438,7 @@ func resourcesPowerM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/power.m", size: 31429, mode: os.FileMode(420), modTime: time.Unix(1506051831, 0)}
+	info := bindataFileInfo{name: "resources/power.m", size: 31429, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -458,7 +458,7 @@ func resourcesRandomM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/random.m", size: 1423, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/random.m", size: 1423, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -478,7 +478,7 @@ func resourcesReplacementM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/replacement.m", size: 13127, mode: os.FileMode(420), modTime: time.Unix(1505802261, 0)}
+	info := bindataFileInfo{name: "resources/replacement.m", size: 13127, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -498,7 +498,7 @@ func resourcesRubi111LinearBinomialProductsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/1.1.1 Linear binomial products.m", size: 46064, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/1.1.1 Linear binomial products.m", size: 46064, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -518,7 +518,7 @@ func resourcesRubi113GeneralBinomialProductsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/1.1.3 General binomial products.m", size: 109124, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/1.1.3 General binomial products.m", size: 109124, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -538,7 +538,7 @@ func resourcesRubi114ImproperBinomialProductsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/1.1.4 Improper binomial products.m", size: 27222, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/1.1.4 Improper binomial products.m", size: 27222, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -558,7 +558,7 @@ func resourcesRubi121QuadraticTrinomialProductsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/1.2.1 Quadratic trinomial products.m", size: 164316, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/1.2.1 Quadratic trinomial products.m", size: 164316, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -578,7 +578,7 @@ func resourcesRubi122QuarticTrinomialProductsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/1.2.2 Quartic trinomial products.m", size: 70871, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/1.2.2 Quartic trinomial products.m", size: 70871, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -598,7 +598,7 @@ func resourcesRubi123GeneralTrinomialProductsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/1.2.3 General trinomial products.m", size: 113715, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/1.2.3 General trinomial products.m", size: 113715, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -618,7 +618,7 @@ func resourcesRubi124ImproperTrinomialProductsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/1.2.4 Improper trinomial products.m", size: 23186, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/1.2.4 Improper trinomial products.m", size: 23186, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -638,7 +638,7 @@ func resourcesRubi13MiscellaneousAlgebraicFunctionsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/1.3 Miscellaneous algebraic functions.m", size: 48838, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/1.3 Miscellaneous algebraic functions.m", size: 48838, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -658,7 +658,7 @@ func resourcesRubi2ExponentialsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/2 Exponentials.m", size: 25996, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/2 Exponentials.m", size: 25996, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -678,7 +678,7 @@ func resourcesRubi3LogarithmsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/3 Logarithms.m", size: 40591, mode: os.FileMode(420), modTime: time.Unix(1506057259, 0)}
+	info := bindataFileInfo{name: "resources/rubi/3 Logarithms.m", size: 40591, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -698,7 +698,7 @@ func resourcesRubi41SineM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/4.1 Sine.m", size: 256921, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/4.1 Sine.m", size: 256921, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -718,7 +718,7 @@ func resourcesRubi42TangentM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/4.2 Tangent.m", size: 88026, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/4.2 Tangent.m", size: 88026, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -738,7 +738,7 @@ func resourcesRubi43SecantM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/4.3 Secant.m", size: 126418, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/4.3 Secant.m", size: 126418, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -758,7 +758,7 @@ func resourcesRubi44MiscellaneousTrigFunctionsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/4.4 Miscellaneous trig functions.m", size: 93867, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/4.4 Miscellaneous trig functions.m", size: 93867, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -778,7 +778,7 @@ func resourcesRubi5InverseTrigFunctionsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/5 Inverse trig functions.m", size: 171111, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/5 Inverse trig functions.m", size: 171111, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -798,7 +798,7 @@ func resourcesRubi6HyperbolicFunctionsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/6 Hyperbolic functions.m", size: 79761, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/6 Hyperbolic functions.m", size: 79761, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -818,7 +818,7 @@ func resourcesRubi7InverseHyperbolicFunctionsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/7 Inverse hyperbolic functions.m", size: 190961, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/7 Inverse hyperbolic functions.m", size: 190961, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -838,7 +838,7 @@ func resourcesRubi8SpecialFunctionsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/8 Special functions.m", size: 41486, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/8 Special functions.m", size: 41486, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -858,7 +858,7 @@ func resourcesRubi91IntegrandSimplificationRulesM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/9.1 Integrand simplification rules.m", size: 9280, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/9.1 Integrand simplification rules.m", size: 9280, mode: os.FileMode(420), modTime: time.Unix(1506290061, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -878,7 +878,7 @@ func resourcesRubi92DerivativeIntegrationRulesM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/9.2 Derivative integration rules.m", size: 7068, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/9.2 Derivative integration rules.m", size: 7068, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -898,7 +898,7 @@ func resourcesRubi93PiecewiseLinearFunctionsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/9.3 Piecewise linear functions.m", size: 6540, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/9.3 Piecewise linear functions.m", size: 6540, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -918,7 +918,7 @@ func resourcesRubi94MiscellaneousIntegrationRulesM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/9.4 Miscellaneous integration rules.m", size: 20709, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/9.4 Miscellaneous integration rules.m", size: 20709, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -938,7 +938,7 @@ func resourcesRubiIntegrationUtilityFunctionsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/Integration Utility Functions.m", size: 248202, mode: os.FileMode(420), modTime: time.Unix(1506063921, 0)}
+	info := bindataFileInfo{name: "resources/rubi/Integration Utility Functions.m", size: 248202, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -958,7 +958,7 @@ func resourcesRubiMakerubimxfileM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/MakeRubiMxFile.m", size: 1841, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/MakeRubiMxFile.m", size: 1841, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -978,7 +978,7 @@ func resourcesRubiReadme() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/README", size: 418, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/README", size: 418, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -998,7 +998,7 @@ func resourcesRubiRubiM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/Rubi.m", size: 2966, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/Rubi.m", size: 2966, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1018,7 +1018,7 @@ func resourcesRubiRubi412Nb() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/Rubi4.12.nb", size: 19207, mode: os.FileMode(420), modTime: time.Unix(1505710217, 0)}
+	info := bindataFileInfo{name: "resources/rubi/Rubi4.12.nb", size: 19207, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1038,7 +1038,7 @@ func resourcesRubiShowstepRoutinesM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi/ShowStep Routines.m", size: 12146, mode: os.FileMode(420), modTime: time.Unix(1505704879, 0)}
+	info := bindataFileInfo{name: "resources/rubi/ShowStep Routines.m", size: 12146, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1058,7 +1058,7 @@ func resourcesRubiM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi.m", size: 1096, mode: os.FileMode(420), modTime: time.Unix(1506064160, 0)}
+	info := bindataFileInfo{name: "resources/rubi.m", size: 1096, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1078,7 +1078,7 @@ func resourcesRubi_loaderM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/rubi_loader.m", size: 3725, mode: os.FileMode(420), modTime: time.Unix(1506061917, 0)}
+	info := bindataFileInfo{name: "resources/rubi_loader.m", size: 3725, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1098,7 +1098,7 @@ func resourcesSimplifyM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/simplify.m", size: 4293, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/simplify.m", size: 4293, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1118,7 +1118,7 @@ func resourcesSolveM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/solve.m", size: 1474, mode: os.FileMode(420), modTime: time.Unix(1505695152, 0)}
+	info := bindataFileInfo{name: "resources/solve.m", size: 1474, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1138,7 +1138,7 @@ func resourcesSortM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/sort.m", size: 6981, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/sort.m", size: 6981, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1158,7 +1158,7 @@ func resourcesSpecialsymsM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/specialsyms.m", size: 2161, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/specialsyms.m", size: 2161, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1178,7 +1178,7 @@ func resourcesStringM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/string.m", size: 2510, mode: os.FileMode(420), modTime: time.Unix(1501639575, 0)}
+	info := bindataFileInfo{name: "resources/string.m", size: 2510, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1198,7 +1198,7 @@ func resourcesSystemM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/system.m", size: 13408, mode: os.FileMode(420), modTime: time.Unix(1506058071, 0)}
+	info := bindataFileInfo{name: "resources/system.m", size: 13408, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1218,7 +1218,7 @@ func resourcesTimeM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/time.m", size: 409, mode: os.FileMode(420), modTime: time.Unix(1501042154, 0)}
+	info := bindataFileInfo{name: "resources/time.m", size: 409, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
@@ -1238,7 +1238,7 @@ func resourcesTrigM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/trig.m", size: 986, mode: os.FileMode(420), modTime: time.Unix(1506063623, 0)}
+	info := bindataFileInfo{name: "resources/trig.m", size: 986, mode: os.FileMode(420), modTime: time.Unix(1506290062, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }

@@ -20,13 +20,13 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			context, contextPath := ActualStringFormArgs(es)
-			return NewString(this.Parts[1].StringForm(formAsSymbol.Name[7:], context, contextPath))
+			return NewString(this.Parts[1].StringForm(ToStringParams{formAsSymbol.Name[7:], context, contextPath}))
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "StringJoin",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " <> ", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " <> ", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			toReturn := ""

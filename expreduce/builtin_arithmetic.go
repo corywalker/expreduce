@@ -222,8 +222,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Plus",
 		Default: "0",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " + ", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " + ", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values
@@ -267,8 +267,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Times",
 		Default: "1",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " * ", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " * ", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values

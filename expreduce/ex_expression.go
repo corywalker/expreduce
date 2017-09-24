@@ -380,7 +380,7 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalSta
 	return this
 }
 
-func (this *Expression) StringForm(form string, context *String, contextPath *Expression) string {
+func (this *Expression) StringForm(params ToStringParams) string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm {
@@ -388,7 +388,7 @@ func (this *Expression) StringForm(form string, context *String, contextPath *Ex
 		headStr := headAsSym.Name
 		toStringFn, hasToStringFn := toStringFns[headStr]
 		if hasToStringFn {
-			ok, res = toStringFn(this, form, context, contextPath)
+			ok, res = toStringFn(this, params)
 		}
 		if ok {
 			return res
@@ -397,13 +397,13 @@ func (this *Expression) StringForm(form string, context *String, contextPath *Ex
 
 	// Default printing format
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Parts[0].StringForm(form, context, contextPath))
+	buffer.WriteString(this.Parts[0].StringForm(params))
 	buffer.WriteString("[")
 	for i, e := range this.Parts {
 		if i == 0 {
 			continue
 		}
-		buffer.WriteString(e.StringForm(form, context, contextPath))
+		buffer.WriteString(e.StringForm(params))
 		if i != len(this.Parts)-1 {
 			buffer.WriteString(", ")
 		}
@@ -414,7 +414,7 @@ func (this *Expression) StringForm(form string, context *String, contextPath *Ex
 
 func (this *Expression) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{"InputForm", context, contextPath})
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {

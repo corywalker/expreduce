@@ -53,13 +53,13 @@ func (this *Rational) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Rational) StringForm(form string, context *String, contextPath *Expression) string {
+func (this *Rational) StringForm(params ToStringParams) string {
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)
 }
 
 func (this *Rational) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{"InputForm", context, contextPath})
 }
 
 func (this *Rational) IsEqual(other Ex, cl *CASLogger) string {

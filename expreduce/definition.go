@@ -45,11 +45,11 @@ func (this *Def) String() string {
 	return buffer.String()
 }
 
-func (def *Def) StringForm(form string, context *String, contextPath *Expression) string {
+func (def *Def) StringForm(params ToStringParams) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, dv := range def.downvalues {
-		buffer.WriteString(dv.rule.StringForm(form, context, contextPath))
+		buffer.WriteString(dv.rule.StringForm(params))
 		if i != len(def.downvalues)-1 {
 			buffer.WriteString("\n")
 		}

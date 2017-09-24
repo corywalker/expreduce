@@ -2,8 +2,8 @@ package expreduce
 
 import "bytes"
 
-func ToStringBlankType(repr string, parts []Ex, form string, context *String, contextPath *Expression) (bool, string) {
-	if form == "FullForm" {
+func ToStringBlankType(repr string, parts []Ex, params ToStringParams) (bool, string) {
+	if params.form == "FullForm" {
 		return false, ""
 	}
 	if len(parts) == 1 {
@@ -34,11 +34,11 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Pattern",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			if form != "InputForm" && form != "OutputForm" {
+			if params.form != "InputForm" && params.form != "OutputForm" {
 				return false, ""
 			}
 			var buffer bytes.Buffer
@@ -46,13 +46,13 @@ func GetPatternDefinitions() (defs []Definition) {
 			_, bsOk := HeadAssertion(this.Parts[2], "System`BlankSequence")
 			_, bnsOk := HeadAssertion(this.Parts[2], "System`BlankNullSequence")
 			if blankOk || bsOk || bnsOk {
-				buffer.WriteString(this.Parts[1].StringForm(form, context, contextPath))
-				buffer.WriteString(this.Parts[2].StringForm(form, context, contextPath))
+				buffer.WriteString(this.Parts[1].StringForm(params))
+				buffer.WriteString(this.Parts[2].StringForm(params))
 			} else {
 				buffer.WriteString("(")
-				buffer.WriteString(this.Parts[1].StringForm(form, context, contextPath))
+				buffer.WriteString(this.Parts[1].StringForm(params))
 				buffer.WriteString(") : (")
-				buffer.WriteString(this.Parts[2].StringForm(form, context, contextPath))
+				buffer.WriteString(this.Parts[2].StringForm(params))
 				buffer.WriteString(")")
 			}
 			return true, buffer.String()
@@ -60,20 +60,20 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Blank",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringBlankType("_", this.Parts, form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringBlankType("_", this.Parts, params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankSequence",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringBlankType("__", this.Parts, form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringBlankType("__", this.Parts, params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankNullSequence",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringBlankType("___", this.Parts, form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringBlankType("___", this.Parts, params)
 		},
 	})
 	defs = append(defs, Definition{
@@ -117,15 +117,15 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Repeated"})
 	defs = append(defs, Definition{
 		Name: "Optional",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}
-			if form != "InputForm" && form != "OutputForm" {
+			if params.form != "InputForm" && params.form != "OutputForm" {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			buffer.WriteString(this.Parts[1].StringForm(form, context, contextPath))
+			buffer.WriteString(this.Parts[1].StringForm(params))
 			buffer.WriteString(".")
 			return true, buffer.String()
 		},

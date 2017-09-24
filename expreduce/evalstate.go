@@ -3,9 +3,9 @@ package expreduce
 import (
 	"bytes"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
-	"log"
 	"sort"
 	"strings"
 	"time"
@@ -354,7 +354,7 @@ func ruleSpecificity(lhs Ex, rhs Ex, name string) int {
 	// "complexity" score, order then matters. TODO: Create better measure of
 	// complexity (or specificity)
 	context, contextPath := DefinitionComplexityStringFormArgs()
-	specificity := len(lhs.StringForm("InputForm", context, contextPath))
+	specificity := len(lhs.StringForm(ToStringParams{"InputForm", context, contextPath}))
 	if _, rhsIsCond := HeadAssertion(rhs, "System`Condition"); rhsIsCond {
 		// Condition rules will be ranked in order of definition, not
 		// specificity. I'm not entirely sure if this is correct, but it seems

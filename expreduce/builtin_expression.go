@@ -109,14 +109,14 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "HoldForm",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}
-			if form == "FullForm" {
+			if params.form == "FullForm" {
 				return false, ""
 			}
-			return true, this.Parts[1].StringForm(form, context, contextPath)
+			return true, this.Parts[1].StringForm(params)
 		},
 	})
 	defs = append(defs, Definition{

@@ -81,13 +81,13 @@ func CasTestInner(es *EvalState, inTree Ex, outTree Ex, inStr string, test bool,
 	context, contextPath := DefinitionComplexityStringFormArgs()
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(inTree.StringForm("InputForm", context, contextPath))
+	buffer.WriteString(inTree.StringForm(ToStringParams{"InputForm", context, contextPath}))
 	if test {
 		buffer.WriteString(") != (")
 	} else {
 		buffer.WriteString(") == (")
 	}
-	buffer.WriteString(outTree.StringForm("InputForm", context, contextPath))
+	buffer.WriteString(outTree.StringForm(ToStringParams{"InputForm", context, contextPath}))
 	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
 	buffer.WriteString(inStr)

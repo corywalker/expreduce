@@ -6,21 +6,21 @@ import "hash/fnv"
 
 // Integer numbers represented by big.Int
 type Integer struct {
-	Val *big.Int
-	cachedHash            uint64
+	Val        *big.Int
+	cachedHash uint64
 }
 
 func (f *Integer) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (f *Integer) StringForm(form string, context *String, contextPath *Expression) string {
+func (f *Integer) StringForm(params ToStringParams) string {
 	return fmt.Sprintf("%d", f.Val)
 }
 
 func (this *Integer) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{"InputForm", context, contextPath})
 }
 
 func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {
