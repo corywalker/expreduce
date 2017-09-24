@@ -60,7 +60,10 @@ func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
 	return nil, nil, false
 }
 
-func tryReturnValue(e Ex) (Ex, bool) {
+func tryReturnValue(e Ex, es *EvalState) (Ex, bool) {
+	if es.interrupted {
+		return NewSymbol("System`$Aborted"), true
+	}
 	asReturn, isReturn := HeadAssertion(e, "System`Return")
 	if !isReturn {
 		return nil, false
@@ -129,7 +132,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 
 		if isExpr && insideDefinition {
-			retVal, isReturn := tryReturnValue(curr)
+			retVal, isReturn := tryReturnValue(curr, es)
 			if isReturn {
 				return retVal
 			}

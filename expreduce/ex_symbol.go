@@ -25,7 +25,7 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 			}
 		}
 		toReturn = toReturn.Eval(es)
-		retVal, isReturn := tryReturnValue(toReturn)
+		retVal, isReturn := tryReturnValue(toReturn, es)
 		if isReturn {
 			return retVal
 		}

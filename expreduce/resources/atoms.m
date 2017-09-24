@@ -99,9 +99,10 @@ Tests`IntegerQ = {
 Im[x_Integer]  := 0;
 Im[x_Real]     := 0;
 Im[x_Rational] := 0;
-Im[x_] := Print["Call to Im not implemented!"];
+Im[a_Integer * x_Integer?Positive^y_Rational] := 0;
+Im[x_] := Print["Call to Im not implemented!", x];
 
 Re[x_Integer]  := x;
 Re[x_Real]     := x;
 Re[x_Rational] := x;
-Re[x_] := Print["Call to Re not implemented!"];
+Re[x_] := Print["Call to Re not implemented!", x];

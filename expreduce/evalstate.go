@@ -3,6 +3,8 @@ package expreduce
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"os/signal"
 	"log"
 	"sort"
 	"strings"
@@ -21,6 +23,7 @@ type EvalState struct {
 	timeCounter TimeCounterGroup
 	freeze      bool
 	thrown      *Expression
+	interrupted bool
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -202,6 +205,14 @@ func NewEvalState() *EvalState {
 
 	es.SetUpLogging()
 	es.DebugOff()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt)
+	go func() {
+		for _ = range signalChan {
+			es.interrupted = true
+		}
+	}()
 
 	return &es
 }
@@ -558,6 +569,7 @@ func (es *EvalState) ProcessTopLevelResult(e Ex) Ex {
 		es.Throw(nil)
 		return toReturn
 	}
+	es.interrupted = false
 	return e
 }
 
