@@ -60,7 +60,13 @@ func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
 	return nil, nil, false
 }
 
-func tryReturnValue(e Ex) (Ex, bool) {
+func tryReturnValue(e Ex, origEx Ex, es *EvalState) (Ex, bool) {
+	if es.interrupted {
+		if origEx != nil {
+			fmt.Println(origEx)
+		}
+		return NewSymbol("System`$Aborted"), true
+	}
 	asReturn, isReturn := HeadAssertion(e, "System`Return")
 	if !isReturn {
 		return nil, false
@@ -68,22 +74,33 @@ func tryReturnValue(e Ex) (Ex, bool) {
 	if len(asReturn.Parts) >= 2 {
 		return asReturn.Parts[1], true
 	}
-	return &Symbol{"System`Null"}, true
+	return NewSymbol("System`Null"), true
 }
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
 func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval bool) *Expression {
+	encounteredSeq := false
+	for _, e := range this.Parts {
+		if _, isseq := HeadAssertion(e, headStr); isseq {
+			encounteredSeq = true
+			break
+		}
+	}
+	// Only build a new expression if the expression actually has a sequence
+	// needing merging.
+	if !encounteredSeq {
+		return this
+	}
+
 	// TODO: I should not be attempting to merge the head if it happens to be
 	// a Sequence type. This is very similar to the flatten function. Perhaps
 	// it should be combined. This version is not recursive, and it does not
 	// accept level depths. It is a specific case of Flatten.
 	res := NewEmptyExpression()
-	encounteredSeq := false
 	for _, e := range this.Parts {
 		seq, isseq := HeadAssertion(e, headStr)
 		if isseq {
-			encounteredSeq = true
 			for _, seqPart := range seq.Parts[1:] {
 				if shouldEval {
 					res.Parts = append(res.Parts, seqPart.Eval(es))
@@ -95,13 +112,12 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 			res.Parts = append(res.Parts, e)
 		}
 	}
-	if encounteredSeq {
-		return res
-	}
-	return this
+	return res
 }
 
 func (this *Expression) Eval(es *EvalState) Ex {
+	var origEx Ex = this
+
 	lastExHash := uint64(0)
 	var lastEx Ex = this
 	currExHash := hashEx(this)
@@ -121,7 +137,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 
 		if isExpr && insideDefinition {
-			retVal, isReturn := tryReturnValue(curr)
+			retVal, isReturn := tryReturnValue(curr, origEx, es)
 			if isReturn {
 				return retVal
 			}
@@ -139,7 +155,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			// Handle tracing
 			if es.trace != nil && !es.IsFrozen() {
 				toAppend := NewExpression([]Ex{
-					&Symbol{"System`HoldForm"},
+					NewSymbol("System`HoldForm"),
 					toReturn.DeepCopy(),
 				})
 
@@ -177,14 +193,14 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			if headIsSym && i > 1 && attrs.HoldRest {
 				continue
 			}
-			if headIsSym && attrs.HoldAll {
+			if headIsSym && (attrs.HoldAll || attrs.HoldAllComplete) {
 				continue
 			}
 
 			// Handle tracing
 			traceBak := es.trace
 			if es.trace != nil && !es.IsFrozen() {
-				es.trace = NewExpression([]Ex{&Symbol{"System`List"}})
+				es.trace = NewExpression([]Ex{NewSymbol("System`List")})
 			}
 			oldHash := curr.Parts[i].Hash()
 			curr.Parts[i] = curr.Parts[i].Eval(es)
@@ -208,7 +224,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// Handle tracing
 		if es.trace != nil && !es.IsFrozen() {
 			toAppend := NewExpression([]Ex{
-				&Symbol{"System`HoldForm"},
+				NewSymbol("System`HoldForm"),
 				currEx.DeepCopy(),
 			})
 
@@ -223,13 +239,16 @@ func (this *Expression) Eval(es *EvalState) Ex {
 
 		// If any of the parts are Sequence, merge them with parts
 		if headIsSym {
-			if !attrs.SequenceHold {
+			if !attrs.SequenceHold && !attrs.HoldAllComplete {
 				curr = curr.mergeSequences(es, "System`Sequence", false)
 			}
 		} else {
 			curr = curr.mergeSequences(es, "System`Sequence", false)
 		}
-		curr = curr.mergeSequences(es, "System`Evaluate", true)
+		if !attrs.HoldAllComplete {
+			curr = curr.mergeSequences(es, "System`Evaluate", true)
+		}
+		curr = curr.mergeSequences(es, "System`Unevaluated", false)
 		// In case curr changed
 		currEx = curr
 
@@ -300,10 +319,10 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		for i, arg := range args {
 			toReturn = ReplaceAll(toReturn,
 				NewExpression([]Ex{
-					&Symbol{"System`Rule"},
+					NewSymbol("System`Rule"),
 					NewExpression([]Ex{
-						&Symbol{"System`Slot"},
-						&Integer{big.NewInt(int64(i + 1))},
+						NewSymbol("System`Slot"),
+						NewInteger(big.NewInt(int64(i + 1))),
 					}),
 
 					arg,
@@ -320,7 +339,7 @@ func (this *Expression) EvalFunction(es *EvalState, args []Ex) Ex {
 		toReturn := this.Parts[2].DeepCopy()
 		toReturn = ReplaceAll(toReturn,
 			NewExpression([]Ex{
-				&Symbol{"System`Rule"},
+				NewSymbol("System`Rule"),
 				repSym,
 				args[0],
 			}),
@@ -366,7 +385,7 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *EvalSta
 	return this
 }
 
-func (this *Expression) StringForm(form string, context *String, contextPath *Expression) string {
+func (this *Expression) StringForm(params ToStringParams) string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm {
@@ -374,7 +393,7 @@ func (this *Expression) StringForm(form string, context *String, contextPath *Ex
 		headStr := headAsSym.Name
 		toStringFn, hasToStringFn := toStringFns[headStr]
 		if hasToStringFn {
-			ok, res = toStringFn(this, form, context, contextPath)
+			ok, res = toStringFn(this, params)
 		}
 		if ok {
 			return res
@@ -383,13 +402,14 @@ func (this *Expression) StringForm(form string, context *String, contextPath *Ex
 
 	// Default printing format
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Parts[0].StringForm(form, context, contextPath))
+	buffer.WriteString(this.Parts[0].StringForm(params))
 	buffer.WriteString("[")
+	params.previousHead = "<TOPLEVEL>"
 	for i, e := range this.Parts {
 		if i == 0 {
 			continue
 		}
-		buffer.WriteString(e.StringForm(form, context, contextPath))
+		buffer.WriteString(e.StringForm(params))
 		if i != len(this.Parts)-1 {
 			buffer.WriteString(", ")
 		}
@@ -400,7 +420,7 @@ func (this *Expression) StringForm(form string, context *String, contextPath *Ex
 
 func (this *Expression) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
@@ -447,6 +467,18 @@ func (this *Expression) ShallowCopy() *Expression {
 	return thiscopy
 }
 
+func (this *Expression) Copy() Ex {
+	var thiscopy = NewEmptyExpressionOfLength(len(this.Parts))
+	for i := range this.Parts {
+		thiscopy.Parts[i] = this.Parts[i].Copy()
+	}
+	thiscopy.needsEval = this.needsEval
+	thiscopy.correctlyInstantiated = this.correctlyInstantiated
+	thiscopy.evaledHash = this.evaledHash
+	thiscopy.cachedHash = this.cachedHash
+	return thiscopy
+}
+
 // Implement the sort.Interface
 func (this *Expression) Len() int {
 	return len(this.Parts) - 1
@@ -478,8 +510,8 @@ func (this *Expression) Hash() uint64 {
 	}
 	h := fnv.New64a()
 	h.Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
+	b := make([]byte, 8)
 	for _, part := range this.Parts {
-		b := make([]byte, 8)
 		binary.LittleEndian.PutUint64(b, part.Hash())
 		h.Write(b)
 	}
@@ -495,12 +527,24 @@ func NewExpression(parts []Ex) *Expression {
 	}
 }
 
+func E(parts ...Ex) *Expression {
+	return NewExpression(parts)
+}
+
 func NewHead(head string) *Expression {
-	return NewExpression([]Ex{&Symbol{head}})
+	return NewExpression([]Ex{NewSymbol(head)})
 }
 
 func NewEmptyExpression() *Expression {
 	return &Expression{
+		needsEval:             true,
+		correctlyInstantiated: true,
+	}
+}
+
+func NewEmptyExpressionOfLength(n int) *Expression {
+	return &Expression{
+		Parts:                 make([]Ex, n),
 		needsEval:             true,
 		correctlyInstantiated: true,
 	}

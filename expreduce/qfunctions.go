@@ -15,9 +15,9 @@ func singleParamQEval(fn singleParamQType) evalFnType {
 			return this
 		}
 		if fn(this.Parts[1]) {
-			return &Symbol{"System`True"}
+			return NewSymbol("System`True")
 		}
-		return &Symbol{"System`False"}
+		return NewSymbol("System`False")
 	})
 }
 
@@ -27,9 +27,9 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 			return this
 		}
 		if fn(this.Parts[1], &es.CASLogger) {
-			return &Symbol{"System`True"}
+			return NewSymbol("System`True")
 		}
-		return &Symbol{"System`False"}
+		return NewSymbol("System`False")
 	})
 }
 
@@ -39,9 +39,9 @@ func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
 			return this
 		}
 		if fn(this.Parts[1], this.Parts[2], &es.CASLogger) {
-			return &Symbol{"System`True"}
+			return NewSymbol("System`True")
 		}
-		return &Symbol{"System`False"}
+		return NewSymbol("System`False")
 	})
 }
 

@@ -71,9 +71,9 @@ func (this *SameTestEx) Run(t *testing.T, es *EvalState, td TestDesc) bool {
 
 func CasTestInner(es *EvalState, inTree Ex, outTree Ex, inStr string, test bool, desc string) (succ bool, s string) {
 	theTestTree := NewExpression([]Ex{
-		&Symbol{"System`SameQ"},
-		NewExpression([]Ex{&Symbol{"System`Hold"}, inTree}),
-		NewExpression([]Ex{&Symbol{"System`Hold"}, outTree}),
+		NewSymbol("System`SameQ"),
+		NewExpression([]Ex{NewSymbol("System`Hold"), inTree}),
+		NewExpression([]Ex{NewSymbol("System`Hold"), outTree}),
 	})
 
 	theTest := theTestTree.Eval(es)
@@ -81,13 +81,13 @@ func CasTestInner(es *EvalState, inTree Ex, outTree Ex, inStr string, test bool,
 	context, contextPath := DefinitionComplexityStringFormArgs()
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(inTree.StringForm("InputForm", context, contextPath))
+	buffer.WriteString(inTree.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath}))
 	if test {
 		buffer.WriteString(") != (")
 	} else {
 		buffer.WriteString(") == (")
 	}
-	buffer.WriteString(outTree.StringForm("InputForm", context, contextPath))
+	buffer.WriteString(outTree.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath}))
 	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
 	buffer.WriteString(inStr)

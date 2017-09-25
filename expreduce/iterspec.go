@@ -54,7 +54,7 @@ func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
 			}
 		}
 		if len(list.Parts) == 3 {
-			isr.iMin, iMinOk = &Integer{big.NewInt(1)}, true
+			isr.iMin, iMinOk = NewInteger(big.NewInt(1)), true
 			isr.iMax, iMaxOk = list.Parts[2].(*Integer)
 		} else if len(list.Parts) == 4 {
 			isr.iMin, iMinOk = list.Parts[2].(*Integer)
@@ -92,7 +92,7 @@ func (this *iterSpecRange) cont() bool {
 }
 
 func (this *iterSpecRange) getCurr() Ex {
-	return &Integer{big.NewInt(this.curr)}
+	return NewInteger(big.NewInt(this.curr))
 }
 
 func (this *iterSpecRange) getI() Ex {
@@ -195,7 +195,7 @@ func (this *Expression) evalIterationFunc(es *EvalState, init Ex, op string) Ex 
 			var toReturn Ex = init
 			for mis.cont() {
 				mis.defineCurrent(es)
-				toReturn = (NewExpression([]Ex{&Symbol{op}, toReturn, this.Parts[1].DeepCopy().Eval(es)})).Eval(es)
+				toReturn = (NewExpression([]Ex{NewSymbol(op), toReturn, this.Parts[1].DeepCopy().Eval(es)})).Eval(es)
 				mis.next()
 			}
 			mis.restoreVarSnapshot(es)
@@ -210,7 +210,7 @@ func evalIterSpecCandidate(es *EvalState, cand Ex) Ex {
 	// them.
 	list, isList := HeadAssertion(cand, "System`List")
 	if isList {
-		toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
+		toReturn := NewExpression([]Ex{NewSymbol("System`List")})
 		for i := 1; i < len(list.Parts); i++ {
 			toAdd := list.Parts[i].DeepCopy()
 			// Do not evaluate the variable of iteration. Even if "n" is

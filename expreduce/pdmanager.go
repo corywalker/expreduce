@@ -20,7 +20,7 @@ func CopyPD(orig *PDManager) (dest *PDManager) {
 	if (*orig).Len() > 0 {
 		dest.LazyMakeMap()
 		for k, v := range (*orig).patternDefined {
-			(*dest).patternDefined[k] = v.DeepCopy()
+			(*dest).patternDefined[k] = v
 		}
 	}
 	return
@@ -74,7 +74,7 @@ func (this *PDManager) String() string {
 }
 
 func (this *PDManager) Expression() Ex {
-	res := NewExpression([]Ex{&Symbol{"System`List"}})
+	res := NewExpression([]Ex{NewSymbol("System`List")})
 	// We sort the keys here such that converting identical PDManagers always
 	// produces the same string.
 	keys := []string{}
@@ -85,8 +85,8 @@ func (this *PDManager) Expression() Ex {
 	for _, k := range keys {
 		v := this.patternDefined[k]
 		res.appendEx(NewExpression([]Ex{
-			&Symbol{"System`Rule"},
-			&String{k},
+			NewSymbol("System`Rule"),
+			NewString(k),
 			v,
 		}))
 	}
@@ -96,7 +96,7 @@ func (this *PDManager) Expression() Ex {
 func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead string, es *EvalState) bool {
 	var attemptDefine Ex = nil
 	if lhs.hasPat {
-		sequenceHeadSym := &Symbol{sequenceHead}
+		sequenceHeadSym := NewSymbol(sequenceHead)
 		oneIdent := sequenceHeadSym.Attrs(&es.defined).OneIdentity
 		if len(sequence) == 1 && (lhs.isBlank || oneIdent || lhs.isOptional) {
 			attemptDefine = sequence[0]
@@ -105,7 +105,7 @@ func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead s
 		} else if lhs.isImpliedBs {
 			attemptDefine = NewExpression(append([]Ex{sequenceHeadSym}, sequence...))
 		} else {
-			head := &Symbol{"System`Sequence"}
+			head := NewSymbol("System`Sequence")
 			attemptDefine = NewExpression(append([]Ex{head}, sequence...))
 		}
 

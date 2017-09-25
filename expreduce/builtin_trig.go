@@ -13,7 +13,7 @@ func mathFnOneParam(fn func(float64) float64) func(*Expression, *EvalState) Ex {
 		if ok {
 			flt64, acc := flt.Val.Float64()
 			if acc == big.Exact {
-				return &Flt{big.NewFloat(fn(flt64))}
+				return NewReal(big.NewFloat(fn(flt64)))
 			}
 		}
 		return this
@@ -32,6 +32,10 @@ func GetTrigDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:         "Tan",
 		legacyEvalFn: mathFnOneParam(math.Tan),
+	})
+	defs = append(defs, Definition{
+		Name:         "Cot",
+		legacyEvalFn: mathFnOneParam(func(x float64) float64 {return 1/math.Tan(x)}),
 	})
 	return
 }

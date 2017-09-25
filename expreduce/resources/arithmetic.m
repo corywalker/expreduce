@@ -15,17 +15,17 @@ Tests`Plus = {
     ], ETests[
         (*Test automatic expansion*)
         EStringTest["(a + b)", "1*(a + b)"],
-        EStringTest["(1. * (a + b))", "1.*(a + b)"],
-        EStringTest["(2. * (a + b))", "2.*(a + b)"],
+        EStringTest["(1.*(a + b))", "1.*(a + b)"],
+        EStringTest["(2.*(a + b))", "2.*(a + b)"],
         EStringTest["(a + b)", "(a + b)/1"],
-        EStringTest["(1. * (a + b))", "(a + b)/1."],
-        EStringTest["(2 * (a + b))", "2*(a + b)"],
-        EStringTest["(a * (b + c))", "a*(b + c)"],
-        EStringTest["((-1 * a) + (-1 * b))", "-1*(a + b)"],
-        EStringTest["((-1 * a) + (-1 * b))", "-(a + b)"],
-        EStringTest["(-1. * (a + b))", "-1.*(a + b)"],
-        EStringTest["((-1 * a) + (-1 * b))", "(a + b)/-1"],
-        EStringTest["(-1. * (a + b))", "(a + b)/-1."],
+        EStringTest["(1.*(a + b))", "(a + b)/1."],
+        EStringTest["(2*(a + b))", "2*(a + b)"],
+        EStringTest["(a*(b + c))", "a*(b + c)"],
+        EStringTest["(-a + -b)", "-1*(a + b)"],
+        EStringTest["(-a + -b)", "-(a + b)"],
+        EStringTest["(-1.*(a + b))", "-1.*(a + b)"],
+        EStringTest["(-a + -b)", "(a + b)/-1"],
+        EStringTest["(-1.*(a + b))", "(a + b)/-1."],
 
         (*Test that we do not delete all the addends*)
         ESameTest[0., (5.2 - .2) - 5],
@@ -155,14 +155,14 @@ Tests`Times = {
         EStringTest["10", "1/(2^2)*40"],
 
         (*Test proper accumulation of Rationals*)
-        EStringTest["(2 * sym)", "sym*Rational[1,2]*Rational[2,3]*6"],
+        EStringTest["(2*sym)", "sym*Rational[1,2]*Rational[2,3]*6"],
         EStringTest["-2/3", "Rational[1, -2]*Rational[-2, 3]*-2"],
         EStringTest["Rational", "Rational[1, -2]*Rational[-2, 3]*-2 // Head"],
 
         (*Test multiplicative identity*)
         EStringTest["5", "5*1"],
         EStringTest["a", "1*a"],
-        EStringTest["(1. * a)", "1.*a"],
+        EStringTest["(1.*a)", "1.*a"],
 
         (*Test multiplicative inverse*)
         EStringTest["1", "8*1/8"],

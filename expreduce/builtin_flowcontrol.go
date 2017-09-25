@@ -28,12 +28,12 @@ func applyWithFn(e *Expression, es *EvalState) (Ex, bool) {
 			return nil, false
 		}
 		rules = append(rules, NewExpression([]Ex{
-			&Symbol{ruleHead},
+			NewSymbol(ruleHead),
 			setEx.Parts[1],
 			setEx.Parts[2],
 		}))
 	}
-	return rulesReplace(e.Parts[2], rules, es), true
+	return rulesReplaceAll(e.Parts[2], rules, es), true
 }
 
 func GetFlowControlDefinitions() (defs []Definition) {
@@ -45,12 +45,12 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.Parts) > 4 || len(this.Parts) < 3 {
 				return this
 			}
-			var falseVal Ex = &Symbol{"System`Null"}
+			var falseVal Ex = NewSymbol("System`Null")
 			if len(this.Parts) == 4 {
 				falseVal = this.Parts[3]
 			}
 
-			var isequal string = this.Parts[1].IsEqual(&Symbol{"System`True"}, &es.CASLogger)
+			var isequal string = this.Parts[1].IsEqual(NewSymbol("System`True"), &es.CASLogger)
 			if isequal == "EQUAL_UNK" {
 				return this
 			} else if isequal == "EQUAL_TRUE" {
@@ -59,7 +59,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				return falseVal
 			}
 
-			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected equality return value."}})
+			return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Unexpected equality return value.")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -68,27 +68,27 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			isequal := this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"System`True"}, &es.CASLogger)
+			isequal := this.Parts[1].DeepCopy().Eval(es).IsEqual(NewSymbol("System`True"), &es.CASLogger)
 			cont := isequal == "EQUAL_TRUE"
 			for cont {
 				tmpRes := this.Parts[2].DeepCopy().Eval(es)
-				retVal, isReturn := tryReturnValue(tmpRes)
+				retVal, isReturn := tryReturnValue(tmpRes, nil, es)
 				if isReturn {
 					return retVal
 				}
-				isequal = this.Parts[1].DeepCopy().Eval(es).IsEqual(&Symbol{"System`True"}, &es.CASLogger)
+				isequal = this.Parts[1].DeepCopy().Eval(es).IsEqual(NewSymbol("System`True"), &es.CASLogger)
 				cont = isequal == "EQUAL_TRUE"
 			}
 
 			if isequal == "EQUAL_UNK" {
-				return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Encountered EQUAL_UNK when evaluating test for the While."}})
+				return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Encountered EQUAL_UNK when evaluating test for the While.")})
 			} else if isequal == "EQUAL_TRUE" {
-				return &Symbol{"System`Null"}
+				return NewSymbol("System`Null")
 			} else if isequal == "EQUAL_FALSE" {
-				return &Symbol{"System`Null"}
+				return NewSymbol("System`Null")
 			}
 
-			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected equality return value."}})
+			return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Unexpected equality return value.")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -112,7 +112,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Which",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) % 2 != 1 {
+			if len(this.Parts)%2 != 1 {
 				return this
 			}
 			for i := 1; i < len(this.Parts); i += 2 {
@@ -125,13 +125,13 @@ func GetFlowControlDefinitions() (defs []Definition) {
 					return this.Parts[i+1]
 				}
 			}
-			return &Symbol{"System`Null"}
+			return NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Switch",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) < 4  || len(this.Parts) % 2 != 0 {
+			if len(this.Parts) < 4 || len(this.Parts)%2 != 0 {
 				return this
 			}
 			for i := 2; i < len(this.Parts); i += 2 {
@@ -168,14 +168,14 @@ func GetFlowControlDefinitions() (defs []Definition) {
 						}
 						if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
 							if len(asReturn.Parts) < 2 {
-								return &Symbol{"System`Null"}
+								return NewSymbol("System`Null")
 							}
 							return asReturn.Parts[1]
 						}
 						mis.next()
 					}
 					mis.restoreVarSnapshot(es)
-					return &Symbol{"System`Null"}
+					return NewSymbol("System`Null")
 				}
 			}
 			return this

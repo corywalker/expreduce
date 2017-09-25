@@ -184,15 +184,19 @@ PrintTemporary[exprs___] := Print[exprs];
 
 SetAttributes::usage = "`SetAttributes[sym, attributes]` adds the `attributes` to `sym`.";
 Attributes[SetAttributes] = {HoldFirst, Protected};
+SetAttributes[s_Symbol, attr_Symbol] := SetAttributes[s, {attr}];
 SetAttributes[s_Symbol, attrs_List] := (
     Attributes[s] = Union[Attributes[s], attrs];
 );
+SetAttributes[l_List, attrs_] := Scan[SetAttributes[#, attrs]&, l];
 
 ClearAttributes::usage = "`ClearAttributes[sym, attributes]` clears the `attributes` from `sym`.";
 Attributes[ClearAttributes] = {HoldFirst, Protected};
+ClearAttributes[s_Symbol, attr_Symbol] := ClearAttributes[s, {attr}];
 ClearAttributes[s_Symbol, attrs_List] := (
     Attributes[s] = Complement[Attributes[s], attrs];
 );
+ClearAttributes[l_List, attrs_] := Scan[ClearAttributes[#, attrs]&, l];
 
 Protect::usage = "`Protect[sym]` adds the `Protected` attribute to `sym`.";
 Attributes[Protect] = {HoldAll, Protected};
@@ -258,7 +262,15 @@ Tests`DownValues = {
         ESameTest[5, Length[DownValues[myfoo]]],
         ESameTest[Null, myfoo[_] := With[{a=2}, c /; c] /; True;],
         ESameTest[6, Length[DownValues[myfoo]]],
-        ESameTest[6, Length[DownValues[myfoo]]]
+        ESameTest[6, Length[DownValues[myfoo]]],
+
+        (*Test assignment.*)
+        ESameTest[Null, DownValues[dvAssignTest] = {
+                HoldPattern[dvAssignTest[1]] :> 123,
+                HoldPattern[dvAssignTest[_]] :> 321
+            };],
+        ESameTest[123, dvAssignTest[1]],
+        ESameTest[321, dvAssignTest[2]],
     ]
 };
 

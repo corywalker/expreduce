@@ -10,7 +10,7 @@ type TimeMap map[string]float64
 type CountMap map[string]int64
 
 type TimeCounter struct {
-	times TimeMap
+	times  TimeMap
 	counts CountMap
 }
 

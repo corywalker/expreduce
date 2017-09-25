@@ -195,3 +195,37 @@ Tests`RuleDelayed = {
         ESameTest[False, Equal @@ ({1, 1} /. 1 :> RandomReal[])]
     ]
 };
+
+ReplacePart::usage = "`ReplacePart[e, {loc1 -> newval1, ...}]` replaces the value at the locations with their corresponding new values in `e`.";
+Attributes[ReplacePart] = {Protected};
+ReplacePart[e_?((! AtomQ[#]) &), r_, i_Integer?Positive] :=
+  
+  If[i <= Length[e] === True,
+   Join[e[[1 ;; i - 1]], Head[e][r], e[[i + 1 ;; Length[e]]]],
+   Print["Index too large for ReplacePart!"]];
+ReplacePart[e_, r_Rule] := ReplacePart[e, {r}];
+Tests`ReplacePart = {
+    ESimpleExamples[
+        ESameTest[{1,foo,3,4}, ReplacePart[Range[4],foo,2]],
+        ESameTest[{1,2,foo,4}, ReplacePart[Range[4],3->foo]],
+        ESameTest[{1,2,foo,4}, ReplacePart[Range[4],{3}->foo]],
+        ESameTest[{1,2,3,4}, ReplacePart[Range[4],{3,1}->foo]],
+    ], EFurtherExamples[
+        ESameTest[{foo,foo,foo,foo}, ReplacePart[Range[4],i_->foo]],
+        ESameTest[{1,2,3,4}, ReplacePart[Range[4],7->foo]],
+        ESameTest[a+b^foo, ReplacePart[a+b^c,{2,2}->foo]],
+        ESameTest[a+b^c, ReplacePart[a+b^c,{2,2,1}->foo]],
+    ], ETests[
+        ESameTest[a+foo^foo, ReplacePart[a+b^c,{2,_}->foo]],
+        ESameTest[a+b^foo, ReplacePart[a+b^c,{{2,2}->foo}]],
+        ESameTest[b^foo+foo, ReplacePart[a+b^c,{{2,2}->foo,{1}->foo}]],
+        ESameTest[b^foo+foo, ReplacePart[a+b^c,{{1}->foo,{2,2}->foo}]],
+        ESameTest[ReplacePart[a+b^c,{{1}->foo,bar}], ReplacePart[a+b^c,{{1}->foo,bar}]],
+        ESameTest[3, ReplacePart[a+b^c,{{a_}->a}]],
+        ESameTest[hi, ReplacePart[hi,{{a_}->a}]],
+        ESameTest[a+foo[1]^foo[2], ReplacePart[a+b^c,{{_,a_}->foo[a]}]],
+    ], EKnownFailures[
+        ESameTest[foo[a,b^c], ReplacePart[a+b^c,{{0}->foo}]],
+        ESameTest[a+foo, ReplacePart[a+b^c,{{-1}->foo}]],
+    ]
+};

@@ -3,7 +3,7 @@ package expreduce
 import "bytes"
 
 type DownValue struct {
-	rule		*Expression
+	rule        *Expression
 	specificity int
 }
 
@@ -22,7 +22,7 @@ func CopyDefs(in map[string]Def) map[string]Def {
 		newDef := Def{}
 		for _, dv := range v.downvalues {
 			newDv := DownValue{
-				rule: dv.rule.DeepCopy().(*Expression),
+				rule:        dv.rule.DeepCopy().(*Expression),
 				specificity: dv.specificity,
 			}
 			newDef.downvalues = append(newDef.downvalues, newDv)
@@ -45,11 +45,11 @@ func (this *Def) String() string {
 	return buffer.String()
 }
 
-func (def *Def) StringForm(form string, context *String, contextPath *Expression) string {
+func (def *Def) StringForm(params ToStringParams) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, dv := range def.downvalues {
-		buffer.WriteString(dv.rule.StringForm(form, context, contextPath))
+		buffer.WriteString(dv.rule.StringForm(params))
 		if i != len(def.downvalues)-1 {
 			buffer.WriteString("\n")
 		}

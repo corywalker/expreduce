@@ -3,6 +3,7 @@ Power::usage = "`base^exp` finds `base` raised to the power of `exp`.";
 Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
 Power[Power[a_,b_Real],c_Integer] := a^(b*c);
 Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
+Power[Power[a_,b_Rational],c_] := a^(b*c);
 Power[Infinity, 0] := Indeterminate;
 Power[-Infinity, 0] := Indeterminate;
 Power[_, 0] := 1;
@@ -53,7 +54,10 @@ Power[b_, -Infinity] := Indeterminate;
 (*Rational simplifications*)
 (*These take up time. Possibly convert to Upvalues.*)
 Power[Rational[a_,b_], -1] := Rational[b,a];
-Power[Rational[a_,b_], e_?Positive] := Rational[a^e,b^e];
+Power[Rational[a_,b_], e_Integer?Positive] := Rational[a^e,b^e];
+Power[-1, -1/2] := -I;
+Power[-1, 1/2] := I;
+Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
 I^e_Integer := Switch[Mod[e, 4],
   0, 1,
@@ -742,5 +746,14 @@ Tests`FactorSquareFree = {
         ESameTest[(-1 + x)^2*(1 + 2*x + 2*x^2 + x^3), FactorSquareFree[1 - x^2 - x^3 + x^5]],
         ESameTest[(-3 + x)^2*(2 - 3*x + x^2), FactorSquareFree[18 - 39*x + 29*x^2 - 9*x^3 + x^4]],
         ESameTest[(3 + x)^3*(-4 + x^2)*(-1 + x^2)^2, FactorSquareFree[-108 - 108*x + 207*x^2 + 239*x^3 - 81*x^4 - 153*x^5 - 27*x^6 + 21*x^7 + 9*x^8 + x^9]]
+    ]
+};
+
+Factor::usage = "`Factor[poly]` factors `poly`.";
+Factor[poly_] := poly;
+Attributes[Factor] = {Listable, Protected};
+Tests`Factor = {
+    ETests[
+        ESameTest[a, Factor[a]],
     ]
 };
