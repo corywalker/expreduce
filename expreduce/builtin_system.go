@@ -336,7 +336,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return NewSymbol("System`Null")
 			}
 			context, contextPath := DefinitionComplexityStringFormArgs()
-			return NewExpression([]Ex{NewSymbol("System`Error"), NewString(def.StringForm(ToStringParams{"InputForm", context, contextPath}))})
+			return NewExpression([]Ex{NewSymbol("System`Error"), NewString(def.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath}))})
 		},
 	})
 	defs = append(defs, Definition{
@@ -373,7 +373,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " = ", true, "(", ")", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " = ", "", true, "(", ")", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -421,7 +421,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " := ", true, "(", ")", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " := ", "", true, "(", ")", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {

@@ -20,7 +20,7 @@ func (this *String) StringForm(params ToStringParams) string {
 
 func (this *String) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{"InputForm", context, contextPath})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *String) IsEqual(other Ex, cl *CASLogger) string {

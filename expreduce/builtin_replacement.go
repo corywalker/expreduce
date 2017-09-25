@@ -83,7 +83,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " /. ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -123,7 +123,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " //. ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -155,7 +155,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " -> ", "System`Rule", false, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{
@@ -164,7 +164,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " :> ", "System`RuleDelayed", false, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{

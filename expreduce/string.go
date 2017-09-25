@@ -3,27 +3,63 @@ package expreduce
 import "bytes"
 
 type ToStringParams struct {
-	form        string
-	context     *String
-	contextPath *Expression
+	form         string
+	context      *String
+	contextPath  *Expression
+	previousHead string
 }
 
-func ToStringInfix(parts []Ex, delim string, p ToStringParams) (bool, string) {
+func needsParens(thisHead string, previousHead string) bool {
+	if previousHead == "<TOPLEVEL>" {
+		return false
+	}
+	// TODO: look up actual precedence values using interface with the
+	// interpreter.
+	if previousHead == "System`Plus" && thisHead == "System`Times" {
+		return false
+	}
+	if previousHead == "System`Rule" && thisHead == "System`Times" {
+		return false
+	}
+	if previousHead == "System`RuleDelayed" && thisHead == "System`Times" {
+		return false
+	}
+	if previousHead == "System`Rule" && thisHead == "System`Plus" {
+		return false
+	}
+	if previousHead == "System`RuleDelayed" && thisHead == "System`Plus" {
+		return false
+	}
+	return true
+}
+
+func ToStringInfix(parts []Ex, delim string, thisHead string, p ToStringParams) (bool, string) {
 	if p.form != "InputForm" && p.form != "OutputForm" {
 		return false, ""
 	}
 	if len(parts) < 2 {
 		return false, ""
 	}
+	addParens := needsParens(thisHead, p.previousHead)
 	var buffer bytes.Buffer
-	buffer.WriteString("(")
+	if addParens {
+		buffer.WriteString("(")
+	}
+	nextParams := ToStringParams{
+		form:         p.form,
+		context:      p.context,
+		contextPath:  p.contextPath,
+		previousHead: thisHead,
+	}
 	for i := 0; i < len(parts); i++ {
-		buffer.WriteString(parts[i].StringForm(ToStringParams{p.form, p.context, p.contextPath}))
+		buffer.WriteString(parts[i].StringForm(nextParams))
 		if i != len(parts)-1 {
 			buffer.WriteString(delim)
 		}
 	}
-	buffer.WriteString(")")
+	if addParens {
+		buffer.WriteString(")")
+	}
 	return true, buffer.String()
 }
 
@@ -36,10 +72,10 @@ func (this *Expression) ToStringInfix(p ToStringParams) (bool, string) {
 	if !isExpr || !delimIsStr {
 		return false, ""
 	}
-	return ToStringInfix(expr.Parts[1:], delim.Val, p)
+	return ToStringInfix(expr.Parts[1:], delim.Val, "", p)
 }
 
-func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start string, end string, params ToStringParams) (bool, string) {
+func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params ToStringParams) (bool, string) {
 	if params.form != "InputForm" && params.form != "OutputForm" {
 		return false, ""
 	}
@@ -50,13 +86,19 @@ func ToStringInfixAdvanced(parts []Ex, delim string, surroundEachArg bool, start
 	if !surroundEachArg {
 		buffer.WriteString(start)
 	}
+	nextParams := ToStringParams{
+		form:         params.form,
+		context:      params.context,
+		contextPath:  params.contextPath,
+		previousHead: thisHead,
+	}
 	for i := 0; i < len(parts); i++ {
 		if surroundEachArg {
 			buffer.WriteString("(")
-			buffer.WriteString(parts[i].StringForm(params))
+			buffer.WriteString(parts[i].StringForm(nextParams))
 			buffer.WriteString(")")
 		} else {
-			buffer.WriteString(parts[i].StringForm(params))
+			buffer.WriteString(parts[i].StringForm(nextParams))
 		}
 		if i != len(parts)-1 {
 			buffer.WriteString(delim)
@@ -91,8 +133,10 @@ func ActualStringFormArgs(es *EvalState) (*String, *Expression) {
 
 func ActualStringFormArgsFull(form string, es *EvalState) ToStringParams {
 	return ToStringParams{
-		form,
-		NewString(es.GetStringDef("System`$Context", "Global`")),
-		es.GetListDef("System`$ContextPath"),
+		form:         form,
+		context:      NewString(es.GetStringDef("System`$Context", "Global`")),
+		contextPath:  es.GetListDef("System`$ContextPath"),
+		previousHead: "<TOPLEVEL>",
 	}
+
 }

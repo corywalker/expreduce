@@ -4,7 +4,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "And",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " && ", params)
+			return ToStringInfix(this.Parts[1:], " && ", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			res := NewExpression([]Ex{NewSymbol("System`And")})
@@ -30,7 +30,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Or",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " || ", params)
+			return ToStringInfix(this.Parts[1:], " || ", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			res := NewExpression([]Ex{NewSymbol("System`Or")})

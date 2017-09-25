@@ -1,6 +1,7 @@
 package expreduce
 
 import "math/big"
+import "strings"
 
 func ExArrayContainsFloat(a []Ex) bool {
 	res := false
@@ -223,7 +224,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Name:    "Plus",
 		Default: "0",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " + ", params)
+			return ToStringInfix(this.Parts[1:], " + ", "System`Plus", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values
@@ -268,7 +269,11 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Name:    "Times",
 		Default: "1",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " * ", params)
+			ok, res := ToStringInfix(this.Parts[1:], "*", "System`Times", params)
+			if ok && strings.HasPrefix(res, "-1*") {
+				return ok, "-" + res[3:]
+			}
+			return ok, res
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values

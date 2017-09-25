@@ -399,6 +399,7 @@ func (this *Expression) StringForm(params ToStringParams) string {
 	var buffer bytes.Buffer
 	buffer.WriteString(this.Parts[0].StringForm(params))
 	buffer.WriteString("[")
+	params.previousHead = "<TOPLEVEL>"
 	for i, e := range this.Parts {
 		if i == 0 {
 			continue
@@ -414,7 +415,7 @@ func (this *Expression) StringForm(params ToStringParams) string {
 
 func (this *Expression) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{"InputForm", context, contextPath})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {

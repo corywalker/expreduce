@@ -59,7 +59,7 @@ func (this *Rational) StringForm(params ToStringParams) string {
 
 func (this *Rational) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{"InputForm", context, contextPath})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *Rational) IsEqual(other Ex, cl *CASLogger) string {

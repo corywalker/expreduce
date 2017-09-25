@@ -354,7 +354,7 @@ func ruleSpecificity(lhs Ex, rhs Ex, name string) int {
 	// "complexity" score, order then matters. TODO: Create better measure of
 	// complexity (or specificity)
 	context, contextPath := DefinitionComplexityStringFormArgs()
-	specificity := len(lhs.StringForm(ToStringParams{"InputForm", context, contextPath}))
+	specificity := len(lhs.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath}))
 	if _, rhsIsCond := HeadAssertion(rhs, "System`Condition"); rhsIsCond {
 		// Condition rules will be ranked in order of definition, not
 		// specificity. I'm not entirely sure if this is correct, but it seems

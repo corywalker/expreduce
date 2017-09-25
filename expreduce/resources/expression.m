@@ -78,10 +78,10 @@ Evaluate::usage = "`Evaluate[expr]` evaluates to an evaluated form of `expr`, ev
 Attributes[Evaluate] = {Protected};
 Tests`Evaluate = {
     ESimpleExamples[
-        EStringTest["Hold[4, (2 + 1)]", "Hold[Evaluate[1 + 3], 2 + 1]"],
-        EStringTest["Hold[foo[Evaluate[(1 + 1)]]]", "Hold[foo[Evaluate[1 + 1]]]"],
-        EStringTest["Hold[4, 7, (2 + 1)]", "Hold[Evaluate[1 + 3, 5 + 2], 2 + 1]"],
-        EStringTest["Hold[(1 + 3), (5 + 2), (2 + 1)]", "Hold[Sequence[1 + 3, 5 + 2], 2 + 1]"]
+        EStringTest["Hold[4, 2 + 1]", "Hold[Evaluate[1 + 3], 2 + 1]"],
+        EStringTest["Hold[foo[Evaluate[1 + 1]]]", "Hold[foo[Evaluate[1 + 1]]]"],
+        EStringTest["Hold[4, 7, 2 + 1]", "Hold[Evaluate[1 + 3, 5 + 2], 2 + 1]"],
+        EStringTest["Hold[1 + 3, 5 + 2, 2 + 1]", "Hold[Sequence[1 + 3, 5 + 2], 2 + 1]"]
     ]
 };
 
