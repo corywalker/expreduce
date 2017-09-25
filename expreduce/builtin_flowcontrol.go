@@ -72,7 +72,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			cont := isequal == "EQUAL_TRUE"
 			for cont {
 				tmpRes := this.Parts[2].DeepCopy().Eval(es)
-				retVal, isReturn := tryReturnValue(tmpRes, es)
+				retVal, isReturn := tryReturnValue(tmpRes, nil, es)
 				if isReturn {
 					return retVal
 				}

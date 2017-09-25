@@ -1,5 +1,5 @@
 Simplify::usage = "`Simplify[expr]` attempts to perform simplification operations on `expr`.";
-Simplify[exp_] := exp //. {
+booleanSimplify[exp_] := exp //. {
     (*a_ && a_  :> a,*)
     (*a_ || a_  :> a,*)
 
@@ -35,6 +35,12 @@ Simplify[exp_] := exp //. {
     And[x1___, a_, x2___, Or[x3___, !a_, x4___], x5___] :> And[a, x1, x2, Or[x3, x4], x5],
     And[x1___, Or[x2___, !a_, x3___], x4___, a_, x5___] :> And[a, x1, Or[x2, x3], x4, x5]
 };
+Simplify[exp_] := Module[{e = exp, expanded},
+    e = booleanSimplify[e];
+    expanded = e // Expand;
+    If[LeafCount[expanded] < LeafCount[e], e = expanded];
+    e
+];
 Attributes[Simplify] = {Protected};
 Tests`Simplify = {
     ESimpleExamples[

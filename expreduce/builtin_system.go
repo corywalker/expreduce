@@ -537,7 +537,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			es.trace = NewExpression([]Ex{NewSymbol("System`List")})
 			// Evaluate first argument in trace mode:
 			this.Parts[1].Eval(es)
-			if len(es.trace.Parts) > 2 {
+			if es.trace != nil && len(es.trace.Parts) > 2 {
 				// Take system out of trace mode:
 				toReturn := es.trace.DeepCopy()
 				es.trace = nil

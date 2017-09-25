@@ -22,7 +22,15 @@ Cos[Indeterminate] := Indeterminate;
 Attributes[Cos] = {Listable, NumericFunction, Protected};
 
 Tan::usage = "`Tan[x]` is the tangent of `x`.";
+1/Tan[x_] := Cot[x];
+Tan[a_+Pi/2] := Cot[-a];
+(*Tan[a_-Pi/2] := (Print[a];-Cot[a]);*)
 Attributes[Tan] = {Listable, NumericFunction, Protected};
+
+Cot::usage = "`Cot[x]` is the cotangent of `x`.";
+1/Cot[x_] := Tan[x];
+Cot[Verbatim[Plus][-1*a_, b___]] := -Cot[a-b];
+Attributes[Cot] = {Listable, NumericFunction, Protected};
 
 Csc[inner : Verbatim[Plus][Repeated[_*I]]] := -I*Csch[-I*inner // Distribute]
 

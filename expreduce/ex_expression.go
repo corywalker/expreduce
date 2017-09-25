@@ -60,8 +60,11 @@ func OperatorAssertion(ex Ex, opHead string) (*Expression, *Expression, bool) {
 	return nil, nil, false
 }
 
-func tryReturnValue(e Ex, es *EvalState) (Ex, bool) {
+func tryReturnValue(e Ex, origEx Ex, es *EvalState) (Ex, bool) {
 	if es.interrupted {
+		if origEx != nil {
+			fmt.Println(origEx)
+		}
 		return NewSymbol("System`$Aborted"), true
 	}
 	asReturn, isReturn := HeadAssertion(e, "System`Return")
@@ -113,6 +116,8 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 }
 
 func (this *Expression) Eval(es *EvalState) Ex {
+	var origEx Ex = this
+
 	lastExHash := uint64(0)
 	var lastEx Ex = this
 	currExHash := hashEx(this)
@@ -132,7 +137,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 
 		if isExpr && insideDefinition {
-			retVal, isReturn := tryReturnValue(curr, es)
+			retVal, isReturn := tryReturnValue(curr, origEx, es)
 			if isReturn {
 				return retVal
 			}
