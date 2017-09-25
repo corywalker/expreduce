@@ -378,3 +378,18 @@ Tests`Join = {
         ESameTest[foo[a,b,c], Join[foo[a],foo[b,c]]]
     ]
 };
+
+Count::usage = "`Count[l, pattern]` returns the number of expressions in `l` matching `pattern`.";
+Count[l_List, pat_] := Length[Cases[l, pat]];
+Attributes[Count] = {Protected};
+
+Tally::usage = "`Tally[list]` creates tallies of the elements in `list`.";
+Tally[l_List] := {#, Count[l, #]} & /@ DeleteDuplicates[l];
+Attributes[Tally] = {Protected};
+Tests`Tally = {
+    ESimpleExamples[
+        ESameTest[{{a, 2}, {b, 2}}, Tally[{a, a, b, b}]],
+        ESameTest[{{b, 2}, {a, 2}}, Tally[{b, b, a, a}]],
+        ESameTest[{{b, 2}, {a, 1}}, Tally[{b, b, a}]],
+    ]
+};

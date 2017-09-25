@@ -143,6 +143,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 
 		es.MarkSeen("System`Exp")
 		es.MarkSeen("System`AppellF1")
+		es.MarkSeen("System`Hypergeometric2F1")
 
 		es.MarkSeen("System`Cosh")
 		es.MarkSeen("System`Sinh")
