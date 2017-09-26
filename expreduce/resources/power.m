@@ -257,11 +257,12 @@ Tests`Expand = {
 };
 
 PolynomialQ::usage =  "`PolynomialQ[e, var]` returns True if `e` is a polynomial in `var`.";
-PolynomialQ[p_Plus, v_] :=
+innerPolynomialQ[p_Plus, v_] :=
   AllTrue[List @@ p, (PolynomialQ[#, v]) &];
-PolynomialQ[p_.*v_^Optional[exp_Integer], v_] :=
+innerPolynomialQ[p_.*v_^Optional[exp_Integer], v_] :=
   If[FreeQ[p, v] && Positive[exp], True, False];
-PolynomialQ[p_, v_] := If[FreeQ[p, v], True, False];
+innerPolynomialQ[p_, v_] := If[FreeQ[p, v], True, False];
+PolynomialQ[p_, v_] := innerPolynomialQ[p//Expand, v];
 (*Seemingly undocumented version with no variable specification:*)
 PolynomialQ[p_] := PolynomialQ[p, Variables[p]];
 Attributes[PolynomialQ] = {Protected};
@@ -309,7 +310,9 @@ Tests`PolynomialQ = {
         ESameTest[False, PolynomialQ[x^a,a]],
         ESameTest[False, PolynomialQ[x^n,x]],
         ESameTest[True, PolynomialQ[-x*Cos[y],x]],
-        ESameTest[True, PolynomialQ[x^y, 1]]
+        ESameTest[True, PolynomialQ[x^y, 1]],
+        ESameTest[True, PolynomialQ[(-280*c^4*d^2*x^2 + -315*c^6*d^2*x^4 + 9*c^2*(63*d^2 + 90*c^2*d^2*x^2 + 35*c^4*d^2*x^4))//Expand,x]],
+        ESameTest[True, PolynomialQ[(-280*c^4*d^2*x^2 + -315*c^6*d^2*x^4 + 9*c^2*(63*d^2 + 90*c^2*d^2*x^2 + 35*c^4*d^2*x^4)),x]],
     ], EKnownFailures[
         ESameTest[True, PolynomialQ[2*x^2-3x+2, 2]],
         ESameTest[True, PolynomialQ[2*x^2-3x, 2]],

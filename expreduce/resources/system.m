@@ -134,6 +134,10 @@ Tests`Module = {
     ]
 };
 
+(* TODO: Fix this hack. *)
+Block[args___] := Module[args];
+Attributes[Block] = {HoldAll, Protected};
+
 Hash::usage = "`Hash[expr]` returns an integer hash of `expr`.";
 Attributes[Hash] = {Protected};
 
@@ -309,3 +313,5 @@ Tests`ExpreduceMaskNonConditional = {
 
 Unique::usage = "`Unique[]` returns a unique symbol.";
 Attributes[Unique] = {Protected};
+
+Attributes[Defer] = {HoldAll, Protected, ReadProtected};

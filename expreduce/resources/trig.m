@@ -35,3 +35,11 @@ Attributes[Cot] = {Listable, NumericFunction, Protected};
 Csc[inner : Verbatim[Plus][Repeated[_*I]]] := -I*Csch[-I*inner // Distribute]
 
 Cosh[a_]*Csch[a_]^(b_Integer?Positive)*rest___ := Coth[a]*Csch[a]^(b - 1)*rest
+
+TrigExpand[Cos[2*a_]] := Cos[a]^2-Sin[a]^2;
+TrigExpand[Cos[a_]] := Cos[a];
+TrigExpand[a_] := (Print["Unsupported call to TrigExpand", a];a);
+Attributes[TrigExpand] = {Protected};
+
+TrigReduce[a_] := (Print["Unsupported call to TrigReduce", a];a);
+Attributes[TrigReduce] = {Protected};

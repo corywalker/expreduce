@@ -37,5 +37,13 @@ func GetTrigDefinitions() (defs []Definition) {
 		Name:         "Cot",
 		legacyEvalFn: mathFnOneParam(func(x float64) float64 {return 1/math.Tan(x)}),
 	})
+	defs = append(defs, Definition{
+		Name:         "TrigExpand",
+		OmitDocumentation: true,
+	})
+	defs = append(defs, Definition{
+		Name:         "TrigReduce",
+		OmitDocumentation: true,
+	})
 	return
 }

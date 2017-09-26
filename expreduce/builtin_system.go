@@ -632,6 +632,10 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name: "Block",
+		OmitDocumentation: true,
+	})
+	defs = append(defs, Definition{
 		Name:              "ESameTest",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
@@ -731,6 +735,10 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return NewSymbol(unique)
 		},
+	})
+	defs = append(defs, Definition{
+		Name: "Defer",
+		OmitDocumentation: true,
 	})
 	return
 }

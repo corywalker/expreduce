@@ -82,3 +82,6 @@ Tests`Simplify = {
         ESameTest[a && b, a&&b&&a//Simplify]
     ]
 };
+
+FullSimplify[e_] := Simplify[e];
+Attributes[FullSimplify] = {Protected};
