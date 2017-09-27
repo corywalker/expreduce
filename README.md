@@ -62,6 +62,12 @@ In[7]:= Solve[x^2-x-2.5==0,x]
 Out[7]= {{x -> -1.15831}, {x -> 2.15831}}
 ```
 
+# Rubi integration rules
+
+Expreduce uses the Rubi integration suite by Albert Rich. The rules can be loaded by running `LoadRubi[]` and then the integration can be called like `Int[Sin[a + b*Log[c*x^n]], x]`. These rules are much more powerful than the simplistic ones in `Integrate[]`.
+
+http://www.apmaths.uwo.ca/~arich/
+
 # Technical notes
 
 In Expreduce, everything is an expression, which can either be an atomic value like an Integer or a Symbol, or it can be an ordered list of subexpressions. In the case of an ordered list of subexpressions, the first element is known as the Head. It specifies what kind of data follows. For example, `a + 1` is represented as `Plus[a, 1]`. Here the head is `Plus` and the two subexpressions that follow are the symbol `a` and the integer `1`.
