@@ -35,11 +35,11 @@ Welcome to Expreduce!
 
 In[1]:= D[Cos[Log[Sin[x]]+x]+x,x]
 
-Out[1]= (1 + (-1 * (1 + Cot[x]) * Sin[(x + Log[Sin[x]])]))
+Out[1]= 1 + -(1 + Cot[x])*Sin[x + Log[Sin[x]]]
 
 In[2]:= Integrate[5*E^(3*x),{x,2,a}] // Expand
 
-Out[2]= ((-5/3 * E^6) + (5/3 * E^(3 * a)))
+Out[2]= -5/3*E^6 + 5/3*E^(3*a)
 
 In[3]:= FactorSquareFree[1 - 2*x^2 + x^4]
 
@@ -47,11 +47,11 @@ Out[3]= (-1 + x^2)^2
 
 In[4]:= Sum[i, {i, 1, n}]
 
-Out[4]= (1/2 * n * (1 + n))
+Out[4]= 1/2*n*(1 + n)
 
 In[5]:= Together[(1/2 + 3/a)^2+b/c]
 
-Out[5]= (1/4 * a^-2 * c^-1 * ((4 * a^2 * b) + (36 * c) + (12 * a * c) + (a^2 * c)))
+Out[5]= 1/4*a^-2*c^-1*(4*a^2*b + 36*c + 12*a*c + a^2*c)
 
 In[6]:= 40!
 
@@ -59,7 +59,7 @@ Out[6]= 815915283247897734345611269596115894272000000000
 
 In[7]:= Solve[x^2-x-2.5==0,x]
 
-Out[7]= {{(x) -> (-1.15831)}, {(x) -> (2.15831)}}
+Out[7]= {{x -> -1.15831}, {x -> 2.15831}}
 ```
 
 # Technical notes

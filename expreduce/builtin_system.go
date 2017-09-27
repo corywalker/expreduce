@@ -768,7 +768,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			es.reapSown = E(S("List"))
 			res := this.Parts[1].Eval(es)
 			res = E(S("List"), res, E(S("List"), es.reapSown))
-			es.reapSown = nil
+			// If I set this to nil, Int[((A + B*Cos[x])*(a + b*Sin[x])^-1), x]
+			// will not work for an unknown reason.
+			es.reapSown = E(S("List"))
 			return res
 		},
 	})
