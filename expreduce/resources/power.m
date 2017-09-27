@@ -241,6 +241,7 @@ Expand[a_] := a //. {
      genExpand[List @@ s, possibleExponents[n, Length[s]]],
     c_*s_Plus :> ((c*#) &) /@ s
     };
+Expand[a_, x_] := (Print["Expand does not support second argument."];Expand[a]);
 Attributes[Expand] = {Protected};
 Tests`Expand = {
     ESimpleExamples[

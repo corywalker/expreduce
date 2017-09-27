@@ -315,3 +315,9 @@ Unique::usage = "`Unique[]` returns a unique symbol.";
 Attributes[Unique] = {Protected};
 
 Attributes[Defer] = {HoldAll, Protected, ReadProtected};
+
+Sow::usage = "`Sow[e]` sows a value `e` for `Reap[]`.";
+Attributes[Sow] = {Protected};
+
+Reap::usage = "`Reap[expr]` returns the result of `expr` and a list of all the sown values during evaluation.";
+Attributes[Reap] = {HoldFirst, Protected};
