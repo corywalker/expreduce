@@ -68,6 +68,18 @@ Expreduce uses the Rubi integration suite by Albert Rich. The rules can be loade
 
 http://www.apmaths.uwo.ca/~arich/
 
+## Integration examples
+
+```
+In[1]:= Int[((A + C*Sin[e + f*x]^2)*(a + a*Sin[e + f*x])^m*(c + -c*Sin[e + f*x])^(-1/2)), x]
+
+Out[1]= (f^-1*Cos[e + f*x]*Hypergeometric2F1[1, 1/2 + m, 3/2 + m, 1/2*(1 + Sin[e + f*x])]*(1 + 2*m)^-1*(A + C)*(a + a*Sin[e + f*x])^m*(c + -c*Sin[e + f*x])^(-1/2) + -2*C*a^-1*f^-1*Cos[e + f*x]*(3 + 2*m)^-1*(a + a*Sin[e + f*x])^(1 + m)*(c + -c*Sin[e + f*x])^(-1/2))
+
+In[2]:= Int[(x^-5*(a*x)^(-1/2)*(1 + -a*x)^(-1/2)*(1 + a*x)), x]
+
+Out[1]= (-2/9*a^4*(a*x)^(-9/2)*(1 + -a*x)^(1/2) + -34/63*a^4*(a*x)^(-7/2)*(1 + -a*x)^(1/2) + -68/105*a^4*(a*x)^(-5/2)*(1 + -a*x)^(1/2) + -272/315*a^4*(a*x)^(-3/2)*(1 + -a*x)^(1/2) + -544/315*a^4*(a*x)^(-1/2)*(1 + -a*x)^(1/2))
+```
+
 # Technical notes
 
 In Expreduce, everything is an expression, which can either be an atomic value like an Integer or a Symbol, or it can be an ordered list of subexpressions. In the case of an ordered list of subexpressions, the first element is known as the Head. It specifies what kind of data follows. For example, `a + 1` is represented as `Plus[a, 1]`. Here the head is `Plus` and the two subexpressions that follow are the symbol `a` and the integer `1`.
