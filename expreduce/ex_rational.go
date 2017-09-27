@@ -54,6 +54,12 @@ func (this *Rational) Eval(es *EvalState) Ex {
 }
 
 func (this *Rational) StringForm(params ToStringParams) string {
+	if params.form == "FullForm" {
+		return fmt.Sprintf("Rational[%d, %d]", this.Num, this.Den)
+	}
+	if params.previousHead == "System`Power" {
+		return fmt.Sprintf("(%d/%d)", this.Num, this.Den)
+	}
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)
 }
 

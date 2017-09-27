@@ -23,6 +23,7 @@ type EvalState struct {
 	timeCounter TimeCounterGroup
 	freeze      bool
 	thrown      *Expression
+	reapSown    *Expression
 	interrupted bool
 }
 
@@ -140,10 +141,18 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`Temporary")
 		es.MarkSeen("System`Stub")
 		es.MarkSeen("System`$Failed")
+		es.MarkSeen("System`Null")
 
 		es.MarkSeen("System`Exp")
 		es.MarkSeen("System`AppellF1")
 		es.MarkSeen("System`Hypergeometric2F1")
+		es.MarkSeen("System`Erf")
+		es.MarkSeen("System`Erfi")
+		es.MarkSeen("System`Erfc")
+		es.MarkSeen("System`SinIntegral")
+		es.MarkSeen("System`CosIntegral")
+		es.MarkSeen("System`EllipticE")
+		es.MarkSeen("System`EllipticF")
 
 		es.MarkSeen("System`Cosh")
 		es.MarkSeen("System`Sinh")

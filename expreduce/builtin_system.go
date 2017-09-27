@@ -111,7 +111,7 @@ func TryReadFile(fn Ex, es *EvalState) (string, string, bool) {
 	return "", "", false
 }
 
-func snagUnique(prefix string, es *EvalState) (string, bool) {
+func snagUnique(context string, prefix string, es *EvalState) (string, bool) {
 	mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
 	if !mnIsDef {
 		return "", false
@@ -124,7 +124,7 @@ func snagUnique(prefix string, es *EvalState) (string, bool) {
 
 	// Find the next ModuleNumber to use.
 	for {
-		toTry := fmt.Sprintf("%v$%v", prefix, mn)
+		toTry := fmt.Sprintf("%v%v%v", context, prefix, mn)
 		if !es.IsDef(toTry) {
 			es.Define(NewSymbol("System`$ModuleNumber"), NewInteger(big.NewInt(mn+1)))
 			return toTry, true
@@ -177,7 +177,7 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 	}
 
 	for i := range parsedLocals {
-		unique, ok := snagUnique(parsedLocals[i].sym.Name, es)
+		unique, ok := snagUnique(parsedLocals[i].sym.Name, "$", es)
 		if !ok {
 			log.Fatal("Error snagging unique.")
 		}
@@ -632,6 +632,10 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name: "Block",
+		OmitDocumentation: true,
+	})
+	defs = append(defs, Definition{
 		Name:              "ESameTest",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
@@ -722,15 +726,57 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Unique",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 1 {
+			if len(this.Parts) > 3 {
 				return this
 			}
-			unique, ok := snagUnique("Global`", es)
+			prefix := "$"
+			if len(this.Parts) == 2 {
+				asStr, isStr := this.Parts[1].(*String)
+				if !isStr {
+					return this
+				}
+				prefix = asStr.Val
+			}
+			unique, ok := snagUnique("Global`", prefix, es)
 			if !ok {
 				log.Fatal("Error snagging unique.")
 			}
 			return NewSymbol(unique)
 		},
+	})
+	defs = append(defs, Definition{
+		Name: "Sow",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				fmt.Println("Unsupported call to Sow.")
+				return this
+			}
+			res := this.Parts[1].Eval(es)
+			if es.reapSown != nil {
+				es.reapSown.appendEx(res)
+			}
+			return res
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Reap",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				fmt.Println("Unsupported call to Reap.")
+				return this
+			}
+			es.reapSown = E(S("List"))
+			res := this.Parts[1].Eval(es)
+			res = E(S("List"), res, E(S("List"), es.reapSown))
+			// If I set this to nil, Int[((A + B*Cos[x])*(a + b*Sin[x])^-1), x]
+			// will not work for an unknown reason.
+			es.reapSown = E(S("List"))
+			return res
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Defer",
+		OmitDocumentation: true,
 	})
 	return
 }

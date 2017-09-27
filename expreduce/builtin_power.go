@@ -26,7 +26,7 @@ func GetPowerDefinitions() (defs []Definition) {
 		Name:    "Power",
 		Default: "1",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], "^", "", false, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], "^", "System`Power", false, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {

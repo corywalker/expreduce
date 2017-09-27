@@ -202,6 +202,10 @@ Tests`Greater = {
 };
 
 LessEqual::usage = "`a <= b` returns True if `a` is less than or equal to `b`.";
+-Infinity <= (_Integer | _Real | _Rational) := True;
+Infinity <= (_Integer | _Real | _Rational) := False;
+(_Integer | _Real | _Rational) <= -Infinity := False;
+(_Integer | _Real | _Rational) <= Infinity := True;
 Attributes[LessEqual] = {Protected};
 Tests`LessEqual = {
     ESimpleExamples[
