@@ -39,7 +39,7 @@ func parseSymbol(part Ex) (symbol *Symbol, isSymbol bool) {
 func parseInfinity(part Ex, es *EvalState) bool {
 	symbol, isSymbol := parseSymbol(part)
 	if isSymbol {
-		return symbol.IsEqual(&Symbol{"System`Infinity"}, &es.CASLogger) == "EQUAL_TRUE"
+		return symbol.IsEqual(&Symbol{Name:"System`Infinity"}, &es.CASLogger) == "EQUAL_TRUE"
 	}
 	return false
 }
@@ -48,9 +48,9 @@ func parseNegativeInfinity(part Ex, es *EvalState) bool {
 	expr, isExpr := parseExpression(part)
 	if isExpr {
 		template := NewExpression([]Ex{
-			&Symbol{"System`Times"},
-			&Integer{big.NewInt(-1)},
-			&Symbol{"System`Infinity"},
+			&Symbol{Name:"System`Times"},
+			&Integer{Val:big.NewInt(-1)},
+			&Symbol{Name:"System`Infinity"},
 		})
 		return expr.IsEqual(template, &es.CASLogger) == "EQUAL_TRUE"
 	}
@@ -135,7 +135,7 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec{
 	}
 
 	//If the head of the expression is not List, return false
-	expression, isList := headExAssertion(expression, &Symbol{"System`List"}, &es.CASLogger)
+	expression, isList := headExAssertion(expression, &Symbol{Name:"System`List"}, &es.CASLogger)
 	if !isList {
 		return levelSpec{false, false, 1, 1, false}
 	}
@@ -285,7 +285,7 @@ func wrapWithHead(head Ex, expr Ex, partList []int64) *Expression {
 }
 
 func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64) *Expression {
-	partSpec := []Ex{&Symbol{"System`List"}}
+	partSpec := []Ex{&Symbol{Name:"System`List"}}
 	for _, part := range partList {
 		partSpec = append(partSpec, NewInt(part))
 	}
