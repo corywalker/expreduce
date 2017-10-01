@@ -11,8 +11,8 @@ func (this *String) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *String) StringForm(form string, context *String, contextPath *Expression) string {
-	if form == "OutputForm" {
+func (this *String) StringForm(params ToStringParams) string {
+	if params.form == "OutputForm" {
 		return fmt.Sprintf("%v", this.Val)
 	}
 	return fmt.Sprintf("\"%v\"", this.Val)
@@ -20,7 +20,7 @@ func (this *String) StringForm(form string, context *String, contextPath *Expres
 
 func (this *String) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *String) IsEqual(other Ex, cl *CASLogger) string {
@@ -39,6 +39,10 @@ func (this *String) DeepCopy() Ex {
 	return &thiscopy
 }
 
+func (this *String) Copy() Ex {
+	return this.DeepCopy()
+}
+
 func (this *String) NeedsEval() bool {
 	return false
 }
@@ -48,4 +52,8 @@ func (this *String) Hash() uint64 {
 	h.Write([]byte{102, 206, 57, 172, 207, 100, 198, 133})
 	h.Write([]byte(this.Val))
 	return h.Sum64()
+}
+
+func NewString(v string) *String {
+	return &String{v}
 }

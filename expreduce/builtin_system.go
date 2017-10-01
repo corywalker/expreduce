@@ -32,7 +32,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 	if isSym {
 		toReturn, defined, _ := es.GetDef(
 			"System`N",
-			NewExpression([]Ex{&Symbol{"System`N"}, e}),
+			NewExpression([]Ex{NewSymbol("System`N"), e}),
 		)
 		if defined {
 			return toReturn
@@ -42,7 +42,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 	if isExpr {
 		toReturn, defined, _ := es.GetDef(
 			"System`N",
-			NewExpression([]Ex{&Symbol{"System`N"}, e}),
+			NewExpression([]Ex{NewSymbol("System`N"), e}),
 		)
 		if defined {
 			return toReturn
@@ -51,7 +51,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 		for _, part := range asExpr.Parts {
 			toAdd, defined, _ := es.GetDef(
 				"System`N",
-				NewExpression([]Ex{&Symbol{"System`N"}, part}),
+				NewExpression([]Ex{NewSymbol("System`N"), part}),
 			)
 			if !defined {
 				toAdd = exprToN(es, part)
@@ -64,7 +64,7 @@ func exprToN(es *EvalState, e Ex) Ex {
 }
 
 func TryReadFile(fn Ex, es *EvalState) (string, string, bool) {
-	pathSym := &Symbol{"System`$Path"}
+	pathSym := NewSymbol("System`$Path")
 	path, isDef, _ := es.GetDef("System`$Path", pathSym)
 	if !isDef {
 		return "", "", false
@@ -111,7 +111,7 @@ func TryReadFile(fn Ex, es *EvalState) (string, string, bool) {
 	return "", "", false
 }
 
-func snagUnique(prefix string, es *EvalState) (string, bool) {
+func snagUnique(context string, prefix string, es *EvalState) (string, bool) {
 	mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
 	if !mnIsDef {
 		return "", false
@@ -124,16 +124,15 @@ func snagUnique(prefix string, es *EvalState) (string, bool) {
 
 	// Find the next ModuleNumber to use.
 	for {
-		toTry := fmt.Sprintf("%v$%v", prefix, mn)
+		toTry := fmt.Sprintf("%v%v%v", context, prefix, mn)
 		if !es.IsDef(toTry) {
-			es.Define(&Symbol{"System`$ModuleNumber"}, &Integer{big.NewInt(mn + 1)})
+			es.Define(NewSymbol("System`$ModuleNumber"), NewInteger(big.NewInt(mn+1)))
 			return toTry, true
 		}
 		mn += 1
 	}
 	return "", false
 }
-
 
 func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 	// Coarse parsing of arguments.
@@ -178,7 +177,7 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 	}
 
 	for i := range parsedLocals {
-		unique, ok := snagUnique(parsedLocals[i].sym.Name, es)
+		unique, ok := snagUnique(parsedLocals[i].sym.Name, "$", es)
 		if !ok {
 			log.Fatal("Error snagging unique.")
 		}
@@ -196,8 +195,8 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 				downvalues: []DownValue{
 					DownValue{
 						rule: NewExpression([]Ex{
-							&Symbol{"System`Rule"},
-							&Symbol{pl.uniqueName},
+							NewSymbol("System`Rule"),
+							E(S("HoldPattern"), NewSymbol(pl.uniqueName)),
 							rhs,
 						}),
 					},
@@ -207,7 +206,7 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 			es.defined[pl.uniqueName] = Def{}
 		}
 		pm.LazyMakeMap()
-		pm.patternDefined[pl.sym.Name] = &Symbol{pl.uniqueName}
+		pm.patternDefined[pl.sym.Name] = NewSymbol(pl.uniqueName)
 	}
 	toReturn = ReplacePD(toReturn, es, pm)
 	return toReturn, true
@@ -229,7 +228,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					errorStr := "Invalid level. Must be one of {Debug, Info, Notice}."
 					levelSym, lsOk := this.Parts[2].(*Symbol)
 					if !lsOk {
-						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{errorStr}})
+						return NewExpression([]Ex{NewSymbol("System`Error"), NewString(errorStr)})
 					}
 					if levelSym.Name == "System`Debug" {
 						es.DebugOn(logging.DEBUG)
@@ -238,12 +237,12 @@ func GetSystemDefinitions() (defs []Definition) {
 					} else if levelSym.Name == "System`Notice" {
 						es.DebugOn(logging.NOTICE)
 					} else {
-						return NewExpression([]Ex{&Symbol{"System`Error"}, &String{errorStr}})
+						return NewExpression([]Ex{NewSymbol("System`Error"), NewString(errorStr)})
 					}
-					return &Symbol{"System`Null"}
+					return NewSymbol("System`Null")
 				} else if sym.Name == "System`False" {
 					es.DebugOff()
-					return &Symbol{"System`Null"}
+					return NewSymbol("System`Null")
 				}
 			}
 			return this
@@ -263,7 +262,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				f.Close()
 			}
 			fmt.Println(es.timeCounter.String())
-			return &Symbol{"System`Null"}
+			return NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -278,11 +277,11 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			toReturn := NewExpression([]Ex{&Symbol{"System`List"}})
+			toReturn := NewExpression([]Ex{NewSymbol("System`List")})
 			def, isDef := es.defined[sym.Name]
 			if isDef {
 				for _, s := range def.attributes.toStrings() {
-					toReturn.Parts = append(toReturn.Parts, &Symbol{"System`" + s})
+					toReturn.Parts = append(toReturn.Parts, NewSymbol("System`"+s))
 				}
 			}
 			return toReturn
@@ -317,7 +316,7 @@ func GetSystemDefinitions() (defs []Definition) {
 					es.Clear(sym.Name)
 				}
 			}
-			return &Symbol{"System`Null"}
+			return NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -334,14 +333,14 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			def, isd := es.defined[sym.Name]
 			if !isd {
-				return &Symbol{"System`Null"}
+				return NewSymbol("System`Null")
 			}
 			context, contextPath := DefinitionComplexityStringFormArgs()
-			return NewExpression([]Ex{&Symbol{"System`Error"}, &String{def.StringForm("InputForm", context, contextPath)}})
+			return NewExpression([]Ex{NewSymbol("System`Error"), NewString(def.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath}))})
 		},
 	})
 	defs = append(defs, Definition{
-		Name:              "DownValues",
+		Name: "DownValues",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
 				return this
@@ -351,18 +350,15 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return this
 			}
-			res := NewExpression([]Ex{&Symbol{"System`List"}})
+			res := NewExpression([]Ex{NewSymbol("System`List")})
 			def, isd := es.defined[sym.Name]
 			if !isd {
 				return res
 			}
 			for _, dv := range def.downvalues {
 				res.Parts = append(res.Parts, NewExpression([]Ex{
-					&Symbol{"System`RuleDelayed"},
-					NewExpression([]Ex{
-						&Symbol{"System`HoldPattern"},
-						dv.rule.Parts[1],
-					}),
+					NewSymbol("System`RuleDelayed"),
+					dv.rule.Parts[1],
 					dv.rule.Parts[2],
 				}))
 			}
@@ -373,11 +369,11 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "Set",
 		Usage:      "`lhs = rhs` sets `lhs` to stand for `rhs`.",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " = ", true, "(", ")", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " = ", "", true, "(", ")", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -421,11 +417,11 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "SetDelayed",
 		Usage:      "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
 		Attributes: []string{"HoldAll", "SequenceHold"},
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " := ", true, "(", ")", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " := ", "", true, "(", ")", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -441,7 +437,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				es.Define(lhs, this.Parts[2])
 			}
 			es.Define(this.Parts[1], this.Parts[2])
-			return &Symbol{"System`Null"}
+			return NewSymbol("System`Null")
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"`SetDelayed` can be used to define functions:"},
@@ -505,7 +501,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			start := time.Now()
 			res := this.Parts[1].Eval(es)
 			elapsed := time.Since(start).Seconds()
-			return NewExpression([]Ex{&Symbol{"System`List"}, &Flt{big.NewFloat(elapsed)}, res})
+			return NewExpression([]Ex{NewSymbol("System`List"), NewReal(big.NewFloat(elapsed)), res})
 		},
 	})
 	defs = append(defs, Definition{
@@ -521,7 +517,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				fmt.Printf("%s", this.Parts[i].String())
 			}
 			fmt.Printf("\n")
-			return &Symbol{"System`Null"}
+			return NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -538,17 +534,17 @@ func GetSystemDefinitions() (defs []Definition) {
 			// way.
 
 			// Put system in trace mode:
-			es.trace = NewExpression([]Ex{&Symbol{"System`List"}})
+			es.trace = NewExpression([]Ex{NewSymbol("System`List")})
 			// Evaluate first argument in trace mode:
 			this.Parts[1].Eval(es)
-			if len(es.trace.Parts) > 2 {
+			if es.trace != nil && len(es.trace.Parts) > 2 {
 				// Take system out of trace mode:
 				toReturn := es.trace.DeepCopy()
 				es.trace = nil
 				return toReturn
 			}
 			es.trace = nil
-			return NewExpression([]Ex{&Symbol{"System`List"}})
+			return NewExpression([]Ex{NewSymbol("System`List")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -620,7 +616,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			fileData, rawPath, ok := TryReadFile(this.Parts[1], es)
 			if !ok {
-				return &Symbol{"System`$Failed"}
+				return NewSymbol("System`$Failed")
 			}
 			return EvalInterpMany(fileData, rawPath, es)
 		},
@@ -634,6 +630,10 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			return res
 		},
+	})
+	defs = append(defs, Definition{
+		Name: "Block",
+		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{
 		Name:              "ESameTest",
@@ -650,7 +650,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			i := big.NewInt(0)
 			i.SetUint64(hashEx(this.Parts[1]))
-			return &Integer{i}
+			return NewInteger(i)
 		},
 	})
 	defs = append(defs, Definition{
@@ -661,7 +661,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			fileData, rawPath, ok := TryReadFile(this.Parts[1], es)
 			if !ok {
-				return &Symbol{"System`$Failed"}
+				return NewSymbol("System`$Failed")
 			}
 			return ReadList(fileData, rawPath, es)
 		},
@@ -677,11 +677,11 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Unprotect"})
 	defs = append(defs, Definition{Name: "ClearAll"})
 	defs = append(defs, Definition{
-		Name: "Quiet",
+		Name:              "Quiet",
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{
-		Name: "TimeConstrained",
+		Name:              "TimeConstrained",
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{
@@ -718,7 +718,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 			return NewExpression([]Ex{
-				&Symbol{"System`Hold"},
+				NewSymbol("System`Hold"),
 				maskNonConditional(this.Parts[1]),
 			})
 		},
@@ -726,15 +726,57 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Unique",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 1 {
+			if len(this.Parts) > 3 {
 				return this
 			}
-			unique, ok := snagUnique("Global`", es)
+			prefix := "$"
+			if len(this.Parts) == 2 {
+				asStr, isStr := this.Parts[1].(*String)
+				if !isStr {
+					return this
+				}
+				prefix = asStr.Val
+			}
+			unique, ok := snagUnique("Global`", prefix, es)
 			if !ok {
 				log.Fatal("Error snagging unique.")
 			}
-			return &Symbol{unique}
+			return NewSymbol(unique)
 		},
+	})
+	defs = append(defs, Definition{
+		Name: "Sow",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				fmt.Println("Unsupported call to Sow.")
+				return this
+			}
+			res := this.Parts[1].Eval(es)
+			if es.reapSown != nil {
+				es.reapSown.appendEx(res)
+			}
+			return res
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Reap",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				fmt.Println("Unsupported call to Reap.")
+				return this
+			}
+			es.reapSown = E(S("List"))
+			res := this.Parts[1].Eval(es)
+			res = E(S("List"), res, E(S("List"), es.reapSown))
+			// If I set this to nil, Int[((A + B*Cos[x])*(a + b*Sin[x])^-1), x]
+			// will not work for an unknown reason.
+			es.reapSown = E(S("List"))
+			return res
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Defer",
+		OmitDocumentation: true,
 	})
 	return
 }

@@ -13,6 +13,7 @@ D[Abs[a_], x_] := If[FreeQ[a, x], 0, Derivative[1][Abs][x]];
 D[Log[a_], x_] := D[a, x]/a;
 D[Sin[a_], x_] := D[a,x] Cos[a];
 D[Cos[a_], x_] := -D[a,x] Sin[a];
+D[Exp[x_Symbol], x_Symbol] := Exp[x];
 Attributes[D] = {ReadProtected, Protected};
 Tests`D = {
     ESimpleExamples[

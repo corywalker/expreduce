@@ -47,28 +47,28 @@ Int[Log[g_.*(h_.*(a_.+b_.*x_)^p_.)^q_.]*Log[i_.*(j_.*(c_.+d_.*x_)^r_.)^s_.]/x_,x
 FreeQ[{a,b,c,d,g,h,i,j,p,q,r,s},x] && EqQ[b*c-a*d,0]
 
 
-Int[Log[a_+b_.*x_]*Log[c_+d_.*x_]/x_,x_Symbol] :=
-  Log[-b*x/a]*Log[a+b*x]*Log[c+d*x] + 
-  1/2*Log[-b*x/a]*Log[a*(c+d*x)/(c*(a+b*x))]^2 + 
-  1/2*Log[-(b*c-a*d)/(d*(a+b*x))]*Log[a*(c+d*x)/(c*(a+b*x))]^2 - 
-  1/2*Log[a*(c+d*x)/(c*(a+b*x))]^2*Log[(b*c-a*d)*x/(c*(a+b*x))] - 
-  Log[-b*x/a]*Log[a+b*x]*Log[1+d*x/c] + 
-  Log[-(d*x/c)]*Log[a+b*x]*Log[1+d*x/c] - 
-  Log[-b*x/a]*Log[a*(c+d*x)/(c*(a+b*x))]*Log[1+d*x/c] + 
-  Log[-d*x/c]*Log[a*(c+d*x)/(c*(a+b*x))]*Log[1+d*x/c] + 
-  1/2*Log[-b*x/a]*Log[1+d*x/c]^2 - 
-  1/2*Log[-d*x/c]*Log[1+d*x/c]^2 + 
-  Log[c+d*x]*PolyLog[2,1+b*x/a] - 
-  Log[a*(c+d*x)/(c*(a+b*x))]*PolyLog[2,1+b*x/a] - 
-  Log[a*(c+d*x)/(c*(a+b*x))]*PolyLog[2,a*(c+d*x)/(c*(a+b*x))] + 
-  Log[a*(c+d*x)/(c*(a+b*x))]*PolyLog[2,b*(c+d*x)/(d*(a+b*x))] + 
-  Log[a+b*x]*PolyLog[2,1+d*x/c] + 
-  Log[a*(c+d*x)/(c*(a+b*x))]*PolyLog[2,1+d*x/c] - 
-  PolyLog[3,1+b*x/a] +
-  PolyLog[3,a*(c+d*x)/(c*(a+b*x))] - 
-  PolyLog[3,b*(c+d*x)/(d*(a+b*x))] - 
-  PolyLog[3,1+d*x/c]/;
-FreeQ[{a,b,c,d},x] && NeQ[b*c-a*d,0]
+(*Int[Log[a_+b_.*x_]*Log[c_+d_.*x_]/x_,x_Symbol] :=*)
+  (*Log[-b*x/a]*Log[a+b*x]*Log[c+d*x] + *)
+  (*1/2*Log[-b*x/a]*Log[a*(c+d*x)/(c*(a+b*x))]^2 + *)
+  (*1/2*Log[-(b*c-a*d)/(d*(a+b*x))]*Log[a*(c+d*x)/(c*(a+b*x))]^2 - *)
+  (*1/2*Log[a*(c+d*x)/(c*(a+b*x))]^2*Log[(b*c-a*d)*x/(c*(a+b*x))] - *)
+  (*Log[-b*x/a]*Log[a+b*x]*Log[1+d*x/c] + *)
+  (*Log[-(d*x/c)]*Log[a+b*x]*Log[1+d*x/c] - *)
+  (*Log[-b*x/a]*Log[a*(c+d*x)/(c*(a+b*x))]*Log[1+d*x/c] + *)
+  (*Log[-d*x/c]*Log[a*(c+d*x)/(c*(a+b*x))]*Log[1+d*x/c] + *)
+  (*1/2*Log[-b*x/a]*Log[1+d*x/c]^2 - *)
+  (*1/2*Log[-d*x/c]*Log[1+d*x/c]^2 + *)
+  (*Log[c+d*x]*PolyLog[2,1+b*x/a] - *)
+  (*Log[a*(c+d*x)/(c*(a+b*x))]*PolyLog[2,1+b*x/a] - *)
+  (*Log[a*(c+d*x)/(c*(a+b*x))]*PolyLog[2,a*(c+d*x)/(c*(a+b*x))] + *)
+  (*Log[a*(c+d*x)/(c*(a+b*x))]*PolyLog[2,b*(c+d*x)/(d*(a+b*x))] + *)
+  (*Log[a+b*x]*PolyLog[2,1+d*x/c] + *)
+  (*Log[a*(c+d*x)/(c*(a+b*x))]*PolyLog[2,1+d*x/c] - *)
+  (*PolyLog[3,1+b*x/a] +*)
+  (*PolyLog[3,a*(c+d*x)/(c*(a+b*x))] - *)
+  (*PolyLog[3,b*(c+d*x)/(d*(a+b*x))] - *)
+  (*PolyLog[3,1+d*x/c]/;*)
+(*FreeQ[{a,b,c,d},x] && NeQ[b*c-a*d,0]*)
 
 
 Int[Log[v_]*Log[w_]/x_,x_Symbol] :=

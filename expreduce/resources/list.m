@@ -379,9 +379,17 @@ Tests`Join = {
     ]
 };
 
-ReplacePart[e_?((! AtomQ[#]) &), r_, i_Integer?Positive] :=
-  
-  If[i <= Length[e] === True,
-   Join[e[[1 ;; i - 1]], Head[e][r], e[[i + 1 ;; Length[e]]]],
-   Print["Index too large for ReplacePart!"]];
-ReplacePart[___] := Print["Invalid call to ReplacePart!"];
+Count::usage = "`Count[l, pattern]` returns the number of expressions in `l` matching `pattern`.";
+Count[l_List, pat_] := Length[Cases[l, pat]];
+Attributes[Count] = {Protected};
+
+Tally::usage = "`Tally[list]` creates tallies of the elements in `list`.";
+Tally[l_List] := {#, Count[l, #]} & /@ DeleteDuplicates[l];
+Attributes[Tally] = {Protected};
+Tests`Tally = {
+    ESimpleExamples[
+        ESameTest[{{a, 2}, {b, 2}}, Tally[{a, a, b, b}]],
+        ESameTest[{{b, 2}, {a, 2}}, Tally[{b, b, a, a}]],
+        ESameTest[{{b, 2}, {a, 1}}, Tally[{b, b, a}]],
+    ]
+};

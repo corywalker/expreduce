@@ -20,13 +20,13 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			context, contextPath := ActualStringFormArgs(es)
-			return &String{this.Parts[1].StringForm(formAsSymbol.Name[7:], context, contextPath)}
+			return NewString(this.Parts[1].StringForm(ToStringParams{form: formAsSymbol.Name[7:], context: context, contextPath: contextPath}))
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "StringJoin",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " <> ", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " <> ", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			toReturn := ""
@@ -37,7 +37,7 @@ func GetStringDefinitions() (defs []Definition) {
 				}
 				toReturn += asStr.Val
 			}
-			return &String{toReturn}
+			return NewString(toReturn)
 		},
 	})
 	defs = append(defs, Definition{
@@ -76,15 +76,15 @@ func GetStringDefinitions() (defs []Definition) {
 			if !sIsInt || !eIsInt {
 				return this
 			}
-			s := int(sInt.Val.Int64()-1)
-			e := int(eInt.Val.Int64()-1)
+			s := int(sInt.Val.Int64() - 1)
+			e := int(eInt.Val.Int64() - 1)
 			if s < 0 || e >= len(asStr.Val) {
 				return this
 			}
 			if e < s {
-				return &String{""}
+				return NewString("")
 			}
-			return &String{asStr.Val[s:e+1]}
+			return NewString(asStr.Val[s : e+1])
 		},
 	})
 	return

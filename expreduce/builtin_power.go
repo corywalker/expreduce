@@ -14,7 +14,7 @@ func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(*Expre
 		flt, ok := this.Parts[1].(*Flt)
 		if ok {
 			if !onlyPos || flt.Val.Cmp(big.NewFloat(0)) == 1 {
-				return &Flt{fn(flt.Val)}
+				return NewReal(fn(flt.Val))
 			}
 		}
 		return this
@@ -25,8 +25,8 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Power",
 		Default: "1",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], "^", false, "", "", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfixAdvanced(this.Parts[1:], "^", "System`Power", false, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -65,9 +65,9 @@ func GetPowerDefinitions() (defs []Definition) {
 			}
 			if powerPositivity == 0 && (baseIsInt || baseIsFlt) {
 				if basePositivity == 0 {
-					return &Symbol{"System`Indeterminate"}
+					return NewSymbol("System`Indeterminate")
 				}
-				return &Integer{big.NewInt(1)}
+				return NewInteger(big.NewInt(1))
 			}
 			if powerPositivity == 1 && basePositivity == 0 {
 				return this.Parts[1]
@@ -84,33 +84,33 @@ func GetPowerDefinitions() (defs []Definition) {
 				if cmpres == 1 {
 					res := big.NewInt(0)
 					res.Exp(baseInt.Val, powerInt.Val, nil)
-					return &Integer{res}
+					return NewInteger(res)
 				} else if cmpres == -1 {
 					newbase := big.NewInt(0)
 					absPower := big.NewInt(0)
 					absPower.Abs(powerInt.Val)
 					newbase.Exp(baseInt.Val, absPower, nil)
 					if newbase.Cmp(big.NewInt(1)) == 0 {
-						return &Integer{big.NewInt(1)}
+						return NewInteger(big.NewInt(1))
 					}
 					if newbase.Cmp(big.NewInt(-1)) == 0 {
-						return &Integer{big.NewInt(-1)}
+						return NewInteger(big.NewInt(-1))
 					}
 					//return NewExpression([]Ex{&Symbol{"System`Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}})
-					return NewExpression([]Ex{&Symbol{"System`Rational"}, &Integer{big.NewInt(1)}, &Integer{newbase}})
+					return NewExpression([]Ex{NewSymbol("System`Rational"), NewInteger(big.NewInt(1)), NewInteger(newbase)})
 				} else {
-					return NewExpression([]Ex{&Symbol{"System`Error"}, &String{"Unexpected zero power in Power evaluation."}})
+					return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Unexpected zero power in Power evaluation.")})
 				}
 			}
 
 			if baseIsFlt && powerIsInt {
-				return &Flt{mathbigext.Pow(baseFlt.Val, big.NewFloat(0).SetInt(powerInt.Val))}
+				return NewReal(mathbigext.Pow(baseFlt.Val, big.NewFloat(0).SetInt(powerInt.Val)))
 			}
 			if baseIsInt && powerIsFlt {
-				return &Flt{mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val)}
+				return NewReal(mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val))
 			}
 			if baseIsFlt && powerIsFlt {
-				return &Flt{mathbigext.Pow(baseFlt.Val, powerFlt.Val)}
+				return NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
 			}
 			return this
 		},
@@ -130,7 +130,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{Name: "Expand"})
 	defs = append(defs, Definition{
-		Name: "Log",
+		Name:         "Log",
 		legacyEvalFn: bigMathFnOneParam(mathbigext.Log, true),
 	})
 	defs = append(defs, Definition{Name: "Sqrt"})
@@ -154,5 +154,9 @@ func GetPowerDefinitions() (defs []Definition) {
 		ExpreduceSpecific: true,
 	})
 	defs = append(defs, Definition{Name: "FactorSquareFree"})
+	defs = append(defs, Definition{
+		Name:              "Factor",
+		OmitDocumentation: true,
+	})
 	return
 }

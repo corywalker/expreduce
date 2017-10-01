@@ -95,7 +95,7 @@ LoadRules["9.2 Derivative integration rules"];
 LoadRules["9.4 Miscellaneous integration rules"];
 
 
-(*FixIntRules[];*)
+FixIntRules[];
 
 
 (*If[Global`$LoadShowSteps===True, StepFunction[Int]];*)

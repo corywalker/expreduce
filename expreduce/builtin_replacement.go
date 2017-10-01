@@ -25,7 +25,7 @@ func getValidRules(ruleArg Ex) (rules []*Expression) {
 	return
 }
 
-func rulesReplace(e Ex, rules []*Expression, es *EvalState) Ex {
+func rulesReplaceAll(e Ex, rules []*Expression, es *EvalState) Ex {
 	// TODO: fix the case where ReplaceAll[{x},{x->y,y->z}] returns incorrectly.
 	toReturn := e
 	for _, rule := range rules {
@@ -34,14 +34,56 @@ func rulesReplace(e Ex, rules []*Expression, es *EvalState) Ex {
 	return toReturn
 }
 
+func rulesReplace(e Ex, rules []*Expression, es *EvalState) (Ex, bool) {
+	for _, rule := range rules {
+		res, replaced := Replace(e, rule, es)
+		if replaced {
+			return res, true
+		}
+	}
+	return e, false
+}
+
+func replaceParts(e Ex, rules []*Expression, part *Expression, es *EvalState) Ex {
+	expr, isExpr := e.(*Expression)
+	if !isExpr {
+		return e
+	}
+	res := E(expr.Parts[0])
+	part.Parts = append(part.Parts, NewInt(0))
+	dirty := false
+	for i, p := range expr.Parts[1:] {
+		part.Parts[len(part.Parts)-1] = NewInt(int64(i + 1))
+		repVal, replaced := rulesReplace(part, rules, es)
+		if !replaced && len(part.Parts) == 2 {
+			repVal, replaced = rulesReplace(part.Parts[1], rules, es)
+		}
+		if replaced {
+			res.Parts = append(res.Parts, repVal)
+			dirty = true
+		} else {
+			newVal := replaceParts(p, rules, part, es)
+			res.Parts = append(res.Parts, newVal)
+			if newVal != p {
+				dirty = true
+			}
+		}
+	}
+	part.Parts = part.Parts[:len(part.Parts)-1]
+	if !dirty {
+		return e
+	}
+	return res
+}
+
 func getReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceAll",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " /. ", true, "", "", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " /. ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -52,7 +94,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(rules) == 0 {
 				return this
 			}
-			return rulesReplace(this.Parts[1], rules, es)
+			return rulesReplaceAll(this.Parts[1], rules, es)
 		},
 	})
 	defs = append(defs, Definition{
@@ -77,11 +119,11 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReplaceRepeated",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " //. ", true, "", "", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " //. ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -93,7 +135,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 			for !isSame {
 				newEx := (NewExpression([]Ex{
-					&Symbol{"System`ReplaceAll"},
+					NewSymbol("System`ReplaceAll"),
 					oldEx,
 					this.Parts[2],
 				})).Eval(es)
@@ -109,20 +151,41 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Rule",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " -> ", true, "", "", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " -> ", "System`Rule", false, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "RuleDelayed",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " :> ", true, "", "", form, context, contextPath)
+			return ToStringInfixAdvanced(this.Parts[1:], " :> ", "System`RuleDelayed", false, "", "", params)
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "ReplacePart",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			rules, isList := HeadAssertion(this.Parts[2], "System`List")
+			if !isList {
+				return this
+			}
+			exprRules := [](*Expression){}
+			for _, rulesPart := range rules.Parts[1:] {
+				rule, isRule := HeadAssertion(rulesPart, "System`Rule")
+				if !isRule {
+					return this
+				}
+				exprRules = append(exprRules, rule)
+			}
+			return replaceParts(this.Parts[1], exprRules, E(S("List")), es)
 		},
 	})
 	return

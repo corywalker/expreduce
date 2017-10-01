@@ -2,7 +2,7 @@ package expreduce
 
 func GetRubiDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
-		Name: "LoadRubi",
+		Name:              "LoadRubi",
 		ExpreduceSpecific: true,
 	})
 	return

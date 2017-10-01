@@ -12,13 +12,13 @@ type Rational struct {
 
 func (this *Rational) Eval(es *EvalState) Ex {
 	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
-		return &Symbol{"System`Indeterminate"}
+		return NewSymbol("System`Indeterminate")
 	}
 	if this.Den.Cmp(big.NewInt(0)) == 0 {
-		return &Symbol{"System`ComplexInfinity"}
+		return NewSymbol("System`ComplexInfinity")
 	}
 	if this.Num.Cmp(big.NewInt(0)) == 0 {
-		return &Integer{big.NewInt(0)}
+		return NewInteger(big.NewInt(0))
 	}
 	negNum := this.Num.Cmp(big.NewInt(0)) == -1
 	negDen := this.Den.Cmp(big.NewInt(0)) == -1
@@ -35,9 +35,9 @@ func (this *Rational) Eval(es *EvalState) Ex {
 
 	if absDen.Cmp(big.NewInt(1)) == 0 {
 		if !negateRes {
-			return &Integer{absNum}
+			return NewInteger(absNum)
 		} else {
-			return &Integer{absNum.Neg(absNum)}
+			return NewInteger(absNum.Neg(absNum))
 		}
 	}
 
@@ -53,13 +53,19 @@ func (this *Rational) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Rational) StringForm(form string, context *String, contextPath *Expression) string {
+func (this *Rational) StringForm(params ToStringParams) string {
+	if params.form == "FullForm" {
+		return fmt.Sprintf("Rational[%d, %d]", this.Num, this.Den)
+	}
+	if params.previousHead == "System`Power" {
+		return fmt.Sprintf("(%d/%d)", this.Num, this.Den)
+	}
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)
 }
 
 func (this *Rational) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *Rational) IsEqual(other Ex, cl *CASLogger) string {
@@ -80,6 +86,10 @@ func (this *Rational) DeepCopy() Ex {
 	tmpd := big.NewInt(0)
 	tmpd.Set(this.Den)
 	return &Rational{tmpn, tmpd, this.needsEval}
+}
+
+func (this *Rational) Copy() Ex {
+	return this.DeepCopy()
 }
 
 func (this *Rational) AsBigRat() *big.Rat {

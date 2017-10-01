@@ -111,21 +111,21 @@ func TestLowLevel(t *testing.T) {
 	es := NewEvalState()
 
 	lhs := NewExpression([]Ex{
-		&Symbol{"System`Power"},
+		NewSymbol("System`Power"),
 		NewExpression([]Ex{
-			&Symbol{"System`Plus"},
-			&Symbol{"Global`a"},
-			&Symbol{"Global`b"},
-			&Symbol{"Global`c"},
+			NewSymbol("System`Plus"),
+			NewSymbol("Global`a"),
+			NewSymbol("Global`b"),
+			NewSymbol("Global`c"),
 		}),
 		NewInt(0),
 	})
 	rule := NewExpression([]Ex{
-		&Symbol{"System`Rule"},
+		NewSymbol("System`Rule"),
 		NewExpression([]Ex{
-			&Symbol{"System`Power"},
+			NewSymbol("System`Power"),
 			NewExpression([]Ex{
-				&Symbol{"System`Blank"},
+				NewSymbol("System`Blank"),
 			}),
 			NewInt(0),
 		}),
@@ -136,43 +136,43 @@ func TestLowLevel(t *testing.T) {
 	}
 
 	// Test basic float functionality
-	var f *Flt = &Flt{big.NewFloat(5.5)}
+	var f *Flt = NewReal(big.NewFloat(5.5))
 	assert.Equal(t, "5.5", f.String())
 	f.Eval(es)
 	assert.Equal(t, "5.5", f.String())
 
 	// Test nested addition functionality
 	var a = NewExpression([]Ex{
-		&Symbol{"System`Plus"},
+		NewSymbol("System`Plus"),
 		NewExpression([]Ex{
-			&Symbol{"System`Plus"},
-			&Flt{big.NewFloat(80)},
-			&Flt{big.NewFloat(3)},
+			NewSymbol("System`Plus"),
+			NewReal(big.NewFloat(80)),
+			NewReal(big.NewFloat(3)),
 		}),
 
-		&Flt{big.NewFloat(2)},
-		&Flt{big.NewFloat(2.5)},
+		NewReal(big.NewFloat(2)),
+		NewReal(big.NewFloat(2.5)),
 	})
 
 	// Test equality checking
-	assert.Equal(t, "EQUAL_TRUE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(99)}, &es.CASLogger))
-	assert.Equal(t, "EQUAL_FALSE", (&Flt{big.NewFloat(99)}).IsEqual(&Flt{big.NewFloat(98)}, &es.CASLogger))
-	assert.Equal(t, "EQUAL_TRUE", (&Symbol{"System`x"}).IsEqual(&Symbol{"System`x"}, &es.CASLogger))
-	assert.Equal(t, "EQUAL_UNK", (&Symbol{"System`x"}).IsEqual(&Symbol{"System`X"}, &es.CASLogger))
-	assert.Equal(t, "EQUAL_UNK", (&Symbol{"System`x"}).IsEqual(&Symbol{"System`y"}, &es.CASLogger))
+	assert.Equal(t, "EQUAL_TRUE", (NewReal(big.NewFloat(99))).IsEqual(NewReal(big.NewFloat(99)), &es.CASLogger))
+	assert.Equal(t, "EQUAL_FALSE", (NewReal(big.NewFloat(99))).IsEqual(NewReal(big.NewFloat(98)), &es.CASLogger))
+	assert.Equal(t, "EQUAL_TRUE", (NewSymbol("System`x")).IsEqual(NewSymbol("System`x"), &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", (NewSymbol("System`x")).IsEqual(NewSymbol("System`X"), &es.CASLogger))
+	assert.Equal(t, "EQUAL_UNK", (NewSymbol("System`x")).IsEqual(NewSymbol("System`y"), &es.CASLogger))
 
 	// Test evaluation
 	newa := a.Eval(es)
 	assert.Equal(t, "87.5", newa.String())
 
 	// Test basic Symbol functionality
-	var v *Symbol = &Symbol{"System`x"}
+	var v *Symbol = NewSymbol("System`x")
 	assert.Equal(t, "x", v.String())
 	v.Eval(es)
 	assert.Equal(t, "x", v.String())
 
 	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
-	assert.Equal(t, "(a * b * c * d * e * f)", EasyRun("a * b * c *d *e *f", es))
+	assert.Equal(t, "(a*b*c*d*e*f)", EasyRun("a * b * c *d *e *f", es))
 
 	CasAssertSame(t, es, "2", "iubjndxuier = 2")
 	_, containsTest := es.defined["Global`iubjndxuier"]
@@ -180,13 +180,17 @@ func TestLowLevel(t *testing.T) {
 	es.ClearAll()
 	_, containsTest = es.defined["Global`iubjndxuier"]
 	assert.False(t, containsTest)
+
+	// Test raw recursion speed
+	EvalInterp("DownValues[fib]={HoldPattern[fib[0]]->0,HoldPattern[fib[1]]->1,HoldPattern[fib[x_]]:>fib[x-1]+fib[x-2]}", es)
+	EvalInterp("fib[25]", es)
 }
 
 func TestDeepCopy(t *testing.T) {
 	fmt.Println("Testing deepcopy")
 
 	// Test deepcopy
-	var t1 = &Symbol{"System`x"}
+	var t1 = NewSymbol("System`x")
 	t2 := *t1
 	t3 := t1.DeepCopy().(*Symbol)
 	assert.Equal(t, "System`x", t1.Name)
@@ -198,7 +202,7 @@ func TestDeepCopy(t *testing.T) {
 	assert.Equal(t, "y", t2.Name)
 	assert.Equal(t, "z", t3.Name)
 
-	var t4 = &Flt{big.NewFloat(2)}
+	var t4 = NewReal(big.NewFloat(2))
 	t5 := *t4
 	t6 := t4.DeepCopy().(*Flt)
 	assert.Equal(t, "2.", t4.String())

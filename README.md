@@ -35,11 +35,11 @@ Welcome to Expreduce!
 
 In[1]:= D[Cos[Log[Sin[x]]+x]+x,x]
 
-Out[1]= (1 + (-1 * (1 + Cot[x]) * Sin[(x + Log[Sin[x]])]))
+Out[1]= 1 + -(1 + Cot[x])*Sin[x + Log[Sin[x]]]
 
 In[2]:= Integrate[5*E^(3*x),{x,2,a}] // Expand
 
-Out[2]= ((-5/3 * E^6) + (5/3 * E^(3 * a)))
+Out[2]= -5/3*E^6 + 5/3*E^(3*a)
 
 In[3]:= FactorSquareFree[1 - 2*x^2 + x^4]
 
@@ -47,11 +47,11 @@ Out[3]= (-1 + x^2)^2
 
 In[4]:= Sum[i, {i, 1, n}]
 
-Out[4]= (1/2 * n * (1 + n))
+Out[4]= 1/2*n*(1 + n)
 
 In[5]:= Together[(1/2 + 3/a)^2+b/c]
 
-Out[5]= (1/4 * a^-2 * c^-1 * ((4 * a^2 * b) + (36 * c) + (12 * a * c) + (a^2 * c)))
+Out[5]= 1/4*a^-2*c^-1*(4*a^2*b + 36*c + 12*a*c + a^2*c)
 
 In[6]:= 40!
 
@@ -59,7 +59,25 @@ Out[6]= 815915283247897734345611269596115894272000000000
 
 In[7]:= Solve[x^2-x-2.5==0,x]
 
-Out[7]= {{(x) -> (-1.15831)}, {(x) -> (2.15831)}}
+Out[7]= {{x -> -1.15831}, {x -> 2.15831}}
+```
+
+# Rubi integration rules
+
+Expreduce uses the Rubi integration suite by Albert Rich. The rules can be loaded by running `LoadRubi[]` and then the integration can be called like `Int[Sin[a + b*Log[c*x^n]], x]`. These rules are much more powerful than the simplistic ones in `Integrate[]`.
+
+http://www.apmaths.uwo.ca/~arich/
+
+## Integration examples
+
+```
+In[1]:= Int[((A + C*Sin[e + f*x]^2)*(a + a*Sin[e + f*x])^m*(c + -c*Sin[e + f*x])^(-1/2)), x]
+
+Out[1]= (f^-1*Cos[e + f*x]*Hypergeometric2F1[1, 1/2 + m, 3/2 + m, 1/2*(1 + Sin[e + f*x])]*(1 + 2*m)^-1*(A + C)*(a + a*Sin[e + f*x])^m*(c + -c*Sin[e + f*x])^(-1/2) + -2*C*a^-1*f^-1*Cos[e + f*x]*(3 + 2*m)^-1*(a + a*Sin[e + f*x])^(1 + m)*(c + -c*Sin[e + f*x])^(-1/2))
+
+In[2]:= Int[(x^-5*(a*x)^(-1/2)*(1 + -a*x)^(-1/2)*(1 + a*x)), x]
+
+Out[1]= (-2/9*a^4*(a*x)^(-9/2)*(1 + -a*x)^(1/2) + -34/63*a^4*(a*x)^(-7/2)*(1 + -a*x)^(1/2) + -68/105*a^4*(a*x)^(-5/2)*(1 + -a*x)^(1/2) + -272/315*a^4*(a*x)^(-3/2)*(1 + -a*x)^(1/2) + -544/315*a^4*(a*x)^(-1/2)*(1 + -a*x)^(1/2))
 ```
 
 # Technical notes

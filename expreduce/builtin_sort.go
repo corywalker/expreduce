@@ -32,7 +32,7 @@ func GetSortDefinitions() (defs []Definition) {
 			}
 
 			toreturn := ExOrder(this.Parts[1], this.Parts[2])
-			return &Integer{big.NewInt(toreturn)}
+			return NewInteger(big.NewInt(toreturn))
 		},
 	})
 	return

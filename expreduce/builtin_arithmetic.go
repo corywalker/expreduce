@@ -1,6 +1,7 @@
 package expreduce
 
 import "math/big"
+import "strings"
 
 func ExArrayContainsFloat(a []Ex) bool {
 	res := false
@@ -131,8 +132,8 @@ func computeRealPart(fn FoldFn, e *Expression) (Ex, int) {
 func splitTerm(e Ex) (Ex, Ex, bool) {
 	asSym, isSym := e.(*Symbol)
 	if isSym {
-		return &Integer{big.NewInt(1)}, NewExpression([]Ex{
-			&Symbol{"System`Times"},
+		return NewInteger(big.NewInt(1)), NewExpression([]Ex{
+			NewSymbol("System`Times"),
 			asSym,
 		}), true
 	}
@@ -143,16 +144,16 @@ func splitTerm(e Ex) (Ex, Ex, bool) {
 		}
 		if numberQ(asTimes.Parts[1]) {
 			if len(asTimes.Parts) > 2 {
-				return asTimes.Parts[1], NewExpression(append([]Ex{&Symbol{"System`Times"}}, asTimes.Parts[2:]...)), true
+				return asTimes.Parts[1], NewExpression(append([]Ex{NewSymbol("System`Times")}, asTimes.Parts[2:]...)), true
 			}
 		} else {
-			return &Integer{big.NewInt(1)}, NewExpression(append([]Ex{&Symbol{"System`Times"}}, asTimes.Parts[1:]...)), true
+			return NewInteger(big.NewInt(1)), NewExpression(append([]Ex{NewSymbol("System`Times")}, asTimes.Parts[1:]...)), true
 		}
 	}
 	asExpr, isExpr := e.(*Expression)
 	if isExpr {
-		return &Integer{big.NewInt(1)}, NewExpression([]Ex{
-			&Symbol{"System`Times"},
+		return NewInteger(big.NewInt(1)), NewExpression([]Ex{
+			NewSymbol("System`Times"),
 			asExpr,
 		}), true
 	}
@@ -167,9 +168,9 @@ func collectedToTerm(coeffs []Ex, vars Ex, fullPart Ex) Ex {
 	}
 
 	finalC, _ := computeRealPart(FoldFnAdd, NewExpression(append([]Ex{
-		&Symbol{"System`Plus"}}, coeffs...)))
+		NewSymbol("System`Plus")}, coeffs...)))
 
-	toAdd := NewExpression([]Ex{&Symbol{"System`Times"}})
+	toAdd := NewExpression([]Ex{NewSymbol("System`Times")})
 	cAsInt, cIsInt := finalC.(*Integer)
 	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
 		toAdd.Parts = append(toAdd.Parts, finalC)
@@ -186,7 +187,7 @@ func collectedToTerm(coeffs []Ex, vars Ex, fullPart Ex) Ex {
 }
 
 func collectTerms(e *Expression) *Expression {
-	collected := NewExpression([]Ex{&Symbol{"System`Plus"}})
+	collected := NewExpression([]Ex{NewSymbol("System`Plus")})
 	var lastVars Ex
 	var lastFullPart Ex
 	lastCoeffs := []Ex{}
@@ -222,13 +223,13 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Plus",
 		Default: "0",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " + ", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			return ToStringInfix(this.Parts[1:], " + ", "System`Plus", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values
 			if len(this.Parts) == 1 {
-				return &Integer{big.NewInt(0)}
+				return NewInteger(big.NewInt(0))
 			}
 
 			res := this
@@ -237,7 +238,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 				if symStart == -1 {
 					return realPart
 				}
-				res = NewExpression([]Ex{&Symbol{"System`Plus"}})
+				res = NewExpression([]Ex{NewSymbol("System`Plus")})
 				rAsInt, rIsInt := realPart.(*Integer)
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0) {
 					res.Parts = append(res.Parts, realPart)
@@ -261,19 +262,23 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Sum",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			return this.evalIterationFunc(es, &Integer{big.NewInt(0)}, "System`Plus")
+			return this.evalIterationFunc(es, NewInteger(big.NewInt(0)), "System`Plus")
 		},
 	})
 	defs = append(defs, Definition{
 		Name:    "Times",
 		Default: "1",
-		toString: func(this *Expression, form string, context *String, contextPath *Expression) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " * ", form, context, contextPath)
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
+			ok, res := ToStringInfix(this.Parts[1:], "*", "System`Times", params)
+			if ok && strings.HasPrefix(res, "-1*") {
+				return ok, "-" + res[3:]
+			}
+			return ok, res
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			// Calls without argument receive identity values
 			if len(this.Parts) == 1 {
-				return &Integer{big.NewInt(1)}
+				return NewInteger(big.NewInt(1))
 			}
 
 			res := this
@@ -282,19 +287,19 @@ func getArithmeticDefinitions() (defs []Definition) {
 				if symStart == -1 {
 					return realPart
 				}
-				res = NewExpression([]Ex{&Symbol{"System`Times"}})
+				res = NewExpression([]Ex{NewSymbol("System`Times")})
 				rAsInt, rIsInt := realPart.(*Integer)
 				if rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0 {
 					containsInfinity := MemberQ(this.Parts[symStart:], NewExpression([]Ex{
-						&Symbol{"System`Alternatives"},
-						&Symbol{"System`Infinity"},
-						&Symbol{"System`ComplexInfinity"},
-						&Symbol{"System`Indeterminate"},
+						NewSymbol("System`Alternatives"),
+						NewSymbol("System`Infinity"),
+						NewSymbol("System`ComplexInfinity"),
+						NewSymbol("System`Indeterminate"),
 					}), es)
 					if containsInfinity {
-						return &Symbol{"System`Indeterminate"}
+						return NewSymbol("System`Indeterminate")
 					}
-					return &Integer{big.NewInt(0)}
+					return NewInteger(big.NewInt(0))
 				}
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(1)) == 0) {
 					res.Parts = append(res.Parts, realPart)
@@ -314,13 +319,13 @@ func getArithmeticDefinitions() (defs []Definition) {
 				rightplus, rightplusok := HeadAssertion(res.Parts[2], "System`Plus")
 				if leftintok && rightplusok {
 					if leftint.Val.Cmp(big.NewInt(-1)) == 0 {
-						toreturn := NewExpression([]Ex{&Symbol{"System`Plus"}})
+						toreturn := NewExpression([]Ex{NewSymbol("System`Plus")})
 						addends := rightplus.Parts[1:len(rightplus.Parts)]
 						for i := range addends {
 							toAppend := NewExpression([]Ex{
-								&Symbol{"System`Times"},
+								NewSymbol("System`Times"),
 								addends[i],
-								&Integer{big.NewInt(-1)},
+								NewInteger(big.NewInt(-1)),
 							})
 
 							toreturn.Parts = append(toreturn.Parts, toAppend)
@@ -336,7 +341,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Product",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			return this.evalIterationFunc(es, &Integer{big.NewInt(1)}, "System`Times")
+			return this.evalIterationFunc(es, NewInteger(big.NewInt(1)), "System`Times")
 		},
 	})
 	defs = append(defs, Definition{Name: "Abs"})

@@ -33,13 +33,13 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 				}
 			}
 			if len(ints) == 0 {
-				return &Integer{zero}
+				return NewInteger(zero)
 			}
 			gcd := ints[0]
 			for i := 1; i < len(ints); i++ {
 				gcd.GCD(nil, nil, gcd, ints[i])
 			}
-			return &Integer{gcd}
+			return NewInteger(gcd)
 		},
 	})
 	defs = append(defs, Definition{Name: "LCM"})
@@ -55,16 +55,16 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 				return this
 			}
 			if yi.Val.Cmp(big.NewInt(0)) == 0 {
-				return &Symbol{"System`Indeterminate"}
+				return NewSymbol("System`Indeterminate")
 			}
 			m := big.NewInt(0)
 			m.Mod(xi.Val, yi.Val)
-			return &Integer{m}
+			return NewInteger(m)
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "PrimePi",
-		Usage: "`PrimePi[n]` returns the number of primes less than or equal to `n`.",
+		Name:       "PrimePi",
+		Usage:      "`PrimePi[n]` returns the number of primes less than or equal to `n`.",
 		Attributes: []string{"Listable"},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 2 {
@@ -83,14 +83,14 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 				return this
 			}
 			if n <= 0 {
-				return &Integer{big.NewInt(0)}
+				return NewInteger(big.NewInt(0))
 			}
 			if n == 1 {
-				return &Integer{big.NewInt(1)}
+				return NewInteger(big.NewInt(1))
 			}
 			// A very inefficient implementation
 			p := prime.Primes(uint64(n))
-			return &Integer{big.NewInt(int64(len(p)))}
+			return NewInteger(big.NewInt(int64(len(p))))
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"4", "PrimePi[7]"},
@@ -146,9 +146,8 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 	})*/
 	defs = append(defs, Definition{Name: "EvenQ"})
 	defs = append(defs, Definition{Name: "OddQ"})
-	defs = append(defs, Definition{
-		Name:         "FactorInteger",
-		OmitDocumentation: true,
-	})
+	defs = append(defs, Definition{Name: "FactorInteger"})
+	defs = append(defs, Definition{Name: "FractionalPart"})
+	defs = append(defs, Definition{Name: "IntegerPart"})
 	return
 }

@@ -11,7 +11,7 @@ type matchIter interface {
 }
 
 type dummyMatchIter struct {
-	pm       *PDManager
+	pm *PDManager
 }
 
 func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
@@ -158,17 +158,17 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	// This initial value is just a randomly chosen placeholder
 	var headEx Ex
 	if aIsFlt {
-		headEx = &Symbol{"System`Real"}
+		headEx = NewSymbol("System`Real")
 	} else if aIsInteger {
-		headEx = &Symbol{"System`Integer"}
+		headEx = NewSymbol("System`Integer")
 	} else if aIsString {
-		headEx = &Symbol{"System`String"}
+		headEx = NewSymbol("System`String")
 	} else if aIsExpression {
 		headEx = aExpression.Parts[0]
 	} else if aIsSymbol {
-		headEx = &Symbol{"System`Symbol"}
+		headEx = NewSymbol("System`Symbol")
 	} else if aIsRational {
-		headEx = &Symbol{"System`Rational"}
+		headEx = NewSymbol("System`Rational")
 	}
 
 	if IsBlankTypeOnly(b) {
@@ -270,9 +270,9 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 func isMatchQRational(a *Rational, b *Expression, pm *PDManager, es *EvalState) (bool, *PDManager) {
 	return IsMatchQ(
 		NewExpression([]Ex{
-			&Symbol{"System`Rational"},
-			&Integer{a.Num},
-			&Integer{a.Den},
+			NewSymbol("System`Rational"),
+			NewInteger(a.Num),
+			NewInteger(a.Den),
 		}),
 
 		b, pm, es)
@@ -380,7 +380,7 @@ type sequenceMatchIter struct {
 }
 
 func NewSequenceMatchIter(components []Ex, lhs_components []Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *EvalState) (matchIter, bool) {
-	headDefault := (&Symbol{sequenceHead}).Default(&es.defined)
+	headDefault := (NewSymbol(sequenceHead)).Default(&es.defined)
 	fp_components := make([]parsedForm, len(lhs_components))
 	for i, comp := range lhs_components {
 		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, headDefault, &es.CASLogger)

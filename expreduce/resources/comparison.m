@@ -21,7 +21,7 @@ Tests`Equal = {
         EComment["Expressions known to be equal will evaluate to True:"],
         EStringTest["True", "9*x==x*9"],
         EComment["Sometimes expressions may or may not be equal, or Expreduce does not know how to test for equality. In these cases, the statement will remain unevaluated:"],
-        EStringTest["((9 * x)) == ((10 * x))", "9*x==x*10"],
+        EStringTest["((9*x)) == ((10*x))", "9*x==x*10"],
         EComment["Equal considers Integers and Reals that are close enough to be equal:"],
         EStringTest["5", "tmp=5"],
         EStringTest["True", "tmp==5"],
@@ -51,10 +51,10 @@ Tests`Equal = {
         EStringTest["(2^k) == (a)", "2^k==a"],
         EStringTest["(2^k) == (2^a)", "2^k==2^a"],
         EStringTest["(2^k) == ((2 + k))", "2^k==k+2"],
-        EStringTest["(k) == ((2 * k))", "k==2*k"],
-        EStringTest["((2 * k)) == (k)", "2*k==k"],
+        EStringTest["(k) == ((2*k))", "k==2*k"],
+        EStringTest["((2*k)) == (k)", "2*k==k"],
         EStringTest["True", "1+1==2"],
-        EStringTest["(y) == ((b + (m * x)))", "y==m*x+b"],
+        EStringTest["(y) == ((b + m*x))", "y==m*x+b"],
         EStringTest["True", "1==1."],
         EStringTest["True", "1.==1"],
         EStringTest["True", "(x==2)==(x==2)"],
@@ -83,7 +83,7 @@ Tests`Unequal = {
         EComment["Expressions known to be unequal will evaluate to True:"],
         EStringTest["True", "9 != 8"],
         EComment["Sometimes expressions may or may not be unequal, or Expreduce does not know how to test for inequality. In these cases, the statement will remain unevaluated:"],
-        EStringTest["((9 * x)) != ((10 * x))", "9*x != x*10"],
+        EStringTest["((9*x)) != ((10*x))", "9*x != x*10"],
         EComment["Unequal considers Integers and Reals that are close enough to be equal:"],
         EStringTest["5", "tmp=5"],
         EStringTest["False", "tmp != 5"],
@@ -202,6 +202,10 @@ Tests`Greater = {
 };
 
 LessEqual::usage = "`a <= b` returns True if `a` is less than or equal to `b`.";
+-Infinity <= (_Integer | _Real | _Rational) := True;
+Infinity <= (_Integer | _Real | _Rational) := False;
+(_Integer | _Real | _Rational) <= -Infinity := False;
+(_Integer | _Real | _Rational) <= Infinity := True;
 Attributes[LessEqual] = {Protected};
 Tests`LessEqual = {
     ESimpleExamples[
@@ -260,6 +264,24 @@ Tests`Max = {
     ], EKnownDangerous[
         ESameTest[Max[a,b,c,d], Max[{c,d},{b,a}]],
         ESameTest[Max[a,b,c,d], Max[{c,{d}},{b,a}]]
+    ]
+};
+
+Min::usage = "`Min[e1, e2, ...]` the maximum of the expressions.";
+Attributes[Min] = {Flat, NumericFunction, OneIdentity, Orderless, Protected};
+Tests`Min = {
+    ESimpleExamples[
+        ESameTest[1, Min[1,2,3]],
+        ESameTest[Min[1,a], Min[1,a,3]]
+    ], ETests[
+        ESameTest[Min[1,a,b], Min[b,1,a,3]],
+        ESameTest[Min[1,a,b], Min[b,1,a,3,3.]],
+        ESameTest[Min[1,a,b], Min[b,1,a,3,3.,3.1]],
+        ESameTest[Min[1,a,b], Min[b,1,a,3,3.,3.1 ,Rational[99,2]]],
+        ESameTest[Infinity, Min[]],
+    ], EKnownDangerous[
+        ESameTest[Min[a,b,c,d], Min[{c,d},{b,a}]],
+        ESameTest[Min[a,b,c,d], Min[{c,{d}},{b,a}]]
     ]
 };
 

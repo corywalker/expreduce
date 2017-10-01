@@ -7,7 +7,8 @@ import "hash/fnv"
 
 // Symbols are defined by a string-based name
 type Symbol struct {
-	Name string
+	Name       string
+	cachedHash uint64
 }
 
 func (this *Symbol) Eval(es *EvalState) Ex {
@@ -16,8 +17,15 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	if isdefined {
 		// We must call Eval because, at this point, the expression has broken
 		// out of the evaluation loop.
-		toReturn := definition.Eval(es)
-		retVal, isReturn := tryReturnValue(toReturn)
+		toReturn := definition
+		// To handle the case where we set a variable to itself.
+		if sym, isSym := definition.(*Symbol); isSym {
+			if sym.Name == this.Name {
+				return toReturn
+			}
+		}
+		toReturn = toReturn.Eval(es)
+		retVal, isReturn := tryReturnValue(toReturn, nil, es)
 		if isReturn {
 			return retVal
 		}
@@ -26,14 +34,14 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	return this
 }
 
-func (this *Symbol) StringForm(form string, context *String, contextPath *Expression) string {
+func (this *Symbol) StringForm(params ToStringParams) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
-	if strings.HasPrefix(this.Name, context.Val) {
-		return fmt.Sprintf("%v", this.Name[len(context.Val):])
+	if strings.HasPrefix(this.Name, params.context.Val) {
+		return fmt.Sprintf("%v", this.Name[len(params.context.Val):])
 	}
-	for _, pathPart := range contextPath.Parts[1:] {
+	for _, pathPart := range params.contextPath.Parts[1:] {
 		path := pathPart.(*String).Val
 		if strings.HasPrefix(this.Name, path) {
 			return fmt.Sprintf("%v", this.Name[len(path):])
@@ -44,7 +52,7 @@ func (this *Symbol) StringForm(form string, context *String, contextPath *Expres
 
 func (this *Symbol) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm("InputForm", context, contextPath)
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {
@@ -67,6 +75,10 @@ func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {
 func (this *Symbol) DeepCopy() Ex {
 	thiscopy := *this
 	return &thiscopy
+}
+
+func (this *Symbol) Copy() Ex {
+	return this
 }
 
 // Functions for working with the attributes of symbols:
@@ -241,9 +253,13 @@ func (this *Symbol) NeedsEval() bool {
 }
 
 func (this *Symbol) Hash() uint64 {
+	if this.cachedHash > 0 {
+		return this.cachedHash
+	}
 	h := fnv.New64a()
 	h.Write([]byte{107, 10, 247, 23, 33, 221, 163, 156})
 	h.Write([]byte(this.Name))
+	this.cachedHash = h.Sum64()
 	return h.Sum64()
 }
 
@@ -261,4 +277,12 @@ func ContainsSymbol(e Ex, name string) bool {
 		}
 	}
 	return false
+}
+
+func NewSymbol(name string) *Symbol {
+	return &Symbol{Name: name}
+}
+
+func S(name string) Ex {
+	return NewSymbol("System`" + name)
 }
