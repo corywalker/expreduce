@@ -51,7 +51,8 @@ Tests`Apply = {
     ]
 };
 
-Map::usage = "`Map[f, expr]` returns a new expression with the same head as `expr`, but with `f` mapped to each of the arguments.";
+Map::usage = "`Map[f, expr]` returns a new expression with the same head as `expr`, but with `f` mapped to each of the arguments.
+Map[f, expr, levelspec] maps f to all subexpressions that match the level specification levelspec.";
 Attributes[Map] = {Protected};
 Tests`Map = {
     ESimpleExamples[
@@ -64,7 +65,65 @@ Tests`Map = {
         ESameTest[Map[foo, foo, foo], Map[foo, foo, foo]],
         EComment["Pure functions are useful with `Map`:"],
         ESameTest[{4,16}, Function[x, x^2] /@ {2,4}],
-        ESameTest[{4,16}, Function[#^2] /@ {2,4}]
+        ESameTest[{4,16}, Function[#^2] /@ {2,4}],
+        ESameTest[
+            Map[f, a[b[c, d, e], l[g[h, j], k]], {-Infinity, Infinity}],
+            f[a[f[b[f[c], f[d], f[e]]], f[l[f[g[f[h], f[j]]], f[k]]]]]
+        ],
+        ESameTest[
+            Map[f, a[b[c, d, e], l[g[h, j], k]], Infinity],
+            a[f[b[f[c], f[d], f[e]]], f[l[f[g[f[h], f[j]]], f[k]]]]
+        ],
+        ESameTest[
+            Map[f, a[b[c, d, e], l[g[h, j], k]], {-2, Infinity}],
+            a[f[b[f[c], f[d], f[e]]], l[f[g[f[h], f[j]]], f[k]]]
+        ],
+        ESameTest[
+            Map[f, a[b[c, d, e], l[g[h, j], k]], {2, -2}],
+            a[b[c, d, e], l[f[g[h, j]], k]]
+        ],
+        ESameTest[
+            Map[f, a[b[c, d, e], l[g[h, j], k]], 2],
+            a[f[b[f[c], f[d], f[e]]], f[l[f[g[h, j]], f[k]]]]
+        ],
+        ESameTest[
+            Map[f, a[b[c, d, e], l[g[h, j], k]], -2],
+            a[f[b[c, d, e]], f[l[f[g[h, j]], k]]]
+        ]
+    ]
+};
+
+MapIndexed::usage = "`MapIndexed[f, expr]` returns a new expression with the same head as `expr`, but with `f` mapped to each of the arguments.
+Additionally, MapIdnexed supplies the part specification of the subexpression as the second argument of f.
+Map[f, expr, levelspec] maps f to all subexpressions that match the level specification levelspec, also supplying the part specification for
+each subexpression as the second argument to f.";
+Attributes[MapIndexed] = {Protected}
+Tests`MapIndexed = {
+    ESimpleExamples[
+        ESameTest[
+            MapIndexed[f, a[b[c, d, e], l[g[h, j], k]], {-Infinity, Infinity}],
+            f[a[f[b[f[c, {1, 1}], f[d, {1, 2}], f[e, {1, 3}]], {1}], f[l[f[g[f[h, {2, 1, 1}], f[j, {2, 1, 2}]], {2, 1}], f[k, {2, 2}]], {2}]], {}]
+        ],
+        ESameTest[
+            MapIndexed[f, a[b[c, d, e], l[g[h, j], k]], Infinity],
+            a[f[b[f[c, {1, 1}], f[d, {1, 2}], f[e, {1, 3}]], {1}], f[l[f[g[f[h, {2, 1, 1}], f[j, {2, 1, 2}]], {2, 1}], f[k, {2, 2}]], {2}]]
+        ],
+        ESameTest[
+            MapIndexed[f, a[b[c, d, e], l[g[h, j], k]], {-2, Infinity}],
+            a[f[b[f[c, {1, 1}], f[d, {1, 2}], f[e, {1, 3}]], {1}], l[f[g[f[h, {2, 1, 1}], f[j, {2, 1, 2}]], {2, 1}], f[k, {2, 2}]]]
+        ],
+        ESameTest[
+            MapIndexed[f, a[b[c, d, e], l[g[h, j], k]], {2, -2}],
+            a[b[c, d, e], l[f[g[h, j], {2, 1}], k]]
+        ],
+        ESameTest[
+            MapIndexed[f, a[b[c, d, e], l[g[h, j], k]], 2],
+            a[f[b[f[c, {1, 1}], f[d, {1, 2}], f[e, {1, 3}]], {1}], f[l[f[g[h, j], {2, 1}], f[k, {2, 2}]], {2}]]
+        ],
+        ESameTest[
+            MapIndexed[f, a[b[c, d, e], l[g[h, j], k]], -2],
+            a[f[b[c, d, e], {1}], f[l[f[g[h, j], {2, 1}], k], {2}]]
+        ]
     ]
 };
 
