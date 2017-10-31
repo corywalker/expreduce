@@ -393,3 +393,12 @@ Tests`Tally = {
         ESameTest[{{b, 2}, {a, 1}}, Tally[{b, b, a}]],
     ]
 };
+
+ConstantArray::usage = "`ConstantArray[c, n]` creates a list of `n` copies of `c.";
+Attributes[ConstantArray] = {Protected};
+ConstantArray[c_, n_Integer] := Table[c, n];
+Tests`ConstantArray = {
+    ESimpleExamples[
+        ESameTest[{a, a, a}, ConstantArray[a, 3]],
+    ]
+};

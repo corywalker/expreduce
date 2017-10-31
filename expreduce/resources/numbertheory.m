@@ -148,25 +148,6 @@ Tests`OddQ = {
     ]
 };
 
-(*FactorInteger[n_] := Switch[n,
-    -20, {{-1,1},{2,2},{5,1}},
-    -7, {{-1,1},{7,1}},
-    -3, {{-1,1},{3,1}},
-    -2, {{-1,1},{2,1}},
-    -1, {{-1,1}},
-    0, {{0, 1}},
-    1, {{1, 1}},
-    2, {{2, 1}},
-    3, {{3, 1}},
-    4, {{2, 2}},
-    7, {{7, 1}},
-    8, {{2, 3}},
-    Rational[21,4], {{2, -2}, {3, 1}, {7, 1}},
-    Rational[-15,2], {{-1,1},{2,-1},{3,1},{5,1}},
-    Rational[-1,2], {{-1, 1}, {2, -1}},
-    Rational[1,2], {{2, -1}},
-    _, Print["Invalid call to FactorInteger!", n]];*)
-
 FactorInteger::usage = "`FactorInteger[n]` factors the integer `n`.";
 FactorInteger[Rational[n_, d_]] := 
   DeleteCases[Join[FactorInteger[n], ({#[[1]], -#[[2]]} &) /@ FactorInteger[d]] // Sort, {1,1}];

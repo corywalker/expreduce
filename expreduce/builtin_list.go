@@ -580,5 +580,6 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Rest"})
 	defs = append(defs, Definition{Name: "Count"})
 	defs = append(defs, Definition{Name: "Tally"})
+	defs = append(defs, Definition{Name: "ConstantArray"})
 	return
 }
