@@ -224,3 +224,31 @@ Tests`IntegerPart = {
         ESameTest[1,IntegerPart[1]],
     ]
 };
+
+PowerMod::usage = "`PowerMod[x, y, m]` computes `Mod[x^y, m]`";
+(*TODO: use efficient version of this function.*)
+PowerMod[x_, y_, m_] := Mod[x^y, m];
+Attributes[PowerMod] = {Listable, Protected, ReadProtected};
+Tests`PowerMod = {
+    ESimpleExamples[
+        ESameTest[6,PowerMod[5, 9999, 7]],
+    ]
+};
+
+EulerPhi::usage = "`EulerPhi[n]` computes Euler's totient function for `n`";
+Attributes[EulerPhi] = {Listable, Protected, ReadProtected};
+EulerPhi[0] := 0;
+EulerPhi[n_Integer?Positive] := 
+ If[n === 1, 1,
+ n*Product[1 - 1/p[[1]], {p, FactorInteger[n]}]];
+EulerPhi[n_Integer?Negative] := EulerPhi[-n];
+Tests`EulerPhi = {
+    ESimpleExamples[
+        ESameTest[42,EulerPhi[98]],
+        ESameTest[0,EulerPhi[0]],
+        ESameTest[42,EulerPhi[-98]],
+    ], ETests[
+        ESameTest[1,EulerPhi[1]],
+        ESameTest[1,EulerPhi[-1]],
+    ]
+};
