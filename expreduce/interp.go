@@ -163,24 +163,24 @@ func ParserExprListConv(l *wl.ExprList) (res []Ex) {
 // cznic/wl. Small modifications to wl might change all these values. Fix this
 // situation.
 
-var terminals = map[int]bool{
-	138: true, // FLOAT
-	139: true, // IDENT
-	142: true, // INT
-	144: true, // PATTERN
-	145: true, // SLOT
-	146: true, // STRING
+var terminals = map[wl.ExpressionCase]bool{
+	wl.ExpressionFloat: true, // FLOAT
+	wl.ExpressionIdent: true, // IDENT
+	wl.ExpressionInteger: true, // INT
+	wl.ExpressionPattern: true, // PATTERN
+	wl.ExpressionSlot: true, // SLOT
+	wl.ExpressionString: true, // STRING
 }
 
-var unaryOps = map[int]string{
+var unaryOps = map[wl.ExpressionCase]string{
 	13:  "Not",
 	115: "Factorial",
 	117: "Function",
 	15:  "Plus",
 }
 
-var binaryOps = map[int]string{
-	128: "Set",
+var binaryOps = map[wl.ExpressionCase]string{
+	wl.ExpressionAssign: "Set",
 	39:  "SetDelayed",
 	33:  "ReplaceRepeated",
 	31:  "ReplaceAll",
@@ -193,23 +193,23 @@ var binaryOps = map[int]string{
 	38:  "Map",
 }
 
-var fullyAssocOps = map[int]string{
+var fullyAssocOps = map[wl.ExpressionCase]string{
 	125: "CompoundExpression",
-	119: "Plus",
-	118: "Times",
-	46:  "Equal",
-	19:  "Unequal",
+	wl.ExpressionAdd: "Plus",
+	wl.ExpressionMul: "Times",
+	wl.ExpressionEq:  "Equal",
+	wl.ExpressionNe:  "Unequal",
 	47:  "SameQ",
 	45:  "UnsameQ",
 	44:  "StringJoin",
-	126: "Less",
-	43:  "LessEqual",
-	129: "Greater",
+	wl.ExpressionLt: "Less",
+	wl.ExpressionLe:  "LessEqual",
+	wl.ExpressionGt: "Greater",
 	48:  "GreaterEqual",
-	113: "Or",
-	20:  "And",
+	wl.ExpressionLOr: "Or",
+	wl.ExpressionLAnd:  "And",
 	121: "Dot",
-	135: "Alternatives",
+	wl.ExpressionOr: "Alternatives",
 	42:  "Span",
 }
 
