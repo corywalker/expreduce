@@ -47,7 +47,17 @@ Tests`Apply = {
         ESameTest[foo[a,b,c], Apply[foo, {a,b,c}]],
         ESameTest[foo[bar, buzz], Apply[foo, {bar, buzz}]],
         ESameTest[foo[bar, buzz], foo @@ {bar, buzz}],
-        ESameTest[foo[1, 2], foo @@ {1, 2}]
+        ESameTest[foo[1, 2], foo @@ {1, 2}],
+        ESameTest[f[{{a}}], Apply[f,{{{a}}}]],
+        ESameTest[{{f[a]}}, Apply[f,{{{a}}},{2}]],
+        ESameTest[{{{a}}}, Apply[f,{{{a}}},{3}]],
+        ESameTest[{f[a],f[b]}, f@@@{{a},foo[b]}],
+        ESameTest[f[{a},foo[b]], Apply[f,{{a},foo[b]},{0}]],
+        ESameTest[f[f[a],f[b]], Apply[f,{{a},foo[b]},{0,1}]],
+        ESameTest[f[f[a,{c}],f[b]], Apply[f,{{a,{c}},foo[b]},{0,1}]],
+        ESameTest[f[f[a,f[c,{d}]],f[b]], Apply[f,{{a,{c,{d}}},foo[b]},{0,2}]],
+        ESameTest[{f[a,f[c,f[d]]],f[b]}, Apply[f,{{a,{c,{d}}},foo[b]},Infinity]],
+        ESameTest[{f[a,f[c]],f[b]}, Apply[f,{{a,{c}},foo[b]},2]]
     ]
 };
 

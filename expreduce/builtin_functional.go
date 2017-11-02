@@ -209,7 +209,7 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec{
 
 //This is an optimization with regards to expressionWalkMapBackwards which only deals with level specification,
 //expressionWalkMapBackwards also deals with depths, but has to visit the entire expression tree.
-func expressionWalkMap(f func(Ex, Ex, []int64) *Expression, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec) *Expression {
+func expressionWalkMap(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec) *Expression {
 	toReturn := NewExpression([]Ex{this.Parts[0]})
 
 	for i, expr := range this.Parts[1:] {
@@ -239,7 +239,7 @@ func expressionWalkMap(f func(Ex, Ex, []int64) *Expression, head Ex, partSpec[]i
 	return toReturn
 }
 
-func expressionWalkMapBackwards(f func(Ex, Ex, []int64) *Expression, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec) (*Expression, int64) {
+func expressionWalkMapBackwards(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec) (*Expression, int64) {
 	toReturn := NewExpression([]Ex{this.Parts[0]})
 	currentMaxDepth := int64(1)
 
@@ -280,11 +280,11 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64) *Expression, head Ex, pa
 	return toReturn, currentMaxDepth+1
 }
 
-func wrapWithHead(head Ex, expr Ex, partList []int64) *Expression {
+func wrapWithHead(head Ex, expr Ex, partList []int64) Ex {
 	return NewExpression([]Ex{head, expr})
 }
 
-func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64) *Expression {
+func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64) Ex {
 	partSpec := []Ex{NewSymbol("System`List")}
 	for _, part := range partList {
 		partSpec = append(partSpec, NewInt(part))
@@ -293,30 +293,43 @@ func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64) *Expression {
 	return NewExpression([]Ex{head, expr, partSpecExpr})
 }
 
-//An idea for how Apply could also be implemented using mapFunction
-func applyHead(head Ex, expr Ex, partList []int64) *Expression {
-	expression := expr.(*Expression)
+func applyHead(head Ex, expr Ex, partList []int64) Ex {
+	expression, isExpr := expr.(*Expression)
+	if !isExpr {
+		return expr
+	}
 	toReturn := NewExpression([]Ex{head})
 	toReturn.Parts = append(toReturn.Parts, expression.Parts[1:]...)
 	return toReturn
 }
 
-func mapFunction(f func(Ex, Ex, []int64) *Expression) func(*Expression, *EvalState) Ex {
+func mapFunction(f func(Ex, Ex, []int64) Ex, isApply bool) func(*Expression, *EvalState) Ex {
 	return func(this *Expression, es *EvalState) Ex {
 		// Optimization of the very common case where Map has two arguments
 		if len(this.Parts) == 3 {
-			expr, isExpr := this.Parts[2].(*Expression)
-			if isExpr {
-				toReturn := NewExpression([]Ex{expr.Parts[0]})
-				for i := 1; i < len(expr.Parts); i++ {
-					toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
-						this.Parts[1],
-						expr.Parts[i],
-					}))
+			if !isApply{
+				expr, isExpr := this.Parts[2].(*Expression)
+				if isExpr {
+					toReturn := NewExpression([]Ex{expr.Parts[0]})
+					for i := 1; i < len(expr.Parts); i++ {
+						toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
+							this.Parts[1],
+							expr.Parts[i],
+						}))
+					}
+					return toReturn
 				}
-				return toReturn
+				return this.Parts[2]
+			} else {
+				sym, isSym := this.Parts[1].(*Symbol)
+				expr, isExpr := this.Parts[2].(*Expression)
+				if isSym && isExpr {
+					toReturn := NewExpression([]Ex{sym})
+					toReturn.Parts = append(toReturn.Parts, expr.Parts[1:]...)
+					return toReturn.Eval(es)
+				}
+				return this.Parts[2]
 			}
-			return this.Parts[2]
 		}
 
 		if len(this.Parts) != 4 {
@@ -378,7 +391,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Apply",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		/*legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -391,16 +404,17 @@ func getFunctionalDefinitions() (defs []Definition) {
 				return toReturn.Eval(es)
 			}
 			return this.Parts[2]
-		},
+		},*/
+		legacyEvalFn: mapFunction(applyHead, true),
 	})
 	defs = append(defs, Definition{
 		Name: "Map",
-		legacyEvalFn: mapFunction(wrapWithHead),
+		legacyEvalFn: mapFunction(wrapWithHead, false),
 	})
 
 	defs = append(defs, Definition{
 		Name: "MapIndexed",
-		legacyEvalFn: mapFunction(wrapWithHeadIndexed),
+		legacyEvalFn: mapFunction(wrapWithHeadIndexed, false),
 	})
 
 	defs = append(defs, Definition{

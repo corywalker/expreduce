@@ -375,6 +375,13 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			ParserExprConv(expr.Expression),
 			ParserExprConv(expr.Expression2),
 		})
+	case 53:
+		return NewExpression([]Ex{
+			NewSymbol("System`Apply"),
+			ParserExprConv(expr.Expression),
+			ParserExprConv(expr.Expression2),
+			E(S("List"), NewInt(1)),
+		})
 	case 35:
 		set := ParserExprConv(expr.Expression2).(*Expression)
 		head := "System`TagSet"
