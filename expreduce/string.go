@@ -1,6 +1,7 @@
 package expreduce
 
 import "bytes"
+import "github.com/cznic/wl"
 
 type ToStringParams struct {
 	form         string
@@ -13,22 +14,16 @@ func needsParens(thisHead string, previousHead string) bool {
 	if previousHead == "<TOPLEVEL>" {
 		return false
 	}
-	// TODO: look up actual precedence values using interface with the
-	// interpreter.
-	if previousHead == "System`Plus" && thisHead == "System`Times" {
-		return false
-	}
-	if previousHead == "System`Rule" && thisHead == "System`Times" {
-		return false
-	}
-	if previousHead == "System`RuleDelayed" && thisHead == "System`Times" {
-		return false
-	}
-	if previousHead == "System`Rule" && thisHead == "System`Plus" {
-		return false
-	}
-	if previousHead == "System`RuleDelayed" && thisHead == "System`Plus" {
-		return false
+	prevToken, prevTokenOk := headsToTokens[previousHead]
+	thisToken, thisTokenOk := headsToTokens[thisHead]
+	if prevTokenOk && thisTokenOk {
+		prevPrec, prevPrecOk := wl.Precedence[prevToken]
+		thisPrec, thisPrecOk := wl.Precedence[thisToken]
+		if prevPrecOk && thisPrecOk {
+			if prevPrec < thisPrec {
+				return false
+			}
+		}
 	}
 	return true
 }

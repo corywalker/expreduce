@@ -32,16 +32,6 @@ func (this *EvalState) Load(def Definition) {
 	def.Name = this.GetStringDef("System`$Context", "") + def.Name
 	this.MarkSeen(def.Name)
 	EvalInterp("$Context = \"Private`\"", this)
-	// TODO: do we really need SetDelayed here, or should we just write to
-	// downvalues directly? If we did this, we could potentially remove the
-	// "bootstrap" attribute that SetDelayed has.
-	for _, rule := range def.Rules {
-		(NewExpression([]Ex{
-			NewSymbol("System`SetDelayed"),
-			Interp(rule.Lhs, this),
-			Interp(rule.Rhs, this),
-		})).Eval(this)
-	}
 
 	if len(def.Usage) > 0 {
 		(NewExpression([]Ex{

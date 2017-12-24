@@ -148,25 +148,6 @@ Tests`OddQ = {
     ]
 };
 
-(*FactorInteger[n_] := Switch[n,
-    -20, {{-1,1},{2,2},{5,1}},
-    -7, {{-1,1},{7,1}},
-    -3, {{-1,1},{3,1}},
-    -2, {{-1,1},{2,1}},
-    -1, {{-1,1}},
-    0, {{0, 1}},
-    1, {{1, 1}},
-    2, {{2, 1}},
-    3, {{3, 1}},
-    4, {{2, 2}},
-    7, {{7, 1}},
-    8, {{2, 3}},
-    Rational[21,4], {{2, -2}, {3, 1}, {7, 1}},
-    Rational[-15,2], {{-1,1},{2,-1},{3,1},{5,1}},
-    Rational[-1,2], {{-1, 1}, {2, -1}},
-    Rational[1,2], {{2, -1}},
-    _, Print["Invalid call to FactorInteger!", n]];*)
-
 FactorInteger::usage = "`FactorInteger[n]` factors the integer `n`.";
 FactorInteger[Rational[n_, d_]] := 
   DeleteCases[Join[FactorInteger[n], ({#[[1]], -#[[2]]} &) /@ FactorInteger[d]] // Sort, {1,1}];
@@ -241,5 +222,33 @@ Tests`IntegerPart = {
         ESameTest[0,IntegerPart[1/2]],
         ESameTest[0,IntegerPart[3/4]],
         ESameTest[1,IntegerPart[1]],
+    ]
+};
+
+PowerMod::usage = "`PowerMod[x, y, m]` computes `Mod[x^y, m]`";
+(*TODO: use efficient version of this function.*)
+PowerMod[x_, y_, m_] := Mod[x^y, m];
+Attributes[PowerMod] = {Listable, Protected, ReadProtected};
+Tests`PowerMod = {
+    ESimpleExamples[
+        ESameTest[6,PowerMod[5, 9999, 7]],
+    ]
+};
+
+EulerPhi::usage = "`EulerPhi[n]` computes Euler's totient function for `n`";
+Attributes[EulerPhi] = {Listable, Protected, ReadProtected};
+EulerPhi[0] := 0;
+EulerPhi[n_Integer?Positive] := 
+ If[n === 1, 1,
+ n*Product[1 - 1/p[[1]], {p, FactorInteger[n]}]];
+EulerPhi[n_Integer?Negative] := EulerPhi[-n];
+Tests`EulerPhi = {
+    ESimpleExamples[
+        ESameTest[42,EulerPhi[98]],
+        ESameTest[0,EulerPhi[0]],
+        ESameTest[42,EulerPhi[-98]],
+    ], ETests[
+        ESameTest[1,EulerPhi[1]],
+        ESameTest[1,EulerPhi[-1]],
     ]
 };

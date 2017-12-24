@@ -181,6 +181,8 @@ Tests`Apart = {
 };
 
 Distribute::usage = "`Distribute[e]` distributes the function over the `Plus` expressions.";
+Distribute[e_] := Distribute[e, Plus];
+Attributes[Distribute] = {Protected};
 Tests`Distribute = {
     ESimpleExamples[
         ESameTest[a c+b c+a d+b d, Distribute[(a+b)*(c+d)]],

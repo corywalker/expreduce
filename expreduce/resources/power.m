@@ -761,3 +761,12 @@ Tests`Factor = {
         ESameTest[a, Factor[a]],
     ]
 };
+
+PowerExpand[exp_] := exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]};
+Attributes[PowerExpand] = {Protected};
+Tests`PowerExpand = {
+    ESimpleExamples[
+        EComment["`PowerExpand` can expand nested log expressions:"],
+        ESameTest[Log[a] + e (Log[b] + d Log[c]), PowerExpand[Log[a (b c^d)^e]]]
+    ]
+};

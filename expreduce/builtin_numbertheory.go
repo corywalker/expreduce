@@ -149,5 +149,7 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "FactorInteger"})
 	defs = append(defs, Definition{Name: "FractionalPart"})
 	defs = append(defs, Definition{Name: "IntegerPart"})
+	defs = append(defs, Definition{Name: "PowerMod"})
+	defs = append(defs, Definition{Name: "EulerPhi"})
 	return
 }

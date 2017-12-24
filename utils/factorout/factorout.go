@@ -28,9 +28,6 @@ func main() {
 			}
 			if def.Usage != "" {
 				b.WriteString(fmt.Sprintf("%s::usage = \"%v\";\n", def.Name, def.Usage))
-				for _, r := range def.Rules {
-					b.WriteString(fmt.Sprintf("%v := %v;\n", r.Lhs, r.Rhs))
-				}
 				b.WriteString(fmt.Sprintf("Attributes[%v] = {", def.Name))
 				for _, a := range def.Attributes {
 					b.WriteString(fmt.Sprintf("%s, ", a))
