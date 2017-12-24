@@ -19,9 +19,6 @@ type Definition struct {
 	ExpreduceSpecific bool
 	Details           string
 
-	// Regular rules to define. This should never include a map, as maps have
-	// indeterminate iteration.
-	Rules []Rule
 	// Map symbol to Eval() function
 	legacyEvalFn    (func(*Expression, *EvalState) Ex)
 	SimpleExamples  []TestInstruction

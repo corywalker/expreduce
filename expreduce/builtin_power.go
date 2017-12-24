@@ -120,13 +120,6 @@ func GetPowerDefinitions() (defs []Definition) {
 		// This function is not implemented to a satisfiable extent. Do not
 		// document it yet.
 		OmitDocumentation: true,
-		SimpleExamples: []TestInstruction{
-			&TestComment{"`PowerExpand` can expand nested log expressions:"},
-			&SameTest{"Log[a] + e (Log[b] + d Log[c])", "PowerExpand[Log[a (b c^d)^e]]"},
-		},
-		Rules: []Rule{
-			{"PowerExpand[exp_]", "exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]}"},
-		},
 	})
 	defs = append(defs, Definition{Name: "Expand"})
 	defs = append(defs, Definition{
