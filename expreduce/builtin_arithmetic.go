@@ -346,5 +346,11 @@ func getArithmeticDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{Name: "Abs"})
 	defs = append(defs, Definition{Name: "Divide"})
+	defs = append(defs, Definition{Name: "Increment"})
+	defs = append(defs, Definition{Name: "Decrement"})
+	defs = append(defs, Definition{Name: "PreIncrement"})
+	defs = append(defs, Definition{Name: "PreDecrement"})
+	defs = append(defs, Definition{Name: "AddTo"})
+	defs = append(defs, Definition{Name: "SubtractFrom"})
 	return
 }

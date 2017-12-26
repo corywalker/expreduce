@@ -225,3 +225,69 @@ Tests`Divide = {
         ESameTest[2, Divide[10, 5]]
     ]
 };
+
+Increment::usage = "`Increment[a]` adds 1 to `a` and returns the original value.";
+Increment[a_] := (a = a + 1; a - 1);
+Attributes[Increment] = {HoldFirst, Protected, ReadProtected};
+Tests`Increment = {
+    ESimpleExamples[
+        ESameTest[3, toModify = 3],
+        ESameTest[3, toModify++],
+        ESameTest[4, toModify]
+    ]
+};
+
+Decrement::usage = "`Decrement[a]` subtracts 1 from `a` and returns the original value.";
+Decrement[a_] := (a = a - 1; a + 1);
+Attributes[Decrement] = {HoldFirst, Protected, ReadProtected};
+Tests`Decrement = {
+    ESimpleExamples[
+        ESameTest[3, toModify = 3],
+        ESameTest[3, toModify--],
+        ESameTest[2, toModify]
+    ]
+};
+
+PreIncrement::usage = "`PreIncrement[a]` adds 1 to `a` and returns the new value.";
+PreIncrement[a_] := (a = a + 1);
+Attributes[PreIncrement] = {HoldFirst, Protected, ReadProtected};
+Tests`PreIncrement = {
+    ESimpleExamples[
+        ESameTest[3, toModify = 3],
+        ESameTest[4, ++toModify],
+        ESameTest[4, toModify]
+    ]
+};
+
+PreDecrement::usage = "`PreDecrement[a]` subtracts 1 from `a` and returns the new value.";
+PreDecrement[a_] := (a = a - 1);
+Attributes[PreDecrement] = {HoldFirst, Protected, ReadProtected};
+Tests`PreDecrement = {
+    ESimpleExamples[
+        ESameTest[3, toModify = 3],
+        ESameTest[2, --toModify],
+        ESameTest[2, toModify]
+    ]
+};
+
+AddTo::usage = "`AddTo[a, b]` adds `b` to `a` and returns the new value.";
+AddTo[a_, b_] := (a = a + b);
+Attributes[AddTo] = {HoldFirst, Protected};
+Tests`AddTo = {
+    ESimpleExamples[
+        ESameTest[3, toModify = 3],
+        ESameTest[5, toModify += 2],
+        ESameTest[5, toModify]
+    ]
+};
+
+SubtractFrom::usage = "`SubtractFrom[a, b]` subtracts `b` from `a` and returns the new value.";
+SubtractFrom[a_, b_] := (a = a - b);
+Attributes[SubtractFrom] = {HoldFirst, Protected};
+Tests`SubtractFrom = {
+    ESimpleExamples[
+        ESameTest[3, toModify = 3],
+        ESameTest[1, toModify -= 2],
+        ESameTest[1, toModify]
+    ]
+};

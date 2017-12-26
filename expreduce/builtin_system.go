@@ -356,6 +356,10 @@ func GetSystemDefinitions() (defs []Definition) {
 				return res
 			}
 			for _, dv := range def.downvalues {
+				_, isLhsExpr := this.Parts[1].(*Expression)
+				if !isLhsExpr {
+					continue
+				}
 				res.Parts = append(res.Parts, NewExpression([]Ex{
 					NewSymbol("System`RuleDelayed"),
 					dv.rule.Parts[1],

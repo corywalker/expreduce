@@ -177,6 +177,10 @@ var unaryOps = map[wl.ExpressionCase]string{
 	115: "Factorial",
 	117: "Function",
 	15:  "Plus",
+	23:  "Increment",
+	25:  "Decrement",
+	0:  "PreIncrement",
+	1:  "PreDecrement",
 }
 
 var binaryOps = map[wl.ExpressionCase]string{
@@ -191,6 +195,8 @@ var binaryOps = map[wl.ExpressionCase]string{
 	36:  "Condition",
 	52:  "Apply",
 	38:  "Map",
+	24:  "AddTo",
+	26:  "SubtractFrom",
 }
 
 var fullyAssocOps = map[wl.ExpressionCase]string{

@@ -114,5 +114,5 @@ func primeQ(e Ex) bool {
 	}
 	abs := big.NewInt(0)
 	abs.Abs(asInt.Val)
-	return abs.ProbablyPrime(100)
+	return abs.ProbablyPrime(16)
 }
