@@ -356,7 +356,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return res
 			}
 			for _, dv := range def.downvalues {
-				_, isLhsExpr := this.Parts[1].(*Expression)
+				_, isLhsExpr := dv.rule.Parts[1].(*Expression).Parts[1].(*Expression)
 				if !isLhsExpr {
 					continue
 				}
