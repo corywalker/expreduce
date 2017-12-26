@@ -68,27 +68,17 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			isequal := this.Parts[1].DeepCopy().Eval(es).IsEqual(NewSymbol("System`True"), &es.CASLogger)
-			cont := isequal == "EQUAL_TRUE"
-			for cont {
+			isTrue := IsSameQ(this.Parts[1].DeepCopy().Eval(es), NewSymbol("System`True"), &es.CASLogger)
+			for isTrue {
 				tmpRes := this.Parts[2].DeepCopy().Eval(es)
 				retVal, isReturn := tryReturnValue(tmpRes, nil, es)
 				if isReturn {
 					return retVal
 				}
-				isequal = this.Parts[1].DeepCopy().Eval(es).IsEqual(NewSymbol("System`True"), &es.CASLogger)
-				cont = isequal == "EQUAL_TRUE"
+				isTrue = IsSameQ(this.Parts[1].DeepCopy().Eval(es), NewSymbol("System`True"), &es.CASLogger)
 			}
 
-			if isequal == "EQUAL_UNK" {
-				return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Encountered EQUAL_UNK when evaluating test for the While.")})
-			} else if isequal == "EQUAL_TRUE" {
-				return NewSymbol("System`Null")
-			} else if isequal == "EQUAL_FALSE" {
-				return NewSymbol("System`Null")
-			}
-
-			return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Unexpected equality return value.")})
+			return NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -181,5 +171,6 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			return this
 		},
 	})
+	defs = append(defs, Definition{Name: "For"})
 	return
 }

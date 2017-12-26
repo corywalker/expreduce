@@ -71,7 +71,7 @@ Tests`Which = {
     ]
 };
 
-Switch::usage = "`Switch[e, case1, val1, case2, val2, ...]` attempts to match `e` with the cases in order. If a match is found, returns the corresponding value..";
+Switch::usage = "`Switch[e, case1, val1, case2, val2, ...]` attempts to match `e` with the cases in order. If a match is found, returns the corresponding value.";
 Attributes[Switch] = {HoldRest, Protected, ReadProtected};
 Tests`Switch = {
     ESimpleExamples[
@@ -103,5 +103,14 @@ Attributes[Do] = {HoldAll, Protected};
 Tests`Do = {
     ESimpleExamples[
         ESameTest[7, Catch[Do[If[a > 6, Throw[a]], {a, 10}]; False]]
+    ]
+};
+
+For::usage = "`For[beg, cond, incr, expr]` runs a for loop.";
+Attributes[For] = {HoldAll, Protected};
+For[beg_, cond_, incr_, expr_] := (beg; While[cond, expr; incr]);
+Tests`For = {
+    ESimpleExamples[
+        ESameTest[11, For[n = 1, n < 1000, n++, If[PrimeQ[n] && (n > 7), Return[]]]; n]
     ]
 };
