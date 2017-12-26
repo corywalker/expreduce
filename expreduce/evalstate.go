@@ -348,6 +348,13 @@ func ruleSpecificity(lhs Ex, rhs Ex, name string) int {
 	if name == "Rubi`Int" {
 		return 100
 	}
+	// Special case for single integer arguments.
+	expr, isExpr := lhs.(*Expression).Parts[1].(*Expression)
+	if isExpr && len(expr.Parts) == 2 {
+		if _, isInt := expr.Parts[1].(*Integer); isInt {
+			return 110
+		}
+	}
 	// I define complexity as the length of the Lhs.String()
 	// because it is simple, and it works for most of the common cases. We wish
 	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same

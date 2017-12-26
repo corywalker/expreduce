@@ -252,3 +252,14 @@ Tests`EulerPhi = {
         ESameTest[1,EulerPhi[-1]],
     ]
 };
+
+Fibonacci::usage = "`Fibonacci[n]` computes the Fibonacci number for `n`";
+Fibonacci[0] = 0; Fibonacci[1] = 1;
+(*TODO: implement as RootReduce@(((1 + Sqrt[5])/2)^n - ((1 - Sqrt[5])/2)^n)/Sqrt[5]*)
+Fibonacci[n_] := Fibonacci[n] = Fibonacci[n - 1] + Fibonacci[n - 2];
+Attributes[Fibonacci] = {Listable, NumericFunction, Protected, ReadProtected};
+Tests`Fibonacci = {
+    ESimpleExamples[
+        ESameTest[6765, Fibonacci[20]]
+    ]
+};
