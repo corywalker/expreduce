@@ -394,11 +394,19 @@ Tests`Tally = {
     ]
 };
 
-ConstantArray::usage = "`ConstantArray[c, n]` creates a list of `n` copies of `c.";
+ConstantArray::usage = "`ConstantArray[c, n]` creates a list of `n` copies of `c`.";
 Attributes[ConstantArray] = {Protected};
 ConstantArray[c_, n_Integer] := Table[c, n];
 Tests`ConstantArray = {
     ESimpleExamples[
         ESameTest[{a, a, a}, ConstantArray[a, 3]],
+    ]
+};
+
+Reverse::usage = "`Reverse[list]` evaluates to a reversed copy of `list`.";
+Attributes[Reverse] = {Protected};
+Tests`Reverse = {
+    ESimpleExamples[
+        ESameTest[{5, 4, 3, 2, 1}, Reverse[Range[5]]],
     ]
 };

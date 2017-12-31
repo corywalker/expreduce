@@ -581,5 +581,22 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Count"})
 	defs = append(defs, Definition{Name: "Tally"})
 	defs = append(defs, Definition{Name: "ConstantArray"})
+	defs = append(defs, Definition{
+		Name: "Reverse",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			expr, isExpr := this.Parts[1].(*Expression)
+			if !isExpr {
+				return this
+			}
+			res := NewExpression([]Ex{expr.Parts[0]})
+			for i := len(expr.Parts)-1; i > 0; i-- {
+				res.Parts = append(res.Parts, expr.Parts[i])
+			}
+			return res
+		},
+	})
 	return
 }

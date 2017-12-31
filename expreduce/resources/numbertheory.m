@@ -263,3 +263,22 @@ Tests`Fibonacci = {
         ESameTest[6765, Fibonacci[20]]
     ]
 };
+
+IntegerDigits::usage = "`IntegerDigits[n, base]` returns a list of integer digits for `n` under `base`.";
+IntegerDigits[n_Integer] := IntegerDigits[n, 10];
+IntegerDigits[signedN_Integer, base_Integer?Positive] :=
+  Module[{n = Abs[signedN], list = {}},
+   While[n > 0,
+    PrependTo[list, Mod[n, base]];
+    n = (n - Mod[n, base])/base;
+    ];
+   list
+   ];
+Attributes[IntegerDigits] = {Listable, Protected};
+Tests`IntegerDigits = {
+    ESimpleExamples[
+        ESameTest[{1, 2, 3}, IntegerDigits[123]],
+        ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[123, 2]],
+        ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[-123, 2]]
+    ]
+};

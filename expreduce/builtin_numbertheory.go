@@ -152,5 +152,6 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "PowerMod"})
 	defs = append(defs, Definition{Name: "EulerPhi"})
 	defs = append(defs, Definition{Name: "Fibonacci"})
+	defs = append(defs, Definition{Name: "IntegerDigits"})
 	return
 }
