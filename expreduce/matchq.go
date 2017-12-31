@@ -18,6 +18,12 @@ func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
 	return true, this.pm, true
 }
 
+var realSym = NewSymbol("System`Real")
+var intSym  = NewSymbol("System`Integer")
+var strSym  = NewSymbol("System`String")
+var symSym  = NewSymbol("System`Symbol")
+var ratSym  = NewSymbol("System`Rational")
+
 func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	patternHead := ""
 	patExpr, patIsExpr := b.(*Expression)
@@ -158,17 +164,17 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	// This initial value is just a randomly chosen placeholder
 	var headEx Ex
 	if aIsFlt {
-		headEx = NewSymbol("System`Real")
+		headEx = realSym
 	} else if aIsInteger {
-		headEx = NewSymbol("System`Integer")
+		headEx = intSym
 	} else if aIsString {
-		headEx = NewSymbol("System`String")
+		headEx = strSym
 	} else if aIsExpression {
 		headEx = aExpression.Parts[0]
 	} else if aIsSymbol {
-		headEx = NewSymbol("System`Symbol")
+		headEx = symSym
 	} else if aIsRational {
-		headEx = NewSymbol("System`Rational")
+		headEx = ratSym
 	}
 
 	if IsBlankTypeOnly(b) {
