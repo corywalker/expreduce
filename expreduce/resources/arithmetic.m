@@ -114,7 +114,6 @@ Tests`Sum = {
 Times::usage = "`(e1 * e2 * ...)` computes the product of all expressions in the function.";
 Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end;
 Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;
-(1/Infinity) := 0;
 Times[ComplexInfinity, rest___] := ComplexInfinity;
 Sin[x_]*Cos[x_]^(-1)*rest___ := Tan[x]*rest;
 Cos[x_]*Sin[x_]^(-1)*rest___ := Cot[x]*rest;
