@@ -161,6 +161,34 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`ArcTan")
 		es.MarkSeen("System`ArcTanh")
 
+		es.MarkSeen("System`AbsolutePointSize")
+		es.MarkSeen("System`AbsoluteThickness")
+		es.MarkSeen("System`AspectRatio")
+		es.MarkSeen("System`Automatic")
+		es.MarkSeen("System`Axes")
+		es.MarkSeen("System`AxesLabel")
+		es.MarkSeen("System`AxesOrigin")
+		es.MarkSeen("System`Directive")
+		es.MarkSeen("System`DisplayFunction")
+		es.MarkSeen("System`Frame")
+		es.MarkSeen("System`FrameLabel")
+		es.MarkSeen("System`FrameTicks")
+		es.MarkSeen("System`GoldenRatio")
+		es.MarkSeen("System`Graphics")
+		es.MarkSeen("System`GrayLevel")
+		es.MarkSeen("System`GridLines")
+		es.MarkSeen("System`GridLinesStyle")
+		es.MarkSeen("System`Line")
+		es.MarkSeen("System`Method")
+		es.MarkSeen("System`None")
+		es.MarkSeen("System`Opacity")
+		es.MarkSeen("System`PlotRange")
+		es.MarkSeen("System`PlotRangeClipping")
+		es.MarkSeen("System`PlotRangePadding")
+		es.MarkSeen("System`RGBColor")
+		es.MarkSeen("System`Scaled")
+		es.MarkSeen("System`Ticks")
+
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
 				es.MarkSeen(es.GetStringDef("System`$Context", "") + def.Name)
@@ -347,6 +375,13 @@ func (this *EvalState) MarkSeen(name string) {
 func ruleSpecificity(lhs Ex, rhs Ex, name string) int {
 	if name == "Rubi`Int" {
 		return 100
+	}
+	// Special case for single integer arguments.
+	expr, isExpr := lhs.(*Expression).Parts[1].(*Expression)
+	if isExpr && len(expr.Parts) == 2 {
+		if _, isInt := expr.Parts[1].(*Integer); isInt {
+			return 110
+		}
 	}
 	// I define complexity as the length of the Lhs.String()
 	// because it is simple, and it works for most of the common cases. We wish

@@ -252,3 +252,33 @@ Tests`EulerPhi = {
         ESameTest[1,EulerPhi[-1]],
     ]
 };
+
+Fibonacci::usage = "`Fibonacci[n]` computes the Fibonacci number for `n`";
+Fibonacci[0] = 0; Fibonacci[1] = 1;
+(*TODO: implement as RootReduce@(((1 + Sqrt[5])/2)^n - ((1 - Sqrt[5])/2)^n)/Sqrt[5]*)
+Fibonacci[n_] := Fibonacci[n] = Fibonacci[n - 1] + Fibonacci[n - 2];
+Attributes[Fibonacci] = {Listable, NumericFunction, Protected, ReadProtected};
+Tests`Fibonacci = {
+    ESimpleExamples[
+        ESameTest[6765, Fibonacci[20]]
+    ]
+};
+
+IntegerDigits::usage = "`IntegerDigits[n, base]` returns a list of integer digits for `n` under `base`.";
+IntegerDigits[n_Integer] := IntegerDigits[n, 10];
+IntegerDigits[signedN_Integer, base_Integer?Positive] :=
+  Module[{n = Abs[signedN], list = {}},
+   While[n > 0,
+    PrependTo[list, Mod[n, base]];
+    n = (n - Mod[n, base])/base;
+    ];
+   list
+   ];
+Attributes[IntegerDigits] = {Listable, Protected};
+Tests`IntegerDigits = {
+    ESimpleExamples[
+        ESameTest[{1, 2, 3}, IntegerDigits[123]],
+        ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[123, 2]],
+        ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[-123, 2]]
+    ]
+};

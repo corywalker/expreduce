@@ -228,9 +228,7 @@ Tests`I = {
 possibleExponents[n_Integer, m_Integer] := 
  Flatten[Permutations /@ ((PadRight[#, m]) & /@ 
      IntegerPartitions[n, m]), 1];
-genVars[addends_List, exponents_List] := 
- Product[addends[[ExpandUnique`i]]^
-   exponents[[ExpandUnique`i]], {ExpandUnique`i, 1, Length[addends]}];
+genVars[addends_List, exponents_List] := Times@@(addends ^ exponents);
 genExpand[addends_List, exponents_List] := 
  Plus@@Table[(Multinomial @@ exponents[[ExpandUnique`i]])*
    genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, 

@@ -185,6 +185,7 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"sort", GetSortDefinitions()})
 	defs = append(defs, NamedDefSet{"system", GetSystemDefinitions()})
 	defs = append(defs, NamedDefSet{"trig", GetTrigDefinitions()})
+	defs = append(defs, NamedDefSet{"plot", GetPlotDefinitions()})
 	defs = append(defs, NamedDefSet{"string", GetStringDefinitions()})
 	defs = append(defs, NamedDefSet{"time", GetTimeDefinitions()})
 	defs = append(defs, NamedDefSet{"pattern", GetPatternDefinitions()})

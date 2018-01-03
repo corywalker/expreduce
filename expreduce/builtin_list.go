@@ -68,12 +68,28 @@ func validateIndex(i Ex, l int) (int64, bool) {
 	return iInt.Val.Int64(), true
 }
 
-func applyIndex(ex Ex, index Ex) (Ex, bool) {
+func applyIndex(ex Ex, indices []Ex, currDim int) (Ex, bool) {
+	// Base case
+	if currDim >= len(indices) {
+		return ex, true
+	}
 	expr, isExpr := ex.(*Expression)
 	if !isExpr {
 		return nil, false
 	}
-	if iSpan, iIsSpan := HeadAssertion(index, "System`Span"); iIsSpan {
+
+	// Singular selection
+	if _, iIsInt := indices[currDim].(*Integer); iIsInt {
+		indexVal, indexOk := validateIndex(indices[currDim], len(expr.Parts))
+		if !indexOk {
+			return nil, false
+		}
+		return applyIndex(expr.Parts[indexVal], indices, currDim+1)
+	}
+
+	// Range selections
+	rangeMin, rangeMax, rangeOk := int64(0), int64(0), false
+	if iSpan, iIsSpan := HeadAssertion(indices[currDim], "System`Span"); iIsSpan {
 		if len(iSpan.Parts) != 3 {
 			return nil, false
 		}
@@ -87,23 +103,24 @@ func applyIndex(ex Ex, index Ex) (Ex, bool) {
 		if !startOk || !endOk {
 			return nil, false
 		}
-		return NewExpression(append(
-			[]Ex{expr.Parts[0]},
-			expr.Parts[start:end+1]...,
-		)), true
+		rangeMin, rangeMax, rangeOk = start, end, true
 	}
-	if _, iIsInt := index.(*Integer); iIsInt {
-		indexVal, indexOk := validateIndex(index, len(expr.Parts))
-		if !indexOk {
-			return nil, false
-		}
-		return expr.Parts[indexVal], true
-	}
-	iSym, iIsSym := index.(*Symbol)
+	iSym, iIsSym := indices[currDim].(*Symbol)
 	if iIsSym {
 		if iSym.Name == "System`All" {
-			return expr, true
+			rangeMin, rangeMax, rangeOk = 1, int64(len(expr.Parts)-1), true
 		}
+	}
+	if rangeOk {
+		toReturn := E(expr.Parts[0])
+		for i := rangeMin; i <= rangeMax; i++ {
+			applied, appOk := applyIndex(expr.Parts[i], indices, currDim+1)
+			if !appOk {
+				return nil, false
+			}
+			toReturn.appendEx(applied)
+		}
+		return toReturn, true
 	}
 	return nil, false
 }
@@ -384,19 +401,9 @@ func GetListDefinitions() (defs []Definition) {
 			if len(this.Parts) == 1 {
 				return this
 			}
-			applied, ok := this.Parts[1], true
-			// This assumes that e[[a, b]] is equivalent to e[[a]][[b]]. It is
-			// in most cases, but try this with mat[[All, 5]]. It seems that
-			// the indices are aware of each other and the fact that e is a
-			// matrix. I will most likely need to perform this selection using
-			// another method. TODO
-			for i := 2; i < len(this.Parts); i++ {
-				//es.Infof("applyIndex(%v, %v)", applied, this.Parts[i])
-				applied, ok = applyIndex(applied, this.Parts[i])
-				//es.Infof("after running, applied = %v", applied)
-				if !ok {
-					return this
-				}
+			applied, ok := applyIndex(this.Parts[1], this.Parts[2:], 0)
+			if !ok {
+				return this
 			}
 			return applied
 		},
@@ -581,5 +588,22 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Count"})
 	defs = append(defs, Definition{Name: "Tally"})
 	defs = append(defs, Definition{Name: "ConstantArray"})
+	defs = append(defs, Definition{
+		Name: "Reverse",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 2 {
+				return this
+			}
+			expr, isExpr := this.Parts[1].(*Expression)
+			if !isExpr {
+				return this
+			}
+			res := NewExpression([]Ex{expr.Parts[0]})
+			for i := len(expr.Parts)-1; i > 0; i-- {
+				res.Parts = append(res.Parts, expr.Parts[i])
+			}
+			return res
+		},
+	})
 	return
 }

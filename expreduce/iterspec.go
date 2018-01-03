@@ -15,10 +15,11 @@ type iterSpec interface {
 type iterSpecRange struct {
 	i       Ex
 	iName   string
-	iMin    *Integer
-	iMax    *Integer
-	curr    int64
-	iMaxInt int64
+	iMin    Ex
+	iMax    Ex
+	step    Ex
+	curr    Ex
+	es		*EvalState
 }
 
 type iterSpecList struct {
@@ -28,14 +29,28 @@ type iterSpecList struct {
 	list  *Expression
 }
 
+func tryIterParam(e Ex) (Ex, bool) {
+	if _, isInt := e.(*Integer); isInt {
+		return e, true
+	}
+	if _, isReal := e.(*Flt); isReal {
+		return e, true
+	}
+	if _, isRat := e.(*Rational); isRat {
+		return e, true
+	}
+	return nil, false
+}
+
 func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
 	isr := &iterSpecRange{}
+	isr.es = es
 	isl := &iterSpecList{}
 
 	listEx = evalIterSpecCandidate(es, listEx)
 	list, isList := HeadAssertion(listEx, "System`List")
 	if isList {
-		iOk, iMinOk, iMaxOk := false, false, false
+		iOk, iMinOk, iMaxOk, stepOk := false, false, false, false
 		if len(list.Parts) > 2 {
 			iAsSymbol, iIsSymbol := list.Parts[1].(*Symbol)
 			if iIsSymbol {
@@ -55,12 +70,18 @@ func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
 		}
 		if len(list.Parts) == 3 {
 			isr.iMin, iMinOk = NewInteger(big.NewInt(1)), true
-			isr.iMax, iMaxOk = list.Parts[2].(*Integer)
+			isr.iMax, iMaxOk = tryIterParam(list.Parts[2])
+			isr.step, stepOk = NewInteger(big.NewInt(1)), true
 		} else if len(list.Parts) == 4 {
-			isr.iMin, iMinOk = list.Parts[2].(*Integer)
-			isr.iMax, iMaxOk = list.Parts[3].(*Integer)
+			isr.iMin, iMinOk = tryIterParam(list.Parts[2])
+			isr.iMax, iMaxOk = tryIterParam(list.Parts[3])
+			isr.step, stepOk = NewInteger(big.NewInt(1)), true
+		} else if len(list.Parts) == 5 {
+			isr.iMin, iMinOk = tryIterParam(list.Parts[2])
+			isr.iMax, iMaxOk = tryIterParam(list.Parts[3])
+			isr.step, stepOk = tryIterParam(list.Parts[4])
 		}
-		if iOk && iMinOk && iMaxOk {
+		if iOk && iMinOk && iMaxOk && stepOk {
 			isr.reset()
 			return isr, true
 		}
@@ -79,20 +100,20 @@ func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
 }
 
 func (this *iterSpecRange) reset() {
-	this.curr = this.iMin.Val.Int64()
-	this.iMaxInt = this.iMax.Val.Int64()
+	//this.curr = this.iMin
+	this.curr = E(S("Plus"), this.iMin, E(S("Times"), NewInt(0), this.step)).Eval(this.es)
 }
 
 func (this *iterSpecRange) next() {
-	this.curr++
+	this.curr = E(S("Plus"), this.curr, this.step).Eval(this.es)
 }
 
 func (this *iterSpecRange) cont() bool {
-	return this.curr <= this.iMaxInt
+	return ExOrder(this.curr, this.iMax) >= 0
 }
 
 func (this *iterSpecRange) getCurr() Ex {
-	return NewInteger(big.NewInt(this.curr))
+	return this.curr
 }
 
 func (this *iterSpecRange) getI() Ex {

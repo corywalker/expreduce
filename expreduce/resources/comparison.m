@@ -294,3 +294,12 @@ Tests`PossibleZeroQ = {
         ESameTest[False, PossibleZeroQ[a-b]]
     ]
 };
+
+MinMax::usage = "`MinMax[l]` returns `{Min[l], Max[l]}`.";
+Attributes[MinMax] = {Protected};
+MinMax[l_List] := {Min[l], Max[l]};
+Tests`MinMax = {
+    ESimpleExamples[
+        ESameTest[{1, 5}, MinMax[Range[5]]]
+    ]
+};

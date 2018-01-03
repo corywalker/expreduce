@@ -279,5 +279,6 @@ func getComparisonDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{Name: "PossibleZeroQ"})
+	defs = append(defs, Definition{Name: "MinMax"})
 	return
 }
