@@ -73,6 +73,15 @@ func GetPowerDefinitions() (defs []Definition) {
 				return this.Parts[1]
 			}
 			if basePositivity == -1 && powerIsFlt {
+				if powerFlt.Val.Cmp(big.NewFloat(-1)) == 0 {
+					if baseIsInt {
+						return NewReal(mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val))
+					}
+					if baseIsFlt {
+						return NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
+					}
+				}
+				// Return unevaluated due to lack of complex number support.
 				return this
 			}
 
