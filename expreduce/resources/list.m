@@ -178,7 +178,8 @@ Tests`Part = {
         EComment["The input need not be a `List`:"],
         ESameTest[foo, Part[foo[a], 0]],
         EComment["Omitting an index will return the original expression:"],
-        ESameTest[i, Part[i]]
+        ESameTest[i, Part[i]],
+        ESameTest[{2,4,6}, {{1, 2}, {3, 4}, {5, 6}}[[All, 2]]]
     ], ETests[
         ESameTest[i, Part[i]],
         ESameTest[Part[], Part[]],
@@ -194,9 +195,10 @@ Tests`Part = {
         ESameTest[{a}[[2]], Part[{a}, 2]],
         ESameTest[{5, 20, 45, 80, 125}, mat[[All]][[5]]],
         ESameTest[3, {{1, 2}, {3, 4}}[[2, 1]]],
-        ESameTest[{{1, 2}, {3}}[[2, 2]], {{1, 2}, {3}}[[2, 2]]]
+        ESameTest[{{1, 2}, {3}}[[2, 2]], {{1, 2}, {3}}[[2, 2]]],
+        ESameTest[{3,4}, {{1, 2}, {3, 4}, {5, 6}}[[2, All]]],
+        ESameTest[{25, 50, 75, 100, 125}, mat[[All, 5]]]
     ], EKnownFailures[
-        ESameTest[{25, 50, 75, 100, 125}, mat[[All, 5]]],
         ESameTest[Integer[], Part[1, All]],
         ESameTest[Symbol[], Part[a, All]]
     ]
