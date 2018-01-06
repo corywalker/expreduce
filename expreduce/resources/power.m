@@ -173,7 +173,7 @@ Tests`Power = {
 };
 
 Log::usage = "`Log[e]` finds the natural logarithm of `e`.";
-Log[-1] := I*Pi;
+Log[n_Integer?Negative] := I*Pi + Log[-n];
 Log[ComplexInfinity] := Infinity;
 Log[Infinity] := Infinity;
 Log[-ComplexInfinity] := Infinity;

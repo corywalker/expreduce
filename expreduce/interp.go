@@ -197,6 +197,7 @@ var binaryOps = map[wl.ExpressionCase]string{
 	38:  "Map",
 	24:  "AddTo",
 	26:  "SubtractFrom",
+	78:  "Element",
 }
 
 var fullyAssocOps = map[wl.ExpressionCase]string{

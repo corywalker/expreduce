@@ -132,6 +132,8 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`Stub")
 		es.MarkSeen("System`$Failed")
 		es.MarkSeen("System`Null")
+		es.MarkSeen("System`C")
+		es.MarkSeen("System`Integers")
 
 		es.MarkSeen("System`Exp")
 		es.MarkSeen("System`AppellF1")
