@@ -160,6 +160,13 @@ func ThreadExpr(expr *Expression) (*Expression, bool) {
 	return toReturn, true
 }
 
+func countFunctionLevelSpec(pattern Ex, e Ex, partList []int64, generated *int64, es *EvalState) Ex {
+	if isMatch, _ := IsMatchQ(e, pattern, EmptyPD(), es); isMatch {
+		*generated++
+	}
+	return e
+}
+
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:     "List",
@@ -585,7 +592,15 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Last"})
 	defs = append(defs, Definition{Name: "First"})
 	defs = append(defs, Definition{Name: "Rest"})
-	defs = append(defs, Definition{Name: "Count"})
+	defs = append(defs, Definition{
+		Name: "Count",
+		legacyEvalFn: levelSpecFunction(
+			countFunctionLevelSpec,
+			unoptimizedSimpleLevelSpec,
+			true,
+			true,
+		),
+	})
 	defs = append(defs, Definition{Name: "Tally"})
 	defs = append(defs, Definition{Name: "ConstantArray"})
 	defs = append(defs, Definition{
