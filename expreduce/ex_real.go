@@ -16,9 +16,19 @@ func (f *Flt) Eval(es *EvalState) Ex {
 
 func (f *Flt) StringForm(params ToStringParams) string {
 	var buffer bytes.Buffer
+	useParens := false
+	if f.Val.Cmp(big.NewFloat(0)) < 0 {
+		if needsParens("System`Times", params.previousHead) {
+			useParens = true
+			buffer.WriteString("(")
+		}
+	}
 	buffer.WriteString(fmt.Sprintf("%.6g", f.Val))
 	if bytes.IndexRune(buffer.Bytes(), '.') == -1 {
 		buffer.WriteString(".")
+	}
+	if useParens {
+		buffer.WriteString(")")
 	}
 	return buffer.String()
 }

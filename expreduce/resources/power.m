@@ -106,7 +106,7 @@ Tests`Power = {
         EStringTest["1", "99^0"],
 
         EStringTest["125", "5^3"],
-        EStringTest["1/125", "5^-3"],
+        ESameTest[1/125, 5^-3],
         ESameTest[-125, (-5)^3],
         ESameTest[-1/125, (-5)^-3],
 
