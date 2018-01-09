@@ -6,8 +6,6 @@ countVar[expr_, var_Symbol] :=
 containsOneOccurrence[eqn_Equal, var_Symbol] := 
   Count[eqn, var, -1] == 1;
 
-(* Return a function that can help isolate var from expr: *)
-
 applyInverse[lhs_Plus -> rhs_, var_Symbol] := Module[{nonVarParts},
    nonVarParts = Select[lhs, (countVar[#, var] === 0) &];
    varParts    = Select[lhs, (countVar[#, var] =!= 0) &];

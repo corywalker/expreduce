@@ -48,7 +48,7 @@ Power[b_?NumberQ, -Infinity] := Which[
 Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)
 (*Distribute any kind of power for numeric values in Times:*)
-((first:(_Integer | _Real | _Rational)) * inner__)^pow_ := first^pow * Times[inner]^pow;
+((first:(_Integer | _Real | _Rational)?((#!=-1)&)) * inner__)^pow_ := first^pow * Times[inner]^pow;
 (*Otherwise, only distribute integer powers*)
 (first_ * inner___)^pow_Integer := first^pow * Times[inner]^pow;
 (*Rational simplifications*)
@@ -68,7 +68,7 @@ Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[
         EComment["Exponents of integers are computed exactly:"],
-        EStringTest["-1/125", "(-5)^-3"],
+        ESameTest[-1/125, (-5)^-3],
         EComment["Floating point exponents are handled with floating point precision:"],
         EStringTest["1.99506e+3010", ".5^-10000."],
         EComment["Automatically apply some basic simplification rules:"],
@@ -79,36 +79,36 @@ Tests`Power = {
         ESameTest[ComplexInfinity, 0^(-1)]
     ], ETests[
         (*Test raising expressions to the first power*)
-        EStringTest["(1 + x)", "(x+1)^1"],
+        ESameTest[1 + x, (x+1)^1],
         EStringTest["0", "0^1"],
         EStringTest["0.", "0.^1"],
-        EStringTest["-5", "-5^1"],
-        EStringTest["-5.5", "-5.5^1"],
-        EStringTest["(1 + x)", "(x+1)^1."],
+        ESameTest[-5, -5^1],
+        ESameTest[-5.5, -5.5^1],
+        ESameTest[1 + x, (x+1)^1.],
         EStringTest["0", "0^1."],
         EStringTest["0.", "0.^1."],
-        EStringTest["-5", "(-5)^1."],
-        EStringTest["-5.5", "-5.5^1."],
+        ESameTest[-5, (-5)^1.],
+        ESameTest[-5.5, -5.5^1.],
 
         (*Test raising expressions to the zero power*)
         EStringTest["1", "(x+1)^0"],
         EStringTest["Indeterminate", "0^0"],
         EStringTest["Indeterminate", "0.^0"],
-        EStringTest["-1", "-5^0"],
+        ESameTest[-1, -5^0],
         EStringTest["1", "(-5)^0"],
         EStringTest["1", "(-5.5)^0"],
         EStringTest["1", "(x+1)^0."],
         EStringTest["Indeterminate", "0^0."],
         EStringTest["Indeterminate", "0.^0."],
-        EStringTest["-1", "-5^0."],
+        ESameTest[-1, -5^0.],
         EStringTest["1", "(-5.5)^0."],
-        EStringTest["-1", "-5^0"],
+        ESameTest[-1, -5^0],
         EStringTest["1", "99^0"],
 
         EStringTest["125", "5^3"],
         EStringTest["1/125", "5^-3"],
-        EStringTest["-125", "(-5)^3"],
-        EStringTest["-1/125", "(-5)^-3"],
+        ESameTest[-125, (-5)^3],
+        ESameTest[-1/125, (-5)^-3],
 
         EStringTest["2.97538e+1589", "39^999."],
         EStringTest["3.36092e-1590", "39^-999."],
@@ -125,16 +125,16 @@ Tests`Power = {
         EStringTest["1.", "1^99999992."],
         EStringTest["1.", "1.^30"],
         EStringTest["4.", "(1.*2*1.)^2"],
-        EStringTest["-1", "(-1)^1"],
+        ESameTest[-1, (-1)^1],
         EStringTest["1", "(-1)^2"],
         EStringTest["1", "(-1)^0"],
         EStringTest["1", "(-1)^0"],
-        EStringTest["-1", "(-1)^-1"],
+        ESameTest[-1, (-1)^-1],
         EStringTest["1", "(-1)^-2"],
         EStringTest["1", "(-1)^99999992"],
         EStringTest["1.", "(-1.)^30"],
         EStringTest["4.", "(1.*2*-1.)^2"],
-        EStringTest["-0.5", "(1.*2*-1.)^(-1)"],
+        ESameTest[-0.5, (1.*2*-1.)^(-1)],
 
         ESameTest[Rational, Power[2, -1] // Head],
         ESameTest[Integer, Power[1, -1] // Head],
