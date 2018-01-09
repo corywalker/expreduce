@@ -78,6 +78,10 @@ func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEa
 		return false, ""
 	}
 	var buffer bytes.Buffer
+	addParens := needsParens(thisHead, params.previousHead)
+	if addParens {
+		buffer.WriteString("(")
+	}
 	if !surroundEachArg {
 		buffer.WriteString(start)
 	}
@@ -101,6 +105,9 @@ func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEa
 	}
 	if !surroundEachArg {
 		buffer.WriteString(end)
+	}
+	if addParens {
+		buffer.WriteString(")")
 	}
 	return true, buffer.String()
 }

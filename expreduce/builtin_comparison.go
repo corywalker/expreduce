@@ -54,7 +54,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Equal",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " == ", "", true, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " == ", "System`Equal", false, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 1 {
@@ -78,7 +78,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Unequal",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " != ", "", true, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " != ", "System`Unequal", false, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) != 3 {
@@ -100,7 +100,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "SameQ",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " === ", "", true, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " === ", "System`SameQ", false, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 1 {
@@ -121,7 +121,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "UnsameQ",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], " =!= ", "", true, "", "", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " =!= ", "System`UnsameQ", false, "", "", params)
 		},
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
 			if len(this.Parts) < 1 {
