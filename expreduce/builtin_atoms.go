@@ -21,10 +21,20 @@ func getAtomsDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			rAsInt, rIsInt := this.Parts[1].(*Integer)
-			iAsInt, iIsInt := this.Parts[2].(*Integer)
-			if rIsInt && iIsInt {
-				return NewComplex(rAsInt.Val, iAsInt.Val).Eval(es)
+			validComplexType := func(e Ex) bool {
+				switch e.(type) {
+				case *Integer:
+					return true
+				case *Flt:
+					return true
+				case *Rational:
+					return true
+				default:
+					return false
+				}
+			}
+			if validComplexType(this.Parts[1]) && validComplexType(this.Parts[2]) {
+				return NewComplex(this.Parts[1], this.Parts[2]).Eval(es)
 			}
 			return this
 		},

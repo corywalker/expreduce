@@ -52,7 +52,7 @@ Complex::usage = "`Complex` is the head for the atomic rational type.";
 (a : (_Integer|_Real|_Rational)) * Complex[real_, im_] * rest___ := Complex[a * real, a * im] * rest;
 (a : (_Integer|_Real|_Rational)) + Complex[real_, im_] + rest___ := Complex[a + real, im] + rest;
 Complex[x_,y_] + Complex[u_,v_] + rest___ := Complex[x+u,y+v] + rest;
-Complex[x_,y_] * Complex[u_,v_] * rest___ := Complex[x*u-y*v,x*v+y*u] + rest;
+Complex[x_,y_] * Complex[u_,v_] * rest___ := Complex[x*u-y*v,x*v+y*u] * rest;
 Attributes[Complex] = {Protected};
 Tests`Complex = {
     ESimpleExamples[
@@ -112,9 +112,9 @@ Im[x_Integer]  := 0;
 Im[x_Real]     := 0;
 Im[x_Rational] := 0;
 Im[a_Integer * x_Integer?Positive^y_Rational] := 0;
-Im[x_Complex] := x[[2]];
+Im[Complex[_,im_]] := im;
 
 Re[x_Integer]  := x;
 Re[x_Real]     := x;
 Re[x_Rational] := x;
-Re[x_Complex] := x[[1]];
+Re[Complex[re_,_]] := re;

@@ -294,8 +294,8 @@ func isMatchQComplex(a *Complex, b *Expression, pm *PDManager, es *EvalState) (b
 	return IsMatchQ(
 		NewExpression([]Ex{
 			NewSymbol("System`Complex"),
-			NewInteger(a.Re),
-			NewInteger(a.Im),
+			a.Re,
+			a.Im,
 		}),
 
 		b, pm, es)

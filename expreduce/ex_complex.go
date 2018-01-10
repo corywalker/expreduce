@@ -1,28 +1,29 @@
 package expreduce
 
 import "fmt"
-import "math/big"
 import "hash/fnv"
+import "encoding/binary"
 
 type Complex struct {
-	Re       *big.Int
-	Im       *big.Int
+	Re       Ex
+	Im       Ex
 	needsEval bool
 }
 
 func (this *Complex) Eval(es *EvalState) Ex {
-	if this.Im.Cmp(big.NewInt(0)) == 0 {
-		return NewInteger(this.Re)
+	if IsSameQ(this.Im, NewInt(0), &es.CASLogger) {
+		return this.Re
 	}
 	this.needsEval = false
 	return this
 }
 
-func (this *Complex) StringForm(params ToStringParams) string {
-	if params.form == "FullForm" {
-		return fmt.Sprintf("Complex[%d, %d]", this.Re, this.Im)
+func (this *Complex) StringForm(p ToStringParams) string {
+	if p.form == "FullForm" {
+		return fmt.Sprintf("Complex[%v, %v]", this.Re, this.Im)
 	}
-	return fmt.Sprintf("(%d + %d*I)", this.Re, this.Im)
+	p.previousHead = "System`Plus"
+	return fmt.Sprintf("(%v + %v*I)", this.Re.StringForm(p), this.Im.StringForm(p))
 }
 
 func (this *Complex) String() string {
@@ -35,18 +36,14 @@ func (this *Complex) IsEqual(other Ex, cl *CASLogger) string {
 	if !otherIsComplex {
 		return "EQUAL_FALSE"
 	}
-	if (this.Re.Cmp(otherConv.Re) != 0) || (this.Im.Cmp(otherConv.Im) != 0) {
+	if (this.Re.IsEqual(otherConv.Re, cl) != "EQUAL_TRUE") || (this.Im.IsEqual(otherConv.Im, cl) != "EQUAL_TRUE") {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
 }
 
 func (this *Complex) DeepCopy() Ex {
-	tmpn := big.NewInt(0)
-	tmpn.Set(this.Re)
-	tmpd := big.NewInt(0)
-	tmpd.Set(this.Im)
-	return &Complex{tmpn, tmpd, this.needsEval}
+	return &Complex{this.Re.DeepCopy(), this.Im.DeepCopy(), this.needsEval}
 }
 
 func (this *Complex) Copy() Ex {
@@ -57,16 +54,17 @@ func (this *Complex) NeedsEval() bool {
 	return this.needsEval
 }
 
-func NewComplex(r *big.Int, i *big.Int) *Complex {
+func NewComplex(r Ex, i Ex) *Complex {
 	return &Complex{r, i, true}
 }
 
 func (this *Complex) Hash() uint64 {
 	h := fnv.New64a()
 	h.Write([]byte{82, 226, 223, 39, 113, 26, 149, 249})
-	nBytes, _ := this.Re.MarshalText()
-	h.Write(nBytes)
-	dBytes, _ := this.Im.MarshalText()
-	h.Write(dBytes)
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, this.Re.Hash())
+	h.Write(b)
+	binary.LittleEndian.PutUint64(b, this.Im.Hash())
+	h.Write(b)
 	return h.Sum64()
 }
