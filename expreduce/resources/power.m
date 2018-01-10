@@ -59,7 +59,7 @@ Power[-1, -1/2] := -I;
 Power[-1, 1/2] := I;
 Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
-I^e_Integer := Switch[Mod[e, 4],
+Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   0, 1,
   1, I,
   2, -1,
@@ -215,8 +215,8 @@ Tests`Sqrt = {
     ]
 };
 
-(*TODO: actually use Complex atom type*)
 I::usage = "`I` is the imaginary number representing `Sqrt[-1]`.";
+I := Complex[0, 1];
 Attributes[I] = {Locked, Protected, ReadProtected};
 Tests`I = {
     ESimpleExamples[

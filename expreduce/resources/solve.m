@@ -82,8 +82,8 @@ isolate[lhs_ -> rhs_, var_Symbol] := Module[{inverseApplied},
 (* Available at: http://www.research.ed.ac.uk/portal/files/413486/Solving_Symbolic_Equations_%20with_PRESS.pdf *)
 Solve[eqn_Equal, var_Symbol] := Module[{isolated},
    If[containsOneOccurrence[eqn, var],
-    isolated = isolate[Rule @@ eqn, var];
-    If[AllTrue[isolated, (Head[#] == Rule)&], Return[{#}& /@ isolated]];
+    isolated = {#}& /@ isolate[Rule @@ eqn, var];
+    If[AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[isolated]];
     Print["isolation procedure failed"];
     Return[isolated]];
    Print["Solve found no solutions"];

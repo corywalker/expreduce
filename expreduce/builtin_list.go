@@ -11,6 +11,7 @@ func (this *Expression) ToStringList(params ToStringParams) (bool, string) {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range this.Parts[1:] {
+		params.previousHead = "<TOPLEVEL>"
 		buffer.WriteString(e.StringForm(params))
 		if i != len(this.Parts[1:])-1 {
 			buffer.WriteString(", ")

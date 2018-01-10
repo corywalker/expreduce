@@ -203,6 +203,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 				es.trace = NewExpression([]Ex{NewSymbol("System`List")})
 			}
 			oldHash := curr.Parts[i].Hash()
+			//fmt.Println(curr, i)
 			curr.Parts[i] = curr.Parts[i].Eval(es)
 			if es.HasThrown() {
 				return es.thrown

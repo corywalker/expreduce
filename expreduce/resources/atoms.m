@@ -48,6 +48,18 @@ Tests`Rational = {
     ]
 };
 
+Complex::usage = "`Complex` is the head for the atomic rational type.";
+(a : (_Integer|_Real|_Rational)) * Complex[real_, im_] * rest___ := Complex[a * real, a * im] * rest;
+(a : (_Integer|_Real|_Rational)) + Complex[real_, im_] + rest___ := Complex[a + real, im] + rest;
+Complex[x_,y_] + Complex[u_,v_] + rest___ := Complex[x+u,y+v] + rest;
+Complex[x_,y_] * Complex[u_,v_] * rest___ := Complex[x*u-y*v,x*v+y*u] + rest;
+Attributes[Complex] = {Protected};
+Tests`Complex = {
+    ESimpleExamples[
+        ESameTest[Complex[-16, 28], (4 + 8I)(2 + 3I)]
+    ]
+};
+
 String::usage = "`String` is the head for the atomic string type.";
 Attributes[String] = {Protected};
 Tests`String = {
@@ -100,9 +112,9 @@ Im[x_Integer]  := 0;
 Im[x_Real]     := 0;
 Im[x_Rational] := 0;
 Im[a_Integer * x_Integer?Positive^y_Rational] := 0;
-Im[x_] := Print["Call to Im not implemented!", x];
+Im[x_Complex] := x[[2]];
 
 Re[x_Integer]  := x;
 Re[x_Real]     := x;
 Re[x_Rational] := x;
-Re[x_] := Print["Call to Re not implemented!", x];
+Re[x_Complex] := x[[1]];
