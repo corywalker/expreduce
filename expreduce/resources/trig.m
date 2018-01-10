@@ -6,6 +6,12 @@ Sin[x_Integer?Negative] := -Sin[-x];
 Sin[Pi] := 0;
 Sin[n_Integer*Pi] := 0;
 Sin[I*a_] := I*Sinh[a];
+Sin[(-5/2)*Pi] := -1;
+Sin[(-3/2)*Pi] := 1;
+Sin[(-1/2)*Pi] := -1;
+Sin[(1/2)*Pi] := 1;
+Sin[(3/2)*Pi] := -1;
+Sin[(5/2)*Pi] := 1;
 Sin[Indeterminate] := Indeterminate;
 Attributes[Sin] = {Listable, NumericFunction, Protected};
 
@@ -14,6 +20,12 @@ Cos[0] := 1;
 Cos[Pi] := -1;
 Cos[n_Integer?EvenQ*Pi] := 1;
 Cos[n_Integer?OddQ*Pi] := -1;
+Cos[(-5/2)*Pi] := 0;
+Cos[(-3/2)*Pi] := 0;
+Cos[(-1/2)*Pi] := 0;
+Cos[(1/2)*Pi] := 0;
+Cos[(3/2)*Pi] := 0;
+Cos[(5/2)*Pi] := 0;
 Cos[I*a_] := Cosh[a];
 Cos[-x_] := Cos[x];
 Cos[x_Integer?Negative] := Cos[-x];
@@ -35,6 +47,11 @@ Attributes[Cot] = {Listable, NumericFunction, Protected};
 Csc[inner : Verbatim[Plus][Repeated[_*I]]] := -I*Csch[-I*inner // Distribute]
 
 Cosh[a_]*Csch[a_]^(b_Integer?Positive)*rest___ := Coth[a]*Csch[a]^(b - 1)*rest
+
+ArcTan[0,y_] := Which[
+    y > 0, Pi/2,
+    y < 0, -Pi/2,
+    True, Indeterminate];
 
 TrigExpand[Cos[2*a_]] := Cos[a]^2-Sin[a]^2;
 TrigExpand[Cos[a_]] := Cos[a];
