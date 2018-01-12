@@ -61,6 +61,7 @@ Power[-1, 1/2] := I;
 16^(-1/2) := 1/4;
 Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
+(*We may want to deprecate this in favor of the general definition.*)
 Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   0, 1,
   1, I,

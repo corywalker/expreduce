@@ -100,32 +100,44 @@ Solve[{a_.*x_Symbol+b_.*y_Symbol==c_,d_.*x_Symbol==f_},{x_Symbol,y_Symbol}] := {
 Attributes[Solve] = {Protected};
 Tests`Solve = {
     ESimpleExamples[
-        ESameTest[{{x -> 0}}, Solve[x == 0, x]],
-        ESameTest[{{x -> b}}, Solve[x == b, x]],
-        ESameTest[{{x -> a b}}, Solve[x/a == b, x]],
-        ESameTest[{{x -> b/a}}, Solve[x*a == b, x]],
-        ESameTest[{{x -> -(b/m)}}, Solve[m*x + b == 0, x]],
-        ESameTest[{{x -> (-b + c)/m}}, Solve[m*x + b == c, x]],
-        ESameTest[{{x -> -Sqrt[a]}, {x -> Sqrt[a]}}, Solve[x^2 == a, x]],
-        ESameTest[{{a -> 1.5}}, Solve[a + 1.5 == 3, a]],
-        ESameTest[{{x -> -Sqrt[-3 + y]}, {x -> Sqrt[-3 + y]}}, Solve[y == x^2 + 3, x]],
-        ESameTest[{{x->ConditionalExpression[E^(b+y-z)-y,-Pi<Im[b+y-z]<=Pi]}}, Solve[y+b==Log[x+y]+z,x]],
-        ESameTest[{{x->2^(1/(5 y+Sin[y]))}}, Solve[x^(5y+Sin[y])==2,x]],
-        ESameTest[{{x->y^2}}, Solve[Sqrt[x]==y,x]],
-        ESameTest[{{x->y^9}}, Solve[x^(1/9)==y,x]],
-        ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[3]+Log[y]/Log[3],C[1]\[Element]Integers]}}, Solve[3^x==y,x]],
         ESameTest[{{x->Log[y]/Log[a+b]}}, Solve[(a+b)^x==y,x]],
-        (*ESameTest[{{x->2.4663 Log[y]}}, Solve[1.5^x==y,x]],*)
-        ESameTest[{{a->-2-b},{a->2-b}}, Solve[Abs[a+b]==2,a]],
-        ESameTest[{{a->ConditionalExpression[-b-ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]},{a->ConditionalExpression[-b+ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]}}, Solve[Cos[a+b]==2,a]],
-        ESameTest[{{a->-b},{a->b}}, Solve[a^2==b^2,a]],
+        ESameTest[{{x -> -Sqrt[-3 + y]}, {x -> Sqrt[-3 + y]}}, Solve[y == x^2 + 3, x]],
         (*ESameTest[{{x -> (-b - Sqrt[b^2 - 4 a c])/(2 a)}, {x -> (-b + Sqrt[b^2 - 4 a c])/(2 a)}}, Solve[a*x^2 + b*x + c == 0, x]],*)
         (*ESameTest[{{x -> (-b - Sqrt[b^2 - 4 a c + 4 a d])/(2 a)}, {x -> (-b + Sqrt[b^2 - 4 a c + 4 a d])/(2 a)}}, Print[a,b,c,d,x];Solve[a*x^2 + b*x + c == d, x]]*)
     ], ETests[
+        (* BASIC ISOLATION *)
+
+        (* Sanity checks *)
+        ESameTest[{{x -> 0}}, Solve[x == 0, x]],
+        ESameTest[{{x -> b}}, Solve[x == b, x]],
+        (* Inverses of addition *)
+        ESameTest[{{a -> 1.5}}, Solve[a + 1.5 == 3, a]],
+        (* Inverses of multiplication/division *)
+        ESameTest[{{x -> b/a}}, Solve[x*a == b, x]],
+        ESameTest[{{x -> a b}}, Solve[x/a == b, x]],
+        ESameTest[{{x -> -(b/m)}}, Solve[m*x + b == 0, x]],
+        ESameTest[{{x -> (-b + c)/m}}, Solve[m*x + b == c, x]],
+        (* Inverse of exponentiation, var in base *)
+        ESameTest[{{x -> -Sqrt[a]}, {x -> Sqrt[a]}}, Solve[x^2 == a, x]],
+        ESameTest[{{x -> -Sqrt[-3 + y]}, {x -> Sqrt[-3 + y]}}, Solve[y == x^2 + 3, x]],
+        ESameTest[{{x->2^(1/(5 y+Sin[y]))}}, Solve[x^(5y+Sin[y])==2,x]],
+        ESameTest[{{a->-b},{a->b}}, Solve[a^2==b^2,a]],
+        (* Inverse of exponentiation, var in base: To a fractional power *)
+        ESameTest[{{x->y^2}}, Solve[Sqrt[x]==y,x]],
+        ESameTest[{{x->y^9}}, Solve[x^(1/9)==y,x]],
+        (* Inverse of exponentiation, var in power *)
+        ESameTest[{{x->Log[y]/Log[a+b]}}, Solve[(a+b)^x==y,x]],
+        (*ESameTest[{{x->2.4663 Log[y]}}, Solve[1.5^x==y,x]],*)
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[3]+Log[y]/Log[3],C[1]\[Element]Integers]}}, Solve[3^x == y, x]],
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[2]+Log[y]/Log[2],C[1]\[Element]Integers]}}, Solve[2^x == y, x]],
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1]+Log[y])/(I Pi+Log[2]),C[1]\[Element]Integers]}}, Solve[(-2)^x == y, x]],
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1]+Log[y])/(I Pi+Log[3]),C[1]\[Element]Integers]}}, Solve[(-3)^x == y, x]],
+        (* Inverse of log *)
+        ESameTest[{{x->ConditionalExpression[E^(b+y-z)-y,-Pi<Im[b+y-z]<=Pi]}}, Solve[y+b==Log[x+y]+z,x]],
+        (* Inverse of Abs *)
+        ESameTest[{{a->-2-b},{a->2-b}}, Solve[Abs[a+b]==2,a]],
+        (* Inverse of Cos *)
+        ESameTest[{{a->ConditionalExpression[-b-ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]},{a->ConditionalExpression[-b+ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]}}, Solve[Cos[a+b]==2,a]],
     ],
 };
 
