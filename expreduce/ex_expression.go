@@ -115,6 +115,34 @@ func (this *Expression) mergeSequences(es *EvalState, headStr string, shouldEval
 	return res
 }
 
+func (this *Expression) propagateConditionals() (*Expression, bool) {
+	foundCond := false
+	for _, e := range this.Parts[1:] {
+		if cond, isCond := HeadAssertion(e, "System`ConditionalExpression"); isCond {
+			if len(cond.Parts) == 3 {
+				foundCond = true
+				break
+			}
+		}
+	}
+	if foundCond{
+		resEx := E(this.Parts[0])
+		resCond := E(S("And"))
+		for _, e := range this.Parts[1:] {
+			if cond, isCond := HeadAssertion(e, "System`ConditionalExpression"); isCond {
+				if len(cond.Parts) == 3 {
+					resEx.appendEx(cond.Parts[1].DeepCopy())
+					resCond.appendEx(cond.Parts[2].DeepCopy())
+					continue
+				}
+			}
+			resEx.appendEx(e.DeepCopy())
+		}
+		return E(S("ConditionalExpression"), resEx, resCond), true
+	}
+	return this, false
+}
+
 func (this *Expression) Eval(es *EvalState) Ex {
 	var origEx Ex = this
 
@@ -185,6 +213,12 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		}
 		if headIsSym {
 			attrs = headSym.Attrs(&es.defined)
+		}
+		if attrs.NumericFunction {
+			propagated, changed := curr.propagateConditionals()
+			if changed {
+				return propagated.Eval(es)
+			}
 		}
 		for i := range curr.Parts {
 			if headIsSym && i == 1 && attrs.HoldFirst {

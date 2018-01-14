@@ -100,9 +100,17 @@ func parsePattern(buf string) Ex {
 	return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Pattern parse error.")})
 }
 
+var unicodeRedefineMap = map[string]string{
+	"π": "Pi",
+}
+
 func ParserTokenConv(tk wl.Token) Ex {
 	switch tk.Rune {
 	case wl.IDENT:
+		redefined, isRedefined := unicodeRedefineMap[tk.Val]
+		if isRedefined {
+			return NewSymbol(redefined)
+		}
 		return NewSymbol(tk.Val)
 	case wl.INT:
 		base := 10

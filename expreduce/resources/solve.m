@@ -15,6 +15,7 @@ applyInverse[lhs_Times -> rhs_, var_Symbol] := Module[{nonVarParts},
    varParts    = Select[lhs, (countVar[#, var] =!= 0) &];
    {varParts -> rhs / nonVarParts}];
 applyInverse[base_^pow_ -> rhs_, var_Symbol] := If[countVar[base, var] =!= 0,
+  (* var in base *)
   Switch[pow,
     -1,              {base -> 1/rhs},
     2,               Switch[rhs,
@@ -26,31 +27,65 @@ applyInverse[base_^pow_ -> rhs_, var_Symbol] := If[countVar[base, var] =!= 0,
     Rational[1, n_], {base -> rhs ^ (1/pow)},
     _,               Message[Solve::ifun, Solve];{base -> rhs ^ (1/pow)}
   ],
-  (* else *)
-  Switch[base,
-    _Integer,
-      {pow->
-        ConditionalExpression[
-          If[base > 0,
-            (2 I Pi C[1])/Log[base]+Log[rhs]/Log[base],
-            ((2 I Pi C[1])+Log[rhs])/Log[base],
-          ],
-          C[1]\[Element]Integers
-        ]
-      },
-    _, Message[Solve::ifun, Solve];{pow -> Log[rhs]/Log[base]}
-  ]
+  (* else, var in power *)
+  If[rhs === 0,
+    {},
+    Switch[base,
+      _Integer,
+        {pow->
+          ConditionalExpression[
+            If[base > 0,
+              (2 I Pi C[1])/Log[base]+Log[rhs]/Log[base],
+              ((2 I Pi C[1])+Log[rhs])/Log[base],
+            ],
+            C[1]\[Element]Integers
+          ]
+        },
+      E, {pow -> ConditionalExpression[2 I Pi C[1] + Log[rhs], 
+             C[1] \[Element] Integers]},
+      _, Message[Solve::ifun, Solve];{pow -> Log[rhs]/Log[base]}
+    ]]
 ];
 applyInverse[Log[lhs_] -> rhs_, var_Symbol] :=
   {lhs -> ConditionalExpression[E^rhs, -Pi < Im[rhs] <= Pi]};
 applyInverse[Abs[lhs_] -> rhs_, var_Symbol] :=
   (Message[Solve::ifun, Solve];{lhs -> -rhs, lhs -> rhs});
+(* Trig inverses *)
 applyInverse[Sin[lhs_] -> rhs_, var_Symbol] :=
   {lhs->ConditionalExpression[Pi-ArcSin[rhs]+2 Pi C[1],C[1]\[Element]Integers],
-   lhs->ConditionalExpression[ArcSin[rhs]+2 Pi C[1],C[1]\[Element]Integers]}
+   lhs->ConditionalExpression[ArcSin[rhs]+2 Pi C[1],C[1]\[Element]Integers]};
 applyInverse[Cos[lhs_] -> rhs_, var_Symbol] :=
   {lhs->ConditionalExpression[-ArcCos[rhs]+2 Pi C[1],C[1]\[Element]Integers],
-   lhs->ConditionalExpression[ArcCos[rhs]+2 Pi C[1],C[1]\[Element]Integers]}
+   lhs->ConditionalExpression[ArcCos[rhs]+2 Pi C[1],C[1]\[Element]Integers]};
+applyInverse[Tan[lhs_] -> rhs_, var_Symbol] :=
+  {lhs -> ConditionalExpression[ArcTan[rhs] + Pi C[1], 
+         C[1] \[Element] Integers]};
+applyInverse[Cot[lhs_] -> rhs_, var_Symbol] :=
+  {lhs -> ConditionalExpression[ArcCot[rhs] + Pi C[1], 
+         C[1] \[Element] Integers]};
+applyInverse[Sec[lhs_] -> rhs_, var_Symbol] :=
+  {lhs -> ConditionalExpression[-ArcCos[1/rhs] + 2 Pi C[1], 
+         C[1] \[Element] Integers], lhs -> 
+               ConditionalExpression[ArcCos[1/rhs] + 2 Pi C[1], 
+                  C[1] \[Element] Integers]};
+applyInverse[Csc[lhs_] -> rhs_, var_Symbol] :=
+  {lhs -> ConditionalExpression[Pi - ArcSin[1/rhs] + 2 Pi C[1], 
+         C[1] \[Element] Integers], lhs -> 
+               ConditionalExpression[ArcSin[1/rhs] + 2 Pi C[1], 
+                  C[1] \[Element] Integers]};
+(* Inverses for inverse trig functions *)
+applyInverse[ArcSin[lhs_] -> rhs_, var_Symbol] :=
+  {lhs -> ConditionalExpression[
+         Sin[rhs], (Re[rhs] == -(Pi/2) && Im[rhs] >= 0) || -(Pi/2) < 
+              Re[rhs] < Pi/2 || (Re[rhs] == Pi/2 && Im[rhs] <= 0)]};
+applyInverse[ArcCos[lhs_] -> rhs_, var_Symbol] :=
+  {lhs -> ConditionalExpression[
+         Cos[rhs], (Re[rhs] == 0 && Im[rhs] >= 0) || 
+             0 < Re[rhs] < Pi || (Re[rhs] == Pi && Im[rhs] <= 0)]};
+applyInverse[ArcTan[lhs_] -> rhs_, var_Symbol] :=
+  {lhs -> ConditionalExpression[
+         Tan[rhs], (Re[rhs] == -(Pi/2) && Im[rhs] < 0) || -(Pi/2) < 
+              Re[rhs] < Pi/2 || (Re[rhs] == Pi/2 && Im[rhs] > 0)]};
 
 
 (* Base case: *)
@@ -83,7 +118,7 @@ isolate[lhs_ -> rhs_, var_Symbol] := Module[{inverseApplied},
 Solve[eqn_Equal, var_Symbol] := Module[{isolated},
    If[containsOneOccurrence[eqn, var],
     isolated = {#}& /@ isolate[Rule @@ eqn, var];
-    If[AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[isolated]];
+    If[AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[isolated//Sort]];
     Print["isolation procedure failed"];
     Return[isolated]];
    Print["Solve found no solutions"];
@@ -98,6 +133,10 @@ Solve[{a_.*x_Symbol+b_.*y_Symbol==c_,d_.*x_Symbol+e_.*y_Symbol==f_},{x_Symbol,y_
 Solve[{a_.*x_Symbol+b_.*y_Symbol==c_,d_.*x_Symbol==f_},{x_Symbol,y_Symbol}] := {{x->f/d,y->-((-c d+a f)/(b d))}}/;FreeQ[{a,b,c,d,f},x]&&FreeQ[{a,b,c,d,f},y]
 
 Attributes[Solve] = {Protected};
+normSol[s_List] := 
+  Sort[(# /. 
+             ConditionalExpression[e_, a_And] :> 
+                     ConditionalExpression[e, a // Sort]) & /@ s];
 Tests`Solve = {
     ESimpleExamples[
         ESameTest[{{x->Log[y]/Log[a+b]}}, Solve[(a+b)^x==y,x]],
@@ -138,9 +177,27 @@ Tests`Solve = {
         ESameTest[{{a->-2-b},{a->2-b}}, Solve[Abs[a+b]==2,a]],
         (* Inverse of Cos *)
         ESameTest[{{a->ConditionalExpression[-b-ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]},{a->ConditionalExpression[-b+ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]}}, Solve[Cos[a+b]==2,a]],
+
+        ESameTest[{{x->b^(1/a)}}, Solve[x^a==b,x]],
+        (*ESameTest[{{x->ConditionalExpression[-ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi+ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi-ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]}}, Solve[Cos[Sin[x]]==y,x]],*)
+        ESameTest[{{x->ConditionalExpression[Pi-ArcSin[E^y]+2 Pi C[1],C[1]\[Element]Integers&&-Pi<Im[y]<=Pi]},{x->ConditionalExpression[ArcSin[E^y]+2 Pi C[1],C[1]\[Element]Integers&&-Pi<Im[y]<=Pi]}}//Sort, Solve[Log[Sin[x]]==y,x]],
+        ESameTest[{{x->-b+y}}, Solve[Sin[ArcSin[x+b]]==y,x]],
+        ESameTest[{{x->ConditionalExpression[Pi-ArcSin[Sin[y]]+2 Pi C[1],((Re[y]==-(Pi/2)&&Im[y]>=0)||-(Pi/2)<Re[y]<Pi/2||(Re[y]==Pi/2&&Im[y]<=0))&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[Sin[y]]+2 Pi C[1],((Re[y]==-(Pi/2)&&Im[y]>=0)||-(Pi/2)<Re[y]<Pi/2||(Re[y]==Pi/2&&Im[y]<=0))&&C[1]\[Element]Integers]}}//normSol, Solve[ArcSin[Sin[x]]==y,x]//normSol],
+        ESameTest[{{x->ConditionalExpression[-b-ArcSin[c-d]+2 Pi C[1],C[1]\[Element]Integers]},{x->ConditionalExpression[-b+Pi+ArcSin[c-d]+2 Pi C[1],C[1]\[Element]Integers]}}, Solve[Sin[x+b]+c==d,x]],
+        (*ESameTest[{{x->-2 I},{x->-2 I-2 y}}//normSol, Solve[Abs[x+2I+y]==y,x]//normSol],*)
+        ESameTest[{{x->ConditionalExpression[1/2 (2 I Pi C[1]+Log[5/4]),C[1]\[Element]Integers]}}, Solve[4E^(2x)==5,x]],
+        ESameTest[{{x->ConditionalExpression[2 I Pi C[1]+Log[5],C[1]\[Element]Integers]}}, Solve[E^x==5,x]],
+        ESameTest[{}, Solve[E^x==0,x]],
+        ESameTest[{{x->ConditionalExpression[2 I Pi C[1],C[1]\[Element]Integers]}}, Solve[E^x==1,x]],
+    ], EKnownFailures[
+        ESameTest[{{x->ConditionalExpression[-ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi+ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi-ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]}}, Solve[Cos[Sin[x]]==y,x]],
+        ESameTest[{{x->-2 I},{x->-2 I-2 y}}//normSol, Solve[Abs[x+2I+y]==y,x]//normSol],
     ],
 };
 
 ConditionalExpression::usage = "`ConditionalExpression[expr, conditions]` represents `expr` which is conditional on `conditions`.";
 Attributes[ConditionalExpression] = {Protected};
-a_ + ConditionalExpression[b_, c_] := ConditionalExpression[a+b, c];
+ConditionalExpression[e_, True] := e;
+ConditionalExpression[e_, False] := Undefined;
+ConditionalExpression[ConditionalExpression[a_, b_], c_] :=
+  ConditionalExpression[a, c && b];

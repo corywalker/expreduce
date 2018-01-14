@@ -100,15 +100,20 @@ func ExOrder(a Ex, b Ex) int64 {
 		}
 		timesMode := aIsTimes && bIsTimes
 		if !timesMode {
-			for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
+			if len(aAsExp.Parts) < len(bAsExp.Parts) {
+				return 1
+			} else if len(aAsExp.Parts) > len(bAsExp.Parts) {
+				return -1
+			}
+			for i := 0; i < len(aAsExp.Parts); i++ {
 				aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
 				o := ExOrder(aPart, bPart)
 				if o != 0 {
 					return o
 				}
 			}
-		}
-		if timesMode {
+			return 0
+		} else {
 			ai := len(aAsExp.Parts) - 1
 			bi := len(bAsExp.Parts) - 1
 			for ai >= 0 && bi >= 0 {
@@ -131,13 +136,13 @@ func ExOrder(a Ex, b Ex) int64 {
 					}
 				}
 			}
-		}
-		if len(aAsExp.Parts) < len(bAsExp.Parts) {
-			return 1
-		} else if len(aAsExp.Parts) > len(bAsExp.Parts) {
-			return -1
-		} else {
-			return 0
+			if len(aAsExp.Parts) < len(bAsExp.Parts) {
+				return 1
+			} else if len(aAsExp.Parts) > len(bAsExp.Parts) {
+				return -1
+			} else {
+				return 0
+			}
 		}
 	}
 
