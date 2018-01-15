@@ -131,6 +131,7 @@ func GetPowerDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{Name: "Expand"})
+	defs = append(defs, Definition{Name: "ExpandAll"})
 	defs = append(defs, Definition{
 		Name:         "Log",
 		legacyEvalFn: bigMathFnOneParam(mathbigext.Log, true),

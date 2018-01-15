@@ -259,6 +259,15 @@ Tests`Expand = {
     ]
 };
 
+ExpandAll::usage = "`Expand[expr]` attempts to expand `expr` at all levels.";
+ExpandAll[a]:= Map[Expand, a, {0, Infinity}];
+Attributes[ExpandAll] = {Protected};
+Tests`ExpandAll = {
+    ESimpleExamples[
+        ESameTest[Log[-1+x^2], Log[(x+1)(x-1)]//ExpandAll],
+    ]
+};
+
 PolynomialQ::usage =  "`PolynomialQ[e, var]` returns True if `e` is a polynomial in `var`.";
 innerPolynomialQ[p_Plus, v_] :=
   AllTrue[List @@ p, (PolynomialQ[#, v]) &];

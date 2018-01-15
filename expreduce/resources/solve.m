@@ -127,11 +127,26 @@ isolateInEqn[eqn_Equal, var_Symbol] := Module[{isolated},
   isolated
 ];
 
-collect[eqn_Equal, var_Symbol] := Module[{varCount, toTry},
-  varCount = countVar[eqn, var];
-  toTry = (eqn[[1]]-eqn[[2]]==0);
-  If[countVar[toTry, var] < varCount, Return[toTry]];
-  eqn
+collect[eqn_Equal, var_Symbol] := Module[{toTry, collected, continue, foundSimpler, toTryFns},
+  collected = eqn;
+  continue = True;
+  While[continue,
+    foundSimpler = False;
+    toTryFns = {
+      (#[[1]]-#[[2]]==0)&,
+      (Expand[#])&,
+      (ExpandAll[#])&
+    };
+    Do[
+      toTry = toTryFn[collected];
+      If[Not[foundSimpler] && countVar[toTry, var] < countVar[collected, var],
+        collected = toTry;
+        foundSimpler = True;
+      ];
+    , {toTryFn, toTryFns}];
+    continue = foundSimpler;
+  ];
+  collected
 ];
 
 solveQuadratic[a_.*x_^2 + b_.*x_ + c_., x_] := {{x->(-b-Sqrt[b^2-4 a c])/(2 a)},{x->(-b+Sqrt[b^2-4 a c])/(2 a)}};
@@ -155,7 +170,7 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected},
    If[containsOneOccurrence[collected, var], Return[isolateInEqn[collected, var]]];
 
    Print["Solve found no solutions"];
-   {}
+   SolveFailed
    ];
 
 (* Special cases for Solve: *)
@@ -230,8 +245,9 @@ Tests`Solve = {
         ESameTest[{{x->-((I Sqrt[c])/Sqrt[a])},{x->(I Sqrt[c])/Sqrt[a]}}, Solve[a*x^2==-c,x]],
         ESameTest[{{x->-I Sqrt[c]},{x->I Sqrt[c]}}, Solve[x^2==-c,x]],
 
-
+        (* COLLECTION *)
         ESameTest[{{x->4}}, Solve[3x+1==2x+5,x]],
+        ESameTest[{{x->17/15}}, Solve[5(4x-3)+4 (6 x+1)==7 (2 x+3)+2,x]],
     ], EKnownFailures[
         ESameTest[{{x->-2 I},{x->-2 I-2 y}}//normSol, Solve[Abs[x+2I+y]==y,x]//normSol],
     ],
