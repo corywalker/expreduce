@@ -200,7 +200,7 @@ Sqrt::usage = "`Sqrt[e]` finds the square root of `e`.";
 (*TODO: automatically simplify perfect squares*)
 Attributes[Sqrt] = {Listable, NumericFunction, Protected};
 Sqrt[a_Integer?Negative] := I*Sqrt[-a];
-Sqrt[-a_] := I*Sqrt[a];
+Sqrt[-a_?NumberQ] := I*Sqrt[a];
 Sqrt[a_Real?Positive] := a^.5;
 Sqrt[x_] := Which[
     (*Normally we would define these directly, but right now "x_" is
@@ -764,11 +764,18 @@ Tests`Factor = {
     ]
 };
 
-PowerExpand[exp_] := exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]};
+PowerExpand[exp_] := exp //. {
+  Log[x_ y_]:>Log[x]+Log[y],
+  Log[x_^k_]:>k Log[x],
+  Sqrt[-a_]:>I*Sqrt[a],
+  Sqrt[a_^2]:>a,
+  Sqrt[a_/b_]:>Sqrt[a]/Sqrt[b]
+};
 Attributes[PowerExpand] = {Protected};
 Tests`PowerExpand = {
     ESimpleExamples[
         EComment["`PowerExpand` can expand nested log expressions:"],
-        ESameTest[Log[a] + e (Log[b] + d Log[c]), PowerExpand[Log[a (b c^d)^e]]]
+        ESameTest[Log[a] + e (Log[b] + d Log[c]), PowerExpand[Log[a (b c^d)^e]]],
+        ESameTest[{I Sqrt[a],a,Sqrt[a]/Sqrt[b]}, {Sqrt[-a],Sqrt[a^2],Sqrt[a/b]}//PowerExpand]
     ]
 };

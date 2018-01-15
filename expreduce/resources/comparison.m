@@ -303,3 +303,12 @@ Tests`MinMax = {
         ESameTest[{1, 5}, MinMax[Range[5]]]
     ]
 };
+
+Element::usage = "`Element[i, s]` checks if `i` is an element of `s`.";
+Attributes[Element] = {Protected};
+Element[i_Integer, Integers] := True;
+Tests`Element = {
+    ESimpleExamples[
+        ESameTest[True, Element[-1, Integers]]
+    ]
+};

@@ -30,9 +30,7 @@ applyInverse[base_^pow_ -> rhs_, var_Symbol] := If[countVar[base, var] =!= 0,
   (* var in base *)
   Switch[pow,
     -1,              {base -> 1/rhs},
-    2,               Switch[rhs,
-                            _^2, {base -> -rhs[[1]], base -> rhs[[1]]},
-                            _, {base -> -Sqrt[rhs], base -> Sqrt[rhs]}],
+    2,               {base -> -Sqrt[rhs]//PowerExpand, base -> Sqrt[rhs]//PowerExpand},
     (* Not implemented yet *)
     _Integer,        SolveError,
     (* Similar to the general case but without the message.*)
@@ -122,17 +120,40 @@ isolate[lhs_ -> rhs_, var_Symbol] := Module[{inverseApplied},
    allIsolated = isolate[#, var]& /@ inverseApplied;
    Join[Sequence @@ allIsolated]
    ];
+isolateInEqn[eqn_Equal, var_Symbol] := Module[{isolated},
+  isolated = {#}& /@ isolate[Rule @@ eqn, var];
+  If[AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[isolated//Sort]];
+  Print["isolation procedure failed"];
+  isolated
+];
+
+collect[eqn_Equal, var_Symbol] := Module[{varCount, toTry},
+  varCount = countVar[eqn, var];
+  toTry = (eqn[[1]]-eqn[[2]]==0);
+  If[countVar[toTry, var] < varCount, Return[toTry]];
+  eqn
+];
+
+solveQuadratic[a_.*x_^2 + b_.*x_ + c_., x_] := {{x->(-b-Sqrt[b^2-4 a c])/(2 a)},{x->(-b+Sqrt[b^2-4 a c])/(2 a)}};
 
 (* Following method described in: *)
 (*Sterling, L, Bundy, A, Byrd, L, O'Keefe, R & Silver, B 1982, Solving Symbolic Equations with PRESS. in*)
 (*Computer Algebra - Lecture Notes in Computer Science. vol. 7. DOI: 10.1007/3-540-11607-9_13*)
 (* Available at: http://www.research.ed.ac.uk/portal/files/413486/Solving_Symbolic_Equations_%20with_PRESS.pdf *)
-Solve[eqn_Equal, var_Symbol] := Module[{isolated},
-   If[containsOneOccurrence[eqn, var],
-    isolated = {#}& /@ isolate[Rule @@ eqn, var];
-    If[AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[isolated//Sort]];
-    Print["isolation procedure failed"];
-    Return[isolated]];
+Solve[eqn_Equal, var_Symbol] := Module[{degree, collected},
+   (* Attempt isolation *)
+   If[containsOneOccurrence[eqn, var], Return[isolateInEqn[eqn, var]]];
+
+   (* Attempt polynomial solve *)
+   poly = eqn[[1]]-eqn[[2]];
+   If[PolynomialQ[poly, var],
+    degree = Exponent[poly, var];
+    If[degree === 2, Return[solveQuadratic[poly, var]]];
+   ];
+
+   collected = collect[eqn, var];
+   If[containsOneOccurrence[collected, var], Return[isolateInEqn[collected, var]]];
+
    Print["Solve found no solutions"];
    {}
    ];
@@ -170,6 +191,7 @@ Tests`Solve = {
         ESameTest[{{x -> (-b + c)/m}}, Solve[m*x + b == c, x]],
         (* Inverse of exponentiation, var in base *)
         ESameTest[{{x -> -Sqrt[a]}, {x -> Sqrt[a]}}, Solve[x^2 == a, x]],
+        ESameTest[{{x->b^(1/a)}}, Solve[x^a==b,x]],
         ESameTest[{{x -> -Sqrt[-3 + y]}, {x -> Sqrt[-3 + y]}}, Solve[y == x^2 + 3, x]],
         ESameTest[{{x->2^(1/(5 y+Sin[y]))}}, Solve[x^(5y+Sin[y])==2,x]],
         ESameTest[{{a->-b},{a->b}}, Solve[a^2==b^2,a]],
@@ -178,6 +200,10 @@ Tests`Solve = {
         ESameTest[{{x->y^9}}, Solve[x^(1/9)==y,x]],
         (* Inverse of exponentiation, var in power *)
         ESameTest[{{x->Log[y]/Log[a+b]}}, Solve[(a+b)^x==y,x]],
+        ESameTest[{{x->ConditionalExpression[1/2 (2 I Pi C[1]+Log[5/4]),C[1]\[Element]Integers]}}, Solve[4E^(2x)==5,x]],
+        ESameTest[{{x->ConditionalExpression[2 I Pi C[1]+Log[5],C[1]\[Element]Integers]}}, Solve[E^x==5,x]],
+        ESameTest[{}, Solve[E^x==0,x]],
+        ESameTest[{{x->ConditionalExpression[2 I Pi C[1],C[1]\[Element]Integers]}}, Solve[E^x==1,x]],
         (*ESameTest[{{x->2.4663 Log[y]}}, Solve[1.5^x==y,x]],*)
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[3]+Log[y]/Log[3],C[1]\[Element]Integers]}}, Solve[3^x == y, x]],
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[2]+Log[y]/Log[2],C[1]\[Element]Integers]}}, Solve[2^x == y, x]],
@@ -185,22 +211,27 @@ Tests`Solve = {
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1]+Log[y])/(I Pi+Log[3]),C[1]\[Element]Integers]}}, Solve[(-3)^x == y, x]],
         (* Inverse of log *)
         ESameTest[{{x->ConditionalExpression[E^(b+y-z)-y,-Pi<Im[b+y-z]<=Pi]}}, Solve[y+b==Log[x+y]+z,x]],
+        ESameTest[{{x->ConditionalExpression[Pi-ArcSin[E^y]+2 Pi C[1],C[1]\[Element]Integers&&-Pi<Im[y]<=Pi]},{x->ConditionalExpression[ArcSin[E^y]+2 Pi C[1],C[1]\[Element]Integers&&-Pi<Im[y]<=Pi]}}//Sort, Solve[Log[Sin[x]]==y,x]],
         (* Inverse of Abs *)
         ESameTest[{{a->-2-b},{a->2-b}}, Solve[Abs[a+b]==2,a]],
+        (* Inverse of Sin *)
+        ESameTest[{{x->ConditionalExpression[-b-ArcSin[c-d]+2 Pi C[1],C[1]\[Element]Integers]},{x->ConditionalExpression[-b+Pi+ArcSin[c-d]+2 Pi C[1],C[1]\[Element]Integers]}}, Solve[Sin[x+b]+c==d,x]],
         (* Inverse of Cos *)
         ESameTest[{{a->ConditionalExpression[-b-ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]},{a->ConditionalExpression[-b+ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]}}, Solve[Cos[a+b]==2,a]],
-
-        ESameTest[{{x->b^(1/a)}}, Solve[x^a==b,x]],
+        (* Solve nested trig functions *)
         ESameTest[{{x->ConditionalExpression[-ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi+ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi-ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]}}//normSol, Solve[Cos[Sin[x]]==y,x]//normSol],
-        ESameTest[{{x->ConditionalExpression[Pi-ArcSin[E^y]+2 Pi C[1],C[1]\[Element]Integers&&-Pi<Im[y]<=Pi]},{x->ConditionalExpression[ArcSin[E^y]+2 Pi C[1],C[1]\[Element]Integers&&-Pi<Im[y]<=Pi]}}//Sort, Solve[Log[Sin[x]]==y,x]],
+        (* Solve combination of Sin and ArcSin *)
         ESameTest[{{x->-b+y}}, Solve[Sin[ArcSin[x+b]]==y,x]],
         ESameTest[{{x->ConditionalExpression[Pi-ArcSin[Sin[y]]+2 Pi C[1],((Re[y]==-(Pi/2)&&Im[y]>=0)||-(Pi/2)<Re[y]<Pi/2||(Re[y]==Pi/2&&Im[y]<=0))&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[Sin[y]]+2 Pi C[1],((Re[y]==-(Pi/2)&&Im[y]>=0)||-(Pi/2)<Re[y]<Pi/2||(Re[y]==Pi/2&&Im[y]<=0))&&C[1]\[Element]Integers]}}//normSol, Solve[ArcSin[Sin[x]]==y,x]//normSol],
-        ESameTest[{{x->ConditionalExpression[-b-ArcSin[c-d]+2 Pi C[1],C[1]\[Element]Integers]},{x->ConditionalExpression[-b+Pi+ArcSin[c-d]+2 Pi C[1],C[1]\[Element]Integers]}}, Solve[Sin[x+b]+c==d,x]],
-        (*ESameTest[{{x->-2 I},{x->-2 I-2 y}}//normSol, Solve[Abs[x+2I+y]==y,x]//normSol],*)
-        ESameTest[{{x->ConditionalExpression[1/2 (2 I Pi C[1]+Log[5/4]),C[1]\[Element]Integers]}}, Solve[4E^(2x)==5,x]],
-        ESameTest[{{x->ConditionalExpression[2 I Pi C[1]+Log[5],C[1]\[Element]Integers]}}, Solve[E^x==5,x]],
-        ESameTest[{}, Solve[E^x==0,x]],
-        ESameTest[{{x->ConditionalExpression[2 I Pi C[1],C[1]\[Element]Integers]}}, Solve[E^x==1,x]],
+
+        (* POLYNOMIALS *)
+        ESameTest[{{x->(-b-Sqrt[b^2-4 a c])/(2 a)},{x->(-b+Sqrt[b^2-4 a c])/(2 a)}}, Solve[a*x^2==-b*x-c,x]],
+        ESameTest[Solve[a x^2==-b x-foo[x],x], Solve[a*x^2==-b*x-foo[x],x]],
+        ESameTest[{{x->-((I Sqrt[c])/Sqrt[a])},{x->(I Sqrt[c])/Sqrt[a]}}, Solve[a*x^2==-c,x]],
+        ESameTest[{{x->-I Sqrt[c]},{x->I Sqrt[c]}}, Solve[x^2==-c,x]],
+
+
+        ESameTest[{{x->4}}, Solve[3x+1==2x+5,x]],
     ], EKnownFailures[
         ESameTest[{{x->-2 I},{x->-2 I-2 y}}//normSol, Solve[Abs[x+2I+y]==y,x]//normSol],
     ],
