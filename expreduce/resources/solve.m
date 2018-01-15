@@ -6,6 +6,18 @@ countVar[expr_, var_Symbol] :=
 containsOneOccurrence[eqn_Equal, var_Symbol] := 
   Count[eqn, var, -1] == 1;
 
+checkedConditionalExpression[e_, c_] := 
+  Module[{nextC = 1, res, reps, newC = -1},
+   While[True, If[Count[e, C[nextC], -1] > 0, nextC++, Break[]]];
+   res = ConditionalExpression[e, c];
+   reps = {};
+   While[True,
+    If[Count[res, C[newC], -1] > 0,
+     AppendTo[reps, C[newC] -> C[-newC]]; newC--,
+     Break[]]];
+   res = res /. C[n_Integer?Positive] :> C[n + Length[reps]];
+   res /. reps];
+
 applyInverse[lhs_Plus -> rhs_, var_Symbol] := Module[{nonVarParts},
    nonVarParts = Select[lhs, (countVar[#, var] === 0) &];
    varParts    = Select[lhs, (countVar[#, var] =!= 0) &];
@@ -52,11 +64,11 @@ applyInverse[Abs[lhs_] -> rhs_, var_Symbol] :=
   (Message[Solve::ifun, Solve];{lhs -> -rhs, lhs -> rhs});
 (* Trig inverses *)
 applyInverse[Sin[lhs_] -> rhs_, var_Symbol] :=
-  {lhs->ConditionalExpression[Pi-ArcSin[rhs]+2 Pi C[1],C[1]\[Element]Integers],
-   lhs->ConditionalExpression[ArcSin[rhs]+2 Pi C[1],C[1]\[Element]Integers]};
+  {lhs->checkedConditionalExpression[Pi-ArcSin[rhs]+2 Pi C[-1],C[-1]\[Element]Integers],
+   lhs->checkedConditionalExpression[ArcSin[rhs]+2 Pi C[-1],C[-1]\[Element]Integers]};
 applyInverse[Cos[lhs_] -> rhs_, var_Symbol] :=
-  {lhs->ConditionalExpression[-ArcCos[rhs]+2 Pi C[1],C[1]\[Element]Integers],
-   lhs->ConditionalExpression[ArcCos[rhs]+2 Pi C[1],C[1]\[Element]Integers]};
+  {lhs->checkedConditionalExpression[-ArcCos[rhs]+2 Pi C[-1],C[-1]\[Element]Integers],
+   lhs->checkedConditionalExpression[ArcCos[rhs]+2 Pi C[-1],C[-1]\[Element]Integers]};
 applyInverse[Tan[lhs_] -> rhs_, var_Symbol] :=
   {lhs -> ConditionalExpression[ArcTan[rhs] + Pi C[1], 
          C[1] \[Element] Integers]};
@@ -179,7 +191,7 @@ Tests`Solve = {
         ESameTest[{{a->ConditionalExpression[-b-ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]},{a->ConditionalExpression[-b+ArcCos[2]+2 Pi C[1],C[1]\[Element]Integers]}}, Solve[Cos[a+b]==2,a]],
 
         ESameTest[{{x->b^(1/a)}}, Solve[x^a==b,x]],
-        (*ESameTest[{{x->ConditionalExpression[-ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi+ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi-ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]}}, Solve[Cos[Sin[x]]==y,x]],*)
+        ESameTest[{{x->ConditionalExpression[-ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi+ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi-ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]}}//normSol, Solve[Cos[Sin[x]]==y,x]//normSol],
         ESameTest[{{x->ConditionalExpression[Pi-ArcSin[E^y]+2 Pi C[1],C[1]\[Element]Integers&&-Pi<Im[y]<=Pi]},{x->ConditionalExpression[ArcSin[E^y]+2 Pi C[1],C[1]\[Element]Integers&&-Pi<Im[y]<=Pi]}}//Sort, Solve[Log[Sin[x]]==y,x]],
         ESameTest[{{x->-b+y}}, Solve[Sin[ArcSin[x+b]]==y,x]],
         ESameTest[{{x->ConditionalExpression[Pi-ArcSin[Sin[y]]+2 Pi C[1],((Re[y]==-(Pi/2)&&Im[y]>=0)||-(Pi/2)<Re[y]<Pi/2||(Re[y]==Pi/2&&Im[y]<=0))&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[Sin[y]]+2 Pi C[1],((Re[y]==-(Pi/2)&&Im[y]>=0)||-(Pi/2)<Re[y]<Pi/2||(Re[y]==Pi/2&&Im[y]<=0))&&C[1]\[Element]Integers]}}//normSol, Solve[ArcSin[Sin[x]]==y,x]//normSol],
@@ -190,7 +202,6 @@ Tests`Solve = {
         ESameTest[{}, Solve[E^x==0,x]],
         ESameTest[{{x->ConditionalExpression[2 I Pi C[1],C[1]\[Element]Integers]}}, Solve[E^x==1,x]],
     ], EKnownFailures[
-        ESameTest[{{x->ConditionalExpression[-ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi+ArcSin[ArcCos[y]-2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[Pi-ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[ArcCos[y]+2 Pi C[2]]+2 Pi C[1],C[2]\[Element]Integers&&C[1]\[Element]Integers]}}, Solve[Cos[Sin[x]]==y,x]],
         ESameTest[{{x->-2 I},{x->-2 I-2 y}}//normSol, Solve[Abs[x+2I+y]==y,x]//normSol],
     ],
 };
