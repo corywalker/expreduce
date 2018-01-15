@@ -312,3 +312,36 @@ Tests`Element = {
         ESameTest[True, Element[-1, Integers]]
     ]
 };
+
+Attributes[Inequality] = {Protected};
+Tests`Inequality = {
+    ESimpleExamples[
+        ESameTest[True, Inequality[-Pi,Less,0,LessEqual,Pi]],
+        ESameTest[0<=a, Inequality[-Pi,Less,0,LessEqual,a]],
+    ], ETests[
+        ESameTest[Inequality[c, Less, 0, Less, a], Inequality[c,Less,0,Less,a]],
+        ESameTest[c<0, Inequality[c,Less,0]],
+        ESameTest[Inequality[c,Less], Inequality[c,Less]],
+        ESameTest[True, Inequality[c]],
+        ESameTest[Inequality[], Inequality[]],
+        ESameTest[True, Inequality[False]],
+        ESameTest[Inequality[-1, Less], Inequality[-1,Less]],
+        ESameTest[Inequality[-1, Less, a, Less, 0], Inequality[-1,Less,a,Less,0,Less,1]],
+        ESameTest[Inequality[0, Less, a, Less, 1], Inequality[-1,Less,0,Less,a,Less,1]],
+        ESameTest[False, Inequality[-1,Less,a,Less,-2]],
+        ESameTest[0>=a, Inequality[-Pi,Less,0,GreaterEqual,a]],
+        ESameTest[0<a&&Inequality[a,Greater,0,Greater,k], Inequality[0,Less,a,Greater,0,Greater,k]],
+        ESameTest[0>a&&a<0, Inequality[0,Greater,a,Less,0]],
+        ESameTest[Inequality[0, Less, a, Less, 1], Inequality[0,Less,a,Less,1]],
+        ESameTest[0<a&&a<1, 0<a && a<1],
+        ESameTest[a<b<=c, Inequality[a,Less,b,LessEqual,c]],
+        ESameTest[a<b<=c==d&&d>=e>f, Inequality[a,Less,b,LessEqual,c,Equal,d,GreaterEqual,e,Greater,f]],
+        ESameTest[a>b>=c==d&&d<=e<f, Inequality[a,Greater,b,GreaterEqual,c,Equal,d,LessEqual,e,Less,f]],
+        ESameTest[a>b>=c==d>=e&&e<f, Inequality[a,Greater,b,GreaterEqual,c,Equal,d,GreaterEqual,e,Less,f]],
+        ESameTest[False, Inequality[a,Greater,1,GreaterEqual,c,Equal,d,GreaterEqual,5,Less,f]],
+        ESameTest[a<1<4<=b, a<1<2<3<4<=b],
+        ESameTest[a<1<4<=b<5, a<1<2<3<4<=b<5],
+    ], EKnownFailures[
+        ESameTest[Inequality[0,Lesks,1], Inequality[-1,Less,0,Lesks,1]],
+    ]
+};

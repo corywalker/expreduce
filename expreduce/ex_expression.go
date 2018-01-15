@@ -554,6 +554,14 @@ func (this *Expression) Hash() uint64 {
 	return h.Sum64()
 }
 
+func (this *Expression) HeadStr() string {
+	sym, isSym := this.Parts[0].(*Symbol)
+	if isSym {
+		return sym.Name
+	}
+	return ""
+}
+
 func NewExpression(parts []Ex) *Expression {
 	return &Expression{
 		Parts:                 parts,

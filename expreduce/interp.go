@@ -10,19 +10,48 @@ import (
 	"strings"
 )
 
+var inequalityOps = map[string]bool{
+	"System`Equal": true,
+	"System`Unequal": true,
+	"System`Less": true,
+	"System`LessEqual": true,
+	"System`Greater": true,
+	"System`GreaterEqual": true,
+}
+
+func convertToInequality(expr *Expression) *Expression {
+	res := E(S("Inequality"))
+	for i, e := range expr.Parts[1:] {
+		if i != 0 {
+			res.appendEx(expr.Parts[0])
+		}
+		res.appendEx(e)
+	}
+	return res
+}
+
 func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
+	_, opIsIneq := inequalityOps[op]
+	if opIsIneq {
+		lhsEx, lhsIsEx := lhs.(*Expression)
+		if lhsIsEx {
+			lhsHead := lhsEx.HeadStr()
+			_, lhsIsIneq := inequalityOps[lhsHead]
+			lhsIsIneq = lhsIsIneq || lhsHead == "System`Inequality"
+			if lhsIsIneq && op != lhsHead {
+				res := lhsEx
+				if lhsHead != "System`Inequality" {
+					res = convertToInequality(lhsEx)
+				}
+				res.appendEx(NewSymbol(op))
+				res.appendEx(rhs)
+				return res
+			}
+		}
+	}
 	opExpr, isOp := HeadAssertion(lhs, op)
 	if isOp {
 		opExpr.Parts = append(opExpr.Parts, rhs)
-		return opExpr
-	}
-	return NewExpression([]Ex{NewSymbol(op), lhs, rhs})
-}
-
-func rightFullyAssoc(op string, lhs Ex, rhs Ex) Ex {
-	opExpr, isOp := HeadAssertion(rhs, op)
-	if isOp {
-		opExpr.Parts = append([]Ex{opExpr.Parts[0], lhs}, opExpr.Parts[1:]...)
 		return opExpr
 	}
 	return NewExpression([]Ex{NewSymbol(op), lhs, rhs})

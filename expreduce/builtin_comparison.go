@@ -50,6 +50,26 @@ func extremaFunction(this *Expression, fnType extremaFnType, es *EvalState) Ex {
 	return NewExpression(append(this.Parts[:2], this.Parts[i:]...))
 }
 
+func getCompSign(e Ex) int {
+	sym, isSym := e.(*Symbol)
+	if !isSym {
+		return -2
+	}
+	switch sym.Name {
+	case "System`Less":
+		return -1
+	case "System`LessEqual":
+		return -1
+	case "System`Equal":
+		return 0
+	case "System`GreaterEqual":
+		return 1
+	case "System`Greater":
+		return 1
+	}
+	return -2
+}
+
 func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Equal",
@@ -281,5 +301,73 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "PossibleZeroQ"})
 	defs = append(defs, Definition{Name: "MinMax"})
 	defs = append(defs, Definition{Name: "Element"})
+	defs = append(defs, Definition{
+		Name: "Inequality",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) == 1 {
+				return this
+			}
+			if len(this.Parts) == 2 {
+				return S("True")
+			}
+			if len(this.Parts) % 2 != 0 {
+				return this
+			}
+			firstSign := getCompSign(this.Parts[2])
+			if firstSign == -2 {
+				return this
+			}
+			if firstSign != 0 {
+				for i := 4; i < len(this.Parts); i += 2 {
+					thisSign := getCompSign(this.Parts[i])
+					if thisSign == -2 {
+						return this
+					}
+					if thisSign == -firstSign {
+						firstIneq := E(S("Inequality"))
+						secondIneq := E(S("Inequality"))
+						for j := 1; j < len(this.Parts); j++ {
+							if j < i {
+								firstIneq.appendEx(this.Parts[j])
+							}
+							if j > (i-2) {
+								secondIneq.appendEx(this.Parts[j])
+							}
+						}
+						return E(S("And"), firstIneq, secondIneq)
+					}
+				}
+			}
+			res := E(S("Inequality"))
+			for i := 0; i < (len(this.Parts)-1)/2; i++ {
+				lhs := this.Parts[2*i+1]
+				if len(res.Parts) > 1 {
+					lhs = res.Parts[len(res.Parts)-1]
+				}
+				op := this.Parts[2*i+2]
+				rhs := this.Parts[2*i+3]
+				for rhsI := 2*i+3; rhsI < len(this.Parts); rhsI+=2 {
+					if falseQ(E(op, lhs, this.Parts[rhsI]).Eval(es), &es.CASLogger) {
+						return S("False")
+					}
+				}
+				evalRes := E(op, lhs, rhs).Eval(es)
+				if !trueQ(evalRes, &es.CASLogger) {
+					if !IsSameQ(res.Parts[len(res.Parts)-1], lhs, &es.CASLogger) {
+						res.appendEx(lhs)
+					}
+					res.appendEx(op)
+					res.appendEx(rhs)
+				}
+			}
+			if len(res.Parts) == 1 {
+				return S("True")
+			}
+			if len(res.Parts) == 4 {
+				return E(res.Parts[2], res.Parts[1], res.Parts[3])
+			}
+			return res
+		},
+	})
 	return
 }
