@@ -122,7 +122,7 @@ isolate[lhs_ -> rhs_, var_Symbol] := Module[{inverseApplied},
    ];
 isolateInEqn[eqn_Equal, var_Symbol] := Module[{isolated},
   isolated = {#}& /@ isolate[Rule @@ eqn, var];
-  If[AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[isolated//Sort]];
+  If[AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[isolated//Simplify//Sort]];
   Print["isolation procedure failed"];
   isolated
 ];
@@ -149,7 +149,7 @@ collect[eqn_Equal, var_Symbol] := Module[{toTry, collected, continue, foundSimpl
   collected
 ];
 
-solveQuadratic[a_.*x_^2 + b_.*x_ + c_., x_] := {{x->(-b-Sqrt[b^2-4 a c])/(2 a)},{x->(-b+Sqrt[b^2-4 a c])/(2 a)}};
+solveQuadratic[a_.*x_^2 + b_.*x_ + c_., x_] := {{x->(-b-Sqrt[b^2-4 a c])/(2 a)},{x->(-b+Sqrt[b^2-4 a c])/(2 a)}}/;FreeQ[{a,b,c},x];
 
 (* Following method described in: *)
 (*Sterling, L, Bundy, A, Byrd, L, O'Keefe, R & Silver, B 1982, Solving Symbolic Equations with PRESS. in*)
@@ -163,7 +163,7 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected},
    poly = eqn[[1]]-eqn[[2]];
    If[PolynomialQ[poly, var],
     degree = Exponent[poly, var];
-    If[degree === 2, Return[solveQuadratic[poly, var]]];
+    If[degree === 2, Return[solveQuadratic[poly//Expand, var]//Simplify//Sort]];
    ];
 
    collected = collect[eqn, var];
@@ -189,6 +189,7 @@ Tests`Solve = {
     ESimpleExamples[
         ESameTest[{{x->Log[y]/Log[a+b]}}, Solve[(a+b)^x==y,x]],
         ESameTest[{{x -> -Sqrt[-3 + y]}, {x -> Sqrt[-3 + y]}}, Solve[y == x^2 + 3, x]],
+        ESameTest[{{y->1-Sqrt[-2+2 x-x^2]},{y->1+Sqrt[-2+2 x-x^2]}}, Solve[2==x^2+y^2+(x-2)^2+(y-2)^2,y]],
         (*ESameTest[{{x -> (-b - Sqrt[b^2 - 4 a c])/(2 a)}, {x -> (-b + Sqrt[b^2 - 4 a c])/(2 a)}}, Solve[a*x^2 + b*x + c == 0, x]],*)
         (*ESameTest[{{x -> (-b - Sqrt[b^2 - 4 a c + 4 a d])/(2 a)}, {x -> (-b + Sqrt[b^2 - 4 a c + 4 a d])/(2 a)}}, Print[a,b,c,d,x];Solve[a*x^2 + b*x + c == d, x]]*)
     ], ETests[

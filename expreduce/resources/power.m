@@ -59,6 +59,7 @@ Power[-1, -1/2] := -I;
 Power[-1, 1/2] := I;
 4^(-1/2) := 1/2;
 16^(-1/2) := 1/4;
+16^(1/2) := 4;
 Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
 (*We may want to deprecate this in favor of the general definition.*)
@@ -201,6 +202,7 @@ Sqrt::usage = "`Sqrt[e]` finds the square root of `e`.";
 Attributes[Sqrt] = {Listable, NumericFunction, Protected};
 Sqrt[a_Integer?Negative] := I*Sqrt[-a];
 Sqrt[-a_?NumberQ] := I*Sqrt[a];
+Sqrt[a_Integer*b_Plus] := Sqrt[Abs[a]]*Sqrt[(a/Abs[a])*b] /; a != 0;
 Sqrt[a_Real?Positive] := a^.5;
 Sqrt[x_] := Which[
     (*Normally we would define these directly, but right now "x_" is
@@ -216,6 +218,8 @@ Tests`Sqrt = {
         ESameTest[I * Sqrt[3], Sqrt[-3]],
         ESameTest[1, Sqrt[1]],
         ESameTest[0, Sqrt[0]]
+    ], ETests[
+        ESameTest[Sqrt[2] Sqrt[-2-x^y], (-2)(x^y+2)//Sqrt],
     ]
 };
 
@@ -259,8 +263,8 @@ Tests`Expand = {
     ]
 };
 
-ExpandAll::usage = "`Expand[expr]` attempts to expand `expr` at all levels.";
-ExpandAll[a]:= Map[Expand, a, {0, Infinity}];
+ExpandAll::usage = "`ExpandAll[expr]` attempts to expand `expr` at all levels.";
+ExpandAll[a_] := Map[Expand, a, {0, Infinity}];
 Attributes[ExpandAll] = {Protected};
 Tests`ExpandAll = {
     ESimpleExamples[
