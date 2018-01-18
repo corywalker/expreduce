@@ -39,6 +39,9 @@ func tryIterParam(e Ex) (Ex, bool) {
 	if _, isRat := e.(*Rational); isRat {
 		return e, true
 	}
+	if _, isComp := e.(*Complex); isComp {
+		return e, true
+	}
 	return nil, false
 }
 

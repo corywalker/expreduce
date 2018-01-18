@@ -1,4 +1,4 @@
-import re, sys
+import re, sys, string
 import argparse
 
 desc = 'Generate assertions from pasted examples'
@@ -23,4 +23,6 @@ else:
 for num, instr, outstr in re.findall(p, test_str):
     if outstr == '':
         outstr = 'Null'
-    print(format_str.format(outstr, instr))
+    to_print = format_str.format(outstr, instr)
+    to_print = string.replace(to_print, '\[Pi]', 'Pi')
+    print(to_print)

@@ -98,8 +98,8 @@ HoldForm::usage = "`HoldForm[expr]` prevents automatic evaluation of `expr`. Pri
 Attributes[HoldForm] = {HoldAll, Protected};
 Tests`HoldForm = {
     ESimpleExamples[
-        EStringTest["5^3", "HoldForm[Power[5, 3]]"],
-        EStringTest["5.^3.", "HoldForm[Power[5., 3.]]"]
+        EStringTest["(5^3)", "HoldForm[Power[5, 3]]"],
+        EStringTest["(5.^3.)", "HoldForm[Power[5., 3.]]"]
     ]
 };
 

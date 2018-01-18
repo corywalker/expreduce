@@ -209,7 +209,7 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec{
 
 //This is an optimization with regards to expressionWalkMapBackwards which only deals with level specification,
 //expressionWalkMapBackwards also deals with depths, but has to visit the entire expression tree.
-func expressionWalkMap(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec) *Expression {
+func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) *Expression {
 	toReturn := NewExpression([]Ex{this.Parts[0]})
 
 	for i, expr := range this.Parts[1:] {
@@ -223,13 +223,13 @@ func expressionWalkMap(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]int64, thi
 		//apply expressionWalkMap recursively
 		expression, isExpression := newExpression.(*Expression)
 		if isExpression && level < spec.max {
-			newExpression = expressionWalkMap(f, head, currentPartSpec, expression, es, spec)
+			newExpression = expressionWalkMap(f, head, currentPartSpec, expression, es, spec, generated)
 		}
 
 		//If this part is covered by the level specification, apply the function
 		//specified by the first argument of Map
 		if level >= spec.min {
-			newExpression = f(head, newExpression, currentPartSpec)
+			newExpression = f(head, newExpression, currentPartSpec, generated, es)
 			toReturn.Parts = append(toReturn.Parts, newExpression)
 		} else {
 			toReturn.Parts = append(toReturn.Parts, newExpression)
@@ -239,7 +239,7 @@ func expressionWalkMap(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]int64, thi
 	return toReturn
 }
 
-func expressionWalkMapBackwards(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec) (*Expression, int64) {
+func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) (*Expression, int64) {
 	toReturn := NewExpression([]Ex{this.Parts[0]})
 	currentMaxDepth := int64(1)
 
@@ -253,13 +253,13 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]i
 		expression, isExpression := newExpression.(*Expression)
 		if isExpression {
 			//Determine the depth of this part
-			newExpression, depth = expressionWalkMapBackwards(f, head, currentPartSpec, expression, es, spec)
+			newExpression, depth = expressionWalkMapBackwards(f, head, currentPartSpec, expression, es, spec, generated)
 			if depth > currentMaxDepth {
 				currentMaxDepth = depth
 			}
 
 			if spec.checkLevel(level) && spec.checkDepth(depth) {
-				newExpression = f(head, newExpression, currentPartSpec)
+				newExpression = f(head, newExpression, currentPartSpec, generated, es)
 				toReturn.Parts = append(toReturn.Parts, newExpression)
 			} else {
 				toReturn.Parts = append(toReturn.Parts, newExpression)
@@ -269,7 +269,7 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]i
 			depth = int64(1)
 
 			if spec.checkLevel(level) && spec.checkDepth(depth) {
-				newExpression = f(head, expr, currentPartSpec)
+				newExpression = f(head, expr, currentPartSpec, generated, es)
 				toReturn.Parts = append(toReturn.Parts, newExpression)
 			} else {
 				toReturn.Parts = append(toReturn.Parts, newExpression)
@@ -280,11 +280,11 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64) Ex, head Ex, partSpec[]i
 	return toReturn, currentMaxDepth+1
 }
 
-func wrapWithHead(head Ex, expr Ex, partList []int64) Ex {
+func wrapWithHead(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
 	return NewExpression([]Ex{head, expr})
 }
 
-func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64) Ex {
+func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
 	partSpec := []Ex{NewSymbol("System`List")}
 	for _, part := range partList {
 		partSpec = append(partSpec, NewInt(part))
@@ -293,7 +293,7 @@ func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64) Ex {
 	return NewExpression([]Ex{head, expr, partSpecExpr})
 }
 
-func applyHead(head Ex, expr Ex, partList []int64) Ex {
+func applyHead(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
 	expression, isExpr := expr.(*Expression)
 	if !isExpr {
 		return expr
@@ -303,11 +303,32 @@ func applyHead(head Ex, expr Ex, partList []int64) Ex {
 	return toReturn
 }
 
-func mapFunction(f func(Ex, Ex, []int64) Ex, isApply bool) func(*Expression, *EvalState) Ex {
+type levelSpecOptimizationStrategy int
+
+const (
+	unoptimizedSimpleLevelSpec levelSpecOptimizationStrategy = iota
+	mapOptimizedSimpleLevelSpec
+	applyOptimizedSimpleLevelSpec
+)
+
+func exOrGenerated(e Ex, generated *int64, returnGenerated bool) Ex {
+	if returnGenerated {
+		return NewInt(*generated)
+	}
+	return e
+}
+
+func levelSpecFunction(
+	f func(Ex, Ex, []int64, *int64, *EvalState) Ex,
+	optStrat levelSpecOptimizationStrategy,
+	returnGenerated bool,
+	leveledExprIsFirst bool,
+) func(*Expression, *EvalState) Ex {
 	return func(this *Expression, es *EvalState) Ex {
-		// Optimization of the very common case where Map has two arguments
+		// Optimization of the very common case where the levelspec-ed
+		// operation has two arguments
 		if len(this.Parts) == 3 {
-			if !isApply{
+			if optStrat == mapOptimizedSimpleLevelSpec {
 				expr, isExpr := this.Parts[2].(*Expression)
 				if isExpr {
 					toReturn := NewExpression([]Ex{expr.Parts[0]})
@@ -320,7 +341,7 @@ func mapFunction(f func(Ex, Ex, []int64) Ex, isApply bool) func(*Expression, *Ev
 					return toReturn
 				}
 				return this.Parts[2]
-			} else {
+			} else if optStrat == applyOptimizedSimpleLevelSpec {
 				sym, isSym := this.Parts[1].(*Symbol)
 				expr, isExpr := this.Parts[2].(*Expression)
 				if isSym && isExpr {
@@ -341,42 +362,54 @@ func mapFunction(f func(Ex, Ex, []int64) Ex, isApply bool) func(*Expression, *Ev
 			return this
 		}
 
-		//If the second argument is atomic, it will be ignored except in one case
-		expression, nonAtomic := this.Parts[2].(*Expression)
+		// For example the function to apply for Map or the pattern to match
+		// for Count.
+		dataExpr := this.Parts[1]
+		leveledExpr := this.Parts[2]
+		if leveledExprIsFirst {
+			dataExpr = this.Parts[2]
+			leveledExpr = this.Parts[1]
+		}
+		generatedData := int64(0)
+		generated := &generatedData
+
+		// If the leveled expression is atomic, it will be ignored except in
+		// one case
+		expression, nonAtomic := leveledExpr.(*Expression)
 		if !nonAtomic {
 			if spec.checkLevel(0) && spec.checkDepth(0) {
-				return f(this.Parts[1], this.Parts[2], []int64{})
+				return exOrGenerated(f(dataExpr, leveledExpr, []int64{}, generated, es), generated, returnGenerated)
 			} else {
-				return this.Parts[2]
+				return exOrGenerated(leveledExpr, generated, returnGenerated)
 			}
 		}
 
 		if spec.min == 0 && spec.max == 0 {
-			return f(this.Parts[1], this.Parts[2], []int64{})
+			return exOrGenerated(f(dataExpr, leveledExpr, []int64{}, generated, es), generated, returnGenerated)
 		}
 
 		//In this special case we do not have to keep track of depth, this can be computed faster
 		//than when depth is required because we do not always have to recurse all the way to the
 		//bottom of the expression
 		if !spec.isMinDepth && !spec.isMaxDepth {
-			newExpression := expressionWalkMap(f, this.Parts[1], []int64{}, expression, es, spec)
+			newExpression := expressionWalkMap(f, dataExpr, []int64{}, expression, es, spec, generated)
 
 			if spec.checkLevel(0) && spec.checkDepth(0) {
-				return f(this.Parts[1], newExpression, []int64{})
+				return exOrGenerated(f(dataExpr, newExpression, []int64{}, generated, es), generated, returnGenerated)
 			} else {
-				return newExpression
+				return exOrGenerated(newExpression, generated, returnGenerated)
 			}
 		}
 
 		//We now turn to the most general case, where levels can be specified as either
 		//positive or negative integers, where negative integers denote depth rather than level
-		newExpression, depth := expressionWalkMapBackwards(f, this.Parts[1], []int64{}, expression, es, spec)
+		newExpression, depth := expressionWalkMapBackwards(f, dataExpr, []int64{}, expression, es, spec, generated)
 
 		//Whether to wrap the zeroth level with the function.
 		if spec.checkLevel(0) && spec.checkDepth(depth) {
-			return f(this.Parts[1], newExpression, []int64{})
+			return exOrGenerated(f(dataExpr, newExpression, []int64{}, generated, es), generated, returnGenerated)
 		} else {
-			return newExpression
+			return exOrGenerated(newExpression, generated, returnGenerated)
 		}
 	}
 }
@@ -391,30 +424,16 @@ func getFunctionalDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Apply",
-		/*legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
-				return this
-			}
-
-			sym, isSym := this.Parts[1].(*Symbol)
-			expr, isExpr := this.Parts[2].(*Expression)
-			if isSym && isExpr {
-				toReturn := NewExpression([]Ex{sym})
-				toReturn.Parts = append(toReturn.Parts, expr.Parts[1:]...)
-				return toReturn.Eval(es)
-			}
-			return this.Parts[2]
-		},*/
-		legacyEvalFn: mapFunction(applyHead, true),
+		legacyEvalFn: levelSpecFunction(applyHead, applyOptimizedSimpleLevelSpec, false, false),
 	})
 	defs = append(defs, Definition{
 		Name: "Map",
-		legacyEvalFn: mapFunction(wrapWithHead, false),
+		legacyEvalFn: levelSpecFunction(wrapWithHead, mapOptimizedSimpleLevelSpec, false, false),
 	})
 
 	defs = append(defs, Definition{
 		Name: "MapIndexed",
-		legacyEvalFn: mapFunction(wrapWithHeadIndexed, false),
+		legacyEvalFn: levelSpecFunction(wrapWithHeadIndexed, mapOptimizedSimpleLevelSpec, false, false),
 	})
 
 	defs = append(defs, Definition{

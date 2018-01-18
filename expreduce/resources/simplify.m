@@ -35,12 +35,14 @@ booleanSimplify[exp_] := exp //. {
     And[x1___, a_, x2___, Or[x3___, !a_, x4___], x5___] :> And[a, x1, x2, Or[x3, x4], x5],
     And[x1___, Or[x2___, !a_, x3___], x4___, a_, x5___] :> And[a, x1, Or[x2, x3], x4, x5]
 };
-Simplify[exp_] := Module[{e = exp, expanded},
+simplifyInner[exp_] := Module[{e = exp, tryVal},
     e = booleanSimplify[e];
-    expanded = e // Expand;
-    If[LeafCount[expanded] < LeafCount[e], e = expanded];
+    tryVal = e // Expand;
+    If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
+    e = Replace[e, Sqrt[inner_] :> Sqrt[FactorTerms[inner]]];
     e
 ];
+Simplify[exp_] := Map[simplifyInner, exp, {0, Infinity}];
 Attributes[Simplify] = {Protected};
 Tests`Simplify = {
     ESimpleExamples[
@@ -79,7 +81,8 @@ Tests`Simplify = {
         ESameTest[a || c || Not[b], c || a || Not[b] // Simplify // Sort],
         ESameTest[False, And[x1, a, x2, Not[Or[x3, a, x4]], x5] // Simplify],
         ESameTest[a && x1 && x2 && x5, And[x1, a, x2, Or[x3, a, x4], x5] // Simplify],
-        ESameTest[a && b, a&&b&&a//Simplify]
+        ESameTest[a && b, a&&b&&a//Simplify],
+        ESameTest[(-32+32 x-16 x^2)^9, (16 + 8 (-6 + 4 x - 2 x^2))^9 // Simplify],
     ]
 };
 

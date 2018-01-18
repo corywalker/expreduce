@@ -23,6 +23,7 @@ var intSym  = NewSymbol("System`Integer")
 var strSym  = NewSymbol("System`String")
 var symSym  = NewSymbol("System`Symbol")
 var ratSym  = NewSymbol("System`Rational")
+var complexSym  = NewSymbol("System`Complex")
 
 func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	patternHead := ""
@@ -144,7 +145,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	_, aIsString := a.(*String)
 	_, aIsSymbol := a.(*Symbol)
 	aRational, aIsRational := a.(*Rational)
-	bRational, bIsRational := b.(*Rational)
+	aComplex, aIsComplex := a.(*Complex)
 	aExpression, aIsExpression := a.(*Expression)
 	bExpression, bIsExpression := b.(*Expression)
 
@@ -175,6 +176,8 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 		headEx = symSym
 	} else if aIsRational {
 		headEx = ratSym
+	} else if aIsComplex {
+		headEx = complexSym
 	}
 
 	if IsBlankTypeOnly(b) {
@@ -192,8 +195,11 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 			return &dummyMatchIter{newPm}, true
 		}
 		return nil, false
-	} else if aIsExpression && bIsRational {
-		matchq, newPm := isMatchQRational(bRational, aExpression, pm, es)
+	}
+
+	// Handle special case for matching Complex[a, b]
+	if aIsComplex && bIsExpression {
+		matchq, newPm := isMatchQComplex(aComplex, bExpression, pm, es)
 		if matchq {
 			return &dummyMatchIter{newPm}, true
 		}
@@ -241,7 +247,7 @@ func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	}
 
 	if !assumingHead {
-		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational {
+		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational || aIsComplex {
 			if IsSameQ(a, b, &es.CASLogger) {
 				return &dummyMatchIter{nil}, true
 			}
@@ -279,6 +285,17 @@ func isMatchQRational(a *Rational, b *Expression, pm *PDManager, es *EvalState) 
 			NewSymbol("System`Rational"),
 			NewInteger(a.Num),
 			NewInteger(a.Den),
+		}),
+
+		b, pm, es)
+}
+
+func isMatchQComplex(a *Complex, b *Expression, pm *PDManager, es *EvalState) (bool, *PDManager) {
+	return IsMatchQ(
+		NewExpression([]Ex{
+			NewSymbol("System`Complex"),
+			a.Re,
+			a.Im,
 		}),
 
 		b, pm, es)

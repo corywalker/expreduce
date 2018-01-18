@@ -15,6 +15,30 @@ func getAtomsDefinitions() (defs []Definition) {
 			return this
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Complex",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			validComplexType := func(e Ex) bool {
+				switch e.(type) {
+				case *Integer:
+					return true
+				case *Flt:
+					return true
+				case *Rational:
+					return true
+				default:
+					return false
+				}
+			}
+			if validComplexType(this.Parts[1]) && validComplexType(this.Parts[2]) {
+				return NewComplex(this.Parts[1], this.Parts[2]).Eval(es)
+			}
+			return this
+		},
+	})
 	defs = append(defs, Definition{Name: "String"})
 	defs = append(defs, Definition{Name: "Real"})
 	defs = append(defs, Definition{Name: "Integer"})

@@ -36,6 +36,11 @@ func applyWithFn(e *Expression, es *EvalState) (Ex, bool) {
 	return rulesReplaceAll(e.Parts[2], rules, es), true
 }
 
+func isBreak(e Ex) bool {
+	_, isBr := HeadAssertion(e, "System`Break")
+	return isBr
+}
+
 func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "If",
@@ -74,6 +79,9 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				retVal, isReturn := tryReturnValue(tmpRes, nil, es)
 				if isReturn {
 					return retVal
+				}
+				if isBreak(tmpRes) {
+					return S("Null")
 				}
 				isTrue = IsSameQ(this.Parts[1].DeepCopy().Eval(es), NewSymbol("System`True"), &es.CASLogger)
 			}

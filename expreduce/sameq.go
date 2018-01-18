@@ -13,10 +13,12 @@ func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
 	_, bIsSymbol := b.(*Symbol)
 	_, aIsRational := a.(*Rational)
 	_, bIsRational := b.(*Rational)
+	_, aIsComplex := a.(*Complex)
+	_, bIsComplex := b.(*Complex)
 	_, aIsExpression := a.(*Expression)
 	_, bIsExpression := b.(*Expression)
 
-	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) || (aIsRational && bIsRational) {
+	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) || (aIsRational && bIsRational) || (aIsComplex && bIsComplex) {
 		// a and b are identical raw types
 		if aIsFlt && bIsFlt {
 			// This is important, without it e.g. NestWhileList[(# + 3/#)/2 &, 1.0, UnsameQ, 2] never converges

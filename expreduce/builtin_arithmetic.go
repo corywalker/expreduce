@@ -270,8 +270,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Default: "1",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			ok, res := ToStringInfix(this.Parts[1:], "*", "System`Times", params)
-			if ok && strings.HasPrefix(res, "-1*") {
-				return ok, "-" + res[3:]
+			if ok && strings.HasPrefix(res, "(-1)*") {
+				return ok, "-" + res[5:]
 			}
 			return ok, res
 		},

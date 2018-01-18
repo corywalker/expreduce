@@ -9,7 +9,7 @@ Tests`Rational = {
         EComment["Or being even more explicit:"],
         ESameTest[Rational, Rational[5, 6] // Head],
         EComment["Rationals simplify on evaluation:"],
-        EStringTest["5/3", "Rational[10, 6]"],
+        ESameTest[5/3, Rational[10, 6]],
         EComment["Which might include evaluating to an Integer:"],
         ESameTest[Integer, Rational[-100, 10] // Head],
         EComment["Rationals of non-Integer types are not allowed:"],
@@ -25,13 +25,13 @@ Tests`Rational = {
         ESameTest[{2, 3}, 2/3 /. Rational[a_Integer, b_Integer] -> {a, b}],
         ESameTest[2/3, 2/3 /. a_Integer/b_Integer -> {a, b}]
     ], ETests[
-        EStringTest["10/7", "Rational[10, 7]"],
+        ESameTest[10/7, Rational[10, 7]],
         EStringTest["Rational[x, 10]", "Rational[x, 10]"],
         EStringTest["10", "Rational[100, 10]"],
-        EStringTest["-10", "Rational[-100, 10]"],
+        ESameTest[-10, Rational[-100, 10]],
         EStringTest["10", "Rational[-100, -10]"],
-        EStringTest["-5/3", "Rational[-10, 6]"],
-        EStringTest["5/3", "Rational[-10, -6]"],
+        ESameTest[-5/3, Rational[-10, 6]],
+        ESameTest[5/3, Rational[-10, -6]],
         EStringTest["0", "Rational[0, 5]"],
         EStringTest["Rational[0, n]", "Rational[0, n]"],
         EStringTest["ComplexInfinity", "Rational[-1, 0]"],
@@ -45,6 +45,18 @@ Tests`Rational = {
         ESameTest[True, MatchQ[1/2, Rational[1, 2]]],
         ESameTest[True, MatchQ[Rational[1, 2], 1/2]],
         ESameTest[False, Hold[Rational[1, 2]] === Hold[1/2]]
+    ]
+};
+
+Complex::usage = "`Complex` is the head for the atomic rational type.";
+(a : (_Integer|_Real|_Rational)) * Complex[real_, im_] * rest___ := Complex[a * real, a * im] * rest;
+(a : (_Integer|_Real|_Rational)) + Complex[real_, im_] + rest___ := Complex[a + real, im] + rest;
+Complex[x_,y_] + Complex[u_,v_] + rest___ := Complex[x+u,y+v] + rest;
+Complex[x_,y_] * Complex[u_,v_] * rest___ := Complex[x*u-y*v,x*v+y*u] * rest;
+Attributes[Complex] = {Protected};
+Tests`Complex = {
+    ESimpleExamples[
+        ESameTest[Complex[-16, 28], (4 + 8I)(2 + 3I)]
     ]
 };
 
@@ -100,9 +112,9 @@ Im[x_Integer]  := 0;
 Im[x_Real]     := 0;
 Im[x_Rational] := 0;
 Im[a_Integer * x_Integer?Positive^y_Rational] := 0;
-Im[x_] := Print["Call to Im not implemented!", x];
+Im[Complex[_,im_]] := im;
 
 Re[x_Integer]  := x;
 Re[x_Real]     := x;
 Re[x_Rational] := x;
-Re[x_] := Print["Call to Re not implemented!", x];
+Re[Complex[re_,_]] := re;

@@ -23,9 +23,9 @@ Tests`Plus = {
         EStringTest["(a*(b + c))", "a*(b + c)"],
         EStringTest["(-a + -b)", "-1*(a + b)"],
         EStringTest["(-a + -b)", "-(a + b)"],
-        EStringTest["(-1.*(a + b))", "-1.*(a + b)"],
+        EStringTest["((-1.)*(a + b))", "-1.*(a + b)"],
         EStringTest["(-a + -b)", "(a + b)/-1"],
-        EStringTest["(-1.*(a + b))", "(a + b)/-1."],
+        EStringTest["((-1.)*(a + b))", "(a + b)/-1."],
 
         (*Test that we do not delete all the addends*)
         ESameTest[0., (5.2 - .2) - 5],
@@ -126,7 +126,7 @@ Tests`Times = {
         ESameTest[a/(b*c*d), a/b/c/d]
     ], EFurtherExamples[
         EComment["Rational numbers are suppported (explicit rational declaration added for clarity):"],
-        EStringTest["-2/3", "Rational[1, -2]*Rational[-2, 3]*-2"],
+        ESameTest[-2/3, Rational[1, -2]*Rational[-2, 3]*-2],
         EComment["The product of nothing is defined to be one:"],
         ESameTest[1, Times[]]
     ], ETests[
@@ -148,14 +148,14 @@ Tests`Times = {
         (*Test Rational detection*)
         EStringTest["10", "40/2^2"],
         EStringTest["10", "40/4"],
-        EStringTest["40/3", "40/3"],
-        EStringTest["20/3", "40/6"],
+        ESameTest[40/3, 40/3],
+        ESameTest[20/3, 40/6],
         EStringTest["10", "1/4*40"],
         EStringTest["10", "1/(2^2)*40"],
 
         (*Test proper accumulation of Rationals*)
         EStringTest["(2*sym)", "sym*Rational[1,2]*Rational[2,3]*6"],
-        EStringTest["-2/3", "Rational[1, -2]*Rational[-2, 3]*-2"],
+        ESameTest[-2/3, Rational[1, -2]*Rational[-2, 3]*-2],
         EStringTest["Rational", "Rational[1, -2]*Rational[-2, 3]*-2 // Head"],
 
         (*Test multiplicative identity*)

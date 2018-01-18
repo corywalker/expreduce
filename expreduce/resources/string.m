@@ -34,7 +34,7 @@ Infix::usage = "`Infix[expr, sep]` represents `expr` in infix form with separato
 Attributes[Infix] = {Protected};
 Tests`Infix = {
     ESimpleExamples[
-        ESameTest["(bar|fuzz|zip)", Infix[foo[Global`bar, Global`fuzz, Global`zip], "|"] // ToString]
+        ESameTest["bar|fuzz|zip", Infix[foo[Global`bar, Global`fuzz, Global`zip], "|"] // ToString]
     ]
 };
 

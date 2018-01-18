@@ -14,8 +14,17 @@ func (f *Integer) Eval(es *EvalState) Ex {
 	return f
 }
 
-func (f *Integer) StringForm(params ToStringParams) string {
+/*func (f *Integer) StringForm(params ToStringParams) string {
 	return fmt.Sprintf("%d", f.Val)
+}*/
+
+func (i *Integer) StringForm(params ToStringParams) string {
+	if i.Val.Cmp(big.NewInt(0)) < 0 {
+		if needsParens("System`Times", params.previousHead) {
+			return fmt.Sprintf("(%d)", i.Val)
+		}
+	}
+	return fmt.Sprintf("%d", i.Val)
 }
 
 func (this *Integer) String() string {

@@ -57,7 +57,8 @@ func (this *Rational) StringForm(params ToStringParams) string {
 	if params.form == "FullForm" {
 		return fmt.Sprintf("Rational[%d, %d]", this.Num, this.Den)
 	}
-	if params.previousHead == "System`Power" {
+	//if params.previousHead == "System`Power" {
+	if needsParens("System`Times", params.previousHead) {
 		return fmt.Sprintf("(%d/%d)", this.Num, this.Den)
 	}
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)

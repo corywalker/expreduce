@@ -21,7 +21,7 @@ Tests`Equal = {
         EComment["Expressions known to be equal will evaluate to True:"],
         EStringTest["True", "9*x==x*9"],
         EComment["Sometimes expressions may or may not be equal, or Expreduce does not know how to test for equality. In these cases, the statement will remain unevaluated:"],
-        EStringTest["((9*x)) == ((10*x))", "9*x==x*10"],
+        EStringTest["(9*x == 10*x)", "9*x==x*10"],
         EComment["Equal considers Integers and Reals that are close enough to be equal:"],
         EStringTest["5", "tmp=5"],
         EStringTest["True", "tmp==5"],
@@ -42,33 +42,33 @@ Tests`Equal = {
         EStringTest["True", "5==tmp"],
         EStringTest["False", "tmp==6"],
         EStringTest["False", "6==tmp"],
-        EStringTest["(a) == (b)", "a==b"],
+        EStringTest["(a == b)", "a==b"],
         EStringTest["True", "a==a"],
-        EStringTest["(a) == (2)", "a==2"],
-        EStringTest["(2) == (a)", "2==a"],
-        EStringTest["(2) == ((a + b))", "2==a+b"],
-        EStringTest["(2.) == (a)", "2.==a"],
-        EStringTest["(2^k) == (a)", "2^k==a"],
-        EStringTest["(2^k) == (2^a)", "2^k==2^a"],
-        EStringTest["(2^k) == ((2 + k))", "2^k==k+2"],
-        EStringTest["(k) == ((2*k))", "k==2*k"],
-        EStringTest["((2*k)) == (k)", "2*k==k"],
+        EStringTest["(a == 2)", "a==2"],
+        EStringTest["(2 == a)", "2==a"],
+        EStringTest["(2 == a + b)", "2==a+b"],
+        EStringTest["(2. == a)", "2.==a"],
+        EStringTest["(2^k == a)", "2^k==a"],
+        EStringTest["(2^k == 2^a)", "2^k==2^a"],
+        EStringTest["(2^k == 2 + k)", "2^k==k+2"],
+        EStringTest["(k == 2*k)", "k==2*k"],
+        EStringTest["(2*k == k)", "2*k==k"],
         EStringTest["True", "1+1==2"],
-        EStringTest["(y) == ((b + m*x))", "y==m*x+b"],
+        EStringTest["(y == b + m*x)", "y==m*x+b"],
         EStringTest["True", "1==1."],
         EStringTest["True", "1.==1"],
         EStringTest["True", "(x==2)==(x==2)"],
         EStringTest["True", "(x==2.)==(x==2)"],
         EStringTest["True", "(x===2.)==(x===2)"],
-        EStringTest["(If[(xx) == (3), yy, zz]) == (If[(xx) == (2), yy, zz])", "If[xx == 3, yy, zz] == If[xx == 2, yy, zz]"],
+        EStringTest["(If[xx == 3, yy, zz] == If[xx == 2, yy, zz])", "If[xx == 3, yy, zz] == If[xx == 2, yy, zz]"],
         EStringTest["True", "(1 == 2) == (2 == 3)"],
         EStringTest["False", "(1 == 2) == (2 == 2)"],
         ESameTest[True, foo[x == 2, y, x] == foo[x == 2, y, x]],
         ESameTest[True, foo[x == 2, y, x] == foo[x == 2., y, x]],
         ESameTest[foo[x == 2, y, x] == foo[x == 2., y, y], foo[x == 2, y, x] == foo[x == 2., y, y]],
         ESameTest[foo[x == 2, y, x] == bar[x == 2, y, x], foo[x == 2, y, x] == bar[x == 2, y, x]],
-        EStringTest["(foo[x, y, z]) == (foo[x, y])", "foo[x, y, z] == foo[x, y]"],
-        EStringTest["(foo[x, y, z]) == (foo[x, y, 1])", "foo[x, y, z] == foo[x, y, 1]"],
+        EStringTest["(foo[x, y, z] == foo[x, y])", "foo[x, y, z] == foo[x, y]"],
+        EStringTest["(foo[x, y, z] == foo[x, y, 1])", "foo[x, y, z] == foo[x, y, 1]"],
         ESameTest[True, foo[x, y, 1] == foo[x, y, 1]],
         ESameTest[True, foo[x, y, 1.] == foo[x, y, 1]],
         ESameTest[True, Equal[test]],
@@ -83,7 +83,7 @@ Tests`Unequal = {
         EComment["Expressions known to be unequal will evaluate to True:"],
         EStringTest["True", "9 != 8"],
         EComment["Sometimes expressions may or may not be unequal, or Expreduce does not know how to test for inequality. In these cases, the statement will remain unevaluated:"],
-        EStringTest["((9*x)) != ((10*x))", "9*x != x*10"],
+        EStringTest["(9*x != 10*x)", "9*x != x*10"],
         EComment["Unequal considers Integers and Reals that are close enough to be equal:"],
         EStringTest["5", "tmp=5"],
         EStringTest["False", "tmp != 5"],
@@ -301,5 +301,47 @@ MinMax[l_List] := {Min[l], Max[l]};
 Tests`MinMax = {
     ESimpleExamples[
         ESameTest[{1, 5}, MinMax[Range[5]]]
+    ]
+};
+
+Element::usage = "`Element[i, s]` checks if `i` is an element of `s`.";
+Attributes[Element] = {Protected};
+Element[i_Integer, Integers] := True;
+Tests`Element = {
+    ESimpleExamples[
+        ESameTest[True, Element[-1, Integers]]
+    ]
+};
+
+Attributes[Inequality] = {Protected};
+Tests`Inequality = {
+    ESimpleExamples[
+        ESameTest[True, Inequality[-Pi,Less,0,LessEqual,Pi]],
+        ESameTest[0<=a, Inequality[-Pi,Less,0,LessEqual,a]],
+    ], ETests[
+        ESameTest[Inequality[c, Less, 0, Less, a], Inequality[c,Less,0,Less,a]],
+        ESameTest[c<0, Inequality[c,Less,0]],
+        ESameTest[Inequality[c,Less], Inequality[c,Less]],
+        ESameTest[True, Inequality[c]],
+        ESameTest[Inequality[], Inequality[]],
+        ESameTest[True, Inequality[False]],
+        ESameTest[Inequality[-1, Less], Inequality[-1,Less]],
+        ESameTest[Inequality[-1, Less, a, Less, 0], Inequality[-1,Less,a,Less,0,Less,1]],
+        ESameTest[Inequality[0, Less, a, Less, 1], Inequality[-1,Less,0,Less,a,Less,1]],
+        ESameTest[False, Inequality[-1,Less,a,Less,-2]],
+        ESameTest[0>=a, Inequality[-Pi,Less,0,GreaterEqual,a]],
+        ESameTest[0<a&&Inequality[a,Greater,0,Greater,k], Inequality[0,Less,a,Greater,0,Greater,k]],
+        ESameTest[0>a&&a<0, Inequality[0,Greater,a,Less,0]],
+        ESameTest[Inequality[0, Less, a, Less, 1], Inequality[0,Less,a,Less,1]],
+        ESameTest[0<a&&a<1, 0<a && a<1],
+        ESameTest[a<b<=c, Inequality[a,Less,b,LessEqual,c]],
+        ESameTest[a<b<=c==d&&d>=e>f, Inequality[a,Less,b,LessEqual,c,Equal,d,GreaterEqual,e,Greater,f]],
+        ESameTest[a>b>=c==d&&d<=e<f, Inequality[a,Greater,b,GreaterEqual,c,Equal,d,LessEqual,e,Less,f]],
+        ESameTest[a>b>=c==d>=e&&e<f, Inequality[a,Greater,b,GreaterEqual,c,Equal,d,GreaterEqual,e,Less,f]],
+        ESameTest[False, Inequality[a,Greater,1,GreaterEqual,c,Equal,d,GreaterEqual,5,Less,f]],
+        ESameTest[a<1<4<=b, a<1<2<3<4<=b],
+        ESameTest[a<1<4<=b<5, a<1<2<3<4<=b<5],
+    ], EKnownFailures[
+        ESameTest[Inequality[0,Lesks,1], Inequality[-1,Less,0,Lesks,1]],
     ]
 };

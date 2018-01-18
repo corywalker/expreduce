@@ -68,6 +68,10 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if IsRational {
 				return NewSymbol("System`Rational")
 			}
+			_, IsComplex := this.Parts[1].(*Complex)
+			if IsComplex {
+				return NewSymbol("System`Complex")
+			}
 			asExpr, IsExpression := this.Parts[1].(*Expression)
 			if IsExpression {
 				return asExpr.Parts[0]

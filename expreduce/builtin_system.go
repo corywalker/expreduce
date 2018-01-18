@@ -377,7 +377,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " = ", "", true, "(", ")", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " = ", "System`Set", false, "(", ")", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -425,7 +425,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " := ", "", true, "(", ")", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " := ", "System`SetDelayed", false, "", "", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {

@@ -382,8 +382,18 @@ Tests`Join = {
 };
 
 Count::usage = "`Count[l, pattern]` returns the number of expressions in `l` matching `pattern`.";
-Count[l_List, pat_] := Length[Cases[l, pat]];
+Count[l_, pattern_] := Count[l, pattern, {1}];
 Attributes[Count] = {Protected};
+Tests`Count = {
+    ESimpleExamples[
+        ESameTest[3, Count[a+b+c^2,_]],
+        ESameTest[5, Count[a+b+c^2,_,-1]],
+        ESameTest[5, Count[a+b+c^2,_,Infinity]],
+        ESameTest[0, Count[a,_,Infinity]],
+        ESameTest[0, Count[a,_,-1]],
+        ESameTest[2, Count[a + 2 + c^2, _Integer, Infinity]],
+    ]
+};
 
 Tally::usage = "`Tally[list]` creates tallies of the elements in `list`.";
 Tally[l_List] := {#, Count[l, #]} & /@ DeleteDuplicates[l];

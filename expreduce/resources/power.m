@@ -48,7 +48,7 @@ Power[b_?NumberQ, -Infinity] := Which[
 Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)
 (*Distribute any kind of power for numeric values in Times:*)
-((first:(_Integer | _Real | _Rational)) * inner__)^pow_ := first^pow * Times[inner]^pow;
+((first:(_Integer | _Real | _Rational)?((#!=-1)&)) * inner__)^pow_ := first^pow * Times[inner]^pow;
 (*Otherwise, only distribute integer powers*)
 (first_ * inner___)^pow_Integer := first^pow * Times[inner]^pow;
 (*Rational simplifications*)
@@ -57,18 +57,23 @@ Power[Rational[a_,b_], -1] := Rational[b,a];
 Power[Rational[a_,b_], e_Integer?Positive] := Rational[a^e,b^e];
 Power[-1, -1/2] := -I;
 Power[-1, 1/2] := I;
+4^(-1/2) := 1/2;
+16^(-1/2) := 1/4;
+16^(1/2) := 4;
 Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
-I^e_Integer := Switch[Mod[e, 4],
+(*We may want to deprecate this in favor of the general definition.*)
+Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   0, 1,
   1, I,
   2, -1,
   3, -I];
+Complex[re_,im_]^n_Integer := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[
         EComment["Exponents of integers are computed exactly:"],
-        EStringTest["-1/125", "(-5)^-3"],
+        ESameTest[-1/125, (-5)^-3],
         EComment["Floating point exponents are handled with floating point precision:"],
         EStringTest["1.99506e+3010", ".5^-10000."],
         EComment["Automatically apply some basic simplification rules:"],
@@ -79,36 +84,36 @@ Tests`Power = {
         ESameTest[ComplexInfinity, 0^(-1)]
     ], ETests[
         (*Test raising expressions to the first power*)
-        EStringTest["(1 + x)", "(x+1)^1"],
+        ESameTest[1 + x, (x+1)^1],
         EStringTest["0", "0^1"],
         EStringTest["0.", "0.^1"],
-        EStringTest["-5", "-5^1"],
-        EStringTest["-5.5", "-5.5^1"],
-        EStringTest["(1 + x)", "(x+1)^1."],
+        ESameTest[-5, -5^1],
+        ESameTest[-5.5, -5.5^1],
+        ESameTest[1 + x, (x+1)^1.],
         EStringTest["0", "0^1."],
         EStringTest["0.", "0.^1."],
-        EStringTest["-5", "(-5)^1."],
-        EStringTest["-5.5", "-5.5^1."],
+        ESameTest[-5, (-5)^1.],
+        ESameTest[-5.5, -5.5^1.],
 
         (*Test raising expressions to the zero power*)
         EStringTest["1", "(x+1)^0"],
         EStringTest["Indeterminate", "0^0"],
         EStringTest["Indeterminate", "0.^0"],
-        EStringTest["-1", "-5^0"],
+        ESameTest[-1, -5^0],
         EStringTest["1", "(-5)^0"],
         EStringTest["1", "(-5.5)^0"],
         EStringTest["1", "(x+1)^0."],
         EStringTest["Indeterminate", "0^0."],
         EStringTest["Indeterminate", "0.^0."],
-        EStringTest["-1", "-5^0."],
+        ESameTest[-1, -5^0.],
         EStringTest["1", "(-5.5)^0."],
-        EStringTest["-1", "-5^0"],
+        ESameTest[-1, -5^0],
         EStringTest["1", "99^0"],
 
         EStringTest["125", "5^3"],
-        EStringTest["1/125", "5^-3"],
-        EStringTest["-125", "(-5)^3"],
-        EStringTest["-1/125", "(-5)^-3"],
+        ESameTest[1/125, 5^-3],
+        ESameTest[-125, (-5)^3],
+        ESameTest[-1/125, (-5)^-3],
 
         EStringTest["2.97538e+1589", "39^999."],
         EStringTest["3.36092e-1590", "39^-999."],
@@ -125,16 +130,16 @@ Tests`Power = {
         EStringTest["1.", "1^99999992."],
         EStringTest["1.", "1.^30"],
         EStringTest["4.", "(1.*2*1.)^2"],
-        EStringTest["-1", "(-1)^1"],
+        ESameTest[-1, (-1)^1],
         EStringTest["1", "(-1)^2"],
         EStringTest["1", "(-1)^0"],
         EStringTest["1", "(-1)^0"],
-        EStringTest["-1", "(-1)^-1"],
+        ESameTest[-1, (-1)^-1],
         EStringTest["1", "(-1)^-2"],
         EStringTest["1", "(-1)^99999992"],
         EStringTest["1.", "(-1.)^30"],
         EStringTest["4.", "(1.*2*-1.)^2"],
-        EStringTest["-0.5", "(1.*2*-1.)^(-1)"],
+        ESameTest[-0.5, (1.*2*-1.)^(-1)],
 
         ESameTest[Rational, Power[2, -1] // Head],
         ESameTest[Integer, Power[1, -1] // Head],
@@ -173,7 +178,7 @@ Tests`Power = {
 };
 
 Log::usage = "`Log[e]` finds the natural logarithm of `e`.";
-Log[-1] := I*Pi;
+Log[n_Integer?Negative] := I*Pi + Log[-n];
 Log[ComplexInfinity] := Infinity;
 Log[Infinity] := Infinity;
 Log[-ComplexInfinity] := Infinity;
@@ -196,7 +201,8 @@ Sqrt::usage = "`Sqrt[e]` finds the square root of `e`.";
 (*TODO: automatically simplify perfect squares*)
 Attributes[Sqrt] = {Listable, NumericFunction, Protected};
 Sqrt[a_Integer?Negative] := I*Sqrt[-a];
-Sqrt[-a_] := I*Sqrt[a];
+Sqrt[-a_?NumberQ] := I*Sqrt[a];
+Sqrt[a_Integer*b_Plus] := Sqrt[Abs[a]]*Sqrt[(a/Abs[a])*b] /; a != 0;
 Sqrt[a_Real?Positive] := a^.5;
 Sqrt[x_] := Which[
     (*Normally we would define these directly, but right now "x_" is
@@ -212,11 +218,13 @@ Tests`Sqrt = {
         ESameTest[I * Sqrt[3], Sqrt[-3]],
         ESameTest[1, Sqrt[1]],
         ESameTest[0, Sqrt[0]]
+    ], ETests[
+        ESameTest[Sqrt[2] Sqrt[-2-x^y], (-2)(x^y+2)//Sqrt],
     ]
 };
 
-(*TODO: actually use Complex atom type*)
 I::usage = "`I` is the imaginary number representing `Sqrt[-1]`.";
+I := Complex[0, 1];
 Attributes[I] = {Locked, Protected, ReadProtected};
 Tests`I = {
     ESimpleExamples[
@@ -252,6 +260,15 @@ Tests`Expand = {
         ESameTest[2 + 2 a, 2*(a + 1) // Expand]
     ], ETests[
         ESameTest[Null, ((60 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + a^5 + b^5 + c^5 + (5 * a * b^4) + (5 * a * c^4) + (5 * b * a^4) + (5 * b * c^4) + (5 * c * a^4) + (5 * c * b^4) + (10 * a^2 * b^3) + (10 * a^2 * c^3) + (10 * a^3 * b^2) + (10 * a^3 * c^2) + (10 * b^2 * c^3) + (10 * b^3 * c^2) + (20 * a * b * c^3) + (20 * a * c * b^3) + (20 * b * c * a^3));]
+    ]
+};
+
+ExpandAll::usage = "`ExpandAll[expr]` attempts to expand `expr` at all levels.";
+ExpandAll[a_] := Map[Expand, a, {0, Infinity}];
+Attributes[ExpandAll] = {Protected};
+Tests`ExpandAll = {
+    ESimpleExamples[
+        ESameTest[Log[-1+x^2], Log[(x+1)(x-1)]//ExpandAll],
     ]
 };
 
@@ -760,11 +777,18 @@ Tests`Factor = {
     ]
 };
 
-PowerExpand[exp_] := exp //. {Log[x_ y_]:>Log[x]+Log[y],Log[x_^k_]:>k Log[x]};
+PowerExpand[exp_] := exp //. {
+  Log[x_ y_]:>Log[x]+Log[y],
+  Log[x_^k_]:>k Log[x],
+  Sqrt[-a_]:>I*Sqrt[a],
+  Sqrt[a_^2]:>a,
+  Sqrt[a_/b_]:>Sqrt[a]/Sqrt[b]
+};
 Attributes[PowerExpand] = {Protected};
 Tests`PowerExpand = {
     ESimpleExamples[
         EComment["`PowerExpand` can expand nested log expressions:"],
-        ESameTest[Log[a] + e (Log[b] + d Log[c]), PowerExpand[Log[a (b c^d)^e]]]
+        ESameTest[Log[a] + e (Log[b] + d Log[c]), PowerExpand[Log[a (b c^d)^e]]],
+        ESameTest[{I Sqrt[a],a,Sqrt[a]/Sqrt[b]}, {Sqrt[-a],Sqrt[a^2],Sqrt[a/b]}//PowerExpand]
     ]
 };
