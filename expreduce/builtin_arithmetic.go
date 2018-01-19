@@ -256,6 +256,10 @@ func getArithmeticDefinitions() (defs []Definition) {
 				return res.Parts[1]
 			}
 
+			// Not exactly right because of "1. + foo[1]", but close enough.
+			if _, rIsReal := realPart.(*Flt); rIsReal {
+				return exprToN(es, res)
+			}
 			return res
 		},
 	})
@@ -335,6 +339,10 @@ func getArithmeticDefinitions() (defs []Definition) {
 				}
 			}
 
+			// Not exactly right because of "1. + foo[1]", but close enough.
+			if _, rIsReal := realPart.(*Flt); rIsReal {
+				return exprToN(es, res)
+			}
 			return res
 		},
 	})

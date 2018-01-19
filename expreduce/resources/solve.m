@@ -51,8 +51,11 @@ applyInverse[base_^pow_ -> rhs_, var_Symbol] := If[countVar[base, var] =!= 0,
             C[1]\[Element]Integers
           ]
         },
-      E, {pow -> ConditionalExpression[2 I Pi C[1] + Log[rhs], 
-             C[1] \[Element] Integers]},
+      E, If[MatchQ[rhs, _Real],
+            {pow -> Log[rhs]},
+            {pow -> ConditionalExpression[2 I Pi C[1] + Log[rhs], 
+              C[1] \[Element] Integers]},
+           ],
       _, Message[Solve::ifun, Solve];{pow -> Log[rhs]/Log[base]}
     ]]
 ];
@@ -239,6 +242,8 @@ Tests`Solve = {
         (* Solve combination of Sin and ArcSin *)
         ESameTest[{{x->-b+y}}, Solve[Sin[ArcSin[x+b]]==y,x]],
         ESameTest[{{x->ConditionalExpression[Pi-ArcSin[Sin[y]]+2 Pi C[1],((Re[y]==-(Pi/2)&&Im[y]>=0)||-(Pi/2)<Re[y]<Pi/2||(Re[y]==Pi/2&&Im[y]<=0))&&C[1]\[Element]Integers]},{x->ConditionalExpression[ArcSin[Sin[y]]+2 Pi C[1],((Re[y]==-(Pi/2)&&Im[y]>=0)||-(Pi/2)<Re[y]<Pi/2||(Re[y]==Pi/2&&Im[y]<=0))&&C[1]\[Element]Integers]}}//normSol, Solve[ArcSin[Sin[x]]==y,x]//normSol],
+        (* Solve a problem involving a PDF *)
+        EStringTest["{{x -> -1.66352}, {x -> 1.66352}}", "Solve[PDF[NormalDistribution[0, 1], x] == .1, x]"],
 
         (* POLYNOMIALS *)
         ESameTest[{{x->(-b-Sqrt[b^2-4 a c])/(2 a)},{x->(-b+Sqrt[b^2-4 a c])/(2 a)}}, Solve[a*x^2==-b*x-c,x]],

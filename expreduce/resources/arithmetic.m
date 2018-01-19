@@ -176,7 +176,10 @@ Tests`Times = {
         ESameTest[a^(2-c), a^2/a^c],
         ESameTest[m^2, m*m],
         ESameTest[1, m/m],
-        ESameTest[1, m^2/m^2]
+        ESameTest[1, m^2/m^2],
+
+        (*Conversion of exact numeric functions to reals*)
+        ESameTest[True, MatchQ[Sqrt[2*Pi]*.1, _Real]],
     ]
 };
 
