@@ -123,10 +123,17 @@ isolate[lhs_ -> rhs_, var_Symbol] := Module[{inverseApplied},
    allIsolated = isolate[#, var]& /@ inverseApplied;
    Join[Sequence @@ allIsolated]
    ];
+checkSolution[eqn_Equal, sol_] := Module[{checkRes},
+    checkRes = eqn /. sol // Simplify;
+    checkRes =!= False
+];
 isolateInEqn[eqn_Equal, var_Symbol] := Module[{isolated},
   isolated = {#}& /@ isolate[Rule @@ eqn, var];
-  If[AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[isolated//Simplify//Sort]];
-  Print["isolation procedure failed"];
+  (*Check that the isolate procedure returned sane results.*)
+  If[!AllTrue[isolated, (Head[#[[1]]] == Rule)&], Return[SolveFailed]];
+  (*Canonicalize solutions.*)
+  isolated = isolated//Simplify//Sort;
+  isolated = Select[isolated, checkSolution[eqn, #]&];
   isolated
 ];
 
@@ -177,7 +184,9 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected},
    ];
 
 (* Special cases for Solve: *)
-
+Solve[False, _] := {};
+Solve[True, _] := {{}};
+Solve[{}, _] := {{}};
 (* Currently needed for Apart: *)
 (*Orderless matching would be nice here*)
 Solve[{a_.*x_Symbol+b_.*y_Symbol==c_,d_.*x_Symbol+e_.*y_Symbol==f_},{x_Symbol,y_Symbol}] := {{x->-((c e-b f)/(b d-a e)),y->-((-c d+a f)/(b d-a e))}} /;FreeQ[{a,b,c,d,e,f},x]&&FreeQ[{a,b,c,d,e,f},y]
@@ -214,6 +223,7 @@ Tests`Solve = {
         ESameTest[{{x -> -Sqrt[-3 + y]}, {x -> Sqrt[-3 + y]}}, Solve[y == x^2 + 3, x]],
         ESameTest[{{x->2^(1/(5 y+Sin[y]))}}, Solve[x^(5y+Sin[y])==2,x]],
         ESameTest[{{a->-b},{a->b}}, Solve[a^2==b^2,a]],
+        ESameTest[{}, Solve[x^(1/2)==-1,x]],
         (* Inverse of exponentiation, var in base: To a fractional power *)
         ESameTest[{{x->y^2}}, Solve[Sqrt[x]==y,x]],
         ESameTest[{{x->y^9}}, Solve[x^(1/9)==y,x]],
@@ -258,6 +268,29 @@ Tests`Solve = {
         ESameTest[{{x->-2 I},{x->-2 I-2 y}}//normSol, Solve[Abs[x+2I+y]==y,x]//normSol],
     ],
 };
+
+ExpreduceTestSolve[fn_] := Module[{testproblems, testi, runSolveTest, testp, res, nCorrect, isCorrect},
+    testproblems = ReadList[fn];
+    Print[Length[testproblems]];
+
+    testi = 1;
+    nCorrect = 0;
+
+    runSolveTest[thei_Integer] := (
+        testp = testproblems[[thei]];
+        res = Solve[testp[[1]], testp[[2]]] // Timing;
+        isCorrect = res[[2]] === testp[[3]];
+        Print[{testp[[1]], testp[[2]], testp[[3]], res[[2]], res[[1]], isCorrect}];
+        If[isCorrect, nCorrect++];
+    );
+
+    While[testi <= Length[testproblems],
+        Print[{testi, testproblems[[testi]]}];
+        runSolveTest[testi];
+        testi = testi+1;
+    ];
+    Print[nCorrect];
+];
 
 ConditionalExpression::usage = "`ConditionalExpression[expr, conditions]` represents `expr` which is conditional on `conditions`.";
 Attributes[ConditionalExpression] = {Protected};

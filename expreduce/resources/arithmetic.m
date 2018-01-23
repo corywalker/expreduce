@@ -113,6 +113,7 @@ Tests`Sum = {
 
 Times::usage = "`(e1 * e2 * ...)` computes the product of all expressions in the function.";
 Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end;
+Verbatim[Times][Rational[1, a_Integer], inner___, a_Integer^n_, end___] := inner*a^(n-1)*end;
 Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;
 Times[ComplexInfinity, rest___] := ComplexInfinity;
 Sin[x_]*Cos[x_]^(-1)*rest___ := Tan[x]*rest;
@@ -177,6 +178,7 @@ Tests`Times = {
         ESameTest[m^2, m*m],
         ESameTest[1, m/m],
         ESameTest[1, m^2/m^2],
+        ESameTest[Times[Power[2,Rational[-1,2]],a], (1/2)*a*2^(1/2)],
 
         (*Conversion of exact numeric functions to reals*)
         ESameTest[True, MatchQ[Sqrt[2*Pi]*.1, _Real]],
