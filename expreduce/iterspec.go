@@ -167,6 +167,7 @@ func multiIterSpecFromLists(es *EvalState, lists []Ex) (mis multiIterSpec, isOk 
 			return mis, false
 		}
 		mis.iSpecs = append(mis.iSpecs, is)
+		mis.shouldCont = mis.shouldCont && is.cont()
 	}
 	return mis, true
 }

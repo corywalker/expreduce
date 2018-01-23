@@ -60,6 +60,7 @@ Power[-1, 1/2] := I;
 4^(-1/2) := 1/2;
 16^(-1/2) := 1/4;
 16^(1/2) := 4;
+4^(1/2) := 2;
 Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
 (*We may want to deprecate this in favor of the general definition.*)
@@ -69,6 +70,7 @@ Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   2, -1,
   3, -I];
 Complex[re_,im_]^n_Integer := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
+Power[ComplexInfinity+_, -1] := 0;
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[

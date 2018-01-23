@@ -5,6 +5,8 @@ countVar[expr_, var_Symbol] :=
 
 containsOneOccurrence[eqn_Equal, var_Symbol] := 
   Count[eqn, var, -1] == 1;
+containsZeroOccurrences[eqn_Equal, var_Symbol] := 
+  Count[eqn, var, -1] == 0;
 
 checkedConditionalExpression[e_, c_] := 
   Module[{nextC = 1, res, reps, newC = -1},
@@ -166,6 +168,7 @@ solveQuadratic[a_.*x_^2 + b_.*x_ + c_., x_] := {{x->(-b-Sqrt[b^2-4 a c])/(2 a)},
 (*Computer Algebra - Lecture Notes in Computer Science. vol. 7. DOI: 10.1007/3-540-11607-9_13*)
 (* Available at: http://www.research.ed.ac.uk/portal/files/413486/Solving_Symbolic_Equations_%20with_PRESS.pdf *)
 Solve[eqn_Equal, var_Symbol] := Module[{degree, collected},
+   If[containsZeroOccurrences[eqn, var], Return[{}]];
    (* Attempt isolation *)
    If[containsOneOccurrence[eqn, var], Return[isolateInEqn[eqn, var]]];
 
@@ -182,11 +185,33 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected},
    Print["Solve found no solutions"];
    SolveFailed
    ];
+solveMultOrdered[eqns_List, vars_List] := 
+  Module[{firstSol, secondSol, toSolve},
+   If[Length[eqns] =!= 2 || Length[vars] =!= 2, Return[SolveFailed]];
+   firstSol = Solve[eqns[[1]], vars[[1]]];
+   Print[firstSol];
+   If[Length[firstSol] =!= 1, Return[TooManySols1]];
+   toSolve := eqns[[2]] /. firstSol[[1, 1]];
+   secondSol = Solve[toSolve, vars[[2]]];
+   Print[secondSol];
+   If[Length[secondSol] =!= 1, Return[TooManySols2]];
+   firstSol = firstSol /. secondSol[[1]];
+   {{firstSol[[1, 1]], secondSol[[1, 1]]}}
+   ];
+Solve[eqn_Equal, vars_List] := Solve[eqn, vars[[Length[vars]]]];
+Solve[eqns_List, vars_List] := Module[{res, currVarOrder},
+   res = Do[
+     res = solveMultOrdered[eqns, currVarOrder];
+     If[Head[res] === List, Return[res]];
+     , {currVarOrder, Permutations[vars]}];
+   If[res === Null, NoneFound, res]
+   ];
 
 (* Special cases for Solve: *)
 Solve[False, _] := {};
 Solve[True, _] := {{}};
 Solve[{}, _] := {{}};
+Solve[x_Symbol+E^x_Symbol==0, x_Symbol] := {{x->-ProductLog[1]}};
 (* Currently needed for Apart: *)
 (*Orderless matching would be nice here*)
 Solve[{a_.*x_Symbol+b_.*y_Symbol==c_,d_.*x_Symbol+e_.*y_Symbol==f_},{x_Symbol,y_Symbol}] := {{x->-((c e-b f)/(b d-a e)),y->-((-c d+a f)/(b d-a e))}} /;FreeQ[{a,b,c,d,e,f},x]&&FreeQ[{a,b,c,d,e,f},y]
