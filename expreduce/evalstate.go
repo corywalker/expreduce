@@ -147,6 +147,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`CosIntegral")
 		es.MarkSeen("System`EllipticE")
 		es.MarkSeen("System`EllipticF")
+		es.MarkSeen("System`ProductLog")
 
 		es.MarkSeen("System`Cosh")
 		es.MarkSeen("System`Sinh")

@@ -86,5 +86,14 @@ Tests`Simplify = {
     ]
 };
 
-FullSimplify[e_] := Simplify[e];
+FullSimplify::usage = "`FullSimplify[expr]` attempts to perform full simplification operations on `expr`.";
+FullSimplify[e_] := Simplify[e] //. {
+    E^(-x_Symbol)+E^x_Symbol:>2 Cosh[x]
+};
 Attributes[FullSimplify] = {Protected};
+Tests`FullSimplify = {
+    ESimpleExamples[
+        ESameTest[2 Cosh[x], E^-x+E^x//FullSimplify],
+    ]
+};
+

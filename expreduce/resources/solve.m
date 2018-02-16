@@ -33,6 +33,9 @@ applyInverse[base_^pow_ -> rhs_, var_Symbol] := If[countVar[base, var] =!= 0,
   Switch[pow,
     -1,              {base -> 1/rhs},
     2,               {base -> -Sqrt[rhs]//PowerExpand, base -> Sqrt[rhs]//PowerExpand},
+    3,               {base->rhs^(1/3),base->-(-1)^(1/3) rhs^(1/3),base->(-1)^(2/3) rhs^(1/3)},
+    4,               {base->-rhs^(1/4),base->-I rhs^(1/4),base->I rhs^(1/4),base->rhs^(1/4)},
+    5,               {base->rhs^(1/5),base->-(-1)^(1/5) rhs^(1/5),base->(-1)^(2/5) rhs^(1/5),base->-(-1)^(3/5) rhs^(1/5),base->(-1)^(4/5) rhs^(1/5)},
     (* Not implemented yet *)
     _Integer,        SolveError,
     (* Similar to the general case but without the message.*)
@@ -101,7 +104,11 @@ applyInverse[ArcTan[lhs_] -> rhs_, var_Symbol] :=
   {lhs -> ConditionalExpression[
          Tan[rhs], (Re[rhs] == -(Pi/2) && Im[rhs] < 0) || -(Pi/2) < 
               Re[rhs] < Pi/2 || (Re[rhs] == Pi/2 && Im[rhs] > 0)]};
-
+applyInverse[Cosh[lhs_] -> rhs_, var_Symbol] :=
+  {lhs -> ConditionalExpression[-ArcCosh[rhs] + 2 I \[Pi] C[1], 
+   C[1] \[Element] Integers], lhs -> 
+  ConditionalExpression[ArcCosh[rhs] + 2 I \[Pi] C[1], 
+   C[1] \[Element] Integers]}
 
 (* Base case: *)
 
@@ -167,7 +174,7 @@ solveQuadratic[a_.*x_^2 + b_.*x_ + c_., x_] := {{x->(-b-Sqrt[b^2-4 a c])/(2 a)},
 (*Sterling, L, Bundy, A, Byrd, L, O'Keefe, R & Silver, B 1982, Solving Symbolic Equations with PRESS. in*)
 (*Computer Algebra - Lecture Notes in Computer Science. vol. 7. DOI: 10.1007/3-540-11607-9_13*)
 (* Available at: http://www.research.ed.ac.uk/portal/files/413486/Solving_Symbolic_Equations_%20with_PRESS.pdf *)
-Solve[eqn_Equal, var_Symbol] := Module[{degree, collected},
+Solve[eqn_Equal, var_Symbol] := Module[{degree, collected, fullSimplified},
    If[containsZeroOccurrences[eqn, var], Return[{}]];
    (* Attempt isolation *)
    If[containsOneOccurrence[eqn, var], Return[isolateInEqn[eqn, var]]];
@@ -181,6 +188,10 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected},
 
    collected = collect[eqn, var];
    If[containsOneOccurrence[collected, var], Return[isolateInEqn[collected, var]]];
+
+   (*Try FullSimplify then solve.*)
+   fullSimplified = eqn // FullSimplify;
+   If[fullSimplified =!= eqn, Return[Solve[fullSimplified, var]]];
 
    Print["Solve found no solutions"];
    SolveFailed
@@ -211,7 +222,7 @@ Solve[eqns_List, vars_List] := Module[{res, currVarOrder},
 Solve[False, _] := {};
 Solve[True, _] := {{}};
 Solve[{}, _] := {{}};
-Solve[x_Symbol+E^x_Symbol==0, x_Symbol] := {{x->-ProductLog[1]}};
+Solve[x_Symbol+a_.*E^x_Symbol==0, x_Symbol] := {{x->-ProductLog[a]}};
 (* Currently needed for Apart: *)
 (*Orderless matching would be nice here*)
 Solve[{a_.*x_Symbol+b_.*y_Symbol==c_,d_.*x_Symbol+e_.*y_Symbol==f_},{x_Symbol,y_Symbol}] := {{x->-((c e-b f)/(b d-a e)),y->-((-c d+a f)/(b d-a e))}} /;FreeQ[{a,b,c,d,e,f},x]&&FreeQ[{a,b,c,d,e,f},y]
@@ -296,6 +307,7 @@ Tests`Solve = {
 
 ExpreduceTestSolve[fn_] := Module[{testproblems, testi, runSolveTest, testp, res, nCorrect, isCorrect},
     testproblems = ReadList[fn];
+    testproblems = Select[testproblems, (MatchQ[#[[2]],_Symbol])&];
     Print[Length[testproblems]];
 
     testi = 1;
