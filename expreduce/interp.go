@@ -447,6 +447,11 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			}),
 			ParserExprConv(expr.Expression),
 		})
+	case 11:
+		return NewExpression([]Ex{
+			NewSymbol("System`Sqrt"),
+			ParserExprConv(expr.Expression),
+		})
 	}
 	log.Fatalf("System`UnParsed: %+v %+v %+v", expr.Token, expr.Case, expr)
 	return nil

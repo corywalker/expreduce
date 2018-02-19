@@ -784,7 +784,8 @@ PowerExpand[exp_] := exp //. {
   Log[x_^k_]:>k Log[x],
   Sqrt[-a_]:>I*Sqrt[a],
   Sqrt[a_^2]:>a,
-  Sqrt[a_/b_]:>Sqrt[a]/Sqrt[b]
+  Sqrt[a_/b_]:>Sqrt[a]/Sqrt[b],
+  (a_^b_Integer)^c_Rational:>a^(b*c)
 };
 Attributes[PowerExpand] = {Protected};
 Tests`PowerExpand = {

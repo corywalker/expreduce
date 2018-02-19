@@ -282,3 +282,29 @@ Tests`IntegerDigits = {
         ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[-123, 2]]
     ]
 };
+
+Sign::usage = "`Sign[x]` returns the sign of `x`.";
+Sign[n_Integer] := Which[
+  n < 0, -1,
+  n > 0, 1,
+  True, 0];
+Sign[n_Real] := Which[
+  n < 0, -1,
+  n > 0, 1,
+  True, 0];
+Sign[n_Rational] := Which[
+  n < 0, -1,
+  n > 0, 1,
+  True, 0];
+Attributes[Sign] = {Listable, NumericFunction, Protected, ReadProtected};
+Tests`Sign = {
+    ESimpleExamples[
+        ESameTest[1, Sign[5]],
+        ESameTest[0, Sign[0]],
+        ESameTest[-1, Sign[-5]],
+        ESameTest[1, Sign[5.]],
+        ESameTest[0, Sign[0.]],
+        ESameTest[-1, Sign[-5.]],
+        ESameTest[1, Sign[1/2]],
+    ]
+};

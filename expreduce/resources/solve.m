@@ -168,13 +168,86 @@ collect[eqn_Equal, var_Symbol] := Module[{toTry, collected, continue, foundSimpl
   collected
 ];
 
-solveQuadratic[a_.*x_^2 + b_.*x_ + c_., x_] := {{x->(-b-Sqrt[b^2-4 a c])/(2 a)},{x->(-b+Sqrt[b^2-4 a c])/(2 a)}}/;FreeQ[{a,b,c},x];
+solveQuadratic[a_, b_, c_, x_] := {{x->(-b-Sqrt[b^2-4 a c])/(2 a)},{x->(-b+Sqrt[b^2-4 a c])/(2 a)}};
+solveQuadratic[a_.*x_^2 + b_.*x_ + c_., x_] := solveQuadratic[a,b,c,x]/;FreeQ[{a,b,c},x];
+solveCubic[d_,c_,b_,a_,x_] := {{x->-(c/(3 d))-(2^(1/3) (-c^2+3 b d))/(3 d (-2 c^3+9 b c d-27 a d^2+Sqrt[4 (-c^2+3 b d)^3+(-2 c^3+9 b c d-27 a d^2)^2])^(1/3))+(-2 c^3+9 b c d-27 a d^2+Sqrt[4 (-c^2+3 b d)^3+(-2 c^3+9 b c d-27 a d^2)^2])^(1/3)/(3 2^(1/3) d)},{x->-(c/(3 d))+((1+I Sqrt[3]) (-c^2+3 b d))/(3 2^(2/3) d (-2 c^3+9 b c d-27 a d^2+Sqrt[4 (-c^2+3 b d)^3+(-2 c^3+9 b c d-27 a d^2)^2])^(1/3))-(1/(6 2^(1/3) d))(1-I Sqrt[3]) (-2 c^3+9 b c d-27 a d^2+Sqrt[4 (-c^2+3 b d)^3+(-2 c^3+9 b c d-27 a d^2)^2])^(1/3)},{x->-(c/(3 d))+((1-I Sqrt[3]) (-c^2+3 b d))/(3 2^(2/3) d (-2 c^3+9 b c d-27 a d^2+Sqrt[4 (-c^2+3 b d)^3+(-2 c^3+9 b c d-27 a d^2)^2])^(1/3))-(1/(6 2^(1/3) d))(1+I Sqrt[3]) (-2 c^3+9 b c d-27 a d^2+Sqrt[4 (-c^2+3 b d)^3+(-2 c^3+9 b c d-27 a d^2)^2])^(1/3)}};
+solveCubic[d_.*x_^3 + c_.*x_^2 + b_.*x_ + a_., x_] := solveCubic[d,c,b,a,x]/;FreeQ[{a,b,c,d},x];
+solveCubic[d_.*x_^3 + c_.*x_^2 + a_., x_] := solveCubic[d,c,0,a,x]/;FreeQ[{a,c,d},x];
+solveQuartic[e_.*x_^4 + d_.*x_^3 + c_.*x_^2 + b_.*x_ + a_., x_] := {{x->-(d/(4 e))-1/2 \[Sqrt](d^2/(4 e^2)-(2 c)/(3 e)+(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))+(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3)))-1/2 \[Sqrt](d^2/(2 e^2)-(4 c)/(3 e)-(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))-(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))-(-(d^3/e^3)+(4 c d)/e^2-(8 b)/e)/(4 \[Sqrt](d^2/(4 e^2)-(2 c)/(3 e)+(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+\[Sqrt](-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2))^(1/3))+(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+\[Sqrt](-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2))^(1/3)))))},{x->-(d/(4 e))-1/2 \[Sqrt](d^2/(4 e^2)-(2 c)/(3 e)+(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))+(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3)))+1/2 \[Sqrt](d^2/(2 e^2)-(4 c)/(3 e)-(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))-(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))-(-(d^3/e^3)+(4 c d)/e^2-(8 b)/e)/(4 \[Sqrt](d^2/(4 e^2)-(2 c)/(3 e)+(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+\[Sqrt](-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2))^(1/3))+(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+\[Sqrt](-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2))^(1/3)))))},{x->-(d/(4 e))+1/2 \[Sqrt](d^2/(4 e^2)-(2 c)/(3 e)+(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))+(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3)))-1/2 \[Sqrt](d^2/(2 e^2)-(4 c)/(3 e)-(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))-(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))+(-(d^3/e^3)+(4 c d)/e^2-(8 b)/e)/(4 \[Sqrt](d^2/(4 e^2)-(2 c)/(3 e)+(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+\[Sqrt](-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2))^(1/3))+(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+\[Sqrt](-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2))^(1/3)))))},{x->-(d/(4 e))+1/2 \[Sqrt](d^2/(4 e^2)-(2 c)/(3 e)+(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))+(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3)))+1/2 \[Sqrt](d^2/(2 e^2)-(4 c)/(3 e)-(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))-(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+Sqrt[-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2])^(1/3))+(-(d^3/e^3)+(4 c d)/e^2-(8 b)/e)/(4 \[Sqrt](d^2/(4 e^2)-(2 c)/(3 e)+(2^(1/3) (c^2-3 b d+12 a e))/(3 e (2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+\[Sqrt](-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2))^(1/3))+(1/(3 2^(1/3) e))((2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e+\[Sqrt](-4 (c^2-3 b d+12 a e)^3+(2 c^3-9 b c d+27 a d^2+27 b^2 e-72 a c e)^2))^(1/3)))))}}/;FreeQ[{a,b,c,d,e},x];
+
+(* Solve using u-substitution for polynomial-like forms.*)
+uSubstitute::usage = 
+  "uSubstitute[eqn, var] takes a non-polynomial `eqn` and attempts a \
+u-substitution such that `eqn` takes a polynomial form. If the \
+substitution succeeds, the function returns `{transformed, uValue}`. \
+The `transformed` equation will include the `uPlaceholder` symbol as \
+the u symbol. The function returns an error symbol if the \
+substitution fails to produce a polynomial form.";
+uSubstitute[theEqn_, theVar_Symbol] := 
+  Module[{eqn = theEqn, var = theVar, expGcd, uValue, transformed, 
+    exponents},
+   (* Attempt to extract exponents of polynomial-like equations. 
+   We wish to ignore any zero-valued exponents. *)
+   
+   exponents = DeleteCases[Exponent[eqn, var, List], 0];
+   (* Find the signed GCD of the exponents. 
+   This seems to work for many of the problem cases, 
+   but may not yield a useful polynomial form for all equations. *)
+  
+    expGcd = GCD @@ exponents*Sign[exponents[[1]]];
+   uValue = var^expGcd;
+   (* Rewrite the variable with our u-value. *)
+   
+   transformed = 
+    eqn /. var -> uPlaceholder^(1/expGcd) // PowerExpand;
+   (* If our transformed equation is polynomial, we have succeeded. *)
+
+      If[PolynomialQ[transformed, var], {transformed, uValue}, $Failed]
+   ];
+
+uSubstitutionSolve::usage = 
+  "uSubstitutionSolve[eqn, var] takes a non-polynomial `eqn` and \
+attempts a u-substitution such that `eqn` takes a polynomial form in \
+order to solve the equation. The function returns the solve result or \
+`$Failed` in case of an issue.";
+uSubstitutionSolve[theEqn_, theVar_Symbol] := 
+  Module[{eqn = theEqn, var = theVar, transformed, uSolved, solved},
+   transformed = uSubstitute[eqn, var];
+   (* If the u-
+   substitution fails to produce a polynomial form and instead \
+returns an error symbol, fail this solution attempt. *)
+Print[transformed];
+   
+   If[Head[transformed] =!= List, Return[$Failed]];
+   (* Find the roots of the equation that was transformed into a \
+polynomial form. *)
+   
+   uSolved = Solve[transformed[[1]] == 0, uPlaceholder];
+   (* For each of the roots, solve for the original variable. *)
+Print[uSolved];
+   If[Head[uSolved] =!= List, Return[$Failed]];
+   
+   solved = 
+    Map[Solve[transformed[[2]] == #[[1, 2]], var] &, uSolved];
+   (* There may be some roots that have no solution for the original \
+variable. Throw these out. *)
+Print[solved];
+   
+   solved = Select[solved, (Length[#] >= 1) &];
+   (* No way to handle multiple solutions yet. *)
+   
+   If[AnyTrue[solved, (Length[#] != 1) &], Return[$Failed]];
+   (* Collect the unique solutions of eqn and return. *)
+   
+Print[solved];
+   Map[First, solved] // DeleteDuplicates // Sort
+   ];
 
 (* Following method described in: *)
 (*Sterling, L, Bundy, A, Byrd, L, O'Keefe, R & Silver, B 1982, Solving Symbolic Equations with PRESS. in*)
 (*Computer Algebra - Lecture Notes in Computer Science. vol. 7. DOI: 10.1007/3-540-11607-9_13*)
 (* Available at: http://www.research.ed.ac.uk/portal/files/413486/Solving_Symbolic_Equations_%20with_PRESS.pdf *)
-Solve[eqn_Equal, var_Symbol] := Module[{degree, collected, fullSimplified},
+Solve[eqn_Equal, var_Symbol] := Module[{degree, collected, fullSimplified, poly},
    If[containsZeroOccurrences[eqn, var], Return[{}]];
    (* Attempt isolation *)
    If[containsOneOccurrence[eqn, var], Return[isolateInEqn[eqn, var]]];
@@ -184,6 +257,8 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected, fullSimplified},
    If[PolynomialQ[poly, var],
     degree = Exponent[poly, var];
     If[degree === 2, Return[solveQuadratic[poly//Expand, var]//Simplify//Sort]];
+    If[degree === 3, Return[solveCubic[poly//Expand, var]//Simplify//Sort]];
+    If[degree === 4, Return[solveQuartic[poly//Expand, var]//Simplify//Sort]];
    ];
 
    collected = collect[eqn, var];
