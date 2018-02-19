@@ -33,13 +33,12 @@ func GetPowerDefinitions() (defs []Definition) {
 				return this
 			}
 
-			// TODO: Handle cases like float raised to the float and things raised to
-			// zero and 1
-
 			baseInt, baseIsInt := this.Parts[1].(*Integer)
 			powerInt, powerIsInt := this.Parts[2].(*Integer)
 			baseFlt, baseIsFlt := this.Parts[1].(*Flt)
 			powerFlt, powerIsFlt := this.Parts[2].(*Flt)
+			//baseRat, baseIsRat := this.Parts[1].(*Rational)
+			powerRat, powerIsRat := this.Parts[2].(*Rational)
 			// Anything raised to the 1st power is itself
 			if powerIsFlt {
 				if powerFlt.Val.Cmp(big.NewFloat(1)) == 0 {
@@ -120,6 +119,45 @@ func GetPowerDefinitions() (defs []Definition) {
 			}
 			if baseIsFlt && powerIsFlt {
 				return NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
+			}
+			if baseIsInt && powerIsRat {
+				if baseInt.Val.Cmp(big.NewInt(0)) == 1 &&
+				   powerRat.Num.Cmp(big.NewInt(1)) == 0 &&
+				   powerRat.Den.Cmp(big.NewInt(0)) == 1 {
+
+					// https://en.wikipedia.org/wiki/Nth_root_algorithm -
+					// math/big has this implemented for the sqrt case, but not
+					// for the nth-root case.
+					x := baseInt.Val
+					n := powerRat.Den
+					nMinusOne := big.NewInt(-1)
+					nMinusOne.Add(nMinusOne, n)
+
+					z1 := big.NewInt(2)
+					z2 := big.NewInt(1)
+					z1pow := big.NewInt(1)
+					z1mul := big.NewInt(1)
+					// Set z1 to a decent guess. Must be ≥ x^(1/n)
+					z1.Exp(z1, big.NewInt(int64(x.BitLen())/2+1), nil)
+					for n := 0; ; n++ {
+						// x->A, z1->x_k, z2->x_{k+1}
+						z1pow.Exp(z1, nMinusOne, nil)
+						z1mul.Mul(z1, nMinusOne)
+						z2 = z2.Quo(x, z1pow)
+						z2 = z2.Add(z2, z1mul)
+						z2 = z2.Div(z2, powerRat.Den)
+						if z2.Cmp(z1) >= 0 {
+							// z1 might be answer. Check first.
+							z2.Exp(z1, powerRat.Den, nil)
+							if z2.Cmp(baseInt.Val) == 0 {
+								return NewInteger(z1)
+							}
+							return this
+						}
+						z1, z2 = z2, z1
+					}
+					panic("Bad state in nth-root algorithm.")
+				}
 			}
 			return this
 		},

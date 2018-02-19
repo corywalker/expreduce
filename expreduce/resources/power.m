@@ -57,6 +57,7 @@ Power[Rational[a_,b_], -1] := Rational[b,a];
 Power[Rational[a_,b_], e_Integer?Positive] := Rational[a^e,b^e];
 Power[-1, -1/2] := -I;
 Power[-1, 1/2] := I;
+(*TODO: It's been long enough, implement this properly. It's causing the solve failure.*)
 4^(-1/2) := 1/2;
 16^(-1/2) := 1/4;
 16^(1/2) := 4;
@@ -169,7 +170,26 @@ Tests`Power = {
         ESameTest[ComplexInfinity, (-2)^(Infinity)],
         ESameTest[Indeterminate, (-1)^(Infinity)],
         ESameTest[Indeterminate, (1)^(Infinity)],
-        ESameTest[Indeterminate, (d)^(Infinity)]
+        ESameTest[Indeterminate, (d)^(Infinity)],
+
+        (* Test nth-root algorithm. *)
+        ESameTest[2, 16^(1/4)],
+        ESameTest[2., 16^(1/4.)],
+        ESameTest[True, Head[101^(1/2)]=!=Integer],
+        ESameTest[True, Head[99^(1/2)]=!=Integer],
+        ESameTest[0, 0^(1/2)],
+        ESameTest[8, 2^3],
+        ESameTest[0, 0^(1/3)],
+        ESameTest[0, 0^(1/4)],
+        ESameTest[2, 8^(1/3)],
+        ESameTest[Power, 7^(1/3)//Head],
+        ESameTest[Power, 9^(1/3)//Head],
+        ESameTest[1/2, 16^(-1/4)],
+        ESameTest[ComplexInfinity, 0^(-1/3)],
+        ESameTest[ComplexInfinity, 0^(-1/2)],
+        ESameTest[1/3, 27^(-1/3)],
+        ESameTest[Power, 7^(-1/3)//Head],
+        ESameTest[Power, 9^(-1/3)//Head],
     ], EKnownFailures[
         (*Fix these when I have Abs functionality*)
         EStringTest["2.975379863266329e+1589", "39^999."],
