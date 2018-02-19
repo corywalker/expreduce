@@ -226,7 +226,12 @@ Tests`FixedPointList = {
 
 FixedPoint::usage = "`FixedPoint[f, expr]` applies `f` to `expr` until `UnsameQ` applied to the two most recent results
 returns False."
-FixedPoint[f_, expr_] := Last[NestWhileList[f, expr, UnsameQ, 2]]
+(*FixedPoint[f_, expr_] := Module[{currVal=expr, nextVal=f[expr]},*)
+  (*While[UnsameQ[currVal, nextVal],*)
+    (*currVal = nextVal;*)
+    (*nextVal = f[currVal];*)
+  (*];*)
+  (*nextVal]*)
 Tests`FixedPoint = {
     ESimpleExamples[
         ESameTest[0, FixedPoint[D[#, x] &, x^3]]

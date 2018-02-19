@@ -217,7 +217,6 @@ uSubstitutionSolve[theEqn_, theVar_Symbol] :=
    (* If the u-
    substitution fails to produce a polynomial form and instead \
 returns an error symbol, fail this solution attempt. *)
-Print[transformed];
    
    If[Head[transformed] =!= List, Return[$Failed]];
    (* Find the roots of the equation that was transformed into a \
@@ -225,14 +224,12 @@ polynomial form. *)
    
    uSolved = Solve[transformed[[1]] == 0, uPlaceholder];
    (* For each of the roots, solve for the original variable. *)
-Print[uSolved];
    If[Head[uSolved] =!= List, Return[$Failed]];
    
    solved = 
     Map[Solve[transformed[[2]] == #[[1, 2]], var] &, uSolved];
    (* There may be some roots that have no solution for the original \
 variable. Throw these out. *)
-Print[solved];
    
    solved = Select[solved, (Length[#] >= 1) &];
    (* No way to handle multiple solutions yet. *)
@@ -240,7 +237,6 @@ Print[solved];
    If[AnyTrue[solved, (Length[#] != 1) &], Return[$Failed]];
    (* Collect the unique solutions of eqn and return. *)
    
-Print[solved];
    Map[First, solved] // DeleteDuplicates // Sort
    ];
 

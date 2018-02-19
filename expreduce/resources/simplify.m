@@ -37,8 +37,14 @@ booleanSimplify[exp_] := exp //. {
 };
 simplifyInner[exp_] := Module[{e = exp, tryVal},
     e = booleanSimplify[e];
-    tryVal = e // Expand;
-    If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
+    inferredPower = 1;
+    If[MatchQ[e, s_Plus^n_Integer],
+      inferredPower := Replace[e, s_Plus^n_Integer -> n]];
+    If[inferredPower < 5,
+      (*Similar to Expand, but not using ReplaceAll*)
+      tryVal = FixedPoint[Replace[#, expandRules]&, e];
+      If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
+    ];
     e = Replace[e, Sqrt[inner_] :> Sqrt[FactorTerms[inner]]];
     e
 ];

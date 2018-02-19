@@ -57,11 +57,6 @@ Power[Rational[a_,b_], -1] := Rational[b,a];
 Power[Rational[a_,b_], e_Integer?Positive] := Rational[a^e,b^e];
 Power[-1, -1/2] := -I;
 Power[-1, 1/2] := I;
-(*TODO: It's been long enough, implement this properly. It's causing the solve failure.*)
-4^(-1/2) := 1/2;
-16^(-1/2) := 1/4;
-16^(1/2) := 4;
-4^(1/2) := 2;
 Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
 (*We may want to deprecate this in favor of the general definition.*)
@@ -190,12 +185,10 @@ Tests`Power = {
         ESameTest[1/3, 27^(-1/3)],
         ESameTest[Power, 7^(-1/3)//Head],
         ESameTest[Power, 9^(-1/3)//Head],
+        ESameTest[27, 9^(3/2)],
+        ESameTest[1/27, 9^(-3/2)],
     ], EKnownFailures[
-        (*Fix these when I have Abs functionality*)
-        EStringTest["2.975379863266329e+1589", "39^999."],
-        EStringTest["3.360915398890324e-1590", "39^-999."],
-        EStringTest["1.9950631168791027e+3010", ".5^-10000."],
-        EStringTest["1.9950631168791027e+3010", ".5^-10000"]
+        ESameTest[(3+I Sqrt[29]) E^(-((2 I \[Pi])/3)), ((3 + I*Sqrt[29])^3)^(1/3)],
     ]
 };
 
@@ -263,12 +256,13 @@ genExpand[addends_List, exponents_List] :=
  Plus@@Table[(Multinomial @@ exponents[[ExpandUnique`i]])*
    genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, 
    Length[exponents]}];
+expandRules := {
+  s_Plus^n_Integer?Positive :> 
+    genExpand[List @@ s, possibleExponents[n, Length[s]]],
+  c_*s_Plus :> ((c*#) &) /@ s
+};
 Expand::usage = "`Expand[expr]` attempts to expand `expr`.";
-Expand[a_] := a //. {
-    s_Plus^n_Integer?Positive :> 
-     genExpand[List @@ s, possibleExponents[n, Length[s]]],
-    c_*s_Plus :> ((c*#) &) /@ s
-    };
+Expand[a_] := a //. expandRules;
 Expand[a_, x_] := (Print["Expand does not support second argument."];Expand[a]);
 Attributes[Expand] = {Protected};
 Tests`Expand = {

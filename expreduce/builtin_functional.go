@@ -619,7 +619,22 @@ func getFunctionalDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{Name: "NestWhile"})
 	defs = append(defs, Definition{Name: "FixedPointList"})
-	defs = append(defs, Definition{Name: "FixedPoint"})
+	defs = append(defs, Definition{
+		Name: "FixedPoint",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+
+			currVal := this.Parts[2]
+			nextVal := E(this.Parts[1], currVal).Eval(es)
+			for !IsSameQ(currVal, nextVal, &es.CASLogger) {
+				currVal = nextVal
+				nextVal = E(this.Parts[1], currVal).Eval(es)
+			}
+			return nextVal
+		},
+	})
 	defs = append(defs, Definition{
 		Name: "Array",
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
