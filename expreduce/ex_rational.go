@@ -145,6 +145,10 @@ func (this *Rational) MulI(i *Integer) {
 	this.Num.Mul(this.Num, i.Val)
 }
 
+func (this *Rational) MulBigI(i *big.Int) {
+	this.Num.Mul(this.Num, i)
+}
+
 func (this *Rational) MulR(r *Rational) {
 	this.Num.Mul(this.Num, r.Num)
 	this.Den.Mul(this.Den, r.Den)

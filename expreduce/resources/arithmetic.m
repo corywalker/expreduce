@@ -115,6 +115,7 @@ Times::usage = "`(e1 * e2 * ...)` computes the product of all expressions in the
 (* This is likely the most compute-intensive rule in the system. Modify with
 care. *)
 Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end /; (!NumberQ[a] || !NumberQ[m] || !NumberQ[n]);
+a_Integer^c_Rational*b_Integer^c_Rational*rest___ := (a*b)^c*rest;
 (*Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end;*)
 Verbatim[Times][Rational[1, a_Integer], inner___, a_Integer^n_, end___] := inner*a^(n-1)*end;
 Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;

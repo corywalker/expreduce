@@ -57,9 +57,44 @@ func NthRoot(x *big.Int, n *big.Int) *big.Int {
 	}
 }
 
+func extractPower(x *big.Int, r *Rational) Ex {
+	talliedFactors := primeFactorsTallied(x)
+	hasPowerAtLeastTwo := false
+	for _, tf := range talliedFactors {
+		if tf.power > 1 {
+			hasPowerAtLeastTwo = true
+			break
+		}
+	}
+	if !hasPowerAtLeastTwo {
+		return nil
+	}
+	bases := make(map[uint64]*big.Int)
+	for _, tf := range talliedFactors {
+		base, hasVal := bases[tf.power]
+		if !hasVal {
+			bases[tf.power] = tf.factor
+		} else {
+			base.Mul(base, tf.factor)
+		}
+	}
+	toReturn := E(S("Times"))
+	for power, base := range bases {
+		bigPower := big.NewInt(0)
+		bigPower.SetUint64(power)
+		thisR := r.DeepCopy().(*Rational)
+		thisR.MulBigI(bigPower)
+		thisR.needsEval = true
+		toReturn.appendEx(E(
+			S("Power"),
+			NewInteger(base),
+			thisR,
+		))
+	}
+	return toReturn
+}
+
 func RadSimp(radicand *big.Int, index *big.Int) (*big.Int, *big.Int) {
-	//xPositivity := x.Cmp(big.NewInt(0))
-	//nPositivity := n.Cmp(big.NewInt(0))
 	i := big.NewInt(2)
 	pow := big.NewInt(0)
 	mod := big.NewInt(0)
@@ -183,6 +218,7 @@ func GetPowerDefinitions() (defs []Definition) {
 				m := powerRat.Num
 				xPositivity := x.Cmp(big.NewInt(0))
 				nPositivity := n.Cmp(big.NewInt(0))
+				mPositivity := m.Cmp(big.NewInt(0))
 				if xPositivity >= 0 &&
 				   nPositivity == 1 {
 					root := NthRoot(x, n)
@@ -191,6 +227,10 @@ func GetPowerDefinitions() (defs []Definition) {
 							return NewInteger(root)
 						}
 						return E(S("Power"), NewInteger(root), NewInteger(m))
+					}
+					powerExtracted := extractPower(x, powerRat)
+					if powerExtracted != nil {
+						return powerExtracted
 					}
 				}
 				if nPositivity == 1 {
@@ -201,9 +241,13 @@ func GetPowerDefinitions() (defs []Definition) {
 						if xPositivity == -1 {
 							radicand.Neg(radicand)
 						}
+						var coeff Ex = NewInteger(extracted)
+						if mPositivity == -1 {
+							coeff = NewRational(big.NewInt(1), extracted)
+						}
 						return E(
 							S("Times"),
-							NewInteger(extracted),
+							coeff,
 							E(
 								S("Power"),
 								NewInteger(radicand),

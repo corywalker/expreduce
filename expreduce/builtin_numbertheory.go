@@ -5,6 +5,57 @@ import (
 	"math/big"
 )
 
+// Compute the prime factors of a positive n.
+// TODO: use Pollard's rho algorithm and potentially have an int64 version.
+func primeFactors(origN *big.Int) (factors []*big.Int) {
+	zero := big.NewInt(0)
+	one := big.NewInt(1)
+	if origN.Cmp(one) == 0 {
+		factors = append(factors, big.NewInt(1))
+		return
+	}
+	i := big.NewInt(2)
+	modRes := big.NewInt(0)
+	n := big.NewInt(0)
+	n.Set(origN)
+	for n.Cmp(one) != 0 {
+		for (modRes.Mod(n, i)).Cmp(zero) != 0 {
+			i.Add(i, one)
+		}
+		newFactor := big.NewInt(0)
+		newFactor.Set(i)
+		factors = append(factors, newFactor)
+		n.Div(n, i)
+		i.SetInt64(2)
+	}
+	return
+}
+
+type factorTally struct {
+	factor *big.Int
+	power uint64
+}
+func primeFactorsTallied(n *big.Int) (factorTallies []factorTally) {
+	factors := primeFactors(n)
+	for _, factor := range factors {
+		added := false
+		for i := range factorTallies {
+			if factorTallies[i].factor.Cmp(factor) == 0 {
+				factorTallies[i].power++
+				added = true
+				break
+			}
+		}
+		if !added {
+			factorTallies = append(factorTallies, factorTally{
+				factor: factor,
+				power: 1,
+			})
+		}
+	}
+	return
+}
+
 func GetNumberTheoryDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:         "PrimeQ",

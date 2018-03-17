@@ -45,6 +45,7 @@ Power[b_?NumberQ, -Infinity] := Which[
     True,
     UnexpectedInfinitePowerBase
 ];
+Power[b_Integer, Rational[n_, d_]] := b^((n-Mod[n,d])/d) * b^(Mod[n,d]/d) /; Or[n > d, -n > d];
 Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)
 (*Distribute any kind of power for numeric values in Times:*)
@@ -67,6 +68,7 @@ Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   3, -I];
 Complex[re_,im_]^n_Integer := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
 Power[ComplexInfinity+_, -1] := 0;
+_^ComplexInfinity := Indeterminate;
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[
@@ -191,8 +193,22 @@ Tests`Power = {
         (* Test simplifying radicals *)
         ESameTest[4 2^(1/3), (128)^(1/3)],
         ESameTest[4 (-2)^(1/3), (-128)^(1/3)],
+        ESameTest[15 7^(2/3) 57^(1/3), 9426375^(1/3)],
+        ESameTest[15 7^(2/3) 57^(1/3), 9426375^(1/3)],
+        ESameTest[3 3^(1/3), (3^4)^(1/3)],
+        ESameTest[3 3^(1/3), (3)^(4/3)],
+        ESameTest[15 7^(2/3) 57^(1/3), (3^(4/3)*5^(3/3)*7^(2/3)*19^(1/3))],
+        ESameTest[15 7^(2/3) 57^(1/3), 5*3^(4/3)*7^(2/3)*19^(1/3)],
+        ESameTest[3 3^(1/3), 3^(4/3)],
+        ESameTest[3 3^(1/3), 3^(4/3)],
+        ESameTest[a^(4/3), a^(4/3)],
+        ESameTest[-(-1)^(1/3), (-1)^(4/3)],
+        ESameTest[(-1)^(2/3), (-1)^(-4/3)],
+        ESameTest[-(I/2), (-4)^(-1/2)],
+        ESameTest[Indeterminate, (-1)^(-1/0)],
     ], EKnownFailures[
         ESameTest[(3+I Sqrt[29]) E^(-((2 I \[Pi])/3)), ((3 + I*Sqrt[29])^3)^(1/3)],
+        ESameTest[{{-5,1/5^(1/3)},{-4,1/2^(2/3)},{-3,1/3^(1/3)},{-2,1/2^(1/3)},{-1,1},{0,ComplexInfinity},{1,-(-1)^(2/3)},{2,-((-1)^(2/3)/2^(1/3))},{3,-((-1)^(2/3)/3^(1/3))},{4,-(-(1/2))^(2/3)},{5,-((-1)^(2/3)/5^(1/3))}}, Table[{n, (-n)^(-1/3)}, {n, -5, 5}] // Quiet],
     ]
 };
 
