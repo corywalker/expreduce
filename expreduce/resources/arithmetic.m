@@ -112,10 +112,14 @@ Tests`Sum = {
 };
 
 Times::usage = "`(e1 * e2 * ...)` computes the product of all expressions in the function.";
-Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end;
+(* This is likely the most compute-intensive rule in the system. Modify with
+care. *)
+Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end /; (!NumberQ[a] || !NumberQ[m] || !NumberQ[n]);
+(*Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end;*)
 Verbatim[Times][Rational[1, a_Integer], inner___, a_Integer^n_, end___] := inner*a^(n-1)*end;
 Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;
 Times[ComplexInfinity, rest___] := ComplexInfinity;
+a_Integer?Negative^b_Rational*c_Integer^d_Rational*rest___ := (-1)^b*rest /; (a == -c && b == -d);
 Sin[x_]*Cos[x_]^(-1)*rest___ := Tan[x]*rest;
 Cos[x_]*Sin[x_]^(-1)*rest___ := Cot[x]*rest;
 Attributes[Times] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected};
@@ -182,6 +186,8 @@ Tests`Times = {
 
         (*Conversion of exact numeric functions to reals*)
         ESameTest[True, MatchQ[Sqrt[2*Pi]*.1, _Real]],
+
+        ESameTest[(-1)^(1/3) a b c, (-2)^(1/3)*2^(-1/3)*a*b*c],
     ]
 };
 

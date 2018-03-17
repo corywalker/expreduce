@@ -187,6 +187,10 @@ Tests`Power = {
         ESameTest[Power, 9^(-1/3)//Head],
         ESameTest[27, 9^(3/2)],
         ESameTest[1/27, 9^(-3/2)],
+
+        (* Test simplifying radicals *)
+        ESameTest[4 2^(1/3), (128)^(1/3)],
+        ESameTest[4 (-2)^(1/3), (-128)^(1/3)],
     ], EKnownFailures[
         ESameTest[(3+I Sqrt[29]) E^(-((2 I \[Pi])/3)), ((3 + I*Sqrt[29])^3)^(1/3)],
     ]

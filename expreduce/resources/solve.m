@@ -175,6 +175,12 @@ solveCubic[d_.*x_^3 + c_.*x_^2 + b_.*x_ + a_., x_] :=
   solveCubic[d,c,b,a,x]/;FreeQ[{a,b,c,d},x];
 solveCubic[d_.*x_^3 + c_.*x_^2 +          a_., x_] :=
   solveCubic[d,c,0,a,x]/;FreeQ[{a,c,d},x];
+solveCubic[d_.*x_^3 +            b_.*x_ + a_., x_] :=
+  solveCubic[d,0,b,a,x]/;FreeQ[{a,b,d},x];
+solveQuartic[e_.*x_^4 + d_.*x_^3 + c_.*x_^2 + b_.*x_ + a_., x_] :=
+  solveQuartic[e,d,c,b,a,x]/;FreeQ[{a,b,c,d,e},x];
+solveQuartic[e_.*x_^4 + d_.*x_^3 +                     a_., x_] :=
+  solveQuartic[e,d,0,0,a,x]/;FreeQ[{a,d,e},x];
 
 (* Solve using u-substitution for polynomial-like forms.*)
 uSubstitute::usage = 

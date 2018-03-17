@@ -57,6 +57,27 @@ func NthRoot(x *big.Int, n *big.Int) *big.Int {
 	}
 }
 
+func RadSimp(radicand *big.Int, index *big.Int) (*big.Int, *big.Int) {
+	//xPositivity := x.Cmp(big.NewInt(0))
+	//nPositivity := n.Cmp(big.NewInt(0))
+	i := big.NewInt(2)
+	pow := big.NewInt(0)
+	mod := big.NewInt(0)
+	div := big.NewInt(0)
+	for true {
+		pow.Exp(i, index, nil)
+		mod.Mod(radicand, pow)
+		cmpRes := mod.Cmp(big.NewInt(0))
+		if cmpRes == 0 {
+			div = div.Div(radicand, pow)
+			return i, div
+		} else if cmpRes > 0 {
+			break
+		}
+	}
+	return nil, nil
+}
+
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Power",
@@ -171,8 +192,27 @@ func GetPowerDefinitions() (defs []Definition) {
 						}
 						return E(S("Power"), NewInteger(root), NewInteger(m))
 					}
-					return this
 				}
+				if nPositivity == 1 {
+					absX := big.NewInt(0)
+					absX.Abs(x)
+					extracted, radicand := RadSimp(absX, n)
+					if extracted != nil {
+						if xPositivity == -1 {
+							radicand.Neg(radicand)
+						}
+						return E(
+							S("Times"),
+							NewInteger(extracted),
+							E(
+								S("Power"),
+								NewInteger(radicand),
+								powerRat,
+							),
+						)
+					}
+				}
+				return this
 			}
 			return this
 		},
