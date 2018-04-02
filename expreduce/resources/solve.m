@@ -179,8 +179,10 @@ solveCubic[d_.*x_^3 +            b_.*x_ + a_., x_] :=
   solveCubic[d,0,b,a,x]/;FreeQ[{a,b,d},x];
 solveQuartic[e_.*x_^4 + d_.*x_^3 + c_.*x_^2 + b_.*x_ + a_., x_] :=
   solveQuartic[e,d,c,b,a,x]/;FreeQ[{a,b,c,d,e},x];
-solveQuartic[e_.*x_^4 + d_.*x_^3 +                     a_., x_] :=
+solveQuartic[e_.*x_^4 + d_.*x_^3 +                     a_, x_] :=
   solveQuartic[e,d,0,0,a,x]/;FreeQ[{a,d,e},x];
+solveQuartic[e_.*x_^4 + d_.*x_^3                         , x_] :=
+  {{x->0},{x->0},{x->0},{x->-(d/e)}}/;FreeQ[{d,e},x];
 
 (* Solve using u-substitution for polynomial-like forms.*)
 uSubstitute::usage = 
@@ -341,6 +343,7 @@ Tests`Solve = {
         (* Inverse of exponentiation, var in base: To a fractional power *)
         ESameTest[{{x->y^2}}, Solve[Sqrt[x]==y,x]],
         ESameTest[{{x->y^9}}, Solve[x^(1/9)==y,x]],
+        ESameTest[{}, Solve[x^(1/6)==-I,x]],
         (* Inverse of exponentiation, var in power *)
         ESameTest[{{x->Log[y]/Log[a+b]}}, Solve[(a+b)^x==y,x]],
         ESameTest[{{x->ConditionalExpression[1/2 (2 I Pi C[1]+Log[5/4]),C[1]\[Element]Integers]}}, Solve[4E^(2x)==5,x]],

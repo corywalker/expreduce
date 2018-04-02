@@ -98,7 +98,8 @@ Attributes[N] = {Protected};
 Tests`N = {
     ETests[
         ESameTest[2., N[2]],
-        ESameTest[0.5, N[1/2]]
+        ESameTest[0.5, N[1/2]],
+        EStringTest["0.5", "(-1)^(1/6) // N // Im"],
     ]
 };
 

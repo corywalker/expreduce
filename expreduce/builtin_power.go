@@ -172,8 +172,52 @@ func GetPowerDefinitions() (defs []Definition) {
 						return NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
 					}
 				}
-				// Return unevaluated due to lack of complex number support.
-				return this
+				// TODO(corywalker): Optimize this logic. There should be no
+				// need for Eval-ing expressions. Simply use numerics built-in
+				// to Go.
+				// a^b
+				// coeff := ((a^2)^(b/2)) 
+
+				// Precompute shared values.
+				coeff := E(
+					S("Power"),
+					E(
+						S("Power"),
+						baseFlt,
+						NewInt(2),
+					),
+					E(
+						S("Power"),
+						powerFlt,
+						NewInt(2),
+					),
+				).Eval(es).(*Flt)
+				// inner := b Arg[a]
+				inner := E(
+					S("Times"),
+					powerFlt,
+					E(
+						S("Arg"),
+						baseFlt,
+					),
+				).Eval(es).(*Flt)
+				re := E(
+					S("Times"),
+					coeff.DeepCopy(),
+					E(
+						S("Cos"),
+						inner.DeepCopy(),
+					),
+				).Eval(es).(*Flt)
+				im := E(
+					S("Times"),
+					coeff.DeepCopy(),
+					E(
+						S("Sin"),
+						inner.DeepCopy(),
+					),
+				).Eval(es).(*Flt)
+				return NewComplex(re, im)
 			}
 
 			//es.Debugf("Power eval. baseIsInt=%v, powerIsInt=%v", baseIsInt, powerIsInt)
@@ -298,5 +342,6 @@ func GetPowerDefinitions() (defs []Definition) {
 		Name:              "Factor",
 		OmitDocumentation: true,
 	})
+	defs = append(defs, Definition{Name: "Arg"})
 	return
 }

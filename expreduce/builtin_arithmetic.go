@@ -129,6 +129,16 @@ func computeRealPart(fn FoldFn, e *Expression) (Ex, int) {
 	return typedRealPart(fn, foldedInt, foldedRat, foldedFlt), -1
 }
 
+// Define a special NumberQ for our purposes since this logic does not support
+// complex numbers yet. TODO(corywalker): fix this.
+func numberQForTermCollection(e Ex) bool {
+	_, ok := e.(*Complex)
+	if ok {
+		return false
+	}
+	return numberQ(e)
+}
+
 func splitTerm(e Ex) (Ex, Ex, bool) {
 	asSym, isSym := e.(*Symbol)
 	if isSym {
@@ -142,7 +152,7 @@ func splitTerm(e Ex) (Ex, Ex, bool) {
 		if len(asTimes.Parts) < 2 {
 			return nil, nil, false
 		}
-		if numberQ(asTimes.Parts[1]) {
+		if numberQForTermCollection(asTimes.Parts[1]) {
 			if len(asTimes.Parts) > 2 {
 				return asTimes.Parts[1], NewExpression(append([]Ex{NewSymbol("System`Times")}, asTimes.Parts[2:]...)), true
 			}

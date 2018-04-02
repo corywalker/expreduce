@@ -59,9 +59,15 @@ Attributes[ArcSin] = {Listable, NumericFunction, Protected, ReadProtected};
 
 Attributes[ArcCos] = {Listable, NumericFunction, Protected, ReadProtected};
 
-ArcTan[0,y_] := Which[
-    y > 0, Pi/2,
-    y < 0, -Pi/2,
+ArcTan[-1] := -Pi/4;
+ArcTan[0] := 0;
+ArcTan[1] := Pi/4;
+ArcTan[x_,y_] := Which[
+    x > 0, ArcTan[y/x],
+    x < 0 && y >= 0, ArcTan[y/x] + Pi,
+    x < 0 && y < 0, ArcTan[y/x] - Pi,
+    x == 0 && y > 0, Pi/2,
+    x == 0 && y < 0, -Pi/2,
     True, Indeterminate];
 Attributes[ArcTan] = {Listable, NumericFunction, Protected, ReadProtected};
 

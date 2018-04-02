@@ -206,6 +206,7 @@ Tests`Power = {
         ESameTest[(-1)^(2/3), (-1)^(-4/3)],
         ESameTest[-(I/2), (-4)^(-1/2)],
         ESameTest[Indeterminate, (-1)^(-1/0)],
+        ESameTest[1., (-1.)^0.5 // Im],
     ], EKnownFailures[
         ESameTest[(3+I Sqrt[29]) E^(-((2 I \[Pi])/3)), ((3 + I*Sqrt[29])^3)^(1/3)],
         ESameTest[{{-5,1/5^(1/3)},{-4,1/2^(2/3)},{-3,1/3^(1/3)},{-2,1/2^(1/3)},{-1,1},{0,ComplexInfinity},{1,-(-1)^(2/3)},{2,-((-1)^(2/3)/2^(1/3))},{3,-((-1)^(2/3)/3^(1/3))},{4,-(-(1/2))^(2/3)},{5,-((-1)^(2/3)/5^(1/3))}}, Table[{n, (-n)^(-1/3)}, {n, -5, 5}] // Quiet],
@@ -829,3 +830,7 @@ Tests`PowerExpand = {
         ESameTest[{I Sqrt[a],a,Sqrt[a]/Sqrt[b]}, {Sqrt[-a],Sqrt[a^2],Sqrt[a/b]}//PowerExpand]
     ]
 };
+
+Arg::usage = "`Arg[x]` computes the argument of `x`.";
+Attributes[Arg] = {Listable, NumericFunction, Protected};
+Arg[a_?NumberQ] := ArcTan[Re[a], Im[a]];

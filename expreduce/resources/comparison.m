@@ -15,6 +15,9 @@ Tests`NumericQ = {
     ]
 };
 Equal::usage = "`lhs == rhs` evaluates to True or False if equality or inequality is known.";
+(*TODO(corywalker): Ideally this should be handled in the core.*)
+Equal[(a_?NumberQ) ^ (b_?NumberQ), c_?NumberQ] := (a^b//N) == c;
+Equal[c_?NumberQ, (a_?NumberQ) ^ (b_?NumberQ)] := (a^b//N) == c;
 Attributes[Equal] = {Protected};
 Tests`Equal = {
     ESimpleExamples[
@@ -72,7 +75,9 @@ Tests`Equal = {
         ESameTest[True, foo[x, y, 1] == foo[x, y, 1]],
         ESameTest[True, foo[x, y, 1.] == foo[x, y, 1]],
         ESameTest[True, Equal[test]],
-        ESameTest[True, Equal[]]
+        ESameTest[True, Equal[]],
+        ESameTest[False, (-1)^(1/6)==-I],
+        ESameTest[True, (-1)^(1/6)==(-1)^(1/6)//N],
     ]
 };
 
