@@ -183,22 +183,22 @@ func GetPowerDefinitions() (defs []Definition) {
 					S("Power"),
 					E(
 						S("Power"),
-						baseFlt,
+						baseFlt.DeepCopy(),
 						NewInt(2),
 					),
 					E(
-						S("Power"),
-						powerFlt,
-						NewInt(2),
+						S("Times"),
+						powerFlt.DeepCopy(),
+						NewRational(big.NewInt(1), big.NewInt(2)),
 					),
 				).Eval(es).(*Flt)
 				// inner := b Arg[a]
 				inner := E(
 					S("Times"),
-					powerFlt,
+					powerFlt.DeepCopy(),
 					E(
 						S("Arg"),
-						baseFlt,
+						baseFlt.DeepCopy(),
 					),
 				).Eval(es).(*Flt)
 				re := E(

@@ -67,8 +67,11 @@ Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   2, -1,
   3, -I];
 Complex[re_,im_]^n_Integer := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
+Complex[re_,im_]^n_Real := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
 Power[ComplexInfinity+_, -1] := 0;
 _^ComplexInfinity := Indeterminate;
+(*TODO(corywalker): Remove this as there should be a more general version.*)
+E^pow_Real := N[E]^pow;
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[

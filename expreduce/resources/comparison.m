@@ -15,9 +15,9 @@ Tests`NumericQ = {
     ]
 };
 Equal::usage = "`lhs == rhs` evaluates to True or False if equality or inequality is known.";
-(*TODO(corywalker): Ideally this should be handled in the core.*)
-Equal[(a_?NumberQ) ^ (b_?NumberQ), c_?NumberQ] := (a^b//N) == c;
-Equal[c_?NumberQ, (a_?NumberQ) ^ (b_?NumberQ)] := (a^b//N) == c;
+(*TODO(corywalker): Ideally this should be handled in the core. Also should
+  support arbitrary number of arguments.*)
+Equal[a_?NumericQ, b_?NumericQ] := (a//N) == (b//N);
 Attributes[Equal] = {Protected};
 Tests`Equal = {
     ESimpleExamples[
