@@ -78,6 +78,11 @@ Tests`Equal = {
         ESameTest[True, Equal[]],
         ESameTest[False, (-1)^(1/6)==-I],
         ESameTest[True, (-1)^(1/6)==(-1)^(1/6)//N],
+        ESameTest[True, (2^(-1/2)*E^((-1/2)*x^2)*Pi^(-1/2)/.x->(-Sqrt[2] Sqrt[Log[5 Sqrt[2/\[Pi]]]]//N))==.1],
+        ESameTest[True, 1.0000000000005==1.00000000000051],
+        ESameTest[False, 1.000000000005==1.0000000000051],
+        ESameTest[True, 100.00000000005==100.000000000051],
+        ESameTest[True, 1000000000000.5==1000000000000.51],
     ]
 };
 

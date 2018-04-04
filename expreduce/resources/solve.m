@@ -264,7 +264,12 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected, fullSimplified, poly}
     If[degree === 2, Return[solveQuadratic[poly//Expand, var]//Simplify//Sort]];
     If[degree === 3, Return[solveCubic[poly//Expand, var]//Simplify//Sort]];
     If[degree === 4, Return[solveQuartic[poly//Expand, var]//Simplify//Sort]];
-    Print["Encountered unsolvable polynomial in Solve: ", poly];
+    Print["Encountered unsolvable polynomial in Solve: ", poly];,
+
+    (* else *)
+
+    uSubstituted = uSubstitutionSolve[eqn[[1]]-eqn[[2]], var];
+    If[Head[uSubstituted] === List, Return[uSubstituted]];
    ];
 
    collected = collect[eqn, var];
