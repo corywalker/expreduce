@@ -343,5 +343,6 @@ func GetPowerDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{Name: "Arg"})
+	defs = append(defs, Definition{Name: "ComplexExpand"})
 	return
 }

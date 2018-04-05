@@ -199,6 +199,7 @@ uSubstitute[theEqn_, theVar_Symbol] :=
    We wish to ignore any zero-valued exponents. *)
    
    exponents = DeleteCases[Exponent[eqn, var, List], 0];
+   If[Length[exponents] === 0, Return[$Failed]];
    (* Find the signed GCD of the exponents. 
    This seems to work for many of the problem cases, 
    but may not yield a useful polynomial form for all equations. *)

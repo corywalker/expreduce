@@ -45,6 +45,7 @@ simplifyInner[exp_] := Module[{e = exp, tryVal},
       tryVal = FixedPoint[Replace[#, expandRules]&, e];
       If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
     ];
+    (* also need to try complexexpand to simplify cases like (-1)^(1/3) (1 + I Sqrt[3]) *)
     e = Replace[e, Sqrt[inner_] :> Sqrt[FactorTerms[inner]]];
     e
 ];
@@ -89,6 +90,8 @@ Tests`Simplify = {
         ESameTest[a && x1 && x2 && x5, And[x1, a, x2, Or[x3, a, x4], x5] // Simplify],
         ESameTest[a && b, a&&b&&a//Simplify],
         ESameTest[(-32+32 x-16 x^2)^9, (16 + 8 (-6 + 4 x - 2 x^2))^9 // Simplify],
+        ESameTest[1, (1/3+(1/3)*(-2)^(-1/3)*2^(-2/3)*(1+(0+1*I)*3^(1/2))+(1/6)*(-1)^(1/3)*(1+(0+-1*I)*3^(1/2)))^2//Simplify],
+        ESameTest[0, (1/3+(1/3)*(-2)^(-1/3)*2^(-2/3)*(1+(0+-1*I)*3^(1/2))+(1/6)*(-1)^(1/3)*(1+(0+1*I)*3^(1/2)))^2//Simplify],
     ]
 };
 

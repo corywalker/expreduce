@@ -299,7 +299,8 @@ Tests`Expand = {
         ESameTest[1/d + (2 a)/d + a^2/d + b/d + c/d, Expand[((a + 1)^2 + b + c)/d]],
         ESameTest[2 + 2 a, 2*(a + 1) // Expand]
     ], ETests[
-        ESameTest[Null, ((60 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + a^5 + b^5 + c^5 + (5 * a * b^4) + (5 * a * c^4) + (5 * b * a^4) + (5 * b * c^4) + (5 * c * a^4) + (5 * c * b^4) + (10 * a^2 * b^3) + (10 * a^2 * c^3) + (10 * a^3 * b^2) + (10 * a^3 * c^2) + (10 * b^2 * c^3) + (10 * b^3 * c^2) + (20 * a * b * c^3) + (20 * a * c * b^3) + (20 * b * c * a^3));]
+        ESameTest[Null, ((60 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + a^5 + b^5 + c^5 + (5 * a * b^4) + (5 * a * c^4) + (5 * b * a^4) + (5 * b * c^4) + (5 * c * a^4) + (5 * c * b^4) + (10 * a^2 * b^3) + (10 * a^2 * c^3) + (10 * a^3 * b^2) + (10 * a^3 * c^2) + (10 * b^2 * c^3) + (10 * b^3 * c^2) + (20 * a * b * c^3) + (20 * a * c * b^3) + (20 * b * c * a^3));],
+        ESameTest[1/3, ((1+I Sqrt[3]) (1/(2 2^(1/3))-(I Sqrt[3])/(2 2^(1/3))))/(3 2^(2/3))//Expand],
     ]
 };
 
@@ -837,3 +838,27 @@ Tests`PowerExpand = {
 Arg::usage = "`Arg[x]` computes the argument of `x`.";
 Attributes[Arg] = {Listable, NumericFunction, Protected};
 Arg[a_?NumberQ] := ArcTan[Re[a], Im[a]];
+
+ComplexExpand::usage = "`ComplexExpand[e]` returns a complex expansion of `e`.";
+Attributes[ComplexExpand] = {Protected};
+ComplexExpandInner[e_] := e;
+ComplexExpandInner[(a_Integer?Negative)^b_Rational] := 
+  Module[{coeff, inner},
+   coeff = ((a^2)^(b/2));
+   inner = b*Arg[a];
+   coeff*Cos[inner] + I*coeff*Sin[inner]];
+ComplexExpand[exp_] := 
+  Map[ComplexExpandInner, exp, {0, Infinity}] // Expand;
+Tests`ComplexExpand = {
+    ESimpleExamples[
+        ESameTest[a, ComplexExpand[a]],
+        ESameTest[1, ComplexExpand[1]],
+        ESameTest[a b+a c, ComplexExpand[a*(b+c)]],
+        ESameTest[1/2+(I Sqrt[3])/2, ComplexExpand[(-1)^(1/3)]],
+        ESameTest[-(1/2)-(I Sqrt[3])/2, ComplexExpand[(-1)^(4/3)]],
+        ESameTest[2 2^(1/3), ComplexExpand[(2)^(4/3)]],
+        ESameTest[-1+I Sqrt[3], ComplexExpand[(-1)^(1/3) (1+I Sqrt[3])]],
+    ], EKnownFailures[
+        ESameTest[-2^(1/3)-I 2^(1/3) Sqrt[3], ComplexExpand[(-2)^(4/3)]],
+    ]
+};
