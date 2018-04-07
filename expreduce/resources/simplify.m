@@ -45,6 +45,8 @@ simplifyInner[exp_] := Module[{e = exp, tryVal},
       tryVal = FixedPoint[Replace[#, expandRules]&, e];
       If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
     ];
+    tryVal = ComplexExpand[e];
+    If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
     (* also need to try complexexpand to simplify cases like (-1)^(1/3) (1 + I Sqrt[3]) *)
     e = Replace[e, Sqrt[inner_] :> Sqrt[FactorTerms[inner]]];
     e

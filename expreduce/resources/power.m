@@ -841,14 +841,14 @@ Arg[a_?NumberQ] := ArcTan[Re[a], Im[a]];
 
 ComplexExpand::usage = "`ComplexExpand[e]` returns a complex expansion of `e`.";
 Attributes[ComplexExpand] = {Protected};
-ComplexExpandInner[e_] := e;
-ComplexExpandInner[(a_Integer?Negative)^b_Rational] := 
+complexExpandInner[e_] := e;
+complexExpandInner[(a_Integer?Negative)^b_Rational] := 
   Module[{coeff, inner},
    coeff = ((a^2)^(b/2));
    inner = b*Arg[a];
    coeff*Cos[inner] + I*coeff*Sin[inner]];
 ComplexExpand[exp_] := 
-  Map[ComplexExpandInner, exp, {0, Infinity}] // Expand;
+  Map[complexExpandInner, exp, {0, Infinity}] // Expand;
 Tests`ComplexExpand = {
     ESimpleExamples[
         ESameTest[a, ComplexExpand[a]],

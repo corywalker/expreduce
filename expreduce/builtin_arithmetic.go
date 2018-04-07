@@ -39,7 +39,32 @@ const (
 	FoldFnMul
 )
 
-func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt) Ex {
+func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) Ex {
+	if c != nil {
+		toReturn := c
+		if f != nil {
+			if fn == FoldFnAdd {
+				toReturn.AddF(f)
+			} else if fn == FoldFnMul {
+				toReturn.MulF(f)
+			}
+		}
+		if r != nil {
+			if fn == FoldFnAdd {
+				toReturn.AddR(r)
+			} else if fn == FoldFnMul {
+				toReturn.MulR(r)
+			}
+		}
+		if i != nil {
+			if fn == FoldFnAdd {
+				toReturn.AddI(i)
+			} else if fn == FoldFnMul {
+				toReturn.MulI(i)
+			}
+		}
+		return toReturn
+	}
 	if f != nil {
 		toReturn := f
 		if r != nil {
@@ -75,10 +100,11 @@ func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt) Ex {
 	return nil
 }
 
-func computeRealPart(fn FoldFn, e *Expression) (Ex, int) {
+func computeNumericPart(fn FoldFn, e *Expression) (Ex, int) {
 	var foldedInt *Integer
 	var foldedRat *Rational
 	var foldedFlt *Flt
+	var foldedComp *Complex
 	for i := 1; i < len(e.Parts); i++ {
 		// TODO: implement short circuiting if we encounter a zero while
 		// multiplying.
@@ -124,18 +150,31 @@ func computeRealPart(fn FoldFn, e *Expression) (Ex, int) {
 			}
 			continue
 		}
-		return typedRealPart(fn, foldedInt, foldedRat, foldedFlt), i
+		asComp, isComp := e.Parts[i].(*Complex)
+		if isComp {
+			if foldedComp == nil {
+				foldedComp = asComp.DeepCopy().(*Complex)
+				continue
+			}
+			if fn == FoldFnAdd {
+				foldedComp.AddC(asComp)
+			} else if fn == FoldFnMul {
+				foldedComp.MulC(asComp)
+			}
+			continue
+		}
+		return typedRealPart(fn, foldedInt, foldedRat, foldedFlt, foldedComp), i
 	}
-	return typedRealPart(fn, foldedInt, foldedRat, foldedFlt), -1
+	return typedRealPart(fn, foldedInt, foldedRat, foldedFlt, foldedComp), -1
 }
 
 // Define a special NumberQ for our purposes since this logic does not support
 // complex numbers yet. TODO(corywalker): fix this.
 func numberQForTermCollection(e Ex) bool {
-	_, ok := e.(*Complex)
-	if ok {
-		return false
-	}
+	// _, ok := e.(*Complex)
+	// if ok {
+	// 	return false
+	// }
 	return numberQ(e)
 }
 
@@ -177,7 +216,7 @@ func collectedToTerm(coeffs []Ex, vars Ex, fullPart Ex) Ex {
 		return fullPart
 	}
 
-	finalC, _ := computeRealPart(FoldFnAdd, NewExpression(append([]Ex{
+	finalC, _ := computeNumericPart(FoldFnAdd, NewExpression(append([]Ex{
 		NewSymbol("System`Plus")}, coeffs...)))
 
 	toAdd := NewExpression([]Ex{NewSymbol("System`Times")})
@@ -243,7 +282,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			}
 
 			res := this
-			realPart, symStart := computeRealPart(FoldFnAdd, this)
+			realPart, symStart := computeNumericPart(FoldFnAdd, this)
 			if realPart != nil {
 				if symStart == -1 {
 					return realPart
@@ -296,7 +335,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			}
 
 			res := this
-			realPart, symStart := computeRealPart(FoldFnMul, this)
+			realPart, symStart := computeNumericPart(FoldFnMul, this)
 			if realPart != nil {
 				if symStart == -1 {
 					return realPart
