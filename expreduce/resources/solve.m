@@ -149,6 +149,8 @@ isolateInEqn[eqn_Equal, var_Symbol] := Module[{isolated},
 collect[eqn_Equal, var_Symbol] := Module[{toTry, collected, continue, foundSimpler, toTryFns},
   collected = eqn;
   continue = True;
+  (*These rewrite rules cannot change the meaning of the solution. That is,
+  applying Exp to both sides would not be a suitable technique here.*)
   While[continue,
     foundSimpler = False;
     toTryFns = {

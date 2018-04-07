@@ -72,6 +72,8 @@ Power[ComplexInfinity+_, -1] := 0;
 _^ComplexInfinity := Indeterminate;
 (*TODO(corywalker): Remove this as there should be a more general version.*)
 E^pow_Real := N[E]^pow;
+E^(Log[a_]+rest___) := a * E^rest;
+E^Log[a_] := a;
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[
