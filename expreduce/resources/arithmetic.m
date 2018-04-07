@@ -125,8 +125,8 @@ a_Integer?Negative^b_Rational*c_Integer^d_Rational*rest___ := (-1)^b*rest /; (a 
 Verbatim[Times][beg___, a_Integer^m_Rational, a_Integer^n_Rational, end___] := beg*a^(m+n)*end;
 Times[c : (Rational[_Integer, d_Integer] | 
      Complex[_Integer, Rational[_Integer, d_Integer]]), 
-  Power[a_Integer, Rational[1, r_Integer]]] :=
- Times[c*a, a^(1/r - 1)] /; (Mod[d, a] === 0 && a > 1)
+  Power[a_Integer, Rational[1, r_Integer]], rest___] :=
+ Times[c*a, a^(1/r - 1), rest] /; (Mod[d, a] === 0 && a > 1)
 Sin[x_]*Cos[x_]^(-1)*rest___ := Tan[x]*rest;
 Cos[x_]*Sin[x_]^(-1)*rest___ := Cot[x]*rest;
 Attributes[Times] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected};
@@ -207,6 +207,7 @@ Tests`Times = {
         ESameTest[-(I/(2 Sqrt[3])), Times[-2/12 I,Sqrt[3]]],
         ESameTest[-(I/(2 Sqrt[3])), Times[2/-12 I,Sqrt[3]]],
         ESameTest[(3+(5 I)/4)/Sqrt[3], Times[1+5/12 I,Sqrt[3]]],
+        ESameTest[I/(2 Sqrt[3] a^2), (0+1/6*I)*3^(1/2)*a^(-2)],
     ], EKnownFailures[
         ESameTest[-2^(1/3), (-2)*2^(-2/3)],
         ESameTest[-2^(1+a), (-2)*2^(a)],

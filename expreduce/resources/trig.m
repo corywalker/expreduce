@@ -16,6 +16,7 @@ Sin[(3/2)*Pi] := -1;
 Sin[(5/2)*Pi] := 1;
 Sin[Indeterminate] := Indeterminate;
 Sin[ArcSin[a_]] := a;
+Sin[ArcTan[1/2]] := 1/Sqrt[5];
 Attributes[Sin] = {Listable, NumericFunction, Protected};
 
 Cos::usage = "`Cos[x]` is the cosine of `x`.";
@@ -37,6 +38,7 @@ Cos[x_Integer?Negative] := Cos[-x];
 Cos[inner : Verbatim[Plus][Repeated[_*I]]] := Cosh[-I*inner // Distribute]
 Cos[Indeterminate] := Indeterminate;
 Cos[ArcCos[a_]] := a;
+Cos[ArcTan[1/2]] := 2/Sqrt[5];
 Attributes[Cos] = {Listable, NumericFunction, Protected};
 
 Tan::usage = "`Tan[x]` is the tangent of `x`.";

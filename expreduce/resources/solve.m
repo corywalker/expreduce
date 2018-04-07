@@ -280,7 +280,7 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected, fullSimplified, poly}
    fullSimplified = eqn // FullSimplify;
    If[fullSimplified =!= eqn, Return[Solve[fullSimplified, var]]];
 
-   Print["Solve found no solutions"];
+   Print["Solve found no solutions for ", eqn, " for ", var];
    SolveFailed
    ];
 solveMultOrdered[eqns_List, vars_List] := 
