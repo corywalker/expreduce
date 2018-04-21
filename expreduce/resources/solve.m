@@ -394,6 +394,50 @@ Tests`Solve = {
         ESameTest[{}, Solve[x^(1/2) == -2, x]],
         (* Probably needs solution checking for this to work. *)
         ESameTest[{}, Solve[x^(1/4) == -2, x]],
+
+        (* From Sympy. *)
+        ESameTest[{}, Solve[False, x]],
+        ESameTest[{}, Solve[False, x]],
+        ESameTest[{}, Solve[False, x]],
+        ESameTest[{{}}, Solve[{}, x]],
+        ESameTest[{{x -> 0}}, Solve[x == 0, x]],
+        ESameTest[{{x -> 0}}, Solve[x == 0, x]],
+        ESameTest[{}, Solve[1 + x^(1/2) == 0, x]],
+        ESameTest[{{x -> 0}}, Solve[2*x == 0, x]],
+        ESameTest[{}, Solve[x^2 + -Pi == 0, pi]],
+        ESameTest[{{y -> 3}}, Solve[-3 + y == 0, y]],
+        ESameTest[{{x -> -a}}, Solve[a + x == 0, x]],
+        ESameTest[{{x -> -1}}, Solve[y + x*y == 0, x]],
+        ESameTest[{{x -> 16}}, Solve[-2 + x^(1/4) == 0, x]],
+        ESameTest[{{x -> 27}}, Solve[-3 + x^(1/3) == 0, x]],
+        ESameTest[{{x -> 4}}, Solve[-2 + x^(1/2) == 0, x]],
+        ESameTest[{{x -> 1}}, Solve[-1 + x^(1/2) == 0, x]],
+        ESameTest[{{x -> 2/3}}, Solve[-2 + 3*x == 0, x]],
+        ESameTest[{{x -> 2/3}}, Solve[-2 + 3*x == 0, x]],
+        ESameTest[{}, Solve[1 + x^(1/3) + x^(1/2) == 0, x]],
+        ESameTest[{{x -> -2}, {x -> 2}}, Solve[-4 + x^2 == 0, x]],
+        ESameTest[{{x -> -2}, {x -> 2}}, Solve[-4 + x^2 == 0, x]],
+        ESameTest[{{x -> -1}, {x -> 1}}, Solve[-1 + x^2 == 0, x]],
+        ESameTest[{{x -> -1}, {x -> 1}}, Solve[-1 + x^2 == 0, x]],
+        ESameTest[{{x -> -1}, {x -> 1}}, Solve[-1 + x^2 == 0, x]],
+        ESameTest[{{x -> y^3}}, Solve[x + -y^3 == 0, x]],
+        ESameTest[{{x -> -ProductLog[-1]}}, Solve[x + -E^x == 0, x]],
+        ESameTest[{{x -> 0}, {x -> 27}}, Solve[x*(-3 + x^(1/3)) == 0, x]],
+        ESameTest[{{x -> -2^(1/4)}}, Solve[2^(1/4) + x == 0, x]],
+        ESameTest[{{x -> -2^(1/2)}}, Solve[2^(1/2) + x == 0, x]],
+        ESameTest[{{x -> (0 + -1*I)}, {x -> (0 + 1*I)}}, Solve[1 + x^2 == 0, x]],
+        ESameTest[{{x -> -y*E^((-1)*y)}}, Solve[y + x*E^y == 0, x]],
+        ESameTest[{{x -> 0}, {x -> 1}}, Solve[4*x*(1 + -x^(1/2)) == 0, x]],
+        ESameTest[{{x -> (a^(-1)*y)^(b^(-1))}}, Solve[a*x^b + -y == 0, x]],
+        ESameTest[{{x -> 0}, {x -> a^(-2)}}, Solve[4*x*(1 + -a*x^(1/2)) == 0, x]],
+        ESameTest[{{x -> ConditionalExpression[(0 + 1*I)*Pi + (0 + 2*I)*Pi*C[1], Element[C[1], Integers]]}}, Solve[1 + E^x == 0, x]],
+        ESameTest[{{x -> y^3}}, Solve[y^(-2)*(1 + -y^2)^(-1/2)*(x + -y^3) == 0, x]],
+        ESameTest[{{x -> y^3}}, Solve[y^(-2)*(1 + -y^2)^(-1/2)*(x + -y^3) == 0, x]],
+        ESameTest[{{x -> ConditionalExpression[(0 + 2*I)*Pi*C[1]*Log[3]^(-1) + Log[3]^(-1)*Log[10], Element[C[1], Integers]]}}, Solve[-10 + 3^x == 0, x]],
+        ESameTest[{{x -> ConditionalExpression[(0 + 2*I)*Pi*C[1]*Log[3]^(-1) + Log[3]^(-1)*Log[10], Element[C[1], Integers]]}}, Solve[10 + -3^x == 0, x]],
+        ESameTest[{{y -> x^(1/3)}, {y -> -(-1)^(1/3)*x^(1/3)}, {y -> (-1)^(2/3)*x^(1/3)}}, Solve[x + -y^3 == 0, y]],
+        ESameTest[{{x -> ConditionalExpression[-ArcCos[(1/2)*y] + 2*Pi*C[1], Element[C[1], Integers]]}, {x -> ConditionalExpression[ArcCos[(1/2)*y] + 2*Pi*C[1], Element[C[1], Integers]]}}, Solve[-y + 2*Cos[x] == 0, x]],
+        ESameTest[{{x -> -(1 + -a^(1/2))^(1/2)}, {x -> (1 + -a^(1/2))^(1/2)}, {x -> -(1 + a^(1/2))^(1/2)}, {x -> (1 + a^(1/2))^(1/2)}}, Solve[-a + (-1 + x^2)^2 == 0, x]],
     ], EKnownFailures[
         ESameTest[{{x->-2 I},{x->-2 I-2 y}}//normSol, Solve[Abs[x+2I+y]==y,x]//normSol],
     ],
@@ -412,6 +456,9 @@ ExpreduceTestSolve[fn_] := Module[{testproblems, testi, runSolveTest, testp, res
         res = Solve[testp[[1]], testp[[2]]] // Timing;
         isCorrect = res[[2]] === testp[[3]];
         Print[{testp[[1]], testp[[2]], testp[[3]], res[[2]], res[[1]], isCorrect}];
+        If[isCorrect, Print[
+            blaESameTest[testp[[3]], blaSolve[testp[[1]], testp[[2]]]]
+        ]];
         If[isCorrect, nCorrect++];
     );
 
