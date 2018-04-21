@@ -1161,7 +1161,7 @@ func resourcesSolveM() (*asset, error) {
 		return nil, err
 	}
 
-	info := bindataFileInfo{name: "resources/solve.m", size: 23742, mode: os.FileMode(420), modTime: time.Unix(1524345277, 0)}
+	info := bindataFileInfo{name: "resources/solve.m", size: 23742, mode: os.FileMode(420), modTime: time.Unix(1524352163, 0)}
 	a := &asset{bytes: bytes, info: info}
 	return a, nil
 }
