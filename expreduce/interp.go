@@ -3,7 +3,7 @@ package expreduce
 import (
 	"bytes"
 	"fmt"
-	"github.com/corywalker/wl-1"
+	"github.com/cznic/wl"
 	"go/token"
 	"log"
 	"math/big"
