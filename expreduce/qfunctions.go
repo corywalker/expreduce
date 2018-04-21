@@ -58,12 +58,10 @@ func numberQ(e Ex) bool {
 	if ok {
 		return true
 	}
-	// This currently causes ((0 + 1*I)*Private`a + (0 + -1*I)*Private`a) to
-	// segfault.
-	/*_, ok = e.(*Complex)
+	_, ok = e.(*Complex)
 	if ok {
 		return true
-	}*/
+	}
 	return false
 }
 

@@ -4,6 +4,7 @@ import "fmt"
 import "math/big"
 import "bytes"
 import "hash/fnv"
+import "strings"
 
 // Floating point numbers represented by big.Float
 type Flt struct {
@@ -51,7 +52,9 @@ func (this *Flt) IsEqual(other Ex, cl *CASLogger) string {
 		}
 		return "EQUAL_UNK"
 	}
-	if this.Val.Cmp(otherConv.Val) != 0 {
+	thisStr := fmt.Sprintf("%.14g", this.Val)
+	otherStr := fmt.Sprintf("%.14g", otherConv.Val)
+	if strings.Compare(thisStr, otherStr) != 0 {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"

@@ -45,6 +45,7 @@ Power[b_?NumberQ, -Infinity] := Which[
     True,
     UnexpectedInfinitePowerBase
 ];
+Power[b_Integer, Rational[n_, d_]] := b^((n-Mod[n,d])/d) * b^(Mod[n,d]/d) /; Or[n > d, -n > d];
 Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)
 (*Distribute any kind of power for numeric values in Times:*)
@@ -57,9 +58,6 @@ Power[Rational[a_,b_], -1] := Rational[b,a];
 Power[Rational[a_,b_], e_Integer?Positive] := Rational[a^e,b^e];
 Power[-1, -1/2] := -I;
 Power[-1, 1/2] := I;
-4^(-1/2) := 1/2;
-16^(-1/2) := 1/4;
-16^(1/2) := 4;
 Power[Rational[a_?Positive,b_?Positive], 1/2] := Power[a, 1/2] * Power[b, -1/2];
 Power[Power[x_, y_Rational], -1] := Power[x, -y];
 (*We may want to deprecate this in favor of the general definition.*)
@@ -69,6 +67,13 @@ Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   2, -1,
   3, -I];
 Complex[re_,im_]^n_Integer := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
+Complex[re_,im_]^n_Real := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
+Power[ComplexInfinity+_, -1] := 0;
+_^ComplexInfinity := Indeterminate;
+(*TODO(corywalker): Remove this as there should be a more general version.*)
+E^pow_Real := N[E]^pow;
+E^(Log[a_]+rest___) := a * E^rest;
+E^Log[a_] := a;
 Attributes[Power] = {Listable, NumericFunction, OneIdentity, Protected};
 Tests`Power = {
     ESimpleExamples[
@@ -167,13 +172,49 @@ Tests`Power = {
         ESameTest[ComplexInfinity, (-2)^(Infinity)],
         ESameTest[Indeterminate, (-1)^(Infinity)],
         ESameTest[Indeterminate, (1)^(Infinity)],
-        ESameTest[Indeterminate, (d)^(Infinity)]
+        ESameTest[Indeterminate, (d)^(Infinity)],
+
+        (* Test nth-root algorithm. *)
+        ESameTest[2, 16^(1/4)],
+        ESameTest[2., 16^(1/4.)],
+        ESameTest[True, Head[101^(1/2)]=!=Integer],
+        ESameTest[True, Head[99^(1/2)]=!=Integer],
+        ESameTest[0, 0^(1/2)],
+        ESameTest[8, 2^3],
+        ESameTest[0, 0^(1/3)],
+        ESameTest[0, 0^(1/4)],
+        ESameTest[2, 8^(1/3)],
+        ESameTest[Power, 7^(1/3)//Head],
+        ESameTest[Power, 9^(1/3)//Head],
+        ESameTest[1/2, 16^(-1/4)],
+        ESameTest[ComplexInfinity, 0^(-1/3)],
+        ESameTest[ComplexInfinity, 0^(-1/2)],
+        ESameTest[1/3, 27^(-1/3)],
+        ESameTest[Power, 7^(-1/3)//Head],
+        ESameTest[Power, 9^(-1/3)//Head],
+        ESameTest[27, 9^(3/2)],
+        ESameTest[1/27, 9^(-3/2)],
+
+        (* Test simplifying radicals *)
+        ESameTest[4 2^(1/3), (128)^(1/3)],
+        ESameTest[4 (-2)^(1/3), (-128)^(1/3)],
+        ESameTest[15 7^(2/3) 57^(1/3), 9426375^(1/3)],
+        ESameTest[15 7^(2/3) 57^(1/3), 9426375^(1/3)],
+        ESameTest[3 3^(1/3), (3^4)^(1/3)],
+        ESameTest[3 3^(1/3), (3)^(4/3)],
+        ESameTest[15 7^(2/3) 57^(1/3), (3^(4/3)*5^(3/3)*7^(2/3)*19^(1/3))],
+        ESameTest[15 7^(2/3) 57^(1/3), 5*3^(4/3)*7^(2/3)*19^(1/3)],
+        ESameTest[3 3^(1/3), 3^(4/3)],
+        ESameTest[3 3^(1/3), 3^(4/3)],
+        ESameTest[a^(4/3), a^(4/3)],
+        ESameTest[-(-1)^(1/3), (-1)^(4/3)],
+        ESameTest[(-1)^(2/3), (-1)^(-4/3)],
+        ESameTest[-(I/2), (-4)^(-1/2)],
+        ESameTest[Indeterminate, (-1)^(-1/0)],
+        ESameTest[1., (-1.)^0.5 // Im],
     ], EKnownFailures[
-        (*Fix these when I have Abs functionality*)
-        EStringTest["2.975379863266329e+1589", "39^999."],
-        EStringTest["3.360915398890324e-1590", "39^-999."],
-        EStringTest["1.9950631168791027e+3010", ".5^-10000."],
-        EStringTest["1.9950631168791027e+3010", ".5^-10000"]
+        ESameTest[(3+I Sqrt[29]) E^(-((2 I \[Pi])/3)), ((3 + I*Sqrt[29])^3)^(1/3)],
+        ESameTest[{{-5,1/5^(1/3)},{-4,1/2^(2/3)},{-3,1/3^(1/3)},{-2,1/2^(1/3)},{-1,1},{0,ComplexInfinity},{1,-(-1)^(2/3)},{2,-((-1)^(2/3)/2^(1/3))},{3,-((-1)^(2/3)/3^(1/3))},{4,-(-(1/2))^(2/3)},{5,-((-1)^(2/3)/5^(1/3))}}, Table[{n, (-n)^(-1/3)}, {n, -5, 5}] // Quiet],
     ]
 };
 
@@ -241,12 +282,13 @@ genExpand[addends_List, exponents_List] :=
  Plus@@Table[(Multinomial @@ exponents[[ExpandUnique`i]])*
    genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, 
    Length[exponents]}];
+expandRules := {
+  s_Plus^n_Integer?Positive :> 
+    genExpand[List @@ s, possibleExponents[n, Length[s]]],
+  c_*s_Plus :> ((c*#) &) /@ s
+};
 Expand::usage = "`Expand[expr]` attempts to expand `expr`.";
-Expand[a_] := a //. {
-    s_Plus^n_Integer?Positive :> 
-     genExpand[List @@ s, possibleExponents[n, Length[s]]],
-    c_*s_Plus :> ((c*#) &) /@ s
-    };
+Expand[a_] := a //. expandRules;
 Expand[a_, x_] := (Print["Expand does not support second argument."];Expand[a]);
 Attributes[Expand] = {Protected};
 Tests`Expand = {
@@ -259,7 +301,8 @@ Tests`Expand = {
         ESameTest[1/d + (2 a)/d + a^2/d + b/d + c/d, Expand[((a + 1)^2 + b + c)/d]],
         ESameTest[2 + 2 a, 2*(a + 1) // Expand]
     ], ETests[
-        ESameTest[Null, ((60 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + a^5 + b^5 + c^5 + (5 * a * b^4) + (5 * a * c^4) + (5 * b * a^4) + (5 * b * c^4) + (5 * c * a^4) + (5 * c * b^4) + (10 * a^2 * b^3) + (10 * a^2 * c^3) + (10 * a^3 * b^2) + (10 * a^3 * c^2) + (10 * b^2 * c^3) + (10 * b^3 * c^2) + (20 * a * b * c^3) + (20 * a * c * b^3) + (20 * b * c * a^3));]
+        ESameTest[Null, ((60 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + (30 * c * a^2 * b^2) + a^5 + b^5 + c^5 + (5 * a * b^4) + (5 * a * c^4) + (5 * b * a^4) + (5 * b * c^4) + (5 * c * a^4) + (5 * c * b^4) + (10 * a^2 * b^3) + (10 * a^2 * c^3) + (10 * a^3 * b^2) + (10 * a^3 * c^2) + (10 * b^2 * c^3) + (10 * b^3 * c^2) + (20 * a * b * c^3) + (20 * a * c * b^3) + (20 * b * c * a^3));],
+        ESameTest[1/3, ((1+I Sqrt[3]) (1/(2 2^(1/3))-(I Sqrt[3])/(2 2^(1/3))))/(3 2^(2/3))//Expand],
     ]
 };
 
@@ -782,7 +825,8 @@ PowerExpand[exp_] := exp //. {
   Log[x_^k_]:>k Log[x],
   Sqrt[-a_]:>I*Sqrt[a],
   Sqrt[a_^2]:>a,
-  Sqrt[a_/b_]:>Sqrt[a]/Sqrt[b]
+  Sqrt[a_/b_]:>Sqrt[a]/Sqrt[b],
+  (a_^b_Integer)^c_Rational:>a^(b*c)
 };
 Attributes[PowerExpand] = {Protected};
 Tests`PowerExpand = {
@@ -790,5 +834,33 @@ Tests`PowerExpand = {
         EComment["`PowerExpand` can expand nested log expressions:"],
         ESameTest[Log[a] + e (Log[b] + d Log[c]), PowerExpand[Log[a (b c^d)^e]]],
         ESameTest[{I Sqrt[a],a,Sqrt[a]/Sqrt[b]}, {Sqrt[-a],Sqrt[a^2],Sqrt[a/b]}//PowerExpand]
+    ]
+};
+
+Arg::usage = "`Arg[x]` computes the argument of `x`.";
+Attributes[Arg] = {Listable, NumericFunction, Protected};
+Arg[a_?NumberQ] := ArcTan[Re[a], Im[a]];
+
+ComplexExpand::usage = "`ComplexExpand[e]` returns a complex expansion of `e`.";
+Attributes[ComplexExpand] = {Protected};
+complexExpandInner[e_] := e;
+complexExpandInner[(a_Integer?Negative)^b_Rational] := 
+  Module[{coeff, inner},
+   coeff = ((a^2)^(b/2));
+   inner = b*Arg[a];
+   coeff*Cos[inner] + I*coeff*Sin[inner]];
+ComplexExpand[exp_] := 
+  Map[complexExpandInner, exp, {0, Infinity}] // Expand;
+Tests`ComplexExpand = {
+    ESimpleExamples[
+        ESameTest[a, ComplexExpand[a]],
+        ESameTest[1, ComplexExpand[1]],
+        ESameTest[a b+a c, ComplexExpand[a*(b+c)]],
+        ESameTest[1/2+(I Sqrt[3])/2, ComplexExpand[(-1)^(1/3)]],
+        ESameTest[-(1/2)-(I Sqrt[3])/2, ComplexExpand[(-1)^(4/3)]],
+        ESameTest[2 2^(1/3), ComplexExpand[(2)^(4/3)]],
+        ESameTest[-1+I Sqrt[3], ComplexExpand[(-1)^(1/3) (1+I Sqrt[3])]],
+    ], EKnownFailures[
+        ESameTest[-2^(1/3)-I 2^(1/3) Sqrt[3], ComplexExpand[(-2)^(4/3)]],
     ]
 };

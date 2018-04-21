@@ -9,11 +9,14 @@ Sin[I*a_] := I*Sinh[a];
 Sin[(-5/2)*Pi] := -1;
 Sin[(-3/2)*Pi] := 1;
 Sin[(-1/2)*Pi] := -1;
+Sin[(-1/3)*Pi] := -(Sqrt[3]/2);
+Sin[(1/3)*Pi] := Sqrt[3]/2;
 Sin[(1/2)*Pi] := 1;
 Sin[(3/2)*Pi] := -1;
 Sin[(5/2)*Pi] := 1;
 Sin[Indeterminate] := Indeterminate;
 Sin[ArcSin[a_]] := a;
+Sin[ArcTan[1/2]] := 1/Sqrt[5];
 Attributes[Sin] = {Listable, NumericFunction, Protected};
 
 Cos::usage = "`Cos[x]` is the cosine of `x`.";
@@ -24,6 +27,8 @@ Cos[n_Integer?OddQ*Pi] := -1;
 Cos[(-5/2)*Pi] := 0;
 Cos[(-3/2)*Pi] := 0;
 Cos[(-1/2)*Pi] := 0;
+Cos[(-1/3)*Pi] := 1/2;
+Cos[(1/3)*Pi] := 1/2;
 Cos[(1/2)*Pi] := 0;
 Cos[(3/2)*Pi] := 0;
 Cos[(5/2)*Pi] := 0;
@@ -33,6 +38,7 @@ Cos[x_Integer?Negative] := Cos[-x];
 Cos[inner : Verbatim[Plus][Repeated[_*I]]] := Cosh[-I*inner // Distribute]
 Cos[Indeterminate] := Indeterminate;
 Cos[ArcCos[a_]] := a;
+Cos[ArcTan[1/2]] := 2/Sqrt[5];
 Attributes[Cos] = {Listable, NumericFunction, Protected};
 
 Tan::usage = "`Tan[x]` is the tangent of `x`.";
@@ -59,9 +65,15 @@ Attributes[ArcSin] = {Listable, NumericFunction, Protected, ReadProtected};
 
 Attributes[ArcCos] = {Listable, NumericFunction, Protected, ReadProtected};
 
-ArcTan[0,y_] := Which[
-    y > 0, Pi/2,
-    y < 0, -Pi/2,
+ArcTan[-1] := -Pi/4;
+ArcTan[0] := 0;
+ArcTan[1] := Pi/4;
+ArcTan[x_,y_] := Which[
+    x > 0, ArcTan[y/x],
+    x < 0 && y >= 0, ArcTan[y/x] + Pi,
+    x < 0 && y < 0, ArcTan[y/x] - Pi,
+    x == 0 && y > 0, Pi/2,
+    x == 0 && y < 0, -Pi/2,
     True, Indeterminate];
 Attributes[ArcTan] = {Listable, NumericFunction, Protected, ReadProtected};
 

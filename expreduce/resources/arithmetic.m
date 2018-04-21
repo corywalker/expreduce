@@ -112,9 +112,21 @@ Tests`Sum = {
 };
 
 Times::usage = "`(e1 * e2 * ...)` computes the product of all expressions in the function.";
-Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end;
+(* This is likely the most compute-intensive rule in the system. Modify with
+care. *)
+Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end /; (!NumberQ[a] || !NumberQ[m] || !NumberQ[n]);
+(*Verbatim[Times][a_Integer, mid___, b_Integer^n_, end___] := mid*-(b^(n+1))*end /; (a == -b);*)
+a_Integer^c_Rational*b_Integer^c_Rational*rest___ := (a*b)^c*rest;
+(*Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end;*)
+Verbatim[Times][Rational[1, a_Integer], inner___, a_Integer^n_, end___] := inner*a^(n-1)*end;
 Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;
 Times[ComplexInfinity, rest___] := ComplexInfinity;
+a_Integer?Negative^b_Rational*c_Integer^d_Rational*rest___ := (-1)^b*rest /; (a == -c && b == -d);
+Verbatim[Times][beg___, a_Integer^m_Rational, a_Integer^n_Rational, end___] := beg*a^(m+n)*end;
+Times[c : (Rational[_Integer, d_Integer] | 
+     Complex[_Integer, Rational[_Integer, d_Integer]]), 
+  Power[a_Integer, Rational[1, r_Integer]], rest___] :=
+ Times[c*a, a^(1/r - 1), rest] /; (Mod[d, a] === 0 && a > 1)
 Sin[x_]*Cos[x_]^(-1)*rest___ := Tan[x]*rest;
 Cos[x_]*Sin[x_]^(-1)*rest___ := Cot[x]*rest;
 Attributes[Times] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected};
@@ -176,7 +188,29 @@ Tests`Times = {
         ESameTest[a^(2-c), a^2/a^c],
         ESameTest[m^2, m*m],
         ESameTest[1, m/m],
-        ESameTest[1, m^2/m^2]
+        ESameTest[1, m^2/m^2],
+        ESameTest[Times[Power[2,Rational[-1,2]],a], (1/2)*a*2^(1/2)],
+
+        (*Conversion of exact numeric functions to reals*)
+        ESameTest[True, MatchQ[Sqrt[2*Pi]*.1, _Real]],
+
+        ESameTest[(-1)^(1/3) a b c, (-2)^(1/3)*2^(-1/3)*a*b*c],
+        ESameTest[1/12, (1/12)*2^(-2/3)*2^(2/3)],
+        ESameTest[I/(4 Sqrt[3]), (0+I/12) Sqrt[3]],
+        (* 1/12*Sqrt[3]===1/12*3^(1/2)===12^-1*3^(1/2)===(2*2*3)^-1*3^(1/2)===(2*2)^-1*3^-1*3^(1/2)===(2*2)^-1*3^(1/2-1)===1/4*3^(-1/2)===1/(4 Sqrt[3]) *)
+        ESameTest[1/(4 Sqrt[3]), 1/12*Sqrt[3]],
+        ESameTest[-(I/(4 Sqrt[3])), (0-I/4) 1/Sqrt[3]],
+        ESameTest[-(1/(4 Sqrt[3])), Times[-1/12,Sqrt[3]]],
+        ESameTest[-(5/(4 Sqrt[3])), Times[-5/12,Sqrt[3]]],
+        ESameTest[(3+I/4)/Sqrt[3], Times[1+1/12 I,Sqrt[3]]],
+        ESameTest[(I Sqrt[3])/4, Times[3/12 I,Sqrt[3]]],
+        ESameTest[-(I/(2 Sqrt[3])), Times[-2/12 I,Sqrt[3]]],
+        ESameTest[-(I/(2 Sqrt[3])), Times[2/-12 I,Sqrt[3]]],
+        ESameTest[(3+(5 I)/4)/Sqrt[3], Times[1+5/12 I,Sqrt[3]]],
+        ESameTest[I/(2 Sqrt[3] a^2), (0+1/6*I)*3^(1/2)*a^(-2)],
+    ], EKnownFailures[
+        ESameTest[-2^(1/3), (-2)*2^(-2/3)],
+        ESameTest[-2^(1+a), (-2)*2^(a)],
     ]
 };
 

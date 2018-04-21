@@ -15,6 +15,9 @@ Tests`NumericQ = {
     ]
 };
 Equal::usage = "`lhs == rhs` evaluates to True or False if equality or inequality is known.";
+(*TODO(corywalker): Ideally this should be handled in the core. Also should
+  support arbitrary number of arguments.*)
+Equal[a_?NumericQ, b_?NumericQ] := (a//N) == (b//N);
 Attributes[Equal] = {Protected};
 Tests`Equal = {
     ESimpleExamples[
@@ -72,7 +75,14 @@ Tests`Equal = {
         ESameTest[True, foo[x, y, 1] == foo[x, y, 1]],
         ESameTest[True, foo[x, y, 1.] == foo[x, y, 1]],
         ESameTest[True, Equal[test]],
-        ESameTest[True, Equal[]]
+        ESameTest[True, Equal[]],
+        ESameTest[False, (-1)^(1/6)==-I],
+        ESameTest[True, (-1)^(1/6)==(-1)^(1/6)//N],
+        ESameTest[True, (2^(-1/2)*E^((-1/2)*x^2)*Pi^(-1/2)/.x->(-Sqrt[2] Sqrt[Log[5 Sqrt[2/\[Pi]]]]//N))==.1],
+        ESameTest[True, 1.0000000000005==1.00000000000051],
+        ESameTest[False, 1.000000000005==1.0000000000051],
+        ESameTest[True, 100.00000000005==100.000000000051],
+        ESameTest[True, 1000000000000.5==1000000000000.51],
     ]
 };
 

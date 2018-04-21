@@ -34,6 +34,10 @@ func GetTrigDefinitions() (defs []Definition) {
 		legacyEvalFn: mathFnOneParam(math.Tan),
 	})
 	defs = append(defs, Definition{
+		Name:         "ArcTan",
+		legacyEvalFn: mathFnOneParam(math.Atan),
+	})
+	defs = append(defs, Definition{
 		Name:         "Cot",
 		legacyEvalFn: mathFnOneParam(func(x float64) float64 {return 1/math.Tan(x)}),
 	})

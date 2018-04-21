@@ -173,6 +173,7 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"atoms", getAtomsDefinitions()})
 	defs = append(defs, NamedDefSet{"functional", getFunctionalDefinitions()})
 	defs = append(defs, NamedDefSet{"expression", GetExpressionDefinitions()})
+	defs = append(defs, NamedDefSet{"equationdata", GetEquationDataDefinitions()})
 	defs = append(defs, NamedDefSet{"solve", GetSolveDefinitions()})
 	defs = append(defs, NamedDefSet{"flowcontrol", GetFlowControlDefinitions()})
 	defs = append(defs, NamedDefSet{"list", GetListDefinitions()})
@@ -192,6 +193,7 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"boolean", GetBooleanDefinitions()})
 	defs = append(defs, NamedDefSet{"simplify", GetSimplifyDefinitions()})
 	defs = append(defs, NamedDefSet{"numbertheory", GetNumberTheoryDefinitions()})
+	defs = append(defs, NamedDefSet{"stats", GetStatsDefinitions()})
 	defs = append(defs, NamedDefSet{"manip", GetManipDefinitions()})
 	defs = append(defs, NamedDefSet{"rubi", GetRubiDefinitions()})
 

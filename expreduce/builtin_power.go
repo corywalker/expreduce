@@ -21,6 +21,98 @@ func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(*Expre
 	})
 }
 
+// TODO: move to mathbigext.
+func NthRoot(x *big.Int, n *big.Int) *big.Int {
+	if x.Cmp(big.NewInt(0)) == 0 {
+		return big.NewInt(0)
+	}
+	// https://en.wikipedia.org/wiki/Nth_root_algorithm -
+	// math/big has this implemented for the sqrt case, but not
+	// for the nth-root case.
+	nMinusOne := big.NewInt(-1)
+	nMinusOne.Add(nMinusOne, n)
+
+	z1 := big.NewInt(2)
+	z2 := big.NewInt(1)
+	z1pow := big.NewInt(1)
+	z1mul := big.NewInt(1)
+	// Set z1 to a decent guess. Must be ≥ x^(1/n)
+	z1.Exp(z1, big.NewInt(int64(x.BitLen())/2+1), nil)
+	for {
+		// x->A, z1->x_k, z2->x_{k+1}
+		z1pow.Exp(z1, nMinusOne, nil)
+		z1mul.Mul(z1, nMinusOne)
+		z2 = z2.Quo(x, z1pow)
+		z2 = z2.Add(z2, z1mul)
+		z2 = z2.Div(z2, n)
+		if z2.Cmp(z1) >= 0 {
+			// z1 might be answer. Check first.
+			z2.Exp(z1, n, nil)
+			if z2.Cmp(x) == 0 {
+				return z1
+			}
+			return nil
+		}
+		z1, z2 = z2, z1
+	}
+}
+
+func extractPower(x *big.Int, r *Rational) Ex {
+	talliedFactors := primeFactorsTallied(x)
+	hasPowerAtLeastTwo := false
+	for _, tf := range talliedFactors {
+		if tf.power > 1 {
+			hasPowerAtLeastTwo = true
+			break
+		}
+	}
+	if !hasPowerAtLeastTwo {
+		return nil
+	}
+	bases := make(map[uint64]*big.Int)
+	for _, tf := range talliedFactors {
+		base, hasVal := bases[tf.power]
+		if !hasVal {
+			bases[tf.power] = tf.factor
+		} else {
+			base.Mul(base, tf.factor)
+		}
+	}
+	toReturn := E(S("Times"))
+	for power, base := range bases {
+		bigPower := big.NewInt(0)
+		bigPower.SetUint64(power)
+		thisR := r.DeepCopy().(*Rational)
+		thisR.MulBigI(bigPower)
+		thisR.needsEval = true
+		toReturn.appendEx(E(
+			S("Power"),
+			NewInteger(base),
+			thisR,
+		))
+	}
+	return toReturn
+}
+
+func RadSimp(radicand *big.Int, index *big.Int) (*big.Int, *big.Int) {
+	i := big.NewInt(2)
+	pow := big.NewInt(0)
+	mod := big.NewInt(0)
+	div := big.NewInt(0)
+	for true {
+		pow.Exp(i, index, nil)
+		mod.Mod(radicand, pow)
+		cmpRes := mod.Cmp(big.NewInt(0))
+		if cmpRes == 0 {
+			div = div.Div(radicand, pow)
+			return i, div
+		} else if cmpRes > 0 {
+			break
+		}
+	}
+	return nil, nil
+}
+
 func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Power",
@@ -33,13 +125,12 @@ func GetPowerDefinitions() (defs []Definition) {
 				return this
 			}
 
-			// TODO: Handle cases like float raised to the float and things raised to
-			// zero and 1
-
 			baseInt, baseIsInt := this.Parts[1].(*Integer)
 			powerInt, powerIsInt := this.Parts[2].(*Integer)
 			baseFlt, baseIsFlt := this.Parts[1].(*Flt)
 			powerFlt, powerIsFlt := this.Parts[2].(*Flt)
+			//baseRat, baseIsRat := this.Parts[1].(*Rational)
+			powerRat, powerIsRat := this.Parts[2].(*Rational)
 			// Anything raised to the 1st power is itself
 			if powerIsFlt {
 				if powerFlt.Val.Cmp(big.NewFloat(1)) == 0 {
@@ -81,8 +172,52 @@ func GetPowerDefinitions() (defs []Definition) {
 						return NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
 					}
 				}
-				// Return unevaluated due to lack of complex number support.
-				return this
+				// TODO(corywalker): Optimize this logic. There should be no
+				// need for Eval-ing expressions. Simply use numerics built-in
+				// to Go.
+				// a^b
+				// coeff := ((a^2)^(b/2)) 
+
+				// Precompute shared values.
+				coeff := E(
+					S("Power"),
+					E(
+						S("Power"),
+						baseFlt.DeepCopy(),
+						NewInt(2),
+					),
+					E(
+						S("Times"),
+						powerFlt.DeepCopy(),
+						NewRational(big.NewInt(1), big.NewInt(2)),
+					),
+				).Eval(es).(*Flt)
+				// inner := b Arg[a]
+				inner := E(
+					S("Times"),
+					powerFlt.DeepCopy(),
+					E(
+						S("Arg"),
+						baseFlt.DeepCopy(),
+					),
+				).Eval(es).(*Flt)
+				re := E(
+					S("Times"),
+					coeff.DeepCopy(),
+					E(
+						S("Cos"),
+						inner.DeepCopy(),
+					),
+				).Eval(es).(*Flt)
+				im := E(
+					S("Times"),
+					coeff.DeepCopy(),
+					E(
+						S("Sin"),
+						inner.DeepCopy(),
+					),
+				).Eval(es).(*Flt)
+				return NewComplex(re, im)
 			}
 
 			//es.Debugf("Power eval. baseIsInt=%v, powerIsInt=%v", baseIsInt, powerIsInt)
@@ -120,6 +255,52 @@ func GetPowerDefinitions() (defs []Definition) {
 			}
 			if baseIsFlt && powerIsFlt {
 				return NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
+			}
+			if baseIsInt && powerIsRat {
+				x := baseInt.Val
+				n := powerRat.Den
+				m := powerRat.Num
+				xPositivity := x.Cmp(big.NewInt(0))
+				nPositivity := n.Cmp(big.NewInt(0))
+				mPositivity := m.Cmp(big.NewInt(0))
+				if xPositivity >= 0 &&
+				   nPositivity == 1 {
+					root := NthRoot(x, n)
+					if root != nil {
+						if m.Cmp(big.NewInt(1)) == 0 {
+							return NewInteger(root)
+						}
+						return E(S("Power"), NewInteger(root), NewInteger(m))
+					}
+					powerExtracted := extractPower(x, powerRat)
+					if powerExtracted != nil {
+						return powerExtracted
+					}
+				}
+				if nPositivity == 1 {
+					absX := big.NewInt(0)
+					absX.Abs(x)
+					extracted, radicand := RadSimp(absX, n)
+					if extracted != nil {
+						if xPositivity == -1 {
+							radicand.Neg(radicand)
+						}
+						var coeff Ex = NewInteger(extracted)
+						if mPositivity == -1 {
+							coeff = NewRational(big.NewInt(1), extracted)
+						}
+						return E(
+							S("Times"),
+							coeff,
+							E(
+								S("Power"),
+								NewInteger(radicand),
+								powerRat,
+							),
+						)
+					}
+				}
+				return this
 			}
 			return this
 		},
@@ -161,5 +342,7 @@ func GetPowerDefinitions() (defs []Definition) {
 		Name:              "Factor",
 		OmitDocumentation: true,
 	})
+	defs = append(defs, Definition{Name: "Arg"})
+	defs = append(defs, Definition{Name: "ComplexExpand"})
 	return
 }

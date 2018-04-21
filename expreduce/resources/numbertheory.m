@@ -154,6 +154,7 @@ FactorInteger[Rational[n_, d_]] :=
 FactorInteger[int_Integer?Negative] := DeleteCases[Prepend[FactorInteger[-int], {-1, 1}], {1,1}];
 FactorInteger[0] := {{0, 1}};
 (* TODO: use Pollard's rho algorithm. *)
+(* TODO: convert to using the internal primeFactorsTallied function *)
 
 FactorInteger[int_Integer?Positive] := Module[{n = int, i = 2, factors},
    If[n === 1, Return[{{1, 1}}]];
@@ -280,5 +281,31 @@ Tests`IntegerDigits = {
         ESameTest[{1, 2, 3}, IntegerDigits[123]],
         ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[123, 2]],
         ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[-123, 2]]
+    ]
+};
+
+Sign::usage = "`Sign[x]` returns the sign of `x`.";
+Sign[n_Integer] := Which[
+  n < 0, -1,
+  n > 0, 1,
+  True, 0];
+Sign[n_Real] := Which[
+  n < 0, -1,
+  n > 0, 1,
+  True, 0];
+Sign[n_Rational] := Which[
+  n < 0, -1,
+  n > 0, 1,
+  True, 0];
+Attributes[Sign] = {Listable, NumericFunction, Protected, ReadProtected};
+Tests`Sign = {
+    ESimpleExamples[
+        ESameTest[1, Sign[5]],
+        ESameTest[0, Sign[0]],
+        ESameTest[-1, Sign[-5]],
+        ESameTest[1, Sign[5.]],
+        ESameTest[0, Sign[0.]],
+        ESameTest[-1, Sign[-5.]],
+        ESameTest[1, Sign[1/2]],
     ]
 };

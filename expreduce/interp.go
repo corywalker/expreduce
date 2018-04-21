@@ -3,7 +3,7 @@ package expreduce
 import (
 	"bytes"
 	"fmt"
-	"github.com/cznic/wl"
+	"github.com/corywalker/wl-1"
 	"go/token"
 	"log"
 	"math/big"
@@ -445,6 +445,11 @@ func ParserExprConv(expr *wl.Expression) Ex {
 				NewSymbol("System`Derivative"),
 				NewInt(1),
 			}),
+			ParserExprConv(expr.Expression),
+		})
+	case 11:
+		return NewExpression([]Ex{
+			NewSymbol("System`Sqrt"),
 			ParserExprConv(expr.Expression),
 		})
 	}
