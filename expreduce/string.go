@@ -1,7 +1,7 @@
 package expreduce
 
 import "bytes"
-import "github.com/corywalker/wl"
+import "github.com/corywalker/wl-1"
 
 type ToStringParams struct {
 	form         string
