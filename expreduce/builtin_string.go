@@ -20,7 +20,14 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			context, contextPath := ActualStringFormArgs(es)
-			return NewString(this.Parts[1].StringForm(ToStringParams{form: formAsSymbol.Name[7:], context: context, contextPath: contextPath, previousHead: "<TOPLEVEL>"}))
+			stringParams := ToStringParams{
+				form: formAsSymbol.Name[7:],
+				context: context,
+				contextPath: contextPath,
+				previousHead: "<TOPLEVEL>",
+				es: es,
+			}
+			return NewString(this.Parts[1].StringForm(stringParams))
 		},
 	})
 	defs = append(defs, Definition{

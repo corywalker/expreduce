@@ -30,7 +30,8 @@ func (this *Complex) StringForm(p ToStringParams) string {
 
 func (this *Complex) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
+	return this.StringForm(ToStringParams{
+		form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *Complex) IsEqual(other Ex, cl *CASLogger) string {

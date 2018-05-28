@@ -322,21 +322,26 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "Definition",
 		OmitDocumentation: true,
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
-				return this
+				return false, ""
+			}
+			if params.form != "InputForm" && params.form != "OutputForm" {
+				return false, ""
 			}
 
 			sym, ok := this.Parts[1].(*Symbol)
 			if !ok {
-				return this
+				return false, ""
 			}
-			def, isd := es.defined[sym.Name]
+			def, isd := params.es.defined[sym.Name]
 			if !isd {
-				return NewSymbol("System`Null")
+				return true, "Null"
 			}
-			context, contextPath := DefinitionComplexityStringFormArgs()
-			return NewExpression([]Ex{NewSymbol("System`Error"), NewString(def.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath}))})
+			stringParams := params
+			stringParams.context, stringParams.contextPath =
+				DefinitionComplexityStringFormArgs()
+			return true, def.StringForm(stringParams)
 		},
 	})
 	defs = append(defs, Definition{

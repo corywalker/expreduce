@@ -8,6 +8,8 @@ type ToStringParams struct {
 	context      *String
 	contextPath  *Expression
 	previousHead string
+	// Used by Definition[]
+	es           *EvalState
 }
 
 func needsParens(thisHead string, previousHead string) bool {
@@ -40,12 +42,8 @@ func ToStringInfix(parts []Ex, delim string, thisHead string, p ToStringParams) 
 	if addParens {
 		buffer.WriteString("(")
 	}
-	nextParams := ToStringParams{
-		form:         p.form,
-		context:      p.context,
-		contextPath:  p.contextPath,
-		previousHead: thisHead,
-	}
+	nextParams := p
+	nextParams.previousHead = thisHead
 	for i := 0; i < len(parts); i++ {
 		buffer.WriteString(parts[i].StringForm(nextParams))
 		if i != len(parts)-1 {
@@ -85,12 +83,8 @@ func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEa
 	if !surroundEachArg {
 		buffer.WriteString(start)
 	}
-	nextParams := ToStringParams{
-		form:         params.form,
-		context:      params.context,
-		contextPath:  params.contextPath,
-		previousHead: thisHead,
-	}
+	nextParams := params
+	nextParams.previousHead = thisHead
 	for i := 0; i < len(parts); i++ {
 		if surroundEachArg {
 			buffer.WriteString("(")
@@ -139,6 +133,7 @@ func ActualStringFormArgsFull(form string, es *EvalState) ToStringParams {
 		context:      NewString(es.GetStringDef("System`$Context", "Global`")),
 		contextPath:  es.GetListDef("System`$ContextPath"),
 		previousHead: "<TOPLEVEL>",
+		es: es,
 	}
 
 }

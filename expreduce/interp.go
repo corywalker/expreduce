@@ -535,5 +535,11 @@ func ReadList(doc string, fn string, es *EvalState) Ex {
 
 func EasyRun(src string, es *EvalState) string {
 	context, contextPath := ActualStringFormArgs(es)
-	return EvalInterp(src, es).StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
+	stringParams := ToStringParams{
+		form: "InputForm",
+		context: context,
+		contextPath: contextPath,
+		es: es,
+	}
+	return EvalInterp(src, es).StringForm(stringParams)
 }

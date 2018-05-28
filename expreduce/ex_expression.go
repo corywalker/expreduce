@@ -455,7 +455,8 @@ func (this *Expression) StringForm(params ToStringParams) string {
 
 func (this *Expression) String() string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
+	return this.StringForm(ToStringParams{
+		form: "InputForm", context: context, contextPath: contextPath})
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
