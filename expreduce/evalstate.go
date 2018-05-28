@@ -1,12 +1,10 @@
 package expreduce
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"sort"
 	"strings"
 	"time"
 )
@@ -538,30 +536,6 @@ func (this *EvalState) Clear(name string) {
 
 func (this *EvalState) GetDefinedSnapshot() map[string]Def {
 	return CopyDefs(this.defined)
-}
-
-func (this *EvalState) String() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	// We sort the keys here such that converting identical EvalStates always
-	// produces the same string.
-	keys := []string{}
-	for k := range this.defined {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		v := this.defined[k]
-		buffer.WriteString(k)
-		buffer.WriteString(": ")
-		buffer.WriteString(v.String())
-		buffer.WriteString(", ")
-	}
-	if strings.HasSuffix(buffer.String(), ", ") {
-		buffer.Truncate(buffer.Len() - 2)
-	}
-	buffer.WriteString("}")
-	return buffer.String()
 }
 
 func (this *EvalState) IsFrozen() bool {

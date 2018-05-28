@@ -68,6 +68,7 @@ func (this *Expression) ToStringInfix(p ToStringParams) (bool, string) {
 	return ToStringInfix(expr.Parts[1:], delim.Val, "", p)
 }
 
+// TODO(corywalker): Remove start, end. No users of these values.
 func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params ToStringParams) (bool, string) {
 	if params.form != "InputForm" && params.form != "OutputForm" {
 		return false, ""

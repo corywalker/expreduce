@@ -248,6 +248,14 @@ func (this *Attributes) toStrings() []string {
 	return strings
 }
 
+func (this *Attributes) toSymList() *Expression {
+	toReturn := E(S("List"))
+	for _, s := range this.toStrings() {
+		toReturn.appendEx(S(s))
+	}
+	return toReturn
+}
+
 func (this *Symbol) NeedsEval() bool {
 	return false
 }

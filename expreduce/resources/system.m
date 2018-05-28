@@ -322,3 +322,6 @@ Attributes[Sow] = {Protected};
 
 Reap::usage = "`Reap[expr]` returns the result of `expr` and a list of all the sown values during evaluation.";
 Attributes[Reap] = {HoldFirst, Protected};
+
+Definition::usage = "`Definition[sym]` renders the attributes, downvalues, and default value of `sym`.";
+Attributes[Definition] = {HoldAll, Protected};
