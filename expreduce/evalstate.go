@@ -134,6 +134,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`Complex")
 		es.MarkSeen("System`Integers")
 		es.MarkSeen("System`Break")
+		es.MarkSeen("System`LongForm")
 
 		es.MarkSeen("System`Exp")
 		es.MarkSeen("System`AppellF1")

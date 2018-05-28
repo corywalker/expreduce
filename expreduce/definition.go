@@ -68,5 +68,5 @@ func (def *Def) StringForm(defSym *Symbol, params ToStringParams) string {
 		)
 		buffer = append(buffer, e.StringForm(params))
 	}
-	return strings.Join(buffer[:], "\n")
+	return strings.Join(buffer[:], "\n\n")
 }

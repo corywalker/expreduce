@@ -330,6 +330,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return false, ""
 			}
+			if params.es == nil {
+				return true, "Definiton[<WITHOUT_CONTEXT>]"
+			}
 			def, isd := params.es.defined[sym.Name]
 			if !isd {
 				return true, "Null"
@@ -519,8 +522,16 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
+			context, contextPath := ActualStringFormArgs(es)
+			stringParams := ToStringParams{
+				form: "OutputForm",
+				context: context,
+				contextPath: contextPath,
+				previousHead: "<TOPLEVEL>",
+				es: es,
+			}
 			for i := 1; i < len(this.Parts); i++ {
-				fmt.Printf("%s", this.Parts[i].String())
+				fmt.Printf("%s", this.Parts[i].StringForm(stringParams))
 			}
 			fmt.Printf("\n")
 			return NewSymbol("System`Null")
@@ -784,5 +795,6 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name: "Defer",
 		OmitDocumentation: true,
 	})
+	defs = append(defs, Definition{Name: "Information"})
 	return
 }
