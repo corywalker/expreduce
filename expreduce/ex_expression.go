@@ -435,6 +435,15 @@ func (this *Expression) StringForm(params ToStringParams) string {
 		}
 	}
 
+	if len(this.Parts) == 2 && isHeadSym && (
+		headAsSym.Name == "System`InputForm" ||
+		headAsSym.Name == "System`FullForm" ||
+		headAsSym.Name == "System`OutputForm") {
+		mutatedParams := params
+		mutatedParams.form = headAsSym.Name[7:]
+		return this.Parts[1].StringForm(mutatedParams)
+	}
+
 	// Default printing format
 	var buffer bytes.Buffer
 	buffer.WriteString(this.Parts[0].StringForm(params))
