@@ -463,6 +463,18 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			ParserTagConv(expr.Tag),
 			E(S("Rule"), S("LongForm"), S("False")),
 		)
+	case 145:
+		if expr.Token.Val == "%" {
+			return E(
+				S("Out"),
+				E(S("Plus"), S("$Line"), NewInt(-1)),
+			)
+		} else if expr.Token.Val == "%%" {
+			return E(
+				S("Out"),
+				E(S("Plus"), S("$Line"), NewInt(-2)),
+			)
+		}
 	}
 	log.Fatalf("System`UnParsed: %+v %+v %+v", expr.Token, expr.Case, expr)
 	return nil
