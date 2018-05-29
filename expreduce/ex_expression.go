@@ -438,6 +438,8 @@ func (this *Expression) StringForm(params ToStringParams) string {
 	if len(this.Parts) == 2 && isHeadSym && (
 		headAsSym.Name == "System`InputForm" ||
 		headAsSym.Name == "System`FullForm" ||
+		headAsSym.Name == "System`TraditionalForm" ||
+		headAsSym.Name == "System`StandardForm" ||
 		headAsSym.Name == "System`OutputForm") {
 		mutatedParams := params
 		mutatedParams.form = headAsSym.Name[7:]

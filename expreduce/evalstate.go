@@ -90,6 +90,8 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`InputForm")
 		es.MarkSeen("System`OutputForm")
 		es.MarkSeen("System`FullForm")
+		es.MarkSeen("System`TraditionalForm")
+		es.MarkSeen("System`StandardForm")
 
 		es.MarkSeen("System`ESimpleExamples")
 		es.MarkSeen("System`EFurtherExamples")

@@ -12,7 +12,9 @@ func (this *String) Eval(es *EvalState) Ex {
 }
 
 func (this *String) StringForm(params ToStringParams) string {
-	if params.form == "OutputForm" {
+	if (params.form == "OutputForm" ||
+		params.form == "TraditionalForm" ||
+		params.form == "StandardForm") {
 		return fmt.Sprintf("%v", this.Val)
 	}
 	return fmt.Sprintf("\"%v\"", this.Val)
