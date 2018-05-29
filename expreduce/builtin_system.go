@@ -341,6 +341,8 @@ func GetSystemDefinitions() (defs []Definition) {
 			stringParams.context, stringParams.contextPath =
 				DefinitionComplexityStringFormArgs()
 			stringParams.previousHead = "<TOPLEVEL>"
+			// To prevent things like "Definition[In]" from exploding:
+			stringParams.es = nil
 			return true, def.StringForm(sym, stringParams)
 		},
 	})
