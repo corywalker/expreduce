@@ -322,3 +322,17 @@ Attributes[Sow] = {Protected};
 
 Reap::usage = "`Reap[expr]` returns the result of `expr` and a list of all the sown values during evaluation.";
 Attributes[Reap] = {HoldFirst, Protected};
+
+Definition::usage = "`Definition[sym]` renders the attributes, downvalues, and default value of `sym`.";
+Attributes[Definition] = {HoldAll, Protected};
+
+Information::usage = "`Information[sym]` renders the usage, attributes, downvalues, and default value of `sym`.";
+Information[sym_Symbol, LongForm->useLongForm_] := (
+    Print[sym::usage];
+    If[useLongForm,
+        Print[""];
+        Print[Definition[sym]];
+    ];
+);
+Information[sym_Symbol] := Information[sym, LongForm->True];
+Attributes[Information] = {HoldAll, Protected, ReadProtected};

@@ -1,6 +1,6 @@
 package expreduce
 
-import "bytes"
+import "strings"
 
 type DownValue struct {
 	rule        *Expression
@@ -32,28 +32,41 @@ func CopyDefs(in map[string]Def) map[string]Def {
 	return out
 }
 
-func (this *Def) String() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	for i, dv := range this.downvalues {
-		buffer.WriteString(dv.rule.String())
-		if i != len(this.downvalues)-1 {
-			buffer.WriteString("\n")
-		}
-	}
-	buffer.WriteString("}")
-	return buffer.String()
-}
+func (def *Def) StringForm(defSym *Symbol, params ToStringParams) string {
+	var buffer []string
 
-func (def *Def) StringForm(params ToStringParams) string {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	for i, dv := range def.downvalues {
-		buffer.WriteString(dv.rule.StringForm(params))
-		if i != len(def.downvalues)-1 {
-			buffer.WriteString("\n")
-		}
+	attrs := def.attributes.toStrings()
+	if len(attrs) > 0 {
+		e := E(
+			S("Set"),
+			E(
+				S("Attributes"),
+				defSym,
+			),
+			def.attributes.toSymList(),
+		)
+		buffer = append(buffer, e.StringForm(params))
 	}
-	buffer.WriteString("}")
-	return buffer.String()
+
+	for _, dv := range def.downvalues {
+		e := E(
+			S("SetDelayed"),
+			dv.rule.Parts[1].(*Expression).Parts[1],
+			dv.rule.Parts[2],
+		)
+		buffer = append(buffer, e.StringForm(params))
+	}
+
+	if def.defaultExpr != nil {
+		e := E(
+			S("Set"),
+			E(
+				S("Default"),
+				defSym,
+			),
+			def.defaultExpr,
+		)
+		buffer = append(buffer, e.StringForm(params))
+	}
+	return strings.Join(buffer[:], "\n\n")
 }

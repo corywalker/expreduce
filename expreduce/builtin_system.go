@@ -277,14 +277,11 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			toReturn := NewExpression([]Ex{NewSymbol("System`List")})
 			def, isDef := es.defined[sym.Name]
 			if isDef {
-				for _, s := range def.attributes.toStrings() {
-					toReturn.Parts = append(toReturn.Parts, NewSymbol("System`"+s))
-				}
+				return def.attributes.toSymList()
 			}
-			return toReturn
+			return NewExpression([]Ex{NewSymbol("System`List")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -321,7 +318,6 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:              "Definition",
-		OmitDocumentation: true,
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
@@ -334,6 +330,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return false, ""
 			}
+			if params.es == nil {
+				return true, "Definiton[<WITHOUT_CONTEXT>]"
+			}
 			def, isd := params.es.defined[sym.Name]
 			if !isd {
 				return true, "Null"
@@ -341,7 +340,10 @@ func GetSystemDefinitions() (defs []Definition) {
 			stringParams := params
 			stringParams.context, stringParams.contextPath =
 				DefinitionComplexityStringFormArgs()
-			return true, def.StringForm(stringParams)
+			stringParams.previousHead = "<TOPLEVEL>"
+			// To prevent things like "Definition[In]" from exploding:
+			stringParams.es = nil
+			return true, def.StringForm(sym, stringParams)
 		},
 	})
 	defs = append(defs, Definition{
@@ -382,7 +384,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " = ", "System`Set", false, "(", ")", params)
+			return ToStringInfixAdvanced(this.Parts[1:], " = ", "System`Set", false, "", "", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
@@ -522,8 +524,16 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
+			context, contextPath := ActualStringFormArgs(es)
+			stringParams := ToStringParams{
+				form: "OutputForm",
+				context: context,
+				contextPath: contextPath,
+				previousHead: "<TOPLEVEL>",
+				es: es,
+			}
 			for i := 1; i < len(this.Parts); i++ {
-				fmt.Printf("%s", this.Parts[i].String())
+				fmt.Printf("%s", this.Parts[i].StringForm(stringParams))
 			}
 			fmt.Printf("\n")
 			return NewSymbol("System`Null")
@@ -787,5 +797,6 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name: "Defer",
 		OmitDocumentation: true,
 	})
+	defs = append(defs, Definition{Name: "Information"})
 	return
 }

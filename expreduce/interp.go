@@ -337,7 +337,7 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			e,
 			ParserExprConv(expr.Expression2),
 		})
-	case 140:
+	case wl.ExpressionMessageName:
 		return NewExpression([]Ex{
 			NewSymbol("System`MessageName"),
 			ParserTokenConv(expr.Token),
@@ -452,6 +452,29 @@ func ParserExprConv(expr *wl.Expression) Ex {
 			NewSymbol("System`Sqrt"),
 			ParserExprConv(expr.Expression),
 		})
+	case wl.ExpressionInfo:
+		return E(
+			S("Information"),
+			ParserTagConv(expr.Tag),
+		)
+	case wl.ExpressionInfoShort:
+		return E(
+			S("Information"),
+			ParserTagConv(expr.Tag),
+			E(S("Rule"), S("LongForm"), S("False")),
+		)
+	case 145:
+		if expr.Token.Val == "%" {
+			return E(
+				S("Out"),
+				E(S("Plus"), S("$Line"), NewInt(-1)),
+			)
+		} else if expr.Token.Val == "%%" {
+			return E(
+				S("Out"),
+				E(S("Plus"), S("$Line"), NewInt(-2)),
+			)
+		}
 	}
 	log.Fatalf("System`UnParsed: %+v %+v %+v", expr.Token, expr.Case, expr)
 	return nil

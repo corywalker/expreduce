@@ -93,7 +93,7 @@ Tests`Unequal = {
         EComment["Expressions known to be unequal will evaluate to True:"],
         EStringTest["True", "9 != 8"],
         EComment["Sometimes expressions may or may not be unequal, or Expreduce does not know how to test for inequality. In these cases, the statement will remain unevaluated:"],
-        EStringTest["(9*x != 10*x)", "9*x != x*10"],
+        EStringTest["((9*x) != (10*x))", "9*x != x*10"],
         EComment["Unequal considers Integers and Reals that are close enough to be equal:"],
         EStringTest["5", "tmp=5"],
         EStringTest["False", "tmp != 5"],

@@ -67,6 +67,6 @@ func TestInterp(t *testing.T) {
 	// Test newline handling
 	assert.Equal(t, "CompoundExpression[a, b]", Interp("a;b\n", es).String())
 	//assert.Equal(t, "Sequence[a, b]", Interp("a\nb\n", es).String())
-	assert.Equal(t, "((c = a*b))", Interp("c = (a\nb)\n", es).String())
-	assert.Equal(t, "((c = a*b))", Interp("c = (a\n\nb)\n", es).String())
+	assert.Equal(t, "(c = a*b)", Interp("c = (a\nb)\n", es).String())
+	assert.Equal(t, "(c = a*b)", Interp("c = (a\n\nb)\n", es).String())
 }

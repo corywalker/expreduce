@@ -1,12 +1,10 @@
 package expreduce
 
 import (
-	"bytes"
 	"fmt"
 	"log"
 	"os"
 	"os/signal"
-	"sort"
 	"strings"
 	"time"
 )
@@ -92,6 +90,8 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`InputForm")
 		es.MarkSeen("System`OutputForm")
 		es.MarkSeen("System`FullForm")
+		es.MarkSeen("System`TraditionalForm")
+		es.MarkSeen("System`StandardForm")
 
 		es.MarkSeen("System`ESimpleExamples")
 		es.MarkSeen("System`EFurtherExamples")
@@ -131,11 +131,15 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`Temporary")
 		es.MarkSeen("System`Stub")
 		es.MarkSeen("System`$Failed")
+		es.MarkSeen("System`$Line")
 		es.MarkSeen("System`Null")
 		es.MarkSeen("System`C")
 		es.MarkSeen("System`Complex")
 		es.MarkSeen("System`Integers")
 		es.MarkSeen("System`Break")
+		es.MarkSeen("System`LongForm")
+		es.MarkSeen("System`In")
+		es.MarkSeen("System`Out")
 
 		es.MarkSeen("System`Exp")
 		es.MarkSeen("System`AppellF1")
@@ -540,30 +544,6 @@ func (this *EvalState) GetDefinedSnapshot() map[string]Def {
 	return CopyDefs(this.defined)
 }
 
-func (this *EvalState) String() string {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	// We sort the keys here such that converting identical EvalStates always
-	// produces the same string.
-	keys := []string{}
-	for k := range this.defined {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	for _, k := range keys {
-		v := this.defined[k]
-		buffer.WriteString(k)
-		buffer.WriteString(": ")
-		buffer.WriteString(v.String())
-		buffer.WriteString(", ")
-	}
-	if strings.HasSuffix(buffer.String(), ", ") {
-		buffer.Truncate(buffer.Len() - 2)
-	}
-	buffer.WriteString("}")
-	return buffer.String()
-}
-
 func (this *EvalState) IsFrozen() bool {
 	return this.freeze
 }
@@ -606,19 +586,24 @@ func (es *EvalState) HasThrown() bool {
 	return es.thrown != nil
 }
 
-func (es *EvalState) ProcessTopLevelResult(e Ex) Ex {
+func (es *EvalState) ProcessTopLevelResult(in Ex, out Ex) Ex {
+	theRes := out
 	if es.HasThrown() {
 		fmt.Printf("Throw::nocatch: %v returned to top level but uncaught.\n\n", es.thrown)
-		toReturn := NewExpression([]Ex{
+		theRes = NewExpression([]Ex{
 			NewSymbol("System`Hold"),
 			es.thrown,
 		})
 		// Clear exception
 		es.Throw(nil)
-		return toReturn
+	} else {
+		es.interrupted = false
 	}
-	es.interrupted = false
-	return e
+	thisLine, _ := es.GetSymDef("System`$Line")
+	E(S("SetDelayed"), E(S("In"), thisLine), in).Eval(es)
+	E(S("Set"), E(S("Out"), thisLine), theRes).Eval(es)
+	E(S("Increment"), S("$Line")).Eval(es)
+	return theRes
 }
 
 func maskNonConditional(e Ex) Ex {
