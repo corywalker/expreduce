@@ -15,10 +15,15 @@ import (
 var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var netprofile = flag.Bool("netprofile", false, "Enable live profiling at http://localhost:8080/debug/pprof/")
+var scriptfile = flag.String("script", "", "script `file` to read from")
+
+
+
 
 func main() {
 	flag.Parse()
-	if *cpuprofile != "" {
+
+ 	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
 			log.Fatal(err)
@@ -30,6 +35,21 @@ func main() {
 		go http.ListenAndServe(":8080", nil)
 	}
 
+	es := expreduce.NewEvalState()
+	if *debug {
+		es.NoInit = true
+		es.ClearAll()
+	}
+
+	if *scriptfile != "" {
+
+	}
+
+	interactiveSession(es)
+}
+
+
+func interactiveSession(es *expreduce.EvalState) {
 	rl, err := readline.NewEx(&readline.Config{
 		HistoryFile:         "/tmp/readline.tmp",
 		ForceUseInteractive: true,
@@ -38,12 +58,6 @@ func main() {
 		panic(err)
 	}
 	defer rl.Close()
-
-	es := expreduce.NewEvalState()
-	if *debug {
-		es.NoInit = true
-		es.ClearAll()
-	}
 
 	fmt.Printf("Welcome to Expreduce!\n\n")
 	promptNum := 1
