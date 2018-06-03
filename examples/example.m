@@ -5,3 +5,4 @@ Sum[i, {i, 1, n}]
 Together[(1/2 + 3/a)^2+b/c]
 40!
 Solve[x^2-x-2.5==0,x]
+Print["3+2 = ? (thats from Print[]): ", 3+2]
