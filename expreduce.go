@@ -62,7 +62,7 @@ func main() {
 func scriptSession(es *expreduce.EvalState, srcText string, srcPath string) {
 	exp := expreduce.EvalInterpMany(srcText, srcPath, es)
 	res := exp.Eval(es)
-	res = es.ProcessTopLevelResult(res)
+	res = es.ProcessTopLevelResult(res, res)
 
 
 }
