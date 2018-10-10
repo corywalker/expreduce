@@ -34,9 +34,9 @@ func (f *Flt) StringForm(params ToStringParams) string {
 	return buffer.String()
 }
 
-func (this *Flt) String() string {
+func (this *Flt) String(es *EvalState) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
 func (this *Flt) IsEqual(other Ex, cl *CASLogger) string {

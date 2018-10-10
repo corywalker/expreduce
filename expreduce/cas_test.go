@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"regexp"
 	"testing"
+	"sync"
 )
 
 var testmodules = flag.String("testmodules", "",
@@ -137,9 +138,9 @@ func TestLowLevel(t *testing.T) {
 
 	// Test basic float functionality
 	var f *Flt = NewReal(big.NewFloat(5.5))
-	assert.Equal(t, "5.5", f.String())
+	assert.Equal(t, "5.5", f.String(es))
 	f.Eval(es)
-	assert.Equal(t, "5.5", f.String())
+	assert.Equal(t, "5.5", f.String(es))
 
 	// Test nested addition functionality
 	var a = NewExpression([]Ex{
@@ -163,13 +164,13 @@ func TestLowLevel(t *testing.T) {
 
 	// Test evaluation
 	newa := a.Eval(es)
-	assert.Equal(t, "87.5", newa.String())
+	assert.Equal(t, "87.5", newa.String(es))
 
 	// Test basic Symbol functionality
 	var v *Symbol = NewSymbol("System`x")
-	assert.Equal(t, "x", v.String())
+	assert.Equal(t, "x", v.String(es))
 	v.Eval(es)
-	assert.Equal(t, "x", v.String())
+	assert.Equal(t, "x", v.String(es))
 
 	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
 	assert.Equal(t, "(a*b*c*d*e*f)", EasyRun("a * b * c *d *e *f", es))
@@ -189,6 +190,9 @@ func TestLowLevel(t *testing.T) {
 func TestDeepCopy(t *testing.T) {
 	fmt.Println("Testing deepcopy")
 
+	// So that we can print the values. Not very necessary.
+	es := NewEvalState()
+
 	// Test deepcopy
 	var t1 = NewSymbol("System`x")
 	t2 := *t1
@@ -205,12 +209,35 @@ func TestDeepCopy(t *testing.T) {
 	var t4 = NewReal(big.NewFloat(2))
 	t5 := *t4
 	t6 := t4.DeepCopy().(*Flt)
-	assert.Equal(t, "2.", t4.String())
-	assert.Equal(t, "2.", t5.String())
-	assert.Equal(t, "2.", t6.String())
+	assert.Equal(t, "2.", t4.String(es))
+	assert.Equal(t, "2.", t5.String(es))
+	assert.Equal(t, "2.", t6.String(es))
 	t5.Val.Add(t5.Val, big.NewFloat(2))
 	t6.Val.Add(t6.Val, big.NewFloat(3))
-	assert.Equal(t, "4.", t4.String()) // Because we used the wrong copy method
-	assert.Equal(t, "4.", t5.String())
-	assert.Equal(t, "5.", t6.String())
+	assert.Equal(t, "4.", t4.String(es)) // Because we used the wrong copy method
+	assert.Equal(t, "4.", t5.String(es))
+	assert.Equal(t, "5.", t6.String(es))
+}
+
+func TestConcurrency(t *testing.T) {
+
+	fmt.Println("Testing concurrency")
+
+	es1 := NewEvalState()
+	es2 := NewEvalState()
+
+	CasAssertSame(t, es1, "3", "1+2")
+	CasAssertSame(t, es2, "3", "1+2")
+
+	var wg sync.WaitGroup
+
+	for i := 0; i < 10; i++ {
+		wg.Add(1)
+		go func (t *testing.T) {
+			defer wg.Done()
+			esTest := NewEvalState()
+			CasAssertSame(t, esTest, "3", "1+2")
+		}(t)
+	}
+	wg.Wait()
 }

@@ -27,9 +27,9 @@ func (i *Integer) StringForm(params ToStringParams) string {
 	return fmt.Sprintf("%d", i.Val)
 }
 
-func (this *Integer) String() string {
+func (this *Integer) String(es *EvalState) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
 func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {

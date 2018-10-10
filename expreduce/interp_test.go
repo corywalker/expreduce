@@ -65,8 +65,8 @@ func TestInterp(t *testing.T) {
 	//CasAssertSame(t, es, "Plus[Times[2,a],Optional[Pattern[a,Blank[]],5]]", "a + a_ : 5 + a")
 
 	// Test newline handling
-	assert.Equal(t, "CompoundExpression[a, b]", Interp("a;b\n", es).String())
-	//assert.Equal(t, "Sequence[a, b]", Interp("a\nb\n", es).String())
-	assert.Equal(t, "(c = a*b)", Interp("c = (a\nb)\n", es).String())
-	assert.Equal(t, "(c = a*b)", Interp("c = (a\n\nb)\n", es).String())
+	assert.Equal(t, "CompoundExpression[a, b]", Interp("a;b\n", es).String(es))
+	//assert.Equal(t, "Sequence[a, b]", Interp("a\nb\n", es).String(es))
+	assert.Equal(t, "(c = a*b)", Interp("c = (a\nb)\n", es).String(es))
+	assert.Equal(t, "(c = a*b)", Interp("c = (a\n\nb)\n", es).String(es))
 }

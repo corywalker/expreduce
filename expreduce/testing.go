@@ -64,7 +64,7 @@ type SameTestEx struct {
 }
 
 func (this *SameTestEx) Run(t *testing.T, es *EvalState, td TestDesc) bool {
-	succ, s := CasTestInner(es, this.In.Eval(es), this.Out.Eval(es), this.In.String(), true, td.desc)
+	succ, s := CasTestInner(es, this.In.Eval(es), this.Out.Eval(es), this.In.String(es), true, td.desc)
 	assert.True(t, succ, s)
 	return succ
 }
@@ -81,13 +81,13 @@ func CasTestInner(es *EvalState, inTree Ex, outTree Ex, inStr string, test bool,
 	context, contextPath := DefinitionComplexityStringFormArgs()
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(inTree.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath}))
+	buffer.WriteString(inTree.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es}))
 	if test {
 		buffer.WriteString(") != (")
 	} else {
 		buffer.WriteString(") == (")
 	}
-	buffer.WriteString(outTree.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath}))
+	buffer.WriteString(outTree.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es}))
 	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
 	buffer.WriteString(inStr)

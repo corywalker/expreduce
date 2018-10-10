@@ -200,8 +200,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		currHeadStr := ""
 		started := int64(0)
 		if es.isProfiling {
-			currStr = curr.String()
-			currHeadStr = curr.Parts[0].String()
+			currStr = curr.String(es)
+			currHeadStr = curr.Parts[0].String(es)
 			started = time.Now().UnixNano()
 		}
 
@@ -426,7 +426,7 @@ func (this *Expression) StringForm(params ToStringParams) string {
 	if isHeadSym && !fullForm {
 		res, ok := "", false
 		headStr := headAsSym.Name
-		toStringFn, hasToStringFn := toStringFns[headStr]
+		toStringFn, hasToStringFn := params.es.toStringFns[headStr]
 		if hasToStringFn {
 			ok, res = toStringFn(this, params)
 		}
@@ -464,10 +464,10 @@ func (this *Expression) StringForm(params ToStringParams) string {
 	return buffer.String()
 }
 
-func (this *Expression) String() string {
+func (this *Expression) String(es *EvalState) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(ToStringParams{
-		form: "InputForm", context: context, contextPath: contextPath})
+		form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
 func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
