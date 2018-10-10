@@ -4,11 +4,11 @@ import (
 	"bytes"
 )
 
-func ExArrayToString(exArray []Ex) string {
+func ExArrayToString(exArray []Ex, es *EvalState) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range exArray {
-		buffer.WriteString(e.String())
+		buffer.WriteString(e.String(es))
 		if i != len(exArray)-1 {
 			buffer.WriteString(", ")
 		}
@@ -17,11 +17,11 @@ func ExArrayToString(exArray []Ex) string {
 	return buffer.String()
 }
 
-func PFArrayToString(pfArray []parsedForm) string {
+func PFArrayToString(pfArray []parsedForm, es *EvalState) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range pfArray {
-		buffer.WriteString(e.origForm.String())
+		buffer.WriteString(e.origForm.String(es))
 		if i != len(pfArray)-1 {
 			buffer.WriteString(", ")
 		}

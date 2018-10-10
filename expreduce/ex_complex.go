@@ -28,10 +28,10 @@ func (this *Complex) StringForm(p ToStringParams) string {
 	return fmt.Sprintf("(%v + %v*I)", this.Re.StringForm(p), this.Im.StringForm(p))
 }
 
-func (this *Complex) String() string {
+func (this *Complex) String(es *EvalState) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(ToStringParams{
-		form: "InputForm", context: context, contextPath: contextPath})
+		form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
 func (this *Complex) IsEqual(other Ex, cl *CASLogger) string {

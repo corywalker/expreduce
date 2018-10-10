@@ -50,9 +50,9 @@ func (this *Symbol) StringForm(params ToStringParams) string {
 	return fmt.Sprintf("%v", this.Name)
 }
 
-func (this *Symbol) String() string {
+func (this *Symbol) String(es *EvalState) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
 func (this *Symbol) IsEqual(other Ex, cl *CASLogger) string {

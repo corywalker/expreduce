@@ -49,7 +49,7 @@ func (this *PDManager) Len() int {
 	return len(this.patternDefined)
 }
 
-func (this *PDManager) String() string {
+func (this *PDManager) String(es *EvalState) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	// We sort the keys here such that converting identical PDManagers always
@@ -63,7 +63,7 @@ func (this *PDManager) String() string {
 		v := this.patternDefined[k]
 		buffer.WriteString(k)
 		buffer.WriteString("_: ")
-		buffer.WriteString(v.String())
+		buffer.WriteString(v.String(es))
 		buffer.WriteString(", ")
 	}
 	if strings.HasSuffix(buffer.String(), ", ") {

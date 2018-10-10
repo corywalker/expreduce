@@ -23,6 +23,7 @@ type EvalState struct {
 	thrown      *Expression
 	reapSown    *Expression
 	interrupted bool
+	toStringFns map[string]ToStringFnType
 }
 
 func (this *EvalState) Load(def Definition) {
@@ -58,8 +59,7 @@ func (this *EvalState) Load(def Definition) {
 		newDef.defaultExpr = Interp(def.Default, this)
 	}
 	if def.toString != nil {
-		// Global so that standard String() interface can access these
-		toStringFns[def.Name] = def.toString
+		this.toStringFns[def.Name] = def.toString
 	}
 	this.defined[def.Name] = newDef
 	EvalInterp("$Context = \"System`\"", this)
@@ -67,6 +67,7 @@ func (this *EvalState) Load(def Definition) {
 
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = make(map[string]Def)
+	es.toStringFns = make(map[string]ToStringFnType)
 	// These are fundamental symbols that affect even the parsing of
 	// expressions. We must define them before even the bootstrap definitions.
 	es.Define(NewSymbol("System`$Context"), NewString("System`"))
@@ -292,8 +293,8 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
 		if this.isProfiling {
-			defStr = def.String()
-			lhsDefStr = lhs.String() + defStr
+			defStr = def.String(this)
+			lhsDefStr = lhs.String(this) + defStr
 			started = time.Now().UnixNano()
 		}
 
@@ -381,7 +382,7 @@ func (this *EvalState) MarkSeen(name string) {
 
 // Attempts to compute a specificity metric for a rule. Higher specificity rules
 // should be tried first.
-func ruleSpecificity(lhs Ex, rhs Ex, name string) int {
+func ruleSpecificity(lhs Ex, rhs Ex, name string, es *EvalState) int {
 	if name == "Rubi`Int" {
 		return 100
 	}
@@ -404,7 +405,7 @@ func ruleSpecificity(lhs Ex, rhs Ex, name string) int {
 		contextPath: contextPath,
 		// No need for the EvalState reference. Used for string expansion for
 		// Definition[], which should not be in an actual definition.
-		es: nil,
+		es: es,
 	}
 	specificity := len(lhs.StringForm(stringParams))
 	if _, rhsIsCond := HeadAssertion(rhs, "System`Condition"); rhsIsCond {
@@ -499,13 +500,14 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	// Insert into definitions for name. Maintain order of decreasing
 	// complexity.
 	var tmp = this.defined[name]
-	newSpecificity := ruleSpecificity(heldLhs, rhs, name)
+	newSpecificity := ruleSpecificity(heldLhs, rhs, name, this)
 	for i, dv := range this.defined[name].downvalues {
 		if dv.specificity == 0 {
 			dv.specificity = ruleSpecificity(
 				dv.rule.Parts[1],
 				dv.rule.Parts[2],
 				name,
+				this,
 			)
 		}
 		if dv.specificity < newSpecificity {
