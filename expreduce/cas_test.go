@@ -231,6 +231,7 @@ func TestConcurrency(t *testing.T) {
 
 	var wg sync.WaitGroup
 
+	// Test concurrent evals on different EvalStates.
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
 		go func (t *testing.T) {
@@ -238,6 +239,26 @@ func TestConcurrency(t *testing.T) {
 			esTest := NewEvalState()
 			CasAssertSame(t, esTest, "3", "1+2")
 		}(t)
+	}
+	wg.Wait()
+
+	// Test read-only concurrent evals on the same EvalState.
+	for i := 0; i < 100; i++ {
+		wg.Add(1)
+		go func (t *testing.T, es *EvalState) {
+			defer wg.Done()
+			CasAssertSame(t, es, "2x", "D[x^2, x]")
+		}(t, es1)
+	}
+	wg.Wait()
+
+	// Test writing concurrent evals on the same EvalState.
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func (t *testing.T, i int, es *EvalState) {
+			defer wg.Done()
+			EvalInterp(fmt.Sprintf("testVar := %v", i), es)
+		}(t, i, es1)
 	}
 	wg.Wait()
 }
