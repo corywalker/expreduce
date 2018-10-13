@@ -8,12 +8,14 @@ import (
 	"log"
 	"os"
 	"bytes"
+	"bufio"
 	"runtime/pprof"
 	"net/http"
 	_ "net/http/pprof"
 )
 
 var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
+var rawterm = flag.Bool("rawterm", false, "Do not use readline. Useful for pexpect integration.")
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var netprofile = flag.Bool("netprofile", false, "Enable live profiling at http://localhost:8080/debug/pprof/")
 var scriptfile = flag.String("script", "", "script `file` to read from")
@@ -63,8 +65,6 @@ func scriptSession(es *expreduce.EvalState, srcText string, srcPath string) {
 	exp := expreduce.EvalInterpMany(srcText, srcPath, es)
 	res := exp.Eval(es)
 	res = es.ProcessTopLevelResult(res, res)
-
-
 }
 
 
@@ -81,8 +81,16 @@ func interactiveSession(es *expreduce.EvalState) {
 	fmt.Printf("Welcome to Expreduce!\n\n")
 	promptNum := 1
 	for {
-		rl.SetPrompt(fmt.Sprintf("In[%d]:= ", promptNum))
-		line, err := rl.Readline()
+		line := ""
+		var err error
+		if *rawterm {
+			reader := bufio.NewReader(os.Stdin)
+			fmt.Printf("In[%d]:= ", promptNum)
+			line, err = reader.ReadString('\n')
+		} else {
+			rl.SetPrompt(fmt.Sprintf("In[%d]:= ", promptNum))
+			line, err = rl.Readline()
+		}
 		if err != nil { // io.EOF, readline.ErrInterrupt
 			break
 		}
