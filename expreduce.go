@@ -19,6 +19,7 @@ var rawterm = flag.Bool("rawterm", false, "Do not use readline. Useful for pexpe
 var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var netprofile = flag.Bool("netprofile", false, "Enable live profiling at http://localhost:8080/debug/pprof/")
 var scriptfile = flag.String("script", "", "script `file` to read from")
+var initfile = flag.String("initfile", "", "A script to run on initialization.")
 
 
 
@@ -44,12 +45,25 @@ func main() {
 		es.ClearAll()
 	}
 
+	if *initfile != "" {
+		f, err := os.Open(*initfile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		buf := new(bytes.Buffer)
+		buf.ReadFrom(f)
+		scriptText := buf.String()
+		expreduce.EvalInterpMany(scriptText, *initfile, es)
+	}
+
 	if *scriptfile != "" {
 		f, err := os.Open(*scriptfile)
 		if err != nil {
 			log.Fatal(err)
 		}
-   		defer f.Close()
+		defer f.Close()
 
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(f)
