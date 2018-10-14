@@ -133,6 +133,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`Stub")
 		es.MarkSeen("System`$Failed")
 		es.MarkSeen("System`$Line")
+		es.MarkSeen("System`$PrePrint")
 		es.MarkSeen("System`Null")
 		es.MarkSeen("System`C")
 		es.MarkSeen("System`Complex")
@@ -605,6 +606,10 @@ func (es *EvalState) ProcessTopLevelResult(in Ex, out Ex) Ex {
 	E(S("SetDelayed"), E(S("In"), thisLine), in).Eval(es)
 	E(S("Set"), E(S("Out"), thisLine), theRes).Eval(es)
 	E(S("Increment"), S("$Line")).Eval(es)
+	prePrintFn, hasPrePrint := es.GetSymDef("System`$PrePrint")
+	if hasPrePrint {
+		theRes = E(prePrintFn, theRes).Eval(es)
+	}
 	return theRes
 }
 
