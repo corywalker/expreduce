@@ -15,7 +15,7 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			// Do not implement FullForm here. It is not officially supported
-			if formAsSymbol.Name != "System`InputForm" && formAsSymbol.Name != "System`OutputForm" && formAsSymbol.Name != "System`FullForm" {
+			if formAsSymbol.Name != "System`InputForm" && formAsSymbol.Name != "System`OutputForm" && formAsSymbol.Name != "System`FullForm" && formAsSymbol.Name != "System`TeXForm" {
 				return this
 			}
 

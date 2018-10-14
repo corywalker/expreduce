@@ -439,6 +439,7 @@ func (this *Expression) StringForm(params ToStringParams) string {
 		headAsSym.Name == "System`InputForm" ||
 		headAsSym.Name == "System`FullForm" ||
 		headAsSym.Name == "System`TraditionalForm" ||
+		headAsSym.Name == "System`TeXForm" ||
 		headAsSym.Name == "System`StandardForm" ||
 		headAsSym.Name == "System`OutputForm") {
 		mutatedParams := params
