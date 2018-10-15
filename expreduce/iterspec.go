@@ -211,6 +211,14 @@ func (this *multiIterSpec) defineCurrent(es *EvalState) {
 	}
 }
 
+func (this *multiIterSpec) currentPDManager() *PDManager {
+	pm := &PDManager{make(map[string]Ex)}
+	for i := range this.iSpecs {
+		pm.patternDefined[this.iSpecs[i].getIName()] = this.iSpecs[i].getCurr()
+	}
+	return pm
+}
+
 func (this *Expression) evalIterationFunc(es *EvalState, init Ex, op string) Ex {
 	if len(this.Parts) >= 3 {
 		mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])

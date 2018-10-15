@@ -56,6 +56,19 @@ Tests`Table = {
     ]
 };
 
+ParallelTable::usage = "`ParallelTable[expr, n]` returns a list with `n` copies of `expr`, evaluated in parallel.
+
+`ParallelTable[expr, {sym, n}]` returns a list with `expr` evaluated with `sym` = 1 to `n`, evaluated in parallel.
+
+`ParallelTable[expr, {sym, m, n}]` returns a list with `expr` evaluated with `sym` = `m` to `n`, evaluated in parallel.";
+ParallelTable[a_, b_Integer] := ParallelTable[a, {UniqueDefined`i, 1, b}];
+Attributes[ParallelTable] = {HoldAll, Protected};
+Tests`ParallelTable = {
+    ESimpleExamples[
+        ESameTest[{5, 6, 7, 8, 9, 10}, ParallelTable[i, {i, 5, 10}]],
+    ]
+};
+
 MemberQ::usage = "`MemberQ[expr, pat]` returns True if any of the elements in `expr` match `pat`, otherwise returns False.";
 Attributes[MemberQ] = {Protected};
 Tests`MemberQ = {
