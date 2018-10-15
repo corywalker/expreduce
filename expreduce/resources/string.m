@@ -4,11 +4,11 @@ Attributes[ToString] = {Protected};
 Tests`ToString = {
     ESimpleExamples[
         ESameTest["a^2", ToString[Global`a^2, InputForm]],
-        ESameTest["\sin (1)", ToString[Sin[1], TeXForm]],
+        ESameTest["\sin \\left(1\\right)", ToString[Sin[1], TeXForm]],
         ESameTest["Hello World", "Hello World" // ToString]
     ], ETests[
-        ESameTest["\sin ()", ToString[Sin[], TeXForm]],
-        ESameTest["\sin (1,2)", ToString[Sin[1, 2], TeXForm]],
+        ESameTest["\sin \\left(\\right)", ToString[Sin[], TeXForm]],
+        ESameTest["\sin \\left(1,2\\right)", ToString[Sin[1, 2], TeXForm]],
     ]
 };
 
