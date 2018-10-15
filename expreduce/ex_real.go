@@ -21,6 +21,9 @@ func (f *Flt) StringForm(params ToStringParams) string {
 	if f.Val.Cmp(big.NewFloat(0)) < 0 {
 		if needsParens("System`Times", params.previousHead) {
 			useParens = true
+			if params.form == "TeXForm" {
+				buffer.WriteString("{")
+			}
 			buffer.WriteString("(")
 		}
 	}
@@ -30,6 +33,9 @@ func (f *Flt) StringForm(params ToStringParams) string {
 	}
 	if useParens {
 		buffer.WriteString(")")
+		if params.form == "TeXForm" {
+			buffer.WriteString("}")
+		}
 	}
 	return buffer.String()
 }

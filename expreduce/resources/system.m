@@ -336,3 +336,7 @@ Information[sym_Symbol, LongForm->useLongForm_] := (
 );
 Information[sym_Symbol] := Information[sym, LongForm->True];
 Attributes[Information] = {HoldAll, Protected, ReadProtected};
+
+Attributes[OutputStream] = {Protected, ReadProtected};
+Attributes[WriteString] = {Protected};
+WriteString[OutputStream["stdout", 1], str_String] := Print[str];

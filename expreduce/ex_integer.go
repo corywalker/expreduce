@@ -21,6 +21,9 @@ func (f *Integer) Eval(es *EvalState) Ex {
 func (i *Integer) StringForm(params ToStringParams) string {
 	if i.Val.Cmp(big.NewInt(0)) < 0 {
 		if needsParens("System`Times", params.previousHead) {
+			if params.form == "TeXForm" {
+				return fmt.Sprintf("{(%d)}", i.Val)
+			}
 			return fmt.Sprintf("(%d)", i.Val)
 		}
 	}
