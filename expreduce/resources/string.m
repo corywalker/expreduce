@@ -4,7 +4,11 @@ Attributes[ToString] = {Protected};
 Tests`ToString = {
     ESimpleExamples[
         ESameTest["a^2", ToString[Global`a^2, InputForm]],
+        ESameTest["\sin (1)", ToString[Sin[1], TeXForm]],
         ESameTest["Hello World", "Hello World" // ToString]
+    ], ETests[
+        ESameTest["\sin ()", ToString[Sin[], TeXForm]],
+        ESameTest["\sin (1,2)", ToString[Sin[1, 2], TeXForm]],
     ]
 };
 
@@ -55,5 +59,25 @@ Tests`StringTake = {
         ESameTest["hello", StringTake["hello", {1, StringLength["hello"]}]],
         ESameTest["", StringTake["hello", {2, 1}]],
         ESameTest[StringTake["hello", {2, 999}], StringTake["hello", {2, 999}]]
+    ]
+};
+
+StringReplace::usage = "`StringReplace[str, before->after]` replaces any occurrence of `before` with `after` in `str`.";
+Attributes[StringReplace] = {Protected};
+Tests`StringReplace = {
+    ESimpleExamples[
+        ESameTest["hello foo", StringReplace["hello world", "world"->"foo"]],
+    ]
+};
+
+ExportString::usage = "`ExportString[str, \"format\"]` encodes `str` into \"format\".";
+Attributes[ExportString] = {ReadProtected, Protected};
+Tests`ExportString = {
+    ESimpleExamples[
+        ESameTest["SGVsbG8gV29ybGQ=\n", ExportString["Hello World","base64"]],
+    ], ETests[
+        ESameTest["SGVsbG8gV29ybGQ=\n", ExportString["Hello World","Base64"]],
+        ESameTest[ExportString["kdkfdf"], ExportString["kdkfdf"]],
+        ESameTest[$Failed, ExportString["kdkfdf", "jkfdfd"]],
     ]
 };

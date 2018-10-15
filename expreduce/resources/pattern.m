@@ -42,19 +42,21 @@ Tests`MatchQ = {
         ESameTest[True, MatchQ[bar[foo[a + b] + c + d, d, c, b, a], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]],
         ESameTest[False, MatchQ[bar[foo[a + b] + c + d, d, a, b, c], bar[w_ + x_ + foo[y_ + z_], w_, x_, y_, z_]]],
 
+        (* We disable the tests that use rm because they require the
+        freezeStateDuringPreMatch flag, which is now turned off by default. *)
          (*Test order of pattern checking*)
-        ESameTest[Null, rm[pattern_]:=pattern?((pats=Append[pats,{pattern[[1]],#}];True)&);],
+        (*ESameTest[Null, rm[pattern_]:=pattern?((pats=Append[pats,{pattern[[1]],#}];True)&);],
         ESameTest[True, pats={};MatchQ[foo[a,b,c],foo[x_//rm,y_//rm,z_//rm]]],
-        ESameTest[{{x,a},{y,b},{z,c}}, pats],
+        ESameTest[{{x,a},{y,b},{z,c}}, pats],*)
 
          (*Test pinning in flat*)
-        ESameTest[{{{a},{c}}}, pats={};ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]],
+        (*ESameTest[{{{a},{c}}}, pats={};ReplaceList[ExpreduceFlatFn[a,b,c],ExpreduceFlatFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]],
 
         ESameTest[{{{a,a,c}},{{a,a,c}},{{a,a,c}},{{a,a,c}}}, pats={};ReplaceList[ExpreduceFlOrOiFn[a,a,c],ExpreduceFlOrOiFn[b___//rm,c//rm,a___//rm]->{{a,b,c}}]],
-        ESameTest[{{{},{a,c}},{{a},{c}},{{c},{a}},{{a,c},{}}}, pats={};ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]],
+        ESameTest[{{{},{a,c}},{{a},{c}},{{c},{a}},{{a,c},{}}}, pats={};ReplaceList[ExpreduceOrderlessFn[a,b,c],ExpreduceOrderlessFn[x___//rm,b//rm,y___//rm]->{{x},{y}}]],*)
 
          (*Test pinning in orderless*)
-        ESameTest[{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}, pats],
+        (*ESameTest[{{b[[1]],b},{y,a},{y,c},{b[[1]],b},{x,a},{y,c},{b[[1]],b},{x,c},{y,a},{b[[1]],b},{x,a},{x,c}}, pats],*)
 
         ESameTest[True, MatchQ[(a+b)[testsym],Blank[(a+b)]]]
     ], EKnownFailures[

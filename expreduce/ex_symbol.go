@@ -104,16 +104,16 @@ type Attributes struct {
 	Stub            bool
 }
 
-func (this *Symbol) Attrs(dm *DefMap) Attributes {
-	def, isDef := (*dm)[this.Name]
+func (this *Symbol) Attrs(dm *definitionMap) Attributes {
+	def, isDef := (*dm).Get(this.Name)
 	if !isDef {
 		return Attributes{}
 	}
 	return def.attributes
 }
 
-func (this *Symbol) Default(dm *DefMap) Ex {
-	def, isDef := (*dm)[this.Name]
+func (this *Symbol) Default(dm *definitionMap) Ex {
+	def, isDef := (*dm).Get(this.Name)
 	if !isDef {
 		return nil
 	}

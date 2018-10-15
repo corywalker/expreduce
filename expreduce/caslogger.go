@@ -5,18 +5,19 @@ import (
 	"github.com/op/go-logging"
 	"os"
 	"runtime/debug"
+	"sync"
 )
 
 var format = logging.MustStringFormatter(
-	//`%{color}%{time:15:04:05.000} %{callpath} ▶ %{level:.4s} %{id:03x}%{color:reset} %{message}`,
 	`%{color}%{time:15:04:05.000} %{callpath} ▶ %{id:03x}%{color:reset} %{message}`,
 )
+var goLoggingMutex = &sync.Mutex{}
 
 type CASLogger struct {
-	_log        *logging.Logger
-	leveled     logging.LeveledBackend
-	debugState  bool
-	isProfiling bool
+	_log		*logging.Logger
+	leveled		logging.LeveledBackend
+	debugState	bool
+	isProfiling	bool
 }
 
 func (this *CASLogger) Debugf(fmt string, args ...interface{}) {
@@ -69,9 +70,13 @@ func (this *CASLogger) Pre() string {
 }
 
 func (this *CASLogger) SetUpLogging() {
+	// go-logging appears to not be thread safe, so we have a mutex when
+	// configuring the logging.
+	goLoggingMutex.Lock()
 	this._log = logging.MustGetLogger("example")
 	backend := logging.NewLogBackend(os.Stderr, "", 0)
 	formatter := logging.NewBackendFormatter(backend, format)
 	this.leveled = logging.AddModuleLevel(formatter)
 	logging.SetBackend(this.leveled)
+	goLoggingMutex.Unlock()
 }

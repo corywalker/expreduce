@@ -1,5 +1,10 @@
 package expreduce
 
+import (
+	"strings"
+	"encoding/base64"
+)
+
 func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ToString",
@@ -15,7 +20,7 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			// Do not implement FullForm here. It is not officially supported
-			if formAsSymbol.Name != "System`InputForm" && formAsSymbol.Name != "System`OutputForm" && formAsSymbol.Name != "System`FullForm" {
+			if formAsSymbol.Name != "System`InputForm" && formAsSymbol.Name != "System`OutputForm" && formAsSymbol.Name != "System`FullForm" && formAsSymbol.Name != "System`TeXForm" {
 				return this
 			}
 
@@ -92,6 +97,50 @@ func GetStringDefinitions() (defs []Definition) {
 				return NewString("")
 			}
 			return NewString(asStr.Val[s : e+1])
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "StringReplace",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			asStr, isStr := this.Parts[1].(*String)
+			if !isStr {
+				return this
+			}
+			asRule, isRule := HeadAssertion(this.Parts[2], "System`Rule")
+			if !isRule || len(asRule.Parts) != 3 {
+				return this
+			}
+			bStr, bIsStr := asRule.Parts[1].(*String)
+			aStr, aIsStr := asRule.Parts[2].(*String)
+			if !bIsStr || !aIsStr {
+				return this
+			}
+			return NewString(strings.Replace(asStr.Val, bStr.Val, aStr.Val, -1))
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "ExportString",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) != 3 {
+				return this
+			}
+			asStr, isStr := this.Parts[1].(*String)
+			if !isStr {
+				return this
+			}
+			formatAsStr, formatIsStr := this.Parts[2].(*String)
+			if !formatIsStr {
+				return this
+			}
+			format := strings.ToLower(formatAsStr.Val)
+			if format == "base64" {
+				encoded := base64.StdEncoding.EncodeToString([]byte(asStr.Val))
+				return NewString(encoded + "\n")
+			}
+			return NewSymbol("System`$Failed")
 		},
 	})
 	return

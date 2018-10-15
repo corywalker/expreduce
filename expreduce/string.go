@@ -138,3 +138,21 @@ func ActualStringFormArgsFull(form string, es *EvalState) ToStringParams {
 	}
 
 }
+
+func simpleTeXToString(fnName string) func(*Expression, ToStringParams) (bool, string) {
+	return (func(this *Expression, params ToStringParams) (bool, string) {
+		if params.form != "TeXForm" {
+			return false, ""
+		}
+		var buffer bytes.Buffer
+		buffer.WriteString("\\sin (")
+		for i := 1; i < len(this.Parts); i++ {
+			buffer.WriteString(this.Parts[i].StringForm(params))
+			if i != len(this.Parts)-1 {
+				buffer.WriteString(",")
+			}
+		}
+		buffer.WriteString(")")
+		return true, buffer.String()
+	})
+}

@@ -176,10 +176,10 @@ func TestLowLevel(t *testing.T) {
 	assert.Equal(t, "(a*b*c*d*e*f)", EasyRun("a * b * c *d *e *f", es))
 
 	CasAssertSame(t, es, "2", "iubjndxuier = 2")
-	_, containsTest := es.defined["Global`iubjndxuier"]
+	_, containsTest := es.defined.Get("Global`iubjndxuier")
 	assert.True(t, containsTest)
 	es.ClearAll()
-	_, containsTest = es.defined["Global`iubjndxuier"]
+	_, containsTest = es.defined.Get("Global`iubjndxuier")
 	assert.False(t, containsTest)
 
 	// Test raw recursion speed
@@ -258,6 +258,16 @@ func TestConcurrency(t *testing.T) {
 		go func (t *testing.T, i int, es *EvalState) {
 			defer wg.Done()
 			EvalInterp(fmt.Sprintf("testVar := %v", i), es)
+		}(t, i, es1)
+	}
+	wg.Wait()
+
+	// Test concurrent MarkSeen.
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func (t *testing.T, i int, es *EvalState) {
+			defer wg.Done()
+			es.MarkSeen("uniqueIdentifierForMarkSeen")
 		}(t, i, es1)
 	}
 	wg.Wait()

@@ -8,3 +8,11 @@ Tests`UnixTime = {
         ESameTest[Integer, UnixTime[] // Head]
     ]
 };
+
+Pause::usage = "`Pause[d]` sleeps for `d` seconds.";
+Attributes[Pause] = {Protected};
+Tests`Pause = {
+    ESimpleExamples[
+        EExampleOnlyInstruction["Null", "Pause[0.001]"],
+    ]
+};

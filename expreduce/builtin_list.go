@@ -3,6 +3,7 @@ package expreduce
 import "bytes"
 import "math/big"
 import "sort"
+import "sync"
 
 func (this *Expression) ToStringList(params ToStringParams) (bool, string) {
 	if params.form == "FullForm" {
@@ -197,6 +198,34 @@ func GetListDefinitions() (defs []Definition) {
 						mis.next()
 					}
 					mis.restoreVarSnapshot(es)
+					return toReturn
+				}
+			}
+			return this
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "ParallelTable",
+		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+			if len(this.Parts) >= 3 {
+				mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
+				if isOk {
+					// Simulate evaluation within Block[]
+					toReturn := NewExpression([]Ex{NewSymbol("System`List")})
+					for mis.cont() {
+						toReturn.Parts = append(toReturn.Parts, ReplacePD(this.Parts[1].DeepCopy(), es, mis.currentPDManager()))
+						es.Debugf("%v\n", toReturn)
+						mis.next()
+					}
+					var wg sync.WaitGroup
+					for i := 1; i < len(toReturn.Parts); i++ {
+						wg.Add(1)
+						go func (idx int) {
+							defer wg.Done()
+							toReturn.Parts[idx] = toReturn.Parts[idx].Eval(es)
+						}(i)
+					}
+					wg.Wait()
 					return toReturn
 				}
 			}

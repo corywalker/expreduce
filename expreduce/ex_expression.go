@@ -8,6 +8,7 @@ import "encoding/binary"
 import "time"
 import "flag"
 import "hash/fnv"
+import "sync/atomic"
 
 var printevals = flag.Bool("printevals", false, "")
 var checkhashes = flag.Bool("checkhashes", false, "")
@@ -307,10 +308,10 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			headStr := headSym.Name
 
 			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, *EvalState) Ex)(nil), false
-			if _, inDefined := es.defined[headStr]; inDefined {
-				if es.defined[headStr].legacyEvalFn != nil {
+			if _, inDefined := es.defined.Get(headStr); inDefined {
+				if es.defined.GetDef(headStr).legacyEvalFn != nil {
 					hasLegacyEvalFn = true
-					legacyEvalFn = es.defined[headStr].legacyEvalFn
+					legacyEvalFn = es.defined.GetDef(headStr).legacyEvalFn
 				}
 			}
 			unchanged := true
@@ -439,6 +440,7 @@ func (this *Expression) StringForm(params ToStringParams) string {
 		headAsSym.Name == "System`InputForm" ||
 		headAsSym.Name == "System`FullForm" ||
 		headAsSym.Name == "System`TraditionalForm" ||
+		headAsSym.Name == "System`TeXForm" ||
 		headAsSym.Name == "System`StandardForm" ||
 		headAsSym.Name == "System`OutputForm") {
 		mutatedParams := params
@@ -552,7 +554,7 @@ func (this *Expression) NeedsEval() bool {
 }
 
 func (this *Expression) Hash() uint64 {
-	if this.cachedHash > 0 {
+	if atomic.LoadUint64(&this.cachedHash) > 0 {
 		return this.cachedHash
 	}
 	h := fnv.New64a()
@@ -562,7 +564,7 @@ func (this *Expression) Hash() uint64 {
 		binary.LittleEndian.PutUint64(b, part.Hash())
 		h.Write(b)
 	}
-	this.cachedHash = h.Sum64()
+	atomic.StoreUint64(&this.cachedHash, h.Sum64())
 	return h.Sum64()
 }
 

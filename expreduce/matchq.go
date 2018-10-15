@@ -1,5 +1,15 @@
 package expreduce
 
+import "flag"
+
+var freezeStateDuringPreMatch = flag.Bool(
+	"freezeStateDuringPreMatch",
+	false,
+	"Freeze the EvalState when doing a prematch pattern build. It is very " +
+	"rare that this has any effect. We turn this feature off for better " +
+	"thread safety.",
+)
+
 const MaxUint = ^uint(0)
 const MaxInt = int(MaxUint >> 1)
 const MaxUint64 = ^uint64(0)
@@ -420,7 +430,9 @@ func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm,
 	nomi.es = es
 
 	origFrozen := es.IsFrozen()
-	es.SetFrozen(true)
+	if *freezeStateDuringPreMatch {
+		es.SetFrozen(true)
+	}
 	formMatches := make([][]bool, len(lhs_components))
 	for i, mustContain := range lhs_components {
 		// Right now I have this strange definition of "form". It's basically where I convert blank sequences to blanks at the bottom level. What if I did this at all levels and perhaps did something with patterns?
@@ -435,11 +447,15 @@ func NewSequenceMatchIterPreparsed(components []Ex, lhs_components []parsedForm,
 			formMatches[i][j] = matchq
 		}
 		if num_matches < mustContain.startI {
-			es.SetFrozen(origFrozen)
+			if *freezeStateDuringPreMatch {
+				es.SetFrozen(origFrozen)
+			}
 			return nomi, false
 		}
 	}
-	es.SetFrozen(origFrozen)
+	if *freezeStateDuringPreMatch {
+		es.SetFrozen(origFrozen)
+	}
 
 	nomi.ai = NewAssnIter(len(components), lhs_components, formMatches, isOrderless)
 
