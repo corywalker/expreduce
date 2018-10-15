@@ -261,4 +261,14 @@ func TestConcurrency(t *testing.T) {
 		}(t, i, es1)
 	}
 	wg.Wait()
+
+	// Test concurrent MarkSeen.
+	for i := 0; i < 1000; i++ {
+		wg.Add(1)
+		go func (t *testing.T, i int, es *EvalState) {
+			defer wg.Done()
+			es.MarkSeen("uniqueIdentifierForMarkSeen")
+		}(t, i, es1)
+	}
+	wg.Wait()
 }

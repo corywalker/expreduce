@@ -1,24 +1,29 @@
 package expreduce
 
-type definitionMapInternal map[string]Def
+import (
+	"github.com/orcaman/concurrent-map"
+)
 
 type definitionMap struct {
-	internalMap	definitionMapInternal
+	internalMap	cmap.ConcurrentMap
 }
 
 func newDefinitionMap() definitionMap {
 	var dm definitionMap
-	dm.internalMap = make(definitionMapInternal)
+	dm.internalMap = cmap.New()
 	return dm
 }
 
 func (dm definitionMap) Set(key string, value Def) {
-	dm.internalMap[key] = value
+	dm.internalMap.Set(key, value)
 }
 
 func (dm definitionMap) Get(key string) (Def, bool) {
-	value, ok := dm.internalMap[key]
-	return value, ok
+	if !dm.internalMap.Has(key) {
+		return Def{}, false
+	}
+	value, ok := dm.internalMap.Get(key)
+	return value.(Def), ok
 }
 
 func (dm definitionMap) GetDef(key string) Def {
@@ -31,7 +36,8 @@ func (dm definitionMap) GetDef(key string) Def {
 
 func (dm definitionMap) CopyDefs() definitionMap {
 	out := newDefinitionMap()
-	for k, v := range dm.internalMap {
+	for mapTuple := range dm.internalMap.IterBuffered() {
+		k, v := mapTuple.Key, mapTuple.Val.(Def)
 		newDef := Def{}
 		for _, dv := range v.downvalues {
 			newDv := DownValue{
