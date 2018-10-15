@@ -798,5 +798,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{Name: "Information"})
+	defs = append(defs, Definition{Name: "OutputStream"})
+	defs = append(defs, Definition{Name: "WriteString"})
 	return
 }
