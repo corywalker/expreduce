@@ -34,6 +34,16 @@ func (dm definitionMap) GetDef(key string) Def {
 	return value
 }
 
+func (dm definitionMap) LockKey(key string) {
+	shard := dm.internalMap.GetShard(key)
+	shard.Lock()
+}
+
+func (dm definitionMap) UnlockKey(key string) {
+	shard := dm.internalMap.GetShard(key)
+	shard.Unlock()
+}
+
 func (dm definitionMap) CopyDefs() definitionMap {
 	out := newDefinitionMap()
 	for mapTuple := range dm.internalMap.IterBuffered() {

@@ -488,12 +488,15 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 		existingRule := dv.rule
 		existingLhs := existingRule.Parts[1]
 		if IsSameQ(existingLhs, heldLhs, &this.CASLogger) {
+			this.defined.LockKey(name)
 			existingRhsCond := maskNonConditional(existingRule.Parts[2])
 			newRhsCond := maskNonConditional(rhs)
 			if IsSameQ(existingRhsCond, newRhsCond, &this.CASLogger) {
 				dv.rule.Parts[2] = rhs
+				this.defined.UnlockKey(name)
 				return
 			}
+			this.defined.UnlockKey(name)
 		}
 	}
 

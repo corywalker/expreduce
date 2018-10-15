@@ -8,6 +8,7 @@ import "encoding/binary"
 import "time"
 import "flag"
 import "hash/fnv"
+import "sync/atomic"
 
 var printevals = flag.Bool("printevals", false, "")
 var checkhashes = flag.Bool("checkhashes", false, "")
@@ -553,7 +554,7 @@ func (this *Expression) NeedsEval() bool {
 }
 
 func (this *Expression) Hash() uint64 {
-	if this.cachedHash > 0 {
+	if atomic.LoadUint64(&this.cachedHash) > 0 {
 		return this.cachedHash
 	}
 	h := fnv.New64a()
@@ -563,7 +564,7 @@ func (this *Expression) Hash() uint64 {
 		binary.LittleEndian.PutUint64(b, part.Hash())
 		h.Write(b)
 	}
-	this.cachedHash = h.Sum64()
+	atomic.StoreUint64(&this.cachedHash, h.Sum64())
 	return h.Sum64()
 }
 
