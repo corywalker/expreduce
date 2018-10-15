@@ -16,6 +16,7 @@ go_import_path: github.com/corywalker/expreduce
 
 script:
   - go test -v ./...
+  - go test -v -race ./... -run Concurrency
 
 after_success:
   - test -n "$TRAVIS_TAG" && curl -sL https://git.io/goreleaser | bash
