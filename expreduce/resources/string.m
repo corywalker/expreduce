@@ -61,3 +61,23 @@ Tests`StringTake = {
         ESameTest[StringTake["hello", {2, 999}], StringTake["hello", {2, 999}]]
     ]
 };
+
+StringReplace::usage = "`StringReplace[str, before->after]` replaces any occurrence of `before` with `after` in `str`.";
+Attributes[StringReplace] = {Protected};
+Tests`StringReplace = {
+    ESimpleExamples[
+        ESameTest["hello foo", StringReplace["hello world", "world"->"foo"]],
+    ]
+};
+
+ExportString::usage = "`ExportString[str, \"format\"]` encodes `str` into \"format\".";
+Attributes[ExportString] = {ReadProtected, Protected};
+Tests`ExportString = {
+    ESimpleExamples[
+        ESameTest["SGVsbG8gV29ybGQ=\n", ExportString["Hello World","base64"]],
+    ], ETests[
+        ESameTest["SGVsbG8gV29ybGQ=\n", ExportString["Hello World","Base64"]],
+        ESameTest[ExportString["kdkfdf"], ExportString["kdkfdf"]],
+        ESameTest[$Failed, ExportString["kdkfdf", "jkfdfd"]],
+    ]
+};

@@ -607,11 +607,11 @@ func (es *EvalState) ProcessTopLevelResult(in Ex, out Ex) Ex {
 	thisLine, _ := es.GetSymDef("System`$Line")
 	E(S("SetDelayed"), E(S("In"), thisLine), in).Eval(es)
 	E(S("Set"), E(S("Out"), thisLine), theRes).Eval(es)
-	E(S("Increment"), S("$Line")).Eval(es)
 	prePrintFn, hasPrePrint := es.GetSymDef("System`$PrePrint")
 	if hasPrePrint {
 		theRes = E(prePrintFn, theRes).Eval(es)
 	}
+	E(S("Increment"), S("$Line")).Eval(es)
 	return theRes
 }
 
