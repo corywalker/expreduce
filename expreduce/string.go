@@ -31,7 +31,7 @@ func needsParens(thisHead string, previousHead string) bool {
 }
 
 func ToStringInfix(parts []Ex, delim string, thisHead string, p ToStringParams) (bool, string) {
-	if p.form != "InputForm" && p.form != "OutputForm" {
+	if p.form != "InputForm" && p.form != "OutputForm" && p.form != "TeXForm" {
 		return false, ""
 	}
 	if len(parts) < 2 {
@@ -70,7 +70,7 @@ func (this *Expression) ToStringInfix(p ToStringParams) (bool, string) {
 
 // TODO(corywalker): Remove start, end. No users of these values.
 func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params ToStringParams) (bool, string) {
-	if params.form != "InputForm" && params.form != "OutputForm" {
+	if params.form != "InputForm" && params.form != "OutputForm" && params.form != "TeXForm" {
 		return false, ""
 	}
 	if len(parts) < 2 {

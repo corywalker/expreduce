@@ -322,7 +322,11 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Name:    "Times",
 		Default: "1",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			ok, res := ToStringInfix(this.Parts[1:], "*", "System`Times", params)
+			delim := "*"
+			if params.form == "TeXForm" {
+				delim = " "
+			}
+			ok, res := ToStringInfix(this.Parts[1:], delim, "System`Times", params)
 			if ok && strings.HasPrefix(res, "(-1)*") {
 				return ok, "-" + res[5:]
 			}
