@@ -155,7 +155,11 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " -> ", "System`Rule", false, "", "", params)
+			delim := " -> "
+			if params.form == "TeXForm" {
+				delim = "\\to "
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], delim, "System`Rule", false, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{
@@ -164,7 +168,11 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " :> ", "System`RuleDelayed", false, "", "", params)
+			delim := " :> "
+			if params.form == "TeXForm" {
+				delim = ":\\to "
+			}
+			return ToStringInfixAdvanced(this.Parts[1:], delim, "System`RuleDelayed", false, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{

@@ -315,6 +315,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "ExpandAll"})
 	defs = append(defs, Definition{
 		Name:         "Log",
+		toString:     simpleTeXToString("log"),
 		legacyEvalFn: bigMathFnOneParam(mathbigext.Log, true),
 	})
 	defs = append(defs, Definition{Name: "Sqrt"})

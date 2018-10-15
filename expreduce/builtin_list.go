@@ -10,15 +10,26 @@ func (this *Expression) ToStringList(params ToStringParams) (bool, string) {
 		return false, ""
 	}
 	var buffer bytes.Buffer
-	buffer.WriteString("{")
+	if params.form == "TeXForm" {
+		buffer.WriteString("\\left\\{")
+	} else {
+		buffer.WriteString("{")
+	}
 	for i, e := range this.Parts[1:] {
 		params.previousHead = "<TOPLEVEL>"
 		buffer.WriteString(e.StringForm(params))
 		if i != len(this.Parts[1:])-1 {
-			buffer.WriteString(", ")
+			buffer.WriteString(",")
+			if params.form != "TeXForm" {
+				buffer.WriteString(" ")
+			}
 		}
 	}
-	buffer.WriteString("}")
+	if params.form == "TeXForm" {
+		buffer.WriteString("\\right\\}")
+	} else {
+		buffer.WriteString("}")
+	}
 	return true, buffer.String()
 }
 

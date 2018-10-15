@@ -327,7 +327,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 				delim = " "
 			}
 			ok, res := ToStringInfix(this.Parts[1:], delim, "System`Times", params)
-			if ok && strings.HasPrefix(res, "(-1)*") {
+			if ok && strings.HasPrefix(res, "(-1)" + delim) {
 				return ok, "-" + res[5:]
 			}
 			return ok, res

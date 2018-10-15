@@ -40,7 +40,11 @@ func ToStringInfix(parts []Ex, delim string, thisHead string, p ToStringParams) 
 	addParens := needsParens(thisHead, p.previousHead)
 	var buffer bytes.Buffer
 	if addParens {
-		buffer.WriteString("(")
+		if p.form == "TeXForm" {
+			buffer.WriteString("{\\left(")
+		} else {
+			buffer.WriteString("(")
+		}
 	}
 	nextParams := p
 	nextParams.previousHead = thisHead
@@ -51,7 +55,11 @@ func ToStringInfix(parts []Ex, delim string, thisHead string, p ToStringParams) 
 		}
 	}
 	if addParens {
-		buffer.WriteString(")")
+		if p.form == "TeXForm" {
+			buffer.WriteString("\\right)}")
+		} else {
+			buffer.WriteString(")")
+		}
 	}
 	return true, buffer.String()
 }
@@ -79,7 +87,11 @@ func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEa
 	var buffer bytes.Buffer
 	addParens := needsParens(thisHead, params.previousHead)
 	if addParens {
-		buffer.WriteString("(")
+		if params.form == "TeXForm" {
+			buffer.WriteString("{\\left(")
+		} else {
+			buffer.WriteString("(")
+		}
 	}
 	if !surroundEachArg {
 		buffer.WriteString(start)
@@ -102,7 +114,11 @@ func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEa
 		buffer.WriteString(end)
 	}
 	if addParens {
-		buffer.WriteString(")")
+		if params.form == "TeXForm" {
+			buffer.WriteString("\\right)}")
+		} else {
+			buffer.WriteString(")")
+		}
 	}
 	return true, buffer.String()
 }
@@ -145,14 +161,14 @@ func simpleTeXToString(fnName string) func(*Expression, ToStringParams) (bool, s
 			return false, ""
 		}
 		var buffer bytes.Buffer
-		buffer.WriteString("\\sin (")
+		buffer.WriteString("\\" + fnName + " \\left(")
 		for i := 1; i < len(this.Parts); i++ {
 			buffer.WriteString(this.Parts[i].StringForm(params))
 			if i != len(this.Parts)-1 {
 				buffer.WriteString(",")
 			}
 		}
-		buffer.WriteString(")")
+		buffer.WriteString("\\right)")
 		return true, buffer.String()
 	})
 }

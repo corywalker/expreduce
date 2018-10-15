@@ -34,20 +34,38 @@ func (this *Symbol) Eval(es *EvalState) Ex {
 	return this
 }
 
+func formatSymName(name string, params ToStringParams) string {
+	if params.form == "TeXForm" {
+		if name == "E" {
+			return "e"
+		}
+		if name == "Pi" {
+			return "\\pi"
+		}
+		if name == "Infinity" {
+			return "\\infty"
+		}
+		if len(name) > 1 {
+			return fmt.Sprintf("\\text{%v}", name)
+		}
+	}
+	return fmt.Sprintf("%v", name)
+}
+
 func (this *Symbol) StringForm(params ToStringParams) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
 	if strings.HasPrefix(this.Name, params.context.Val) {
-		return fmt.Sprintf("%v", this.Name[len(params.context.Val):])
+		return formatSymName(this.Name[len(params.context.Val):], params)
 	}
 	for _, pathPart := range params.contextPath.Parts[1:] {
 		path := pathPart.(*String).Val
 		if strings.HasPrefix(this.Name, path) {
-			return fmt.Sprintf("%v", this.Name[len(path):])
+			return formatSymName(this.Name[len(path):], params)
 		}
 	}
-	return fmt.Sprintf("%v", this.Name)
+	return formatSymName(this.Name, params)
 }
 
 func (this *Symbol) String(es *EvalState) string {
