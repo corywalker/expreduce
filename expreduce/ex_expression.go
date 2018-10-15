@@ -307,10 +307,10 @@ func (this *Expression) Eval(es *EvalState) Ex {
 			headStr := headSym.Name
 
 			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, *EvalState) Ex)(nil), false
-			if _, inDefined := es.defined[headStr]; inDefined {
-				if es.defined[headStr].legacyEvalFn != nil {
+			if _, inDefined := es.defined.Get(headStr); inDefined {
+				if es.defined.GetDef(headStr).legacyEvalFn != nil {
 					hasLegacyEvalFn = true
-					legacyEvalFn = es.defined[headStr].legacyEvalFn
+					legacyEvalFn = es.defined.GetDef(headStr).legacyEvalFn
 				}
 			}
 			unchanged := true

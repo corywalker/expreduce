@@ -9,13 +9,11 @@ import (
 	"time"
 )
 
-type DefMap map[string]Def
-
 type EvalState struct {
 	// Embedded type for logging
 	CASLogger
 
-	defined     DefMap
+	defined		definitionMap
 	trace       *Expression
 	NoInit      bool
 	timeCounter TimeCounterGroup
@@ -45,7 +43,7 @@ func (this *EvalState) Load(def Definition) {
 		})).Eval(this)
 	}
 
-	newDef, foundDef := this.defined[def.Name]
+	newDef, foundDef := this.defined.Get(def.Name)
 	if !foundDef {
 		newDef = Def{}
 	}
@@ -61,12 +59,12 @@ func (this *EvalState) Load(def Definition) {
 	if def.toString != nil {
 		this.toStringFns[def.Name] = def.toString
 	}
-	this.defined[def.Name] = newDef
+	this.defined.Set(def.Name, newDef)
 	EvalInterp("$Context = \"System`\"", this)
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
-	es.defined = make(map[string]Def)
+	es.defined = newDefinitionMap()
 	es.toStringFns = make(map[string]ToStringFnType)
 	// These are fundamental symbols that affect even the parsing of
 	// expressions. We must define them before even the bootstrap definitions.
@@ -265,7 +263,7 @@ func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
 }
 
 func (this *EvalState) IsDef(name string) bool {
-	_, isd := this.defined[name]
+	_, isd := this.defined.Get(name)
 	return isd
 }
 
@@ -277,7 +275,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	// TODO: Perhaps split out single var values into the Definition to avoid
 	// iterating over every one.
 	if _, lhsIsSym := lhs.(*Symbol); lhsIsSym {
-		for _, def := range this.defined[name].downvalues {
+		for _, def := range this.defined.GetDef(name).downvalues {
 			if hp, hpDef := HeadAssertion(def.rule.Parts[1], "System`HoldPattern"); hpDef {
 				if len(hp.Parts) == 2 {
 					if _, symDef := hp.Parts[1].(*Symbol); symDef {
@@ -289,8 +287,8 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 		return nil, false, nil
 	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
-	for i := range this.defined[name].downvalues {
-		def := this.defined[name].downvalues[i].rule
+	for i := range this.defined.GetDef(name).downvalues {
+		def := this.defined.GetDef(name).downvalues[i].rule
 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
@@ -339,11 +337,11 @@ func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
 	}
 	attrs := stringsToAttributes(stringAttrs)
 	if !this.IsDef(sym.Name) {
-		this.defined[sym.Name] = Def{}
+		this.defined.Set(sym.Name, Def{})
 	}
-	tmp := this.defined[sym.Name]
+	tmp := this.defined.GetDef(sym.Name)
 	tmp.attributes = attrs
-	this.defined[sym.Name] = tmp
+	this.defined.Set(sym.Name, tmp)
 }
 
 func (this *EvalState) DefineDownValues(sym *Symbol, rhs Ex) {
@@ -366,11 +364,11 @@ func (this *EvalState) DefineDownValues(sym *Symbol, rhs Ex) {
 	}
 
 	if !this.IsDef(sym.Name) {
-		this.defined[sym.Name] = Def{}
+		this.defined.Set(sym.Name, Def{})
 	}
-	tmp := this.defined[sym.Name]
+	tmp := this.defined.GetDef(sym.Name)
 	tmp.downvalues = dvs
-	this.defined[sym.Name] = tmp
+	this.defined.Set(sym.Name, tmp)
 }
 
 func (this *EvalState) MarkSeen(name string) {
@@ -378,7 +376,7 @@ func (this *EvalState) MarkSeen(name string) {
 		newDef := Def{
 			downvalues: []DownValue{},
 		}
-		this.defined[name] = newDef
+		this.defined.Set(name, newDef)
 	}
 }
 
@@ -481,12 +479,12 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 				},
 			},
 		}
-		this.defined[name] = newDef
+		this.defined.Set(name, newDef)
 		return
 	}
 
 	// Overwrite identical rules.
-	for _, dv := range this.defined[name].downvalues {
+	for _, dv := range this.defined.GetDef(name).downvalues {
 		existingRule := dv.rule
 		existingLhs := existingRule.Parts[1]
 		if IsSameQ(existingLhs, heldLhs, &this.CASLogger) {
@@ -501,9 +499,9 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 
 	// Insert into definitions for name. Maintain order of decreasing
 	// complexity.
-	var tmp = this.defined[name]
+	var tmp = this.defined.GetDef(name)
 	newSpecificity := ruleSpecificity(heldLhs, rhs, name, this)
-	for i, dv := range this.defined[name].downvalues {
+	for i, dv := range this.defined.GetDef(name).downvalues {
 		if dv.specificity == 0 {
 			dv.specificity = ruleSpecificity(
 				dv.rule.Parts[1],
@@ -521,15 +519,15 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 						rule:        newRule,
 						specificity: newSpecificity,
 					}},
-					this.defined[name].downvalues[i:]...,
+					this.defined.GetDef(name).downvalues[i:]...,
 				)...,
 			)
-			this.defined[name] = tmp
+			this.defined.Set(name, tmp)
 			return
 		}
 	}
 	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]Ex{NewSymbol("System`Rule"), heldLhs, rhs})})
-	this.defined[name] = tmp
+	this.defined.Set(name, tmp)
 }
 
 func (this *EvalState) ClearAll() {
@@ -537,15 +535,15 @@ func (this *EvalState) ClearAll() {
 }
 
 func (this *EvalState) Clear(name string) {
-	_, ok := this.defined[name]
+	_, ok := this.defined.Get(name)
 	if ok {
-		this.defined[name] = Def{}
+		this.defined.Set(name, Def{})
 		//delete(this.defined, name)
 	}
 }
 
-func (this *EvalState) GetDefinedSnapshot() map[string]Def {
-	return CopyDefs(this.defined)
+func (this *EvalState) GetDefinedSnapshot() definitionMap {
+	return this.defined.CopyDefs()
 }
 
 func (this *EvalState) IsFrozen() bool {

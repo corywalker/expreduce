@@ -191,7 +191,7 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 			if pl.isSet {
 				rhs = rhs.Eval(es)
 			}
-			es.defined[pl.uniqueName] = Def{
+			es.defined.Set(pl.uniqueName, Def{
 				downvalues: []DownValue{
 					DownValue{
 						rule: NewExpression([]Ex{
@@ -201,9 +201,9 @@ func applyModuleFn(this *Expression, es *EvalState) (Ex, bool) {
 						}),
 					},
 				},
-			}
+			})
 		} else {
-			es.defined[pl.uniqueName] = Def{}
+			es.defined.Set(pl.uniqueName, Def{})
 		}
 		pm.LazyMakeMap()
 		pm.patternDefined[pl.sym.Name] = NewSymbol(pl.uniqueName)
@@ -277,7 +277,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			def, isDef := es.defined[sym.Name]
+			def, isDef := es.defined.Get(sym.Name)
 			if isDef {
 				return def.attributes.toSymList()
 			}
@@ -333,7 +333,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if params.es == nil {
 				return true, "Definiton[<WITHOUT_CONTEXT>]"
 			}
-			def, isd := params.es.defined[sym.Name]
+			def, isd := params.es.defined.Get(sym.Name)
 			if !isd {
 				return true, "Null"
 			}
@@ -358,7 +358,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 			res := NewExpression([]Ex{NewSymbol("System`List")})
-			def, isd := es.defined[sym.Name]
+			def, isd := es.defined.Get(sym.Name)
 			if !isd {
 				return res
 			}

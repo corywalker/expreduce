@@ -52,7 +52,6 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger
 				if sAsSymbolOk {
 					// TODO: we should handle matches with BlankSequences
 					// differently here.
-					//_, isd := es.defined[sAsSymbol.Name]
 					toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
 					if !ispd {
 						toMatch = target
@@ -62,14 +61,6 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger
 					if !IsSameQ(toMatch, target, cl) {
 						return false, pm
 					}
-
-					/*if !isd {
-						//es.defined[sAsSymbol.Name] = target
-						es.Define(sAsSymbol.Name, sAsSymbol, target)
-					} else {
-						//return es.defined[sAsSymbol.Name].IsSameQ(target, es)
-						return true
-					}*/
 				}
 				return true, pm
 			}

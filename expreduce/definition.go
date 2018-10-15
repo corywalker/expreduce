@@ -16,22 +16,6 @@ type Def struct {
 	legacyEvalFn (func(*Expression, *EvalState) Ex)
 }
 
-func CopyDefs(in map[string]Def) map[string]Def {
-	out := make(map[string]Def)
-	for k, v := range in {
-		newDef := Def{}
-		for _, dv := range v.downvalues {
-			newDv := DownValue{
-				rule:        dv.rule.DeepCopy().(*Expression),
-				specificity: dv.specificity,
-			}
-			newDef.downvalues = append(newDef.downvalues, newDv)
-		}
-		out[k] = newDef
-	}
-	return out
-}
-
 func (def *Def) StringForm(defSym *Symbol, params ToStringParams) string {
 	var buffer []string
 
