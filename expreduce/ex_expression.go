@@ -432,7 +432,7 @@ func (this *Expression) StringForm(params ToStringParams) string {
 	if isHeadSym && !fullForm {
 		res, ok := "", false
 		headStr := headAsSym.Name
-		toStringFn, hasToStringFn := params.es.toStringFns[headStr]
+		toStringFn, hasToStringFn := params.esi.GetStringFn(headStr)
 		if hasToStringFn {
 			ok, res = toStringFn(this, params)
 		}
@@ -470,10 +470,10 @@ func (this *Expression) StringForm(params ToStringParams) string {
 	return buffer.String()
 }
 
-func (this *Expression) String(es *EvalState) string {
+func (this *Expression) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(ToStringParams{
-		form: "InputForm", context: context, contextPath: contextPath, es: es})
+		form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
 func (this *Expression) IsEqual(otherEx Ex) string {

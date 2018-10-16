@@ -330,10 +330,10 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return false, ""
 			}
-			if params.es == nil {
+			if params.esi == nil {
 				return true, "Definiton[<WITHOUT_CONTEXT>]"
 			}
-			def, isd := params.es.defined.Get(sym.Name)
+			def, isd := params.esi.GetDefined(sym.Name)
 			if !isd {
 				return true, "Null"
 			}
@@ -342,7 +342,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				DefinitionComplexityStringFormArgs()
 			stringParams.previousHead = "<TOPLEVEL>"
 			// To prevent things like "Definition[In]" from exploding:
-			stringParams.es = nil
+			stringParams.esi = nil
 			return true, def.StringForm(sym, stringParams)
 		},
 	})
@@ -530,7 +530,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				context:      context,
 				contextPath:  contextPath,
 				previousHead: "<TOPLEVEL>",
-				es:           es,
+				esi:          es,
 			}
 			for i := 1; i < len(this.Parts); i++ {
 				fmt.Printf("%s", this.Parts[i].StringForm(stringParams))

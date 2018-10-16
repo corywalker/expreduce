@@ -11,7 +11,7 @@ func ToStringBlankType(repr string, parts []Ex, params ToStringParams) (bool, st
 	} else if len(parts) == 2 {
 		var buffer bytes.Buffer
 		buffer.WriteString(repr)
-		buffer.WriteString(parts[1].String(params.es))
+		buffer.WriteString(parts[1].String(params.esi))
 		return true, buffer.String()
 	}
 	return false, ""

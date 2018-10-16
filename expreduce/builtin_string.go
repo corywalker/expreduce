@@ -30,7 +30,7 @@ func GetStringDefinitions() (defs []Definition) {
 				context:      context,
 				contextPath:  contextPath,
 				previousHead: "<TOPLEVEL>",
-				es:           es,
+				esi:          es,
 			}
 			return NewString(this.Parts[1].StringForm(stringParams))
 		},

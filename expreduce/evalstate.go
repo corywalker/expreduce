@@ -27,6 +27,15 @@ type EvalState struct {
 	toStringFns map[string]ToStringFnType
 }
 
+func (es *EvalState) GetDefined(name string) (Def, bool) {
+	return es.defined.Get(name)
+}
+
+func (es *EvalState) GetStringFn(headStr string) (ToStringFnType, bool) {
+	fn, ok := es.toStringFns[headStr]
+	return fn, ok
+}
+
 func (this *EvalState) Load(def Definition) {
 	// TODO: deprecate most of this. We should be using .m files now.
 	def.Name = this.GetStringDef("System`$Context", "") + def.Name
@@ -408,7 +417,7 @@ func ruleSpecificity(lhs Ex, rhs Ex, name string, es *EvalState) int {
 		contextPath: contextPath,
 		// No need for the EvalState reference. Used for string expansion for
 		// Definition[], which should not be in an actual definition.
-		es: es,
+		esi: es,
 	}
 	specificity := len(lhs.StringForm(stringParams))
 	if _, rhsIsCond := HeadAssertion(rhs, "System`Condition"); rhsIsCond {

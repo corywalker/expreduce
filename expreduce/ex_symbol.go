@@ -70,9 +70,9 @@ func (this *Symbol) StringForm(params ToStringParams) string {
 	return formatSymName(this.Name, params)
 }
 
-func (this *Symbol) String(es *EvalState) string {
+func (this *Symbol) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
 func (this *Symbol) IsEqual(other Ex) string {

@@ -562,7 +562,7 @@ func EasyRun(src string, es *EvalState) string {
 		form:        "InputForm",
 		context:     context,
 		contextPath: contextPath,
-		es:          es,
+		esi:         es,
 	}
 	return EvalInterp(src, es).StringForm(stringParams)
 }

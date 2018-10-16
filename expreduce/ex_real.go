@@ -42,9 +42,9 @@ func (f *Flt) StringForm(params ToStringParams) string {
 	return buffer.String()
 }
 
-func (this *Flt) String(es *EvalState) string {
+func (this *Flt) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
 func (this *Flt) IsEqual(other Ex) string {

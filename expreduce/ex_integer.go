@@ -32,9 +32,9 @@ func (i *Integer) StringForm(params ToStringParams) string {
 	return fmt.Sprintf("%d", i.Val)
 }
 
-func (this *Integer) String(es *EvalState) string {
+func (this *Integer) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
+	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
 func (this *Integer) IsEqual(other Ex) string {
