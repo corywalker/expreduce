@@ -157,11 +157,11 @@ func TestLowLevel(t *testing.T) {
 	})
 
 	// Test equality checking
-	assert.Equal(t, "EQUAL_TRUE", (NewReal(big.NewFloat(99))).IsEqual(NewReal(big.NewFloat(99)), &es.CASLogger))
-	assert.Equal(t, "EQUAL_FALSE", (NewReal(big.NewFloat(99))).IsEqual(NewReal(big.NewFloat(98)), &es.CASLogger))
-	assert.Equal(t, "EQUAL_TRUE", (NewSymbol("System`x")).IsEqual(NewSymbol("System`x"), &es.CASLogger))
-	assert.Equal(t, "EQUAL_UNK", (NewSymbol("System`x")).IsEqual(NewSymbol("System`X"), &es.CASLogger))
-	assert.Equal(t, "EQUAL_UNK", (NewSymbol("System`x")).IsEqual(NewSymbol("System`y"), &es.CASLogger))
+	assert.Equal(t, "EQUAL_TRUE", (NewReal(big.NewFloat(99))).IsEqual(NewReal(big.NewFloat(99))))
+	assert.Equal(t, "EQUAL_FALSE", (NewReal(big.NewFloat(99))).IsEqual(NewReal(big.NewFloat(98))))
+	assert.Equal(t, "EQUAL_TRUE", (NewSymbol("System`x")).IsEqual(NewSymbol("System`x")))
+	assert.Equal(t, "EQUAL_UNK", (NewSymbol("System`x")).IsEqual(NewSymbol("System`X")))
+	assert.Equal(t, "EQUAL_UNK", (NewSymbol("System`x")).IsEqual(NewSymbol("System`y")))
 
 	// Test evaluation
 	newa := a.Eval(es)

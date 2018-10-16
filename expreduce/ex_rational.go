@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"hash/fnv"
 	"math/big"
-
-	"github.com/corywalker/expreduce/expreduce/logging"
 )
 
 type Rational struct {
@@ -75,7 +73,7 @@ func (this *Rational) String(es *EvalState) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Rational) IsEqual(other Ex, cl *logging.CASLogger) string {
+func (this *Rational) IsEqual(other Ex) string {
 	otherConv, otherIsRational := other.(*Rational)
 	if !otherIsRational {
 		return "EQUAL_FALSE"

@@ -55,7 +55,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				falseVal = this.Parts[3]
 			}
 
-			var isequal string = this.Parts[1].IsEqual(NewSymbol("System`True"), &es.CASLogger)
+			var isequal string = this.Parts[1].IsEqual(NewSymbol("System`True"))
 			if isequal == "EQUAL_UNK" {
 				return this
 			} else if isequal == "EQUAL_TRUE" {

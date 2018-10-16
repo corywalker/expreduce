@@ -83,7 +83,7 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			isequal := true
 			for i := 2; i < len(this.Parts); i++ {
-				var equalstr string = this.Parts[1].IsEqual(this.Parts[i], &es.CASLogger)
+				var equalstr string = this.Parts[1].IsEqual(this.Parts[i])
 				if equalstr == "EQUAL_UNK" {
 					return this
 				}
@@ -105,7 +105,7 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			var isequal string = this.Parts[1].IsEqual(this.Parts[2], &es.CASLogger)
+			var isequal string = this.Parts[1].IsEqual(this.Parts[2])
 			if isequal == "EQUAL_UNK" {
 				return this
 			} else if isequal == "EQUAL_TRUE" {

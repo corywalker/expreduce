@@ -31,12 +31,12 @@ func IsSameQ(a Ex, b Ex, cl *logging.CASLogger) bool {
 			bVal, _ := bFlt.Val.Float64()
 
 			if math.IsInf(aVal, 0) || math.IsInf(bVal, 0) {
-				return a.IsEqual(b, cl) == "EQUAL_TRUE"
+				return a.IsEqual(b) == "EQUAL_TRUE"
 			} else {
 				return almostEqual(aVal, bVal)
 			}
 		} else {
-			return a.IsEqual(b, cl) == "EQUAL_TRUE"
+			return a.IsEqual(b) == "EQUAL_TRUE"
 		}
 	} else if aIsExpression && bIsExpression {
 		return a.Hash() == b.Hash()

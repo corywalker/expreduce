@@ -6,8 +6,6 @@ import (
 	"hash/fnv"
 	"math/big"
 	"strings"
-
-	"github.com/corywalker/expreduce/expreduce/logging"
 )
 
 // Floating point numbers represented by big.Float
@@ -49,7 +47,7 @@ func (this *Flt) String(es *EvalState) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Flt) IsEqual(other Ex, cl *logging.CASLogger) string {
+func (this *Flt) IsEqual(other Ex) string {
 	otherConv, ok := other.(*Flt)
 	if !ok {
 		otherInteger, ok := other.(*Integer)

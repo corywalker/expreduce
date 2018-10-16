@@ -5,8 +5,6 @@ import (
 	"hash/fnv"
 	"sort"
 	"strings"
-
-	"github.com/corywalker/expreduce/expreduce/logging"
 )
 
 // Symbols are defined by a string-based name
@@ -77,7 +75,7 @@ func (this *Symbol) String(es *EvalState) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Symbol) IsEqual(other Ex, cl *logging.CASLogger) string {
+func (this *Symbol) IsEqual(other Ex) string {
 	otherConv, ok := other.(*Symbol)
 	if !ok {
 		return "EQUAL_UNK"

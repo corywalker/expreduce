@@ -4,8 +4,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"hash/fnv"
-
-	"github.com/corywalker/expreduce/expreduce/logging"
 )
 
 type Complex struct {
@@ -38,12 +36,12 @@ func (this *Complex) String(es *EvalState) string {
 		form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Complex) IsEqual(other Ex, cl *logging.CASLogger) string {
+func (this *Complex) IsEqual(other Ex) string {
 	otherConv, otherIsComplex := other.(*Complex)
 	if !otherIsComplex {
 		return "EQUAL_FALSE"
 	}
-	if (this.Re.IsEqual(otherConv.Re, cl) != "EQUAL_TRUE") || (this.Im.IsEqual(otherConv.Im, cl) != "EQUAL_TRUE") {
+	if (this.Re.IsEqual(otherConv.Re) != "EQUAL_TRUE") || (this.Im.IsEqual(otherConv.Im) != "EQUAL_TRUE") {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"

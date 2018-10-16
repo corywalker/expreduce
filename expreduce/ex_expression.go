@@ -476,7 +476,7 @@ func (this *Expression) String(es *EvalState) string {
 		form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Expression) IsEqual(otherEx Ex, cl *logging.CASLogger) string {
+func (this *Expression) IsEqual(otherEx Ex) string {
 	other, ok := otherEx.(*Expression)
 	if !ok {
 		return "EQUAL_UNK"
@@ -486,7 +486,7 @@ func (this *Expression) IsEqual(otherEx Ex, cl *logging.CASLogger) string {
 		return "EQUAL_UNK"
 	}
 	for i := range this.Parts {
-		res := this.Parts[i].IsEqual(other.Parts[i], cl)
+		res := this.Parts[i].IsEqual(other.Parts[i])
 		switch res {
 		case "EQUAL_FALSE":
 			return "EQUAL_UNK"

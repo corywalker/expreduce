@@ -39,7 +39,7 @@ func parseSymbol(part Ex) (symbol *Symbol, isSymbol bool) {
 func parseInfinity(part Ex, es *EvalState) bool {
 	symbol, isSymbol := parseSymbol(part)
 	if isSymbol {
-		return symbol.IsEqual(NewSymbol("System`Infinity"), &es.CASLogger) == "EQUAL_TRUE"
+		return symbol.IsEqual(NewSymbol("System`Infinity")) == "EQUAL_TRUE"
 	}
 	return false
 }
@@ -52,7 +52,7 @@ func parseNegativeInfinity(part Ex, es *EvalState) bool {
 			NewInt(-1),
 			NewSymbol("System`Infinity"),
 		})
-		return expr.IsEqual(template, &es.CASLogger) == "EQUAL_TRUE"
+		return expr.IsEqual(template) == "EQUAL_TRUE"
 	}
 	return false
 }
@@ -534,7 +534,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 						return this
 					}
 				} else if isSymbol {
-					if mSymbol.IsEqual(NewSymbol("System`All"), &es.CASLogger) == "EQUAL_TRUE" {
+					if mSymbol.IsEqual(NewSymbol("System`All")) == "EQUAL_TRUE" {
 						m = -1
 					} else {
 						return this
@@ -554,7 +554,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 						return this
 					}
 				} else if isSymbol {
-					if maxSymbol.IsEqual(NewSymbol("System`Infinity"), &es.CASLogger) == "EQUAL_TRUE" {
+					if maxSymbol.IsEqual(NewSymbol("System`Infinity")) == "EQUAL_TRUE" {
 						max = -1
 					} else {
 						return this
@@ -592,7 +592,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 					} else {
 						testExpression.Parts = append(testExpression.Parts, evaluated...)
 					}
-					isequal = testExpression.Eval(es).IsEqual(NewSymbol("System`True"), &es.CASLogger)
+					isequal = testExpression.Eval(es).IsEqual(NewSymbol("System`True"))
 					cont = isequal == "EQUAL_TRUE"
 				}
 
