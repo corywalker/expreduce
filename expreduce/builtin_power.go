@@ -176,7 +176,7 @@ func GetPowerDefinitions() (defs []Definition) {
 				// need for Eval-ing expressions. Simply use numerics built-in
 				// to Go.
 				// a^b
-				// coeff := ((a^2)^(b/2)) 
+				// coeff := ((a^2)^(b/2))
 
 				// Precompute shared values.
 				coeff := E(
@@ -264,7 +264,7 @@ func GetPowerDefinitions() (defs []Definition) {
 				nPositivity := n.Cmp(big.NewInt(0))
 				mPositivity := m.Cmp(big.NewInt(0))
 				if xPositivity >= 0 &&
-				   nPositivity == 1 {
+					nPositivity == 1 {
 					root := NthRoot(x, n)
 					if root != nil {
 						if m.Cmp(big.NewInt(1)) == 0 {

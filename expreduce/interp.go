@@ -11,11 +11,11 @@ import (
 )
 
 var inequalityOps = map[string]bool{
-	"System`Equal": true,
-	"System`Unequal": true,
-	"System`Less": true,
-	"System`LessEqual": true,
-	"System`Greater": true,
+	"System`Equal":        true,
+	"System`Unequal":      true,
+	"System`Less":         true,
+	"System`LessEqual":    true,
+	"System`Greater":      true,
 	"System`GreaterEqual": true,
 }
 
@@ -201,12 +201,12 @@ func ParserExprListConv(l *wl.ExprList) (res []Ex) {
 // situation.
 
 var terminals = map[wl.ExpressionCase]bool{
-	wl.ExpressionFloat: true, // FLOAT
-	wl.ExpressionIdent: true, // IDENT
+	wl.ExpressionFloat:   true, // FLOAT
+	wl.ExpressionIdent:   true, // IDENT
 	wl.ExpressionInteger: true, // INT
 	wl.ExpressionPattern: true, // PATTERN
-	wl.ExpressionSlot: true, // SLOT
-	wl.ExpressionString: true, // STRING
+	wl.ExpressionSlot:    true, // SLOT
+	wl.ExpressionString:  true, // STRING
 }
 
 var unaryOps = map[wl.ExpressionCase]string{
@@ -216,79 +216,79 @@ var unaryOps = map[wl.ExpressionCase]string{
 	15:  "Plus",
 	23:  "Increment",
 	25:  "Decrement",
-	0:  "PreIncrement",
-	1:  "PreDecrement",
+	0:   "PreIncrement",
+	1:   "PreDecrement",
 }
 
 var binaryOps = map[wl.ExpressionCase]string{
 	wl.ExpressionAssign: "Set",
-	39:  "SetDelayed",
-	33:  "ReplaceRepeated",
-	31:  "ReplaceAll",
-	27:  "Rule",
-	40:  "RuleDelayed",
-	134: "Power",
-	130: "PatternTest",
-	36:  "Condition",
-	52:  "Apply",
-	38:  "Map",
-	24:  "AddTo",
-	26:  "SubtractFrom",
-	78:  "Element",
+	39:                  "SetDelayed",
+	33:                  "ReplaceRepeated",
+	31:                  "ReplaceAll",
+	27:                  "Rule",
+	40:                  "RuleDelayed",
+	134:                 "Power",
+	130:                 "PatternTest",
+	36:                  "Condition",
+	52:                  "Apply",
+	38:                  "Map",
+	24:                  "AddTo",
+	26:                  "SubtractFrom",
+	78:                  "Element",
 }
 
 var fullyAssocOps = map[wl.ExpressionCase]string{
-	125: "CompoundExpression",
-	wl.ExpressionAdd: "Plus",
-	wl.ExpressionMul: "Times",
-	wl.ExpressionEq:  "Equal",
-	wl.ExpressionNe:  "Unequal",
-	47:  "SameQ",
-	45:  "UnsameQ",
-	44:  "StringJoin",
-	wl.ExpressionLt: "Less",
-	wl.ExpressionLe:  "LessEqual",
-	wl.ExpressionGt: "Greater",
-	48:  "GreaterEqual",
-	wl.ExpressionLOr: "Or",
-	wl.ExpressionLAnd:  "And",
-	121: "Dot",
-	wl.ExpressionOr: "Alternatives",
-	42:  "Span",
+	125:               "CompoundExpression",
+	wl.ExpressionAdd:  "Plus",
+	wl.ExpressionMul:  "Times",
+	wl.ExpressionEq:   "Equal",
+	wl.ExpressionNe:   "Unequal",
+	47:                "SameQ",
+	45:                "UnsameQ",
+	44:                "StringJoin",
+	wl.ExpressionLt:   "Less",
+	wl.ExpressionLe:   "LessEqual",
+	wl.ExpressionGt:   "Greater",
+	48:                "GreaterEqual",
+	wl.ExpressionLOr:  "Or",
+	wl.ExpressionLAnd: "And",
+	121:               "Dot",
+	wl.ExpressionOr:   "Alternatives",
+	42:                "Span",
 }
 
 var headsToTokens = map[string]int{
-	"System`Alternatives": 124,
-	"System`And": 57347,
-	"System`Apply": 57348,
+	"System`Alternatives":       124,
+	"System`And":                57347,
+	"System`Apply":              57348,
 	"System`CompoundExpression": 59,
-	"System`Condition": 57359,
-	"System`Dot": 46,
-	"System`Equal": 57380,
-	"System`Factorial": 33,
-	"System`Function": 38,
-	"System`Greater": 62,
-	"System`GreaterEqual": 57388,
-	"System`Less": 60,
-	"System`LessEqual": 57399,
-	"System`Map": 57401,
-	"System`Not": 33,
-	"System`Or": 57412,
-	"System`PatternTest": 63,
-	"System`Plus": 43,
-	"System`Power": 94,
-	"System`ReplaceAll": 57428,
-	"System`ReplaceRepeated": 57429,
-	"System`Rule": 57433,
-	"System`RuleDelayed": 57434,
-	"System`SameQ": 57435,
-	"System`Set": 61,
-	"System`SetDelayed": 57436,
-	"System`Span": 57439,
-	"System`StringJoin": 57445,
-	"System`Times": 42,
-	"System`Unequal": 57462,
-	"System`UnsameQ": 57464,
+	"System`Condition":          57359,
+	"System`Dot":                46,
+	"System`Equal":              57380,
+	"System`Factorial":          33,
+	"System`Function":           38,
+	"System`Greater":            62,
+	"System`GreaterEqual":       57388,
+	"System`Less":               60,
+	"System`LessEqual":          57399,
+	"System`Map":                57401,
+	"System`Not":                33,
+	"System`Or":                 57412,
+	"System`PatternTest":        63,
+	"System`Plus":               43,
+	"System`Power":              94,
+	"System`ReplaceAll":         57428,
+	"System`ReplaceRepeated":    57429,
+	"System`Rule":               57433,
+	"System`RuleDelayed":        57434,
+	"System`SameQ":              57435,
+	"System`Set":                61,
+	"System`SetDelayed":         57436,
+	"System`Span":               57439,
+	"System`StringJoin":         57445,
+	"System`Times":              42,
+	"System`Unequal":            57462,
+	"System`UnsameQ":            57464,
 }
 
 func ParserExprConv(expr *wl.Expression) Ex {
@@ -559,10 +559,10 @@ func ReadList(doc string, fn string, es *EvalState) Ex {
 func EasyRun(src string, es *EvalState) string {
 	context, contextPath := ActualStringFormArgs(es)
 	stringParams := ToStringParams{
-		form: "InputForm",
-		context: context,
+		form:        "InputForm",
+		context:     context,
 		contextPath: contextPath,
-		es: es,
+		es:          es,
 	}
 	return EvalInterp(src, es).StringForm(stringParams)
 }

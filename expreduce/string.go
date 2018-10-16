@@ -9,7 +9,7 @@ type ToStringParams struct {
 	contextPath  *Expression
 	previousHead string
 	// Used by Definition[]
-	es           *EvalState
+	es *EvalState
 }
 
 func needsParens(thisHead string, previousHead string) bool {
@@ -150,7 +150,7 @@ func ActualStringFormArgsFull(form string, es *EvalState) ToStringParams {
 		context:      NewString(es.GetStringDef("System`$Context", "Global`")),
 		contextPath:  es.GetListDef("System`$ContextPath"),
 		previousHead: "<TOPLEVEL>",
-		es: es,
+		es:           es,
 	}
 
 }

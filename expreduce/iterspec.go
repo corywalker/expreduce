@@ -13,13 +13,13 @@ type iterSpec interface {
 }
 
 type iterSpecRange struct {
-	i       Ex
-	iName   string
-	iMin    Ex
-	iMax    Ex
-	step    Ex
-	curr    Ex
-	es		*EvalState
+	i     Ex
+	iName string
+	iMin  Ex
+	iMax  Ex
+	step  Ex
+	curr  Ex
+	es    *EvalState
 }
 
 type iterSpecList struct {

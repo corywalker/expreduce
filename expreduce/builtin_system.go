@@ -317,7 +317,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name:              "Definition",
+		Name: "Definition",
 		toString: func(this *Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
@@ -526,11 +526,11 @@ func GetSystemDefinitions() (defs []Definition) {
 
 			context, contextPath := ActualStringFormArgs(es)
 			stringParams := ToStringParams{
-				form: "OutputForm",
-				context: context,
-				contextPath: contextPath,
+				form:         "OutputForm",
+				context:      context,
+				contextPath:  contextPath,
 				previousHead: "<TOPLEVEL>",
-				es: es,
+				es:           es,
 			}
 			for i := 1; i < len(this.Parts); i++ {
 				fmt.Printf("%s", this.Parts[i].StringForm(stringParams))
@@ -651,7 +651,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Block",
+		Name:              "Block",
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{
@@ -794,7 +794,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Defer",
+		Name:              "Defer",
 		OmitDocumentation: true,
 	})
 	defs = append(defs, Definition{Name: "Information"})

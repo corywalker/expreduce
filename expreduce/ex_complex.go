@@ -1,12 +1,16 @@
 package expreduce
 
-import "fmt"
-import "hash/fnv"
-import "encoding/binary"
+import (
+	"encoding/binary"
+	"fmt"
+	"hash/fnv"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
+)
 
 type Complex struct {
-	Re       Ex
-	Im       Ex
+	Re        Ex
+	Im        Ex
 	needsEval bool
 }
 
@@ -34,7 +38,7 @@ func (this *Complex) String(es *EvalState) string {
 		form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Complex) IsEqual(other Ex, cl *CASLogger) string {
+func (this *Complex) IsEqual(other Ex, cl *logging.CASLogger) string {
 	otherConv, otherIsComplex := other.(*Complex)
 	if !otherIsComplex {
 		return "EQUAL_FALSE"

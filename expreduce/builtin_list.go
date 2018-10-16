@@ -231,7 +231,7 @@ func GetListDefinitions() (defs []Definition) {
 					var wg sync.WaitGroup
 					for i := 1; i < len(toReturn.Parts); i++ {
 						wg.Add(1)
-						go func (idx int) {
+						go func(idx int) {
 							defer wg.Done()
 							toReturn.Parts[idx] = toReturn.Parts[idx].Eval(es)
 						}(i)
@@ -655,7 +655,7 @@ func GetListDefinitions() (defs []Definition) {
 				return this
 			}
 			res := NewExpression([]Ex{expr.Parts[0]})
-			for i := len(expr.Parts)-1; i > 0; i-- {
+			for i := len(expr.Parts) - 1; i > 0; i-- {
 				res.Parts = append(res.Parts, expr.Parts[i])
 			}
 			return res

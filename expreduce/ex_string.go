@@ -1,7 +1,11 @@
 package expreduce
 
-import "fmt"
-import "hash/fnv"
+import (
+	"fmt"
+	"hash/fnv"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
+)
 
 type String struct {
 	Val string
@@ -12,9 +16,9 @@ func (this *String) Eval(es *EvalState) Ex {
 }
 
 func (this *String) StringForm(params ToStringParams) string {
-	if (params.form == "OutputForm" ||
+	if params.form == "OutputForm" ||
 		params.form == "TraditionalForm" ||
-		params.form == "StandardForm") {
+		params.form == "StandardForm" {
 		return fmt.Sprintf("%v", this.Val)
 	}
 	return fmt.Sprintf("\"%v\"", this.Val)
@@ -25,7 +29,7 @@ func (this *String) String(es *EvalState) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *String) IsEqual(other Ex, cl *CASLogger) string {
+func (this *String) IsEqual(other Ex, cl *logging.CASLogger) string {
 	otherConv, ok := other.(*String)
 	if !ok {
 		return "EQUAL_FALSE"

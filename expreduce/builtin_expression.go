@@ -1,6 +1,10 @@
 package expreduce
 
-import "math/big"
+import (
+	"math/big"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
+)
 
 func CalcDepth(ex Ex) int {
 	expr, isExpr := ex.(*Expression)
@@ -15,7 +19,7 @@ func CalcDepth(ex Ex) int {
 	return theMax + 1
 }
 
-func flattenExpr(src *Expression, dst *Expression, level int64, cl *CASLogger) {
+func flattenExpr(src *Expression, dst *Expression, level int64, cl *logging.CASLogger) {
 	continueFlatten := level > 0
 	for i := 1; i < len(src.Parts); i++ {
 		expr, isExpr := src.Parts[i].(*Expression)

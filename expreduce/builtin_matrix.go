@@ -1,8 +1,12 @@
 package expreduce
 
-import "math/big"
+import (
+	"math/big"
 
-func dimensions(ex *Expression, level int, cl *CASLogger) []int64 {
+	"github.com/corywalker/expreduce/expreduce/logging"
+)
+
+func dimensions(ex *Expression, level int, cl *logging.CASLogger) []int64 {
 	head := ex.Parts[0]
 	dims := []int64{int64(len(ex.Parts) - 1)}
 	nextDims := []int64{}

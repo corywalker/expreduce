@@ -5,9 +5,9 @@ import "flag"
 var freezeStateDuringPreMatch = flag.Bool(
 	"freezeStateDuringPreMatch",
 	false,
-	"Freeze the EvalState when doing a prematch pattern build. It is very " +
-	"rare that this has any effect. We turn this feature off for better " +
-	"thread safety.",
+	"Freeze the EvalState when doing a prematch pattern build. It is very "+
+		"rare that this has any effect. We turn this feature off for better "+
+		"thread safety.",
 )
 
 const MaxUint = ^uint(0)
@@ -29,11 +29,11 @@ func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
 }
 
 var realSym = NewSymbol("System`Real")
-var intSym  = NewSymbol("System`Integer")
-var strSym  = NewSymbol("System`String")
-var symSym  = NewSymbol("System`Symbol")
-var ratSym  = NewSymbol("System`Rational")
-var complexSym  = NewSymbol("System`Complex")
+var intSym = NewSymbol("System`Integer")
+var strSym = NewSymbol("System`String")
+var symSym = NewSymbol("System`Symbol")
+var ratSym = NewSymbol("System`Rational")
+var complexSym = NewSymbol("System`Complex")
 
 func NewMatchIter(a Ex, b Ex, pm *PDManager, es *EvalState) (matchIter, bool) {
 	patternHead := ""

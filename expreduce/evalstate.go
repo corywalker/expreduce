@@ -7,14 +7,16 @@ import (
 	"os/signal"
 	"strings"
 	"time"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 )
 
 type EvalState struct {
 	// Embedded type for logging
-	CASLogger
+	logging.CASLogger
 
-	defined		definitionMap
+	defined     definitionMap
 	trace       *Expression
 	NoInit      bool
 	timeCounter timecounter.Group
@@ -259,7 +261,7 @@ func NewEvalState() *EvalState {
 func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
 	var es EvalState
 	es.Init(loadAllDefs)
-	es.CASLogger.debugState = false
+	es.CASLogger.SetDebugState(false)
 	return &es
 }
 
@@ -293,7 +295,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
-		if this.isProfiling {
+		if this.IsProfiling() {
 			defStr = def.String(this)
 			lhsDefStr = lhs.String(this) + defStr
 			started = time.Now().UnixNano()
@@ -301,7 +303,7 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 
 		res, replaced := Replace(lhs, def, this)
 
-		if this.isProfiling {
+		if this.IsProfiling() {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
 			this.timeCounter.AddTime(timecounter.CounterGroupDefTime, defStr, elapsed)
 			this.timeCounter.AddTime(timecounter.CounterGroupLHSDefTime, lhsDefStr, elapsed)
@@ -401,8 +403,8 @@ func ruleSpecificity(lhs Ex, rhs Ex, name string, es *EvalState) int {
 	// complexity (or specificity)
 	context, contextPath := DefinitionComplexityStringFormArgs()
 	stringParams := ToStringParams{
-		form: "InputForm",
-		context: context,
+		form:        "InputForm",
+		context:     context,
 		contextPath: contextPath,
 		// No need for the EvalState reference. Used for string expansion for
 		// Definition[], which should not be in an actual definition.

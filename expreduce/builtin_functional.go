@@ -59,11 +59,11 @@ func parseNegativeInfinity(part Ex, es *EvalState) bool {
 
 // The levelSpec struct is used to work with level specifications
 type levelSpec struct {
-	isMinDepth	bool	//If the min specification represents a depth (as opposed to level)
-	isMaxDepth	bool	//If the max specification represents a depth (as opposed to level)
-	min			int64
-	max			int64
-	valid		bool
+	isMinDepth bool //If the min specification represents a depth (as opposed to level)
+	isMaxDepth bool //If the max specification represents a depth (as opposed to level)
+	min        int64
+	max        int64
+	valid      bool
 }
 
 func (spec levelSpec) isLevel() (bool, bool) {
@@ -106,7 +106,7 @@ func (spec levelSpec) checkDepth(depth int64) bool {
 
 // Levels can be specified in the form n, {n}, {n1, n2}, Infinity, -Infinity
 // n, n1, n2 are integers which can be positive or negative
-func parseLevelSpec(this Ex, es *EvalState) levelSpec{
+func parseLevelSpec(this Ex, es *EvalState) levelSpec {
 	integer, isInteger := parseInteger(this)
 	expression, isExpression := parseExpression(this)
 	isInfinity := parseInfinity(this, es)
@@ -209,7 +209,7 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec{
 
 //This is an optimization with regards to expressionWalkMapBackwards which only deals with level specification,
 //expressionWalkMapBackwards also deals with depths, but has to visit the entire expression tree.
-func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) *Expression {
+func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec []int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) *Expression {
 	toReturn := NewExpression([]Ex{this.Parts[0]})
 
 	for i, expr := range this.Parts[1:] {
@@ -239,7 +239,7 @@ func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, 
 	return toReturn
 }
 
-func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) (*Expression, int64) {
+func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec []int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) (*Expression, int64) {
 	toReturn := NewExpression([]Ex{this.Parts[0]})
 	currentMaxDepth := int64(1)
 
@@ -265,7 +265,7 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, 
 				toReturn.Parts = append(toReturn.Parts, newExpression)
 			}
 		} else { //If the node is atomic
-			level = level+1
+			level = level + 1
 			depth = int64(1)
 
 			if spec.checkLevel(level) && spec.checkDepth(depth) {
@@ -277,7 +277,7 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, 
 		}
 	}
 
-	return toReturn, currentMaxDepth+1
+	return toReturn, currentMaxDepth + 1
 }
 
 func wrapWithHead(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
@@ -289,7 +289,7 @@ func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64, _ *int64, es *EvalS
 	for _, part := range partList {
 		partSpec = append(partSpec, NewInt(part))
 	}
-	partSpecExpr :=  NewExpression(partSpec)
+	partSpecExpr := NewExpression(partSpec)
 	return NewExpression([]Ex{head, expr, partSpecExpr})
 }
 
@@ -414,7 +414,6 @@ func levelSpecFunction(
 	}
 }
 
-
 func getFunctionalDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Function",
@@ -423,16 +422,16 @@ func getFunctionalDefinitions() (defs []Definition) {
 		Name: "Slot",
 	})
 	defs = append(defs, Definition{
-		Name: "Apply",
+		Name:         "Apply",
 		legacyEvalFn: levelSpecFunction(applyHead, applyOptimizedSimpleLevelSpec, false, false),
 	})
 	defs = append(defs, Definition{
-		Name: "Map",
+		Name:         "Map",
 		legacyEvalFn: levelSpecFunction(wrapWithHead, mapOptimizedSimpleLevelSpec, false, false),
 	})
 
 	defs = append(defs, Definition{
-		Name: "MapIndexed",
+		Name:         "MapIndexed",
 		legacyEvalFn: levelSpecFunction(wrapWithHeadIndexed, mapOptimizedSimpleLevelSpec, false, false),
 	})
 

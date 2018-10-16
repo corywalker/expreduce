@@ -2,11 +2,13 @@ package expreduce
 
 import (
 	"math/big"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
 )
 
 type singleParamQType (func(Ex) bool)
-type singleParamQLogType (func(Ex, *CASLogger) bool)
-type doubleParamQLogType (func(Ex, Ex, *CASLogger) bool)
+type singleParamQLogType (func(Ex, *logging.CASLogger) bool)
+type doubleParamQLogType (func(Ex, Ex, *logging.CASLogger) bool)
 type evalFnType (func(*Expression, *EvalState) Ex)
 
 func singleParamQEval(fn singleParamQType) evalFnType {
@@ -79,7 +81,7 @@ func vectorQ(e Ex) bool {
 	return false
 }
 
-func matrixQ(e Ex, cl *CASLogger) bool {
+func matrixQ(e Ex, cl *logging.CASLogger) bool {
 	l, isL := HeadAssertion(e, "System`List")
 	if isL {
 		return len(dimensions(l, 0, cl)) == 2
@@ -87,7 +89,7 @@ func matrixQ(e Ex, cl *CASLogger) bool {
 	return false
 }
 
-func symbolNameQ(e Ex, name string, cl *CASLogger) bool {
+func symbolNameQ(e Ex, name string, cl *logging.CASLogger) bool {
 	sym, isSym := e.(*Symbol)
 	if isSym {
 		return sym.Name == name
@@ -95,15 +97,15 @@ func symbolNameQ(e Ex, name string, cl *CASLogger) bool {
 	return false
 }
 
-func trueQ(e Ex, cl *CASLogger) bool {
+func trueQ(e Ex, cl *logging.CASLogger) bool {
 	return symbolNameQ(e, "System`True", cl)
 }
 
-func falseQ(e Ex, cl *CASLogger) bool {
+func falseQ(e Ex, cl *logging.CASLogger) bool {
 	return symbolNameQ(e, "System`False", cl)
 }
 
-func booleanQ(e Ex, cl *CASLogger) bool {
+func booleanQ(e Ex, cl *logging.CASLogger) bool {
 	sym, isSym := e.(*Symbol)
 	if isSym {
 		return sym.Name == "System`False" || sym.Name == "System`True"

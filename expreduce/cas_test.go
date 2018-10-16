@@ -3,12 +3,12 @@ package expreduce
 import (
 	"flag"
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
+	"github.com/stretchr/testify/assert"
 	"math/big"
 	"regexp"
-	"testing"
 	"sync"
+	"testing"
 )
 
 var testmodules = flag.String("testmodules", "",
@@ -235,7 +235,7 @@ func TestConcurrency(t *testing.T) {
 	// Test concurrent evals on different EvalStates.
 	for i := 0; i < 10; i++ {
 		wg.Add(1)
-		go func (t *testing.T) {
+		go func(t *testing.T) {
 			defer wg.Done()
 			esTest := NewEvalState()
 			CasAssertSame(t, esTest, "3", "1+2")
@@ -246,7 +246,7 @@ func TestConcurrency(t *testing.T) {
 	// Test read-only concurrent evals on the same EvalState.
 	for i := 0; i < 100; i++ {
 		wg.Add(1)
-		go func (t *testing.T, es *EvalState) {
+		go func(t *testing.T, es *EvalState) {
 			defer wg.Done()
 			CasAssertSame(t, es, "2x", "D[x^2, x]")
 		}(t, es1)
@@ -256,7 +256,7 @@ func TestConcurrency(t *testing.T) {
 	// Test writing concurrent evals on the same EvalState.
 	for i := 0; i < 1000; i++ {
 		wg.Add(1)
-		go func (t *testing.T, i int, es *EvalState) {
+		go func(t *testing.T, i int, es *EvalState) {
 			defer wg.Done()
 			EvalInterp(fmt.Sprintf("testVar := %v", i), es)
 		}(t, i, es1)
@@ -266,7 +266,7 @@ func TestConcurrency(t *testing.T) {
 	// Test concurrent MarkSeen.
 	for i := 0; i < 1000; i++ {
 		wg.Add(1)
-		go func (t *testing.T, i int, es *EvalState) {
+		go func(t *testing.T, i int, es *EvalState) {
 			defer wg.Done()
 			es.MarkSeen("uniqueIdentifierForMarkSeen")
 		}(t, i, es1)

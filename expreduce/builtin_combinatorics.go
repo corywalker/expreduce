@@ -2,6 +2,8 @@ package expreduce
 
 import (
 	"math/big"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
 )
 
 // Used for the IntegerPartitions builtin
@@ -22,7 +24,7 @@ func genIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]in
 }
 
 // Used for the Permutations builtin
-func permListContains(permList [][]Ex, perm []Ex, cl *CASLogger) bool {
+func permListContains(permList [][]Ex, perm []Ex, cl *logging.CASLogger) bool {
 	for _, permInList := range permList {
 		if len(permInList) != len(perm) {
 			continue
@@ -42,7 +44,7 @@ func permListContains(permList [][]Ex, perm []Ex, cl *CASLogger) bool {
 }
 
 // Used for the Permutations builtin
-func genPermutations(parts []Ex, cl *CASLogger) (perms [][]Ex) {
+func genPermutations(parts []Ex, cl *logging.CASLogger) (perms [][]Ex) {
 	// Base case
 	if len(parts) == 1 {
 		return [][]Ex{parts}

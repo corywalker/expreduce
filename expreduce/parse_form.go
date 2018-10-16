@@ -1,5 +1,7 @@
 package expreduce
 
+import "github.com/corywalker/expreduce/expreduce/logging"
+
 type parsedForm struct {
 	startI      int
 	endI        int
@@ -37,7 +39,7 @@ func ParseRepeated(e *Expression) (Ex, int, int, bool) {
 	return e.Parts[1], min, max, true
 }
 
-func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault Ex, cl *CASLogger) (res parsedForm) {
+func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault Ex, cl *logging.CASLogger) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	toParse := lhs_component
 	optional, isOptional := HeadAssertion(toParse, "System`Optional")

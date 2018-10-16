@@ -1,8 +1,12 @@
 package expreduce
 
-import "fmt"
-import "math/big"
-import "hash/fnv"
+import (
+	"fmt"
+	"hash/fnv"
+	"math/big"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
+)
 
 type Rational struct {
 	Num       *big.Int
@@ -71,7 +75,7 @@ func (this *Rational) String(es *EvalState) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Rational) IsEqual(other Ex, cl *CASLogger) string {
+func (this *Rational) IsEqual(other Ex, cl *logging.CASLogger) string {
 	otherConv, otherIsRational := other.(*Rational)
 	if !otherIsRational {
 		return "EQUAL_FALSE"

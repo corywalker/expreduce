@@ -310,7 +310,7 @@ func getComparisonDefinitions() (defs []Definition) {
 			if len(this.Parts) == 2 {
 				return S("True")
 			}
-			if len(this.Parts) % 2 != 0 {
+			if len(this.Parts)%2 != 0 {
 				return this
 			}
 			firstSign := getCompSign(this.Parts[2])
@@ -330,7 +330,7 @@ func getComparisonDefinitions() (defs []Definition) {
 							if j < i {
 								firstIneq.appendEx(this.Parts[j])
 							}
-							if j > (i-2) {
+							if j > (i - 2) {
 								secondIneq.appendEx(this.Parts[j])
 							}
 						}
@@ -346,7 +346,7 @@ func getComparisonDefinitions() (defs []Definition) {
 				}
 				op := this.Parts[2*i+2]
 				rhs := this.Parts[2*i+3]
-				for rhsI := 2*i+3; rhsI < len(this.Parts); rhsI+=2 {
+				for rhsI := 2*i + 3; rhsI < len(this.Parts); rhsI += 2 {
 					if falseQ(E(op, lhs, this.Parts[rhsI]).Eval(es), &es.CASLogger) {
 						return S("False")
 					}

@@ -33,8 +33,9 @@ func primeFactors(origN *big.Int) (factors []*big.Int) {
 
 type factorTally struct {
 	factor *big.Int
-	power uint64
+	power  uint64
 }
+
 func primeFactorsTallied(n *big.Int) (factorTallies []factorTally) {
 	factors := primeFactors(n)
 	for _, factor := range factors {
@@ -49,7 +50,7 @@ func primeFactorsTallied(n *big.Int) (factorTallies []factorTally) {
 		if !added {
 			factorTallies = append(factorTallies, factorTally{
 				factor: factor,
-				power: 1,
+				power:  1,
 			})
 		}
 	}

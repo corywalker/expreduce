@@ -1,8 +1,12 @@
 package expreduce
 
-import "math"
+import (
+	"math"
 
-func IsSameQ(a Ex, b Ex, cl *CASLogger) bool {
+	"github.com/corywalker/expreduce/expreduce/logging"
+)
+
+func IsSameQ(a Ex, b Ex, cl *logging.CASLogger) bool {
 	aFlt, aIsFlt := a.(*Flt)
 	bFlt, bIsFlt := b.(*Flt)
 	_, aIsInteger := a.(*Integer)

@@ -1,5 +1,7 @@
 package expreduce
 
+import "github.com/corywalker/expreduce/expreduce/logging"
+
 func IsBlankTypeOnly(e Ex) bool {
 	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
 	if patternOk {
@@ -19,7 +21,7 @@ func IsBlankTypeOnly(e Ex) bool {
 	return false
 }
 
-func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *CASLogger) (bool, *PDManager) {
+func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *logging.CASLogger) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
 	asPattern, patternOk := HeadAssertion(e, "System`Pattern")

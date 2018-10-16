@@ -5,7 +5,7 @@ import (
 )
 
 type definitionMap struct {
-	internalMap	cmap.ConcurrentMap
+	internalMap cmap.ConcurrentMap
 }
 
 func newDefinitionMap() definitionMap {

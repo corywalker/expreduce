@@ -1,10 +1,14 @@
 package expreduce
 
-import "fmt"
-import "math/big"
-import "bytes"
-import "hash/fnv"
-import "strings"
+import (
+	"bytes"
+	"fmt"
+	"hash/fnv"
+	"math/big"
+	"strings"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
+)
 
 // Floating point numbers represented by big.Float
 type Flt struct {
@@ -45,7 +49,7 @@ func (this *Flt) String(es *EvalState) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Flt) IsEqual(other Ex, cl *CASLogger) string {
+func (this *Flt) IsEqual(other Ex, cl *logging.CASLogger) string {
 	otherConv, ok := other.(*Flt)
 	if !ok {
 		otherInteger, ok := other.(*Integer)

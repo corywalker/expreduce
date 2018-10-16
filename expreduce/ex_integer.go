@@ -1,8 +1,12 @@
 package expreduce
 
-import "fmt"
-import "math/big"
-import "hash/fnv"
+import (
+	"fmt"
+	"hash/fnv"
+	"math/big"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
+)
 
 // Integer numbers represented by big.Int
 type Integer struct {
@@ -35,7 +39,7 @@ func (this *Integer) String(es *EvalState) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Integer) IsEqual(other Ex, cl *CASLogger) string {
+func (this *Integer) IsEqual(other Ex, cl *logging.CASLogger) string {
 	otherConv, ok := other.(*Integer)
 	if !ok {
 		otherFlt, ok := other.(*Flt)

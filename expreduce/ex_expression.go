@@ -1,15 +1,19 @@
 package expreduce
 
-import "bytes"
-import "math/big"
-import "sort"
-import "fmt"
-import "encoding/binary"
-import "time"
-import "flag"
-import "hash/fnv"
-import "sync/atomic"
-import "github.com/corywalker/expreduce/expreduce/timecounter"
+import (
+	"bytes"
+	"encoding/binary"
+	"flag"
+	"fmt"
+	"hash/fnv"
+	"math/big"
+	"sort"
+	"sync/atomic"
+	"time"
+
+	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/expreduce/timecounter"
+)
 
 var printevals = flag.Bool("printevals", false, "")
 var checkhashes = flag.Bool("checkhashes", false, "")
@@ -36,7 +40,7 @@ func HeadAssertion(ex Ex, head string) (*Expression, bool) {
 	return nil, false
 }
 
-func headExAssertion(ex Ex, head Ex, cl *CASLogger) (*Expression, bool) {
+func headExAssertion(ex Ex, head Ex, cl *logging.CASLogger) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		if IsSameQ(head, expr.Parts[0], cl) {
@@ -127,7 +131,7 @@ func (this *Expression) propagateConditionals() (*Expression, bool) {
 			}
 		}
 	}
-	if foundCond{
+	if foundCond {
 		resEx := E(this.Parts[0])
 		resCond := E(S("And"))
 		for _, e := range this.Parts[1:] {
@@ -201,7 +205,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		currStr := ""
 		currHeadStr := ""
 		started := int64(0)
-		if es.isProfiling {
+		if es.IsProfiling() {
 			currStr = curr.String(es)
 			currHeadStr = curr.Parts[0].String(es)
 			started = time.Now().UnixNano()
@@ -336,7 +340,7 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		currExHash = hashEx(currEx)
 
 		// Handle end of profiling
-		if es.isProfiling {
+		if es.IsProfiling() {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
 			es.timeCounter.AddTime(timecounter.CounterGroupEvalTime, currStr, elapsed)
 			es.timeCounter.AddTime(timecounter.CounterGroupHeadEvalTime, currHeadStr, elapsed)
@@ -437,8 +441,7 @@ func (this *Expression) StringForm(params ToStringParams) string {
 		}
 	}
 
-	if len(this.Parts) == 2 && isHeadSym && (
-		headAsSym.Name == "System`InputForm" ||
+	if len(this.Parts) == 2 && isHeadSym && (headAsSym.Name == "System`InputForm" ||
 		headAsSym.Name == "System`FullForm" ||
 		headAsSym.Name == "System`TraditionalForm" ||
 		headAsSym.Name == "System`TeXForm" ||
@@ -473,7 +476,7 @@ func (this *Expression) String(es *EvalState) string {
 		form: "InputForm", context: context, contextPath: contextPath, es: es})
 }
 
-func (this *Expression) IsEqual(otherEx Ex, cl *CASLogger) string {
+func (this *Expression) IsEqual(otherEx Ex, cl *logging.CASLogger) string {
 	other, ok := otherEx.(*Expression)
 	if !ok {
 		return "EQUAL_UNK"

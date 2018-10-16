@@ -1,8 +1,8 @@
 package expreduce
 
 import (
-	"strings"
 	"encoding/base64"
+	"strings"
 )
 
 func GetStringDefinitions() (defs []Definition) {
@@ -26,11 +26,11 @@ func GetStringDefinitions() (defs []Definition) {
 
 			context, contextPath := ActualStringFormArgs(es)
 			stringParams := ToStringParams{
-				form: formAsSymbol.Name[7:],
-				context: context,
-				contextPath: contextPath,
+				form:         formAsSymbol.Name[7:],
+				context:      context,
+				contextPath:  contextPath,
 				previousHead: "<TOPLEVEL>",
-				es: es,
+				es:           es,
 			}
 			return NewString(this.Parts[1].StringForm(stringParams))
 		},
