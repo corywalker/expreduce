@@ -1,4 +1,6 @@
-package expreduce
+// Package timecounter provides functionality for aggregating times based on a
+// string key.
+package timecounter
 
 import (
 	"bytes"
@@ -6,31 +8,31 @@ import (
 	"sort"
 )
 
-type TimeMap map[string]float64
-type CountMap map[string]int64
+type timeMap map[string]float64
+type countMap map[string]int64
 
-type TimeCounter struct {
-	times  TimeMap
-	counts CountMap
+type timeCounter struct {
+	times  timeMap
+	counts countMap
 }
 
-func (tc *TimeCounter) Init() {
-	tc.times = make(TimeMap)
-	tc.counts = make(CountMap)
+func (tc *timeCounter) Init() {
+	tc.times = make(timeMap)
+	tc.counts = make(countMap)
 }
 
-func (tc *TimeCounter) AddTime(key string, elapsed float64) {
+func (tc *timeCounter) AddTime(key string, elapsed float64) {
 	tc.times[key] += elapsed
-	tc.counts[key] += 1
+	tc.counts[key]++
 }
 
-func (tc *TimeCounter) Update(other *TimeCounter) {
+func (tc *timeCounter) Update(other *timeCounter) {
 	for k, v := range other.times {
 		tc.AddTime(k, v)
 	}
 }
 
-func (tc *TimeCounter) TruncatedString(numToPrint int) string {
+func (tc *timeCounter) TruncatedString(numToPrint int) string {
 	var buffer bytes.Buffer
 	n := map[float64][]string{}
 	var a []float64
@@ -55,39 +57,47 @@ func (tc *TimeCounter) TruncatedString(numToPrint int) string {
 	return buffer.String()
 }
 
-func (tc *TimeCounter) String() string {
+func (tc *timeCounter) String() string {
 	return tc.TruncatedString(25)
 }
 
-// TimeCounterGroup
+// Group
 
-type CounterGroupType uint8
+type counterGroupType uint8
 
 const (
-	CounterGroupDefTime CounterGroupType = iota + 1
-	CounterGroupLhsDefTime
+	// CounterGroupDefTime is the counter for definition times.
+	CounterGroupDefTime counterGroupType = iota + 1
+	// CounterGroupLHSDefTime is the counter for LHS definition times.
+	CounterGroupLHSDefTime
+	// CounterGroupEvalTime is the counter for eval times.
 	CounterGroupEvalTime
+	// CounterGroupHeadEvalTime is the counter for head eval times.
 	CounterGroupHeadEvalTime
 )
 
-type TimeCounterGroup struct {
-	defTimeCounter      TimeCounter
-	lhsDefTimeCounter   TimeCounter
-	evalTimeCounter     TimeCounter
-	headEvalTimeCounter TimeCounter
+// Group collects eval-related timeCounters.
+type Group struct {
+	defTimeCounter      timeCounter
+	lhsDefTimeCounter   timeCounter
+	evalTimeCounter     timeCounter
+	headEvalTimeCounter timeCounter
 }
 
-func (tcg *TimeCounterGroup) Init() {
+// Init initializes the Group with empty maps.
+func (tcg *Group) Init() {
 	tcg.defTimeCounter.Init()
 	tcg.lhsDefTimeCounter.Init()
 	tcg.evalTimeCounter.Init()
 	tcg.headEvalTimeCounter.Init()
 }
 
-func (tcg *TimeCounterGroup) AddTime(counter CounterGroupType, key string, elapsed float64) {
+// AddTime adds a floating-point time to a particular timeCounter, selected with
+// a counterGroupType.
+func (tcg *Group) AddTime(counter counterGroupType, key string, elapsed float64) {
 	if counter == CounterGroupDefTime {
 		tcg.defTimeCounter.AddTime(key, elapsed)
-	} else if counter == CounterGroupLhsDefTime {
+	} else if counter == CounterGroupLHSDefTime {
 		tcg.lhsDefTimeCounter.AddTime(key, elapsed)
 	} else if counter == CounterGroupEvalTime {
 		tcg.evalTimeCounter.AddTime(key, elapsed)
@@ -96,14 +106,16 @@ func (tcg *TimeCounterGroup) AddTime(counter CounterGroupType, key string, elaps
 	}
 }
 
-func (tcg *TimeCounterGroup) Update(other *TimeCounterGroup) {
+// Update adds another Group to this one.
+func (tcg *Group) Update(other *Group) {
 	tcg.defTimeCounter.Update(&other.defTimeCounter)
 	tcg.lhsDefTimeCounter.Update(&other.lhsDefTimeCounter)
 	tcg.evalTimeCounter.Update(&other.evalTimeCounter)
 	tcg.headEvalTimeCounter.Update(&other.headEvalTimeCounter)
 }
 
-func (tcg *TimeCounterGroup) String() string {
+// Prints the counter group as a formatted string.
+func (tcg *Group) String() string {
 	var buffer bytes.Buffer
 	buffer.WriteString(tcg.defTimeCounter.String() + "\n")
 	buffer.WriteString(tcg.lhsDefTimeCounter.String() + "\n")

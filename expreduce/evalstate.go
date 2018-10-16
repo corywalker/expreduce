@@ -7,6 +7,7 @@ import (
 	"os/signal"
 	"strings"
 	"time"
+	"github.com/corywalker/expreduce/expreduce/timecounter"
 )
 
 type EvalState struct {
@@ -16,7 +17,7 @@ type EvalState struct {
 	defined		definitionMap
 	trace       *Expression
 	NoInit      bool
-	timeCounter TimeCounterGroup
+	timeCounter timecounter.Group
 	freeze      bool
 	thrown      *Expression
 	reapSown    *Expression
@@ -302,8 +303,8 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 
 		if this.isProfiling {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
-			this.timeCounter.AddTime(CounterGroupDefTime, defStr, elapsed)
-			this.timeCounter.AddTime(CounterGroupLhsDefTime, lhsDefStr, elapsed)
+			this.timeCounter.AddTime(timecounter.CounterGroupDefTime, defStr, elapsed)
+			this.timeCounter.AddTime(timecounter.CounterGroupLHSDefTime, lhsDefStr, elapsed)
 		}
 
 		if replaced {

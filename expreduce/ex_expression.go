@@ -9,6 +9,7 @@ import "time"
 import "flag"
 import "hash/fnv"
 import "sync/atomic"
+import "github.com/corywalker/expreduce/expreduce/timecounter"
 
 var printevals = flag.Bool("printevals", false, "")
 var checkhashes = flag.Bool("checkhashes", false, "")
@@ -337,8 +338,8 @@ func (this *Expression) Eval(es *EvalState) Ex {
 		// Handle end of profiling
 		if es.isProfiling {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
-			es.timeCounter.AddTime(CounterGroupEvalTime, currStr, elapsed)
-			es.timeCounter.AddTime(CounterGroupHeadEvalTime, currHeadStr, elapsed)
+			es.timeCounter.AddTime(timecounter.CounterGroupEvalTime, currStr, elapsed)
+			es.timeCounter.AddTime(timecounter.CounterGroupHeadEvalTime, currHeadStr, elapsed)
 		}
 	}
 	curr, isExpr := currEx.(*Expression)

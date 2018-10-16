@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/stretchr/testify/assert"
+	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"math/big"
 	"regexp"
 	"testing"
@@ -27,7 +28,7 @@ func TestIncludedModules(t *testing.T) {
 	var testSymEx = regexp.MustCompile(*testsyms)
 	defSets := GetAllDefinitions()
 	numTests := 0
-	timeCounter := TimeCounterGroup{}
+	timeCounter := timecounter.Group{}
 	timeCounter.Init()
 	var mockT testing.T
 	for _, defSet := range defSets {
