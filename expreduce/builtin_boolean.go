@@ -6,25 +6,25 @@ func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "And",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " && ", "", params)
+			return ToStringInfix(this.GetParts()[1:], " && ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`And")})
-			for i := 1; i < len(this.Parts); i++ {
-				this.Parts[i] = this.Parts[i].Eval(es)
-				if booleanQ(this.Parts[i], &es.CASLogger) {
-					if falseQ(this.Parts[i], &es.CASLogger) {
+			for i := 1; i < len(this.GetParts()); i++ {
+				this.GetParts()[i] = this.GetParts()[i].Eval(es)
+				if booleanQ(this.GetParts()[i], &es.CASLogger) {
+					if falseQ(this.GetParts()[i], &es.CASLogger) {
 						return NewSymbol("System`False")
 					}
 				} else {
-					res.appendEx(this.Parts[i])
+					res.appendEx(this.GetParts()[i])
 				}
 			}
-			if len(res.Parts) == 1 {
+			if len(res.GetParts()) == 1 {
 				return NewSymbol("System`True")
 			}
-			if len(res.Parts) == 2 {
-				return res.Parts[1]
+			if len(res.GetParts()) == 2 {
+				return res.GetParts()[1]
 			}
 			return res
 		},
@@ -32,25 +32,25 @@ func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Or",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " || ", "", params)
+			return ToStringInfix(this.GetParts()[1:], " || ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`Or")})
-			for i := 1; i < len(this.Parts); i++ {
-				this.Parts[i] = this.Parts[i].Eval(es)
-				if booleanQ(this.Parts[i], &es.CASLogger) {
-					if trueQ(this.Parts[i], &es.CASLogger) {
+			for i := 1; i < len(this.GetParts()); i++ {
+				this.GetParts()[i] = this.GetParts()[i].Eval(es)
+				if booleanQ(this.GetParts()[i], &es.CASLogger) {
+					if trueQ(this.GetParts()[i], &es.CASLogger) {
 						return NewSymbol("System`True")
 					}
 				} else {
-					res.appendEx(this.Parts[i])
+					res.appendEx(this.GetParts()[i])
 				}
 			}
-			if len(res.Parts) == 1 {
+			if len(res.GetParts()) == 1 {
 				return NewSymbol("System`False")
 			}
-			if len(res.Parts) == 2 {
-				return res.Parts[1]
+			if len(res.GetParts()) == 2 {
+				return res.GetParts()[1]
 			}
 			return res
 		},
@@ -58,13 +58,13 @@ func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Not",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			if trueQ(this.Parts[1], &es.CASLogger) {
+			if trueQ(this.GetParts()[1], &es.CASLogger) {
 				return NewSymbol("System`False")
 			}
-			if falseQ(this.Parts[1], &es.CASLogger) {
+			if falseQ(this.GetParts()[1], &es.CASLogger) {
 				return NewSymbol("System`True")
 			}
 			return this

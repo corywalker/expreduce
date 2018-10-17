@@ -9,11 +9,11 @@ import (
 
 func mathFnOneParam(fn func(float64) float64) func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-		if len(this.Parts) != 2 {
+		if len(this.GetParts()) != 2 {
 			return this
 		}
 
-		flt, ok := this.Parts[1].(*Flt)
+		flt, ok := this.GetParts()[1].(*Flt)
 		if ok {
 			flt64, acc := flt.Val.Float64()
 			if acc == big.Exact {

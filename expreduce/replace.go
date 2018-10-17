@@ -5,16 +5,16 @@ import "github.com/corywalker/expreduce/pkg/expreduceapi"
 // This function assumes e and lhs have the same head and that the head is Flat.
 func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.ExpressionInterface, rhs expreduceapi.Ex, orderless bool, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	looseLhs := NewExpression([]expreduceapi.Ex{})
-	looseLhs.Parts = append(looseLhs.Parts, lhs.Parts[0])
+	looseLhs.GetParts() = append(looseLhs.GetParts(), lhs.GetParts()[0])
 	if !orderless {
-		looseLhs.Parts = append(looseLhs.Parts, NewExpression([]expreduceapi.Ex{
+		looseLhs.GetParts() = append(looseLhs.GetParts(), NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Pattern"),
 			NewSymbol("System`Expreduce`start"),
 			NewExpression([]expreduceapi.Ex{NewSymbol("System`BlankNullSequence")}),
 		}))
 	}
-	looseLhs.Parts = append(looseLhs.Parts, lhs.Parts[1:]...)
-	looseLhs.Parts = append(looseLhs.Parts, NewExpression([]expreduceapi.Ex{
+	looseLhs.GetParts() = append(looseLhs.GetParts(), lhs.GetParts()[1:]...)
+	looseLhs.GetParts() = append(looseLhs.GetParts(), NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`Pattern"),
 		NewSymbol("System`Expreduce`end"),
 		NewExpression([]expreduceapi.Ex{NewSymbol("System`BlankNullSequence")}),
@@ -25,13 +25,13 @@ func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.Expression
 		var tmpEx expreduceapi.Ex
 		if orderless {
 			tmpEx = ReplacePD(NewExpression([]expreduceapi.Ex{
-				e.Parts[0],
+				e.GetParts()[0],
 				rhs,
 				NewSymbol("System`Expreduce`end"),
 			}), es, newPd)
 		} else {
 			tmpEx = ReplacePD(NewExpression([]expreduceapi.Ex{
-				e.Parts[0],
+				e.GetParts()[0],
 				NewSymbol("System`Expreduce`start"),
 				rhs,
 				NewSymbol("System`Expreduce`end"),
@@ -55,15 +55,15 @@ func ReplacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool)
 	thisDirty := false
 	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
-		for i := range asExpr.Parts {
-			possiblyNewExpr, dirty := ReplacePDInternal(asExpr.Parts[i], pm)
+		for i := range asExpr.GetParts() {
+			possiblyNewExpr, dirty := ReplacePDInternal(asExpr.GetParts()[i], pm)
 			if dirty {
 				thisDirty = true
 				// Mark the expression as dirty and needing eval.
 				asExpr.evaledHash = 0
 				asExpr.cachedHash = 0
 			}
-			asExpr.Parts[i] = possiblyNewExpr
+			asExpr.GetParts()[i] = possiblyNewExpr
 		}
 	}
 	return e, thisDirty
@@ -108,8 +108,8 @@ func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es exp
 			return asExpression.ReplaceAll(r, stopAtHead, es)
 		}
 	}
-	if res, matches := IsMatchQ(this, r.Parts[1], pm, es); res {
-		return ReplacePD(r.Parts[2], es, matches)
+	if res, matches := IsMatchQ(this, r.GetParts()[1], pm, es); res {
+		return ReplacePD(r.GetParts()[2], es, matches)
 	}
 	return this
 }
@@ -118,8 +118,8 @@ func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es expreduceapi
 	asCond, isCond := HeadAssertion(rhs, "System`Condition")
 	if !isCond {
 		if asWith, isWith := HeadAssertion(rhs, "System`With"); isWith {
-			if len(asWith.Parts) == 3 {
-				if _, hasCond := HeadAssertion(asWith.Parts[2], "System`Condition"); hasCond {
+			if len(asWith.GetParts()) == 3 {
+				if _, hasCond := HeadAssertion(asWith.GetParts()[2], "System`Condition"); hasCond {
 					appliedWith, ok := applyWithFn(asWith, es)
 					if ok {
 						asCond, isCond = HeadAssertion(appliedWith, "System`Condition")
@@ -128,8 +128,8 @@ func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es expreduceapi
 			}
 		}
 		if asMod, isMod := HeadAssertion(rhs, "System`Module"); isMod {
-			if len(asMod.Parts) == 3 {
-				if _, hasCond := HeadAssertion(asMod.Parts[2], "System`Condition"); hasCond {
+			if len(asMod.GetParts()) == 3 {
+				if _, hasCond := HeadAssertion(asMod.GetParts()[2], "System`Condition"); hasCond {
 					appliedMod, ok := applyModuleFn(asMod, es)
 					if ok {
 						asCond, isCond = HeadAssertion(appliedMod, "System`Condition")
@@ -139,11 +139,11 @@ func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es expreduceapi
 		}
 	}
 	if isCond {
-		condRes := asCond.Parts[2].Eval(es)
+		condRes := asCond.GetParts()[2].Eval(es)
 		condResSymbol, condResIsSymbol := condRes.(*Symbol)
 		if condResIsSymbol {
 			if condResSymbol.Name == "System`True" {
-				return tryCondWithMatches(asCond.Parts[1], matches, es)
+				return tryCondWithMatches(asCond.GetParts()[1], matches, es)
 			}
 		}
 		return nil, false
@@ -152,12 +152,12 @@ func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es expreduceapi
 }
 
 func Replace(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
-	mi, cont := NewMatchIter(this, r.Parts[1], EmptyPD(), es)
+	mi, cont := NewMatchIter(this, r.GetParts()[1], EmptyPD(), es)
 	for cont {
 		res, matches, done := mi.next()
 		cont = !done
 		if res {
-			replacedRhs := ReplacePD(r.Parts[2], es, matches)
+			replacedRhs := ReplacePD(r.GetParts()[2], es, matches)
 			toReturn, ok := tryCondWithMatches(replacedRhs, matches, es)
 			if ok {
 				return toReturn, true

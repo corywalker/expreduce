@@ -7,11 +7,11 @@ import (
 	"github.com/cznic/wl"
 )
 
-func needsParens(thisHead string, previousHead string) bool {
-	if previousHead == "<TOPLEVEL>" {
+func needsParens(thisHead string, PreviousHead string) bool {
+	if PreviousHead == "<TOPLEVEL>" {
 		return false
 	}
-	prevToken, prevTokenOk := headsToTokens[previousHead]
+	prevToken, prevTokenOk := headsToTokens[PreviousHead]
 	thisToken, thisTokenOk := headsToTokens[thisHead]
 	if prevTokenOk && thisTokenOk {
 		prevPrec, prevPrecOk := wl.Precedence[prevToken]
@@ -32,7 +32,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 	if len(parts) < 2 {
 		return false, ""
 	}
-	addParens := needsParens(thisHead, p.previousHead)
+	addParens := needsParens(thisHead, p.PreviousHead)
 	var buffer bytes.Buffer
 	if addParens {
 		if p.form == "TeXForm" {
@@ -42,7 +42,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 		}
 	}
 	nextParams := p
-	nextParams.previousHead = thisHead
+	nextParams.PreviousHead = thisHead
 	for i := 0; i < len(parts); i++ {
 		buffer.WriteString(parts[i].StringForm(nextParams))
 		if i != len(parts)-1 {
@@ -60,15 +60,15 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 }
 
 func (this expreduceapi.ExpressionInterface) ToStringInfix(p expreduceapi.ToStringParams) (bool, string) {
-	if len(this.Parts) != 3 {
+	if len(this.GetParts()) != 3 {
 		return false, ""
 	}
-	expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
-	delim, delimIsStr := this.Parts[2].(*String)
+	expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
+	delim, delimIsStr := this.GetParts()[2].(*String)
 	if !isExpr || !delimIsStr {
 		return false, ""
 	}
-	return ToStringInfix(expr.Parts[1:], delim.Val, "", p)
+	return ToStringInfix(expr.GetParts()[1:], delim.Val, "", p)
 }
 
 // TODO(corywalker): Remove start, end. No users of these values.
@@ -80,7 +80,7 @@ func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 		return false, ""
 	}
 	var buffer bytes.Buffer
-	addParens := needsParens(thisHead, params.previousHead)
+	addParens := needsParens(thisHead, params.PreviousHead)
 	if addParens {
 		if params.form == "TeXForm" {
 			buffer.WriteString("{\\left(")
@@ -92,7 +92,7 @@ func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 		buffer.WriteString(start)
 	}
 	nextParams := params
-	nextParams.previousHead = thisHead
+	nextParams.PreviousHead = thisHead
 	for i := 0; i < len(parts); i++ {
 		if surroundEachArg {
 			buffer.WriteString("(")
@@ -143,8 +143,8 @@ func ActualStringFormArgsFull(form string, es expreduceapi.EvalStateInterface) e
 	return expreduceapi.ToStringParams{
 		form:         form,
 		context:      NewString(es.GetStringDef("System`$Context", "Global`")),
-		contextPath:  es.GetListDef("System`$ContextPath"),
-		previousHead: "<TOPLEVEL>",
+		ContextPath:  es.GetListDef("System`$ContextPath"),
+		PreviousHead: "<TOPLEVEL>",
 		esi:          es,
 	}
 
@@ -157,9 +157,9 @@ func simpleTeXToString(fnName string) func(expreduceapi.ExpressionInterface, exp
 		}
 		var buffer bytes.Buffer
 		buffer.WriteString("\\" + fnName + " \\left(")
-		for i := 1; i < len(this.Parts); i++ {
-			buffer.WriteString(this.Parts[i].StringForm(params))
-			if i != len(this.Parts)-1 {
+		for i := 1; i < len(this.GetParts()); i++ {
+			buffer.WriteString(this.GetParts()[i].StringForm(params))
+			if i != len(this.GetParts())-1 {
 				buffer.WriteString(",")
 			}
 		}

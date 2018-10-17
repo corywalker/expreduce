@@ -23,9 +23,9 @@ var inequalityOps = map[string]bool{
 
 func convertToInequality(expr expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
 	res := E(S("Inequality"))
-	for i, e := range expr.Parts[1:] {
+	for i, e := range expr.GetParts()[1:] {
 		if i != 0 {
-			res.appendEx(expr.Parts[0])
+			res.appendEx(expr.GetParts()[0])
 		}
 		res.appendEx(e)
 	}
@@ -53,7 +53,7 @@ func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceap
 	}
 	opExpr, isOp := HeadAssertion(lhs, op)
 	if isOp {
-		opExpr.Parts = append(opExpr.Parts, rhs)
+		opExpr.GetParts() = append(opExpr.GetParts(), rhs)
 		return opExpr
 	}
 	return NewExpression([]expreduceapi.Ex{NewSymbol(op), lhs, rhs})
@@ -62,24 +62,24 @@ func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceap
 func removeParens(ex expreduceapi.Ex) {
 	expr, isExpr := ex.(expreduceapi.ExpressionInterface)
 	if isExpr {
-		for i := range expr.Parts {
+		for i := range expr.GetParts() {
 			parens, isParens := NewEmptyExpression(), true
 			for isParens {
-				parens, isParens = HeadAssertion(expr.Parts[i], "Internal`Parens")
+				parens, isParens = HeadAssertion(expr.GetParts()[i], "Internal`Parens")
 				if isParens {
-					expr.Parts[i] = parens.Parts[1]
+					expr.GetParts()[i] = parens.GetParts()[1]
 				}
 			}
-			removeParens(expr.Parts[i])
+			removeParens(expr.GetParts()[i])
 		}
 	}
 	return
 }
 
-func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string, es expreduceapi.EvalStateInterface) {
+func addContextAndDefine(e expreduceapi.Ex, context string, ContextPath []string, es expreduceapi.EvalStateInterface) {
 	if sym, isSym := e.(*Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
-			for _, toTry := range contextPath {
+			for _, toTry := range ContextPath {
 				if es.IsDef(toTry + sym.Name) {
 					sym.Name = toTry + sym.Name
 					return
@@ -91,8 +91,8 @@ func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string
 	}
 	expr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
-		for _, part := range expr.Parts {
-			addContextAndDefine(part, context, contextPath, es)
+		for _, part := range expr.GetParts() {
+			addContextAndDefine(part, context, ContextPath, es)
 		}
 	}
 }
@@ -437,8 +437,8 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 		e := NewExpression([]expreduceapi.Ex{
 			NewSymbol(head),
 			ParserExprConv(expr.Expression),
-			set.Parts[1],
-			set.Parts[2],
+			set.GetParts()[1],
+			set.GetParts()[2],
 		})
 		return e
 	case 137:
@@ -500,7 +500,7 @@ func InterpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface)
 	for isParens {
 		parens, isParens = HeadAssertion(parsed, "Internal`Parens")
 		if isParens {
-			parsed = parens.Parts[1]
+			parsed = parens.GetParts()[1]
 		}
 	}
 	// Remove inner parens
@@ -508,11 +508,11 @@ func InterpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface)
 
 	context := es.GetStringDef("System`$Context", "")
 	contextPathEx := es.GetListDef("System`$ContextPath")
-	contextPath := []string{}
-	for _, pathPart := range contextPathEx.Parts[1:] {
-		contextPath = append(contextPath, pathPart.(*String).Val)
+	ContextPath := []string{}
+	for _, pathPart := range contextPathEx.GetParts()[1:] {
+		ContextPath = append(ContextPath, pathPart.(*String).Val)
 	}
-	addContextAndDefine(parsed, context, contextPath, es)
+	addContextAndDefine(parsed, context, ContextPath, es)
 	return parsed, nil
 }
 
@@ -559,11 +559,11 @@ func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expredu
 }
 
 func EasyRun(src string, es expreduceapi.EvalStateInterface) string {
-	context, contextPath := ActualStringFormArgs(es)
+	context, ContextPath := ActualStringFormArgs(es)
 	stringParams := expreduceapi.ToStringParams{
 		form:        "InputForm",
 		context:     context,
-		contextPath: contextPath,
+		ContextPath: ContextPath,
 		esi:         es,
 	}
 	return EvalInterp(src, es).StringForm(stringParams)

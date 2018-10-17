@@ -8,9 +8,9 @@ import (
 func IsBlankTypeOnly(e expreduceapi.Ex) bool {
 	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
 	if patternOk {
-		_, blankOk := HeadAssertion(asPattern.Parts[2], "System`Blank")
-		_, bsOk := HeadAssertion(asPattern.Parts[2], "System`BlankSequence")
-		_, bnsOk := HeadAssertion(asPattern.Parts[2], "System`BlankNullSequence")
+		_, blankOk := HeadAssertion(asPattern.GetParts()[2], "System`Blank")
+		_, bsOk := HeadAssertion(asPattern.GetParts()[2], "System`BlankSequence")
+		_, bnsOk := HeadAssertion(asPattern.GetParts()[2], "System`BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			return true
 		}
@@ -29,17 +29,17 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 	// if there is a valid match.
 	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
 	if patternOk {
-		asBlank, blankOk := HeadAssertion(asPattern.Parts[2], "System`Blank")
-		asBS, bsOk := HeadAssertion(asPattern.Parts[2], "System`BlankSequence")
-		asBNS, bnsOk := HeadAssertion(asPattern.Parts[2], "System`BlankNullSequence")
+		asBlank, blankOk := HeadAssertion(asPattern.GetParts()[2], "System`Blank")
+		asBS, bsOk := HeadAssertion(asPattern.GetParts()[2], "System`BlankSequence")
+		asBNS, bnsOk := HeadAssertion(asPattern.GetParts()[2], "System`BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			parts := []expreduceapi.Ex{}
 			if blankOk {
-				parts = asBlank.Parts
+				parts = asBlank.GetParts()
 			} else if bsOk {
-				parts = asBS.Parts
+				parts = asBS.GetParts()
 			} else if bnsOk {
-				parts = asBNS.Parts
+				parts = asBNS.GetParts()
 			}
 			//if len(parts) < 2 {
 			//return true, pm
@@ -53,7 +53,7 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 			}
 			cl.Debugf("%v", matchesHead)
 			if matchesHead {
-				sAsSymbol, sAsSymbolOk := asPattern.Parts[1].(*Symbol)
+				sAsSymbol, sAsSymbolOk := asPattern.GetParts()[1].(*Symbol)
 				if sAsSymbolOk {
 					// TODO: we should handle matches with BlankSequences
 					// differently here.
@@ -78,11 +78,11 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 	if blankOk || bsOk || bnsOk {
 		parts := []expreduceapi.Ex{}
 		if blankOk {
-			parts = asBlank.Parts
+			parts = asBlank.GetParts()
 		} else if bsOk {
-			parts = asBS.Parts
+			parts = asBS.GetParts()
 		} else if bnsOk {
-			parts = asBNS.Parts
+			parts = asBNS.GetParts()
 		}
 		if len(parts) < 2 {
 			return true, pm

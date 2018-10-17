@@ -43,23 +43,23 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	patternHead := ""
 	patExpr, patIsExpr := b.(expreduceapi.ExpressionInterface)
 	if patIsExpr {
-		sym, isSym := patExpr.Parts[0].(*Symbol)
+		sym, isSym := patExpr.GetParts()[0].(*Symbol)
 		if isSym {
 			patternHead = sym.Name
 		}
 	}
 	if patternHead == "System`Except" {
 		except := patExpr
-		if len(except.Parts) == 2 {
-			matchq, _ := IsMatchQ(a, except.Parts[1], pm, es)
+		if len(except.GetParts()) == 2 {
+			matchq, _ := IsMatchQ(a, except.GetParts()[1], pm, es)
 			if !matchq {
 				return &dummyMatchIter{pm}, true
 			}
 			return nil, false
-		} else if len(except.Parts) == 3 {
-			matchq, _ := IsMatchQ(a, except.Parts[1], pm, es)
+		} else if len(except.GetParts()) == 3 {
+			matchq, _ := IsMatchQ(a, except.GetParts()[1], pm, es)
 			if !matchq {
-				matchqb, newPm := IsMatchQ(a, except.Parts[2], pm, es)
+				matchqb, newPm := IsMatchQ(a, except.GetParts()[2], pm, es)
 				if matchqb {
 					return &dummyMatchIter{newPm}, true
 				}
@@ -68,7 +68,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 		}
 	} else if patternHead == "System`Alternatives" {
 		alts := patExpr
-		for _, alt := range alts.Parts[1:] {
+		for _, alt := range alts.GetParts()[1:] {
 			// I recently changed the third argument from EmptyPD() to pm
 			// because MatchQ[{a, b}, {a_, k | a_}] was returning True, causing
 			// problems in some of the boolean patterns. Might need to make
@@ -81,13 +81,13 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 		return nil, false
 	} else if patternHead == "System`PatternTest" {
 		patternTest := patExpr
-		if len(patternTest.Parts) == 3 {
-			matchq, newPD := IsMatchQ(a, patternTest.Parts[1], pm, es)
+		if len(patternTest.GetParts()) == 3 {
+			matchq, newPD := IsMatchQ(a, patternTest.GetParts()[1], pm, es)
 			if matchq {
 				// Some Q functions are very simple and occur very often. For
 				// some of these, skip the Eval() call and return the boolean
 				// directly.
-				testSym, testIsSym := patternTest.Parts[2].(*Symbol)
+				testSym, testIsSym := patternTest.GetParts()[2].(*Symbol)
 				if testIsSym {
 					var qFunction singleParamQType
 					if testSym.Name == "System`NumberQ" {
@@ -106,7 +106,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 				// MatchQ[1, a_?((mytestval = 999; NumberQ[#]) &)] // Timing
 				//tmpEs := NewEvalStateNoLog(true)
 				res := (NewExpression([]expreduceapi.Ex{
-					patternTest.Parts[2],
+					patternTest.GetParts()[2],
 					a,
 				})).Eval(es)
 				resSymbol, resIsSymbol := res.(*Symbol)
@@ -120,14 +120,14 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 		}
 	} else if patternHead == "System`Condition" {
 		condition := patExpr
-		if len(condition.Parts) == 3 {
-			mi, cont := NewMatchIter(a, condition.Parts[1], pm, es)
+		if len(condition.GetParts()) == 3 {
+			mi, cont := NewMatchIter(a, condition.GetParts()[1], pm, es)
 			for cont {
 				matchq, newPD, done := mi.next()
 				cont = !done
 				if matchq {
 					//tmpEs := NewEvalStateNoLog(true)
-					res := condition.Parts[2].DeepCopy()
+					res := condition.GetParts()[2].DeepCopy()
 					res = ReplacePD(res, es, newPD).Eval(es)
 					resSymbol, resIsSymbol := res.(*Symbol)
 					if resIsSymbol {
@@ -140,16 +140,16 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 		}
 	} else if patternHead == "System`Optional" {
 		optional := patExpr
-		if len(optional.Parts) == 2 {
-			matchq, newPD := IsMatchQ(a, optional.Parts[1], pm, es)
+		if len(optional.GetParts()) == 2 {
+			matchq, newPD := IsMatchQ(a, optional.GetParts()[1], pm, es)
 			if matchq {
 				return &dummyMatchIter{newPD}, true
 			}
 		}
 	} else if patternHead == "System`HoldPattern" {
 		holdPattern := patExpr
-		if len(holdPattern.Parts) == 2 {
-			return NewMatchIter(a, holdPattern.Parts[1], pm, es)
+		if len(holdPattern.GetParts()) == 2 {
+			return NewMatchIter(a, holdPattern.GetParts()[1], pm, es)
 		}
 	}
 
@@ -167,9 +167,9 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	forceOrdered := false
 	verbatimOp, opExpr, isVerbatimOp := OperatorAssertion(b, "System`Verbatim")
 	if aIsExpression && isVerbatimOp {
-		if len(opExpr.Parts) == 2 {
-			if IsSameQ(aExpression.Parts[0], opExpr.Parts[1], &es.CASLogger) {
-				b = NewExpression(append([]expreduceapi.Ex{opExpr.Parts[1]}, verbatimOp.Parts[1:]...))
+		if len(opExpr.GetParts()) == 2 {
+			if IsSameQ(aExpression.GetParts()[0], opExpr.GetParts()[1], &es.CASLogger) {
+				b = NewExpression(append([]expreduceapi.Ex{opExpr.GetParts()[1]}, verbatimOp.GetParts()[1:]...))
 				bExpression, bIsExpression = b.(expreduceapi.ExpressionInterface)
 				forceOrdered = true
 			}
@@ -185,7 +185,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	} else if aIsString {
 		headEx = strSym
 	} else if aIsExpression {
-		headEx = aExpression.Parts[0]
+		headEx = aExpression.GetParts()[0]
 	} else if aIsSymbol {
 		headEx = symSym
 	} else if aIsRational {
@@ -223,12 +223,12 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	canAssumeHead := false
 	assumingHead := false
 	if bIsExpression {
-		bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
+		bExpressionSym, bExpressionSymOk := bExpression.GetParts()[0].(*Symbol)
 		if bExpressionSymOk {
 			oneIdentity := bExpressionSym.Attrs(&es.defined).OneIdentity
 			hasDefaultExpr := bExpressionSym.Default(&es.defined) != nil
 			containsOptional := false
-			for _, part := range bExpression.Parts[1:] {
+			for _, part := range bExpression.GetParts()[1:] {
 				if _, isOpt := HeadAssertion(part, "System`Optional"); isOpt {
 					containsOptional = true
 					break
@@ -249,7 +249,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 			aExpression = NewExpression([]expreduceapi.Ex{bExpressionSym, a})
 		}
 		if aIsExpression {
-			aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
+			aExpressionSym, aExpressionSymOk := aExpression.GetParts()[0].(*Symbol)
 			if canAssumeHead && aExpressionSymOk {
 				if aExpressionSym.Name != bExpressionSym.Name {
 					assumingHead = true
@@ -274,8 +274,8 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	attrs := Attributes{}
 	sequenceHead := "Sequence"
 	startI := 0
-	aExpressionSym, aExpressionSymOk := aExpression.Parts[0].(*Symbol)
-	bExpressionSym, bExpressionSymOk := bExpression.Parts[0].(*Symbol)
+	aExpressionSym, aExpressionSymOk := aExpression.GetParts()[0].(*Symbol)
+	bExpressionSym, bExpressionSymOk := bExpression.GetParts()[0].(*Symbol)
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
 			attrs = aExpressionSym.Attrs(&es.defined)
@@ -286,7 +286,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 
 	isOrderless := attrs.Orderless && !forceOrdered
 	isFlat := attrs.Flat && !forceOrdered
-	nomi, ok := NewSequenceMatchIter(aExpression.Parts[startI:], bExpression.Parts[startI:], isOrderless, isFlat, sequenceHead, pm, es)
+	nomi, ok := NewSequenceMatchIter(aExpression.GetParts()[startI:], bExpression.GetParts()[startI:], isOrderless, isFlat, sequenceHead, pm, es)
 	if !ok {
 		return nil, false
 	}

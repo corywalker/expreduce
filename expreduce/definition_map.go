@@ -50,12 +50,12 @@ func (dm ThreadSafeDefinitionMap) CopyDefs() expreduceapi.DefinitionMap {
 	for mapTuple := range dm.internalMap.IterBuffered() {
 		k, v := mapTuple.Key, mapTuple.Val.(expreduceapi.Def)
 		newDef := expreduceapi.Def{}
-		for _, dv := range v.downvalues {
-			newDv := DownValue{
-				rule:        dv.rule.DeepCopy().(expreduceapi.ExpressionInterface),
-				specificity: dv.specificity,
+		for _, dv := range v.Downvalues {
+			newDv := expreduceapi.DownValue{
+				rule:        dv.Rule.DeepCopy().(expreduceapi.ExpressionInterface),
+				specificity: dv.Specificity,
 			}
-			newDef.downvalues = append(newDef.downvalues, newDv)
+			newDef.Downvalues = append(newDef.Downvalues, newDv)
 		}
 		out.Set(k, newDef)
 	}

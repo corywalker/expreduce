@@ -25,11 +25,11 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "MatchQ",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), es); res {
+			if res, _ := IsMatchQ(this.GetParts()[1], this.GetParts()[2], EmptyPD(), es); res {
 				return NewSymbol("System`True")
 			} else {
 				return NewSymbol("System`False")
@@ -39,24 +39,24 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Pattern",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
 			if params.form != "InputForm" && params.form != "OutputForm" {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			_, blankOk := HeadAssertion(this.Parts[2], "System`Blank")
-			_, bsOk := HeadAssertion(this.Parts[2], "System`BlankSequence")
-			_, bnsOk := HeadAssertion(this.Parts[2], "System`BlankNullSequence")
+			_, blankOk := HeadAssertion(this.GetParts()[2], "System`Blank")
+			_, bsOk := HeadAssertion(this.GetParts()[2], "System`BlankSequence")
+			_, bnsOk := HeadAssertion(this.GetParts()[2], "System`BlankNullSequence")
 			if blankOk || bsOk || bnsOk {
-				buffer.WriteString(this.Parts[1].StringForm(params))
-				buffer.WriteString(this.Parts[2].StringForm(params))
+				buffer.WriteString(this.GetParts()[1].StringForm(params))
+				buffer.WriteString(this.GetParts()[2].StringForm(params))
 			} else {
 				buffer.WriteString("(")
-				buffer.WriteString(this.Parts[1].StringForm(params))
+				buffer.WriteString(this.GetParts()[1].StringForm(params))
 				buffer.WriteString(") : (")
-				buffer.WriteString(this.Parts[2].StringForm(params))
+				buffer.WriteString(this.GetParts()[2].StringForm(params))
 				buffer.WriteString(")")
 			}
 			return true, buffer.String()
@@ -65,19 +65,19 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Blank",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringBlankType("_", this.Parts, params)
+			return ToStringBlankType("_", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankSequence",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringBlankType("__", this.Parts, params)
+			return ToStringBlankType("__", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankNullSequence",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringBlankType("___", this.Parts, params)
+			return ToStringBlankType("___", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{
@@ -98,21 +98,21 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceList",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			rule, isRule := HeadAssertion(this.Parts[2], "System`Rule")
+			rule, isRule := HeadAssertion(this.GetParts()[2], "System`Rule")
 			if !isRule {
 				return this
 			}
 			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
-			mi, cont := NewMatchIter(this.Parts[1], rule.Parts[1], EmptyPD(), es)
+			mi, cont := NewMatchIter(this.GetParts()[1], rule.GetParts()[1], EmptyPD(), es)
 			for cont {
 				matchq, newPd, done := mi.next()
 				cont = !done
 				if matchq {
-					res.appendEx(ReplacePD(rule.Parts[2], es, newPd))
+					res.appendEx(ReplacePD(rule.GetParts()[2], es, newPd))
 				}
 			}
 			return res
@@ -122,14 +122,14 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Optional",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return false, ""
 			}
 			if params.form != "InputForm" && params.form != "OutputForm" {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			buffer.WriteString(this.Parts[1].StringForm(params))
+			buffer.WriteString(this.GetParts()[1].StringForm(params))
 			buffer.WriteString(".")
 			return true, buffer.String()
 		},

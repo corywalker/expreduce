@@ -288,11 +288,11 @@ func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex
 	// TODO: Perhaps split out single var values into the Definition to avoid
 	// iterating over every one.
 	if _, lhsIsSym := lhs.(*Symbol); lhsIsSym {
-		for _, def := range this.defined.GetDef(name).downvalues {
-			if hp, hpDef := HeadAssertion(def.rule.Parts[1], "System`HoldPattern"); hpDef {
-				if len(hp.Parts) == 2 {
-					if _, symDef := hp.Parts[1].(*Symbol); symDef {
-						return def.rule.Parts[2], true, def.rule
+		for _, def := range this.defined.GetDef(name).Downvalues {
+			if hp, hpDef := HeadAssertion(def.Rule.GetParts()[1], "System`HoldPattern"); hpDef {
+				if len(hp.GetParts()) == 2 {
+					if _, symDef := hp.GetParts()[1].(*Symbol); symDef {
+						return def.Rule.GetParts()[2], true, def.Rule
 					}
 				}
 			}
@@ -300,8 +300,8 @@ func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex
 		return nil, false, nil
 	}
 	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
-	for i := range this.defined.GetDef(name).downvalues {
-		def := this.defined.GetDef(name).downvalues[i].rule
+	for i := range this.defined.GetDef(name).Downvalues {
+		def := this.defined.GetDef(name).Downvalues[i].Rule
 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
@@ -338,7 +338,7 @@ func (this *EvalState) DefineAttrs(sym *Symbol, rhs expreduceapi.Ex) {
 		return
 	}
 	var stringAttrs []string
-	for _, attrEx := range attrsList.Parts[1:] {
+	for _, attrEx := range attrsList.GetParts()[1:] {
 		attrSym, attrIsSym := attrEx.(*Symbol)
 		if !attrIsSym {
 			return
@@ -363,31 +363,31 @@ func (this *EvalState) DefineDownValues(sym *Symbol, rhs expreduceapi.Ex) {
 		fmt.Println("Assignment to DownValues must be List of Rules.")
 		return
 	}
-	dvs := []DownValue{}
+	dvs := []expreduceapi.DownValue{}
 
-	for _, dvEx := range dvList.Parts[1:] {
+	for _, dvEx := range dvList.GetParts()[1:] {
 		rule, isRule := HeadAssertion(dvEx, "System`Rule")
 		if !isRule {
 			rule, isRule = HeadAssertion(dvEx, "System`RuleDelayed")
 		}
-		if !isRule || len(rule.Parts) != 3 {
+		if !isRule || len(rule.GetParts()) != 3 {
 			fmt.Println("Assignment to DownValues must be List of Rules.")
 		}
-		dvs = append(dvs, DownValue{rule: rule})
+		dvs = append(dvs, expreduceapi.DownValue{rule: rule})
 	}
 
 	if !this.IsDef(sym.Name) {
 		this.defined.Set(sym.Name, Def{})
 	}
 	tmp := this.defined.GetDef(sym.Name)
-	tmp.downvalues = dvs
+	tmp.Downvalues = dvs
 	this.defined.Set(sym.Name, tmp)
 }
 
 func (this *EvalState) MarkSeen(name string) {
 	if !this.IsDef(name) {
 		newDef := Def{
-			downvalues: []DownValue{},
+			Downvalues: []expreduceapi.DownValue{},
 		}
 		this.defined.Set(name, newDef)
 	}
@@ -400,9 +400,9 @@ func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *
 		return 100
 	}
 	// Special case for single integer arguments.
-	expr, isExpr := lhs.(expreduceapi.ExpressionInterface).Parts[1].(expreduceapi.ExpressionInterface)
-	if isExpr && len(expr.Parts) == 2 {
-		if _, isInt := expr.Parts[1].(*Integer); isInt {
+	expr, isExpr := lhs.(expreduceapi.ExpressionInterface).GetParts()[1].(expreduceapi.ExpressionInterface)
+	if isExpr && len(expr.GetParts()) == 2 {
+		if _, isInt := expr.GetParts()[1].(*Integer); isInt {
 			return 110
 		}
 	}
@@ -411,11 +411,11 @@ func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *
 	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
 	// "complexity" score, order then matters. TODO: Create better measure of
 	// complexity (or specificity)
-	context, contextPath := DefinitionComplexityStringFormArgs()
+	context, ContextPath := DefinitionComplexityStringFormArgs()
 	stringParams := expreduceapi.ToStringParams{
 		form:        "InputForm",
 		context:     context,
-		contextPath: contextPath,
+		ContextPath: ContextPath,
 		// No need for the EvalState reference. Used for string expansion for
 		// Definition[], which should not be in an actual definition.
 		esi: es,
@@ -443,24 +443,24 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	}
 	LhsF, ok := lhs.(expreduceapi.ExpressionInterface)
 	if ok {
-		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
+		headAsSym, headIsSym := LhsF.GetParts()[0].(*Symbol)
 		if headIsSym {
 			name = headAsSym.Name
 			if name == "System`Attributes" {
-				if len(LhsF.Parts) != 2 {
+				if len(LhsF.GetParts()) != 2 {
 					return
 				}
-				modifiedSym, modifiedIsSym := LhsF.Parts[1].(*Symbol)
+				modifiedSym, modifiedIsSym := LhsF.GetParts()[1].(*Symbol)
 				if !modifiedIsSym {
 					return
 				}
 				this.DefineAttrs(modifiedSym, rhs)
 				return
 			} else if name == "System`DownValues" {
-				if len(LhsF.Parts) != 2 {
+				if len(LhsF.GetParts()) != 2 {
 					return
 				}
-				modifiedSym, modifiedIsSym := LhsF.Parts[1].(*Symbol)
+				modifiedSym, modifiedIsSym := LhsF.GetParts()[1].(*Symbol)
 				if !modifiedIsSym {
 					return
 				}
@@ -470,7 +470,7 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 		}
 		_, opExpr, isVerbatimOp := OperatorAssertion(lhs, "System`Verbatim")
 		if isVerbatimOp {
-			opSym, opIsSym := opExpr.Parts[1].(*Symbol)
+			opSym, opIsSym := opExpr.GetParts()[1].(*Symbol)
 			if opIsSym {
 				name = opSym.Name
 			}
@@ -484,8 +484,8 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	heldLhs := E(S("HoldPattern"), lhs)
 	if !this.IsDef(name) {
 		newDef := Def{
-			downvalues: []DownValue{
-				DownValue{
+			Downvalues: []expreduceapi.DownValue{
+				expreduceapi.DownValue{
 					rule: NewExpression([]expreduceapi.Ex{
 						NewSymbol("System`Rule"), heldLhs, rhs,
 					}),
@@ -497,15 +497,15 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	}
 
 	// Overwrite identical rules.
-	for _, dv := range this.defined.GetDef(name).downvalues {
-		existingRule := dv.rule
-		existingLhs := existingRule.Parts[1]
+	for _, dv := range this.defined.GetDef(name).Downvalues {
+		existingRule := dv.Rule
+		existingLhs := existingRule.GetParts()[1]
 		if IsSameQ(existingLhs, heldLhs, &this.CASLogger) {
 			this.defined.LockKey(name)
-			existingRhsCond := maskNonConditional(existingRule.Parts[2])
+			existingRhsCond := maskNonConditional(existingRule.GetParts()[2])
 			newRhsCond := maskNonConditional(rhs)
 			if IsSameQ(existingRhsCond, newRhsCond, &this.CASLogger) {
-				dv.rule.Parts[2] = rhs
+				dv.Rule.GetParts()[2] = rhs
 				this.defined.UnlockKey(name)
 				return
 			}
@@ -517,32 +517,32 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	// complexity.
 	var tmp = this.defined.GetDef(name)
 	newSpecificity := ruleSpecificity(heldLhs, rhs, name, this)
-	for i, dv := range this.defined.GetDef(name).downvalues {
-		if dv.specificity == 0 {
-			dv.specificity = ruleSpecificity(
-				dv.rule.Parts[1],
-				dv.rule.Parts[2],
+	for i, dv := range this.defined.GetDef(name).Downvalues {
+		if dv.Specificity == 0 {
+			dv.Specificity = ruleSpecificity(
+				dv.Rule.GetParts()[1],
+				dv.Rule.GetParts()[2],
 				name,
 				this,
 			)
 		}
-		if dv.specificity < newSpecificity {
+		if dv.Specificity < newSpecificity {
 			newRule := NewExpression([]expreduceapi.Ex{NewSymbol("System`Rule"), heldLhs, rhs})
-			tmp.downvalues = append(
-				tmp.downvalues[:i],
+			tmp.Downvalues = append(
+				tmp.Downvalues[:i],
 				append(
-					[]DownValue{DownValue{
+					[]expreduceapi.DownValue{expreduceapi.DownValue{
 						rule:        newRule,
 						specificity: newSpecificity,
 					}},
-					this.defined.GetDef(name).downvalues[i:]...,
+					this.defined.GetDef(name).Downvalues[i:]...,
 				)...,
 			)
 			this.defined.Set(name, tmp)
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]expreduceapi.Ex{NewSymbol("System`Rule"), heldLhs, rhs})})
+	tmp.Downvalues = append(tmp.Downvalues, expreduceapi.DownValue{rule: NewExpression([]expreduceapi.Ex{NewSymbol("System`Rule"), heldLhs, rhs})})
 	this.defined.Set(name, tmp)
 }
 
@@ -633,19 +633,19 @@ func maskNonConditional(e expreduceapi.Ex) expreduceapi.Ex {
 	if asHead, isHead := HeadAssertion(e, "System`Condition"); isHead {
 		res = NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Condition"),
-			maskNonConditional(asHead.Parts[1]),
-			asHead.Parts[2],
+			maskNonConditional(asHead.GetParts()[1]),
+			asHead.GetParts()[2],
 		})
 	}
 	heads := []string{"System`With", "System`Module"}
 	for _, head := range heads {
 		if asHead, isHead := HeadAssertion(e, head); isHead {
-			if len(asHead.Parts) == 3 {
-				if _, hasCond := HeadAssertion(asHead.Parts[2], "System`Condition"); hasCond {
+			if len(asHead.GetParts()) == 3 {
+				if _, hasCond := HeadAssertion(asHead.GetParts()[2], "System`Condition"); hasCond {
 					res = NewExpression([]expreduceapi.Ex{
 						NewSymbol(head),
-						asHead.Parts[1],
-						maskNonConditional(asHead.Parts[2]),
+						asHead.GetParts()[1],
+						maskNonConditional(asHead.GetParts()[2]),
 					})
 				}
 			}

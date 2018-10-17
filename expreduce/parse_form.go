@@ -20,18 +20,18 @@ type parsedForm struct {
 
 func ParseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, int, bool) {
 	min, max := -1, -1
-	if len(e.Parts) < 2 {
+	if len(e.GetParts()) < 2 {
 		return nil, min, max, false
 	}
-	if len(e.Parts) >= 3 {
-		list, isList := HeadAssertion(e.Parts[2], "System`List")
+	if len(e.GetParts()) >= 3 {
+		list, isList := HeadAssertion(e.GetParts()[2], "System`List")
 		if !isList {
 			return nil, min, max, false
 		}
-		if len(list.Parts) != 2 {
+		if len(list.GetParts()) != 2 {
 			return nil, min, max, false
 		}
-		i, isInt := list.Parts[1].(*Integer)
+		i, isInt := list.GetParts()[1].(*Integer)
 		if !isInt {
 			return nil, min, max, false
 		}
@@ -39,7 +39,7 @@ func ParseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, in
 		min = int(ival)
 		max = min
 	}
-	return e.Parts[1], min, max, true
+	return e.GetParts()[1], min, max, true
 }
 
 func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl *logging.CASLogger) (res parsedForm) {
@@ -47,19 +47,19 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 	toParse := lhs_component
 	optional, isOptional := HeadAssertion(toParse, "System`Optional")
 	if isOptional {
-		toParse = optional.Parts[1]
+		toParse = optional.GetParts()[1]
 	}
 	patTest, isPatTest := HeadAssertion(toParse, "System`PatternTest")
 	if isPatTest {
-		toParse = patTest.Parts[1]
+		toParse = patTest.GetParts()[1]
 	}
 	pat, isPat := HeadAssertion(toParse, "System`Pattern")
 	var patSym *Symbol
 	if isPat {
 		patIsSym := false
-		patSym, patIsSym = pat.Parts[1].(*Symbol)
+		patSym, patIsSym = pat.GetParts()[1].(*Symbol)
 		if patIsSym {
-			toParse = pat.Parts[2]
+			toParse = pat.GetParts()[2]
 		} else {
 			// Valid patterns must have symbols to define.
 			isPat = false
@@ -81,10 +81,10 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 
 	if isOptional {
 		defaultToUse := headDefault
-		if len(optional.Parts) >= 3 {
-			defaultToUse = optional.Parts[2]
+		if len(optional.GetParts()) >= 3 {
+			defaultToUse = optional.GetParts()[2]
 		}
-		if len(optional.Parts) >= 2 {
+		if len(optional.GetParts()) >= 2 {
 			startI = 0
 			if defaultToUse == nil {
 				startI = 1
@@ -104,8 +104,8 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 	} else if isImpliedBs {
 		form = blank
 		endI = MaxInt
-		if len(blank.Parts) >= 2 {
-			sym, isSym := blank.Parts[1].(*Symbol)
+		if len(blank.GetParts()) >= 2 {
+			sym, isSym := blank.GetParts()[1].(*Symbol)
 			if isSym {
 				// If we have a pattern like k__Plus
 				if sym.Name == sequenceHead {
@@ -133,10 +133,10 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 			form = repPat
 		}
 	} else if isRepeatedNull {
-		if len(repeatedNull.Parts) == 2 {
+		if len(repeatedNull.GetParts()) == 2 {
 			startI = 0
 			endI = MaxInt
-			form = repeatedNull.Parts[1]
+			form = repeatedNull.GetParts()[1]
 		}
 	} else if isBs {
 		form = BlankSequenceToBlank(bs)
@@ -144,7 +144,7 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 	}
 
 	if isPatTest {
-		form = NewExpression([]expreduceapi.Ex{patTest.Parts[0], form, patTest.Parts[2]})
+		form = NewExpression([]expreduceapi.Ex{patTest.GetParts()[0], form, patTest.GetParts()[2]})
 	}
 
 	res.startI = startI

@@ -58,16 +58,16 @@ func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 	list, isList := HeadAssertion(listEx, "System`List")
 	if isList {
 		iOk, iMinOk, iMaxOk, stepOk := false, false, false, false
-		if len(list.Parts) > 2 {
-			iAsSymbol, iIsSymbol := list.Parts[1].(*Symbol)
+		if len(list.GetParts()) > 2 {
+			iAsSymbol, iIsSymbol := list.GetParts()[1].(*Symbol)
 			if iIsSymbol {
 				iOk = true
 				isr.i, isl.i = iAsSymbol, iAsSymbol
 				isr.iName, isl.iName = iAsSymbol.Name, iAsSymbol.Name
 			}
-			iAsExpression, iIsExpression := list.Parts[1].(expreduceapi.ExpressionInterface)
+			iAsExpression, iIsExpression := list.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if iIsExpression {
-				headAsSymbol, headIsSymbol := iAsExpression.Parts[0].(*Symbol)
+				headAsSymbol, headIsSymbol := iAsExpression.GetParts()[0].(*Symbol)
 				if headIsSymbol {
 					iOk = true
 					isr.i, isl.i = iAsExpression, iAsExpression
@@ -75,18 +75,18 @@ func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 				}
 			}
 		}
-		if len(list.Parts) == 3 {
+		if len(list.GetParts()) == 3 {
 			isr.iMin, iMinOk = NewInteger(big.NewInt(1)), true
-			isr.iMax, iMaxOk = tryIterParam(list.Parts[2])
+			isr.iMax, iMaxOk = tryIterParam(list.GetParts()[2])
 			isr.step, stepOk = NewInteger(big.NewInt(1)), true
-		} else if len(list.Parts) == 4 {
-			isr.iMin, iMinOk = tryIterParam(list.Parts[2])
-			isr.iMax, iMaxOk = tryIterParam(list.Parts[3])
+		} else if len(list.GetParts()) == 4 {
+			isr.iMin, iMinOk = tryIterParam(list.GetParts()[2])
+			isr.iMax, iMaxOk = tryIterParam(list.GetParts()[3])
 			isr.step, stepOk = NewInteger(big.NewInt(1)), true
-		} else if len(list.Parts) == 5 {
-			isr.iMin, iMinOk = tryIterParam(list.Parts[2])
-			isr.iMax, iMaxOk = tryIterParam(list.Parts[3])
-			isr.step, stepOk = tryIterParam(list.Parts[4])
+		} else if len(list.GetParts()) == 5 {
+			isr.iMin, iMinOk = tryIterParam(list.GetParts()[2])
+			isr.iMax, iMaxOk = tryIterParam(list.GetParts()[3])
+			isr.step, stepOk = tryIterParam(list.GetParts()[4])
 		}
 		if iOk && iMinOk && iMaxOk && stepOk {
 			isr.reset()
@@ -95,8 +95,8 @@ func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 
 		// Conversion to iterSpecRange failed. Try iterSpecList.
 		iterListOk := false
-		if len(list.Parts) == 3 {
-			isl.list, iterListOk = HeadAssertion(list.Parts[2], "System`List")
+		if len(list.GetParts()) == 3 {
+			isl.list, iterListOk = HeadAssertion(list.GetParts()[2], "System`List")
 		}
 		if iOk && iterListOk {
 			isl.reset()
@@ -140,11 +140,11 @@ func (this *iterSpecList) next() {
 }
 
 func (this *iterSpecList) cont() bool {
-	return this.pos < len(this.list.Parts)
+	return this.pos < len(this.list.GetParts())
 }
 
 func (this *iterSpecList) getCurr() expreduceapi.Ex {
-	return this.list.Parts[this.pos]
+	return this.list.GetParts()[this.pos]
 }
 
 func (this *iterSpecList) getI() expreduceapi.Ex {
@@ -224,15 +224,15 @@ func (this *multiIterSpec) currentPDManager() *PDManager {
 }
 
 func (this expreduceapi.ExpressionInterface) evalIterationFunc(es expreduceapi.EvalStateInterface, init expreduceapi.Ex, op string) expreduceapi.Ex {
-	if len(this.Parts) >= 3 {
-		mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
+	if len(this.GetParts()) >= 3 {
+		mis, isOk := multiIterSpecFromLists(es, this.GetParts()[2:])
 		if isOk {
 			// Simulate evaluation within Block[]
 			mis.takeVarSnapshot(es)
 			var toReturn expreduceapi.Ex = init
 			for mis.cont() {
 				mis.defineCurrent(es)
-				toReturn = (NewExpression([]expreduceapi.Ex{NewSymbol(op), toReturn, this.Parts[1].DeepCopy().Eval(es)})).Eval(es)
+				toReturn = (NewExpression([]expreduceapi.Ex{NewSymbol(op), toReturn, this.GetParts()[1].DeepCopy().Eval(es)})).Eval(es)
 				mis.next()
 			}
 			mis.restoreVarSnapshot(es)
@@ -248,14 +248,14 @@ func evalIterSpecCandidate(es expreduceapi.EvalStateInterface, cand expreduceapi
 	list, isList := HeadAssertion(cand, "System`List")
 	if isList {
 		toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
-		for i := 1; i < len(list.Parts); i++ {
-			toAdd := list.Parts[i].DeepCopy()
+		for i := 1; i < len(list.GetParts()); i++ {
+			toAdd := list.GetParts()[i].DeepCopy()
 			// Do not evaluate the variable of iteration. Even if "n" is
 			// defined already, we just want it to be "n".
 			if i != 1 {
 				toAdd = toAdd.Eval(es)
 			}
-			toReturn.Parts = append(toReturn.Parts, toAdd)
+			toReturn.GetParts() = append(toReturn.GetParts(), toAdd)
 		}
 		return toReturn
 	}

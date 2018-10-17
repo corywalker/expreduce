@@ -14,7 +14,7 @@ func GetRandomDefinitions() (defs []Definition) {
 			"initialization of Expreduce, so random number sequences will not " +
 			"repeat over subsequent sessions.",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 1 {
+			if len(this.GetParts()) != 1 {
 				return this
 			}
 
@@ -27,11 +27,11 @@ func GetRandomDefinitions() (defs []Definition) {
 			"initialization of Expreduce, so random number sequences will not " +
 			"repeat over subsequent sessions.",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 
-			asInt, isInt := this.Parts[1].(*Integer)
+			asInt, isInt := this.GetParts()[1].(*Integer)
 			if isInt {
 				rand.Seed(asInt.Val.Int64())
 				return NewSymbol("System`Null")

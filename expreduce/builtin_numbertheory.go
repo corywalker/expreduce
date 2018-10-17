@@ -69,8 +69,8 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			zero := big.NewInt(0)
 			var ints [](*big.Int)
-			for i := 1; i < len(this.Parts); i++ {
-				asInt, isInt := this.Parts[i].(*Integer)
+			for i := 1; i < len(this.GetParts()); i++ {
+				asInt, isInt := this.GetParts()[i].(*Integer)
 				if !isInt {
 					return this
 				}
@@ -100,11 +100,11 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Mod",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			xi, xIsInt := this.Parts[1].(*Integer)
-			yi, yIsInt := this.Parts[2].(*Integer)
+			xi, xIsInt := this.GetParts()[1].(*Integer)
+			yi, yIsInt := this.GetParts()[2].(*Integer)
 			if !xIsInt || !yIsInt {
 				return this
 			}
@@ -121,15 +121,15 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 		Usage:      "`PrimePi[n]` returns the number of primes less than or equal to `n`.",
 		Attributes: []string{"Listable"},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 			n := int64(0)
-			asInt, isInt := this.Parts[1].(*Integer)
+			asInt, isInt := this.GetParts()[1].(*Integer)
 			if isInt {
 				n = asInt.Val.Int64()
 			}
-			asFlt, isFlt := this.Parts[1].(*Flt)
+			asFlt, isFlt := this.GetParts()[1].(*Flt)
 			if isFlt {
 				n, _ = asFlt.Val.Int64()
 			}

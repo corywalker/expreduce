@@ -80,16 +80,16 @@ func CasTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 
 	theTest := theTestTree.Eval(es)
 
-	context, contextPath := DefinitionComplexityStringFormArgs()
+	context, ContextPath := DefinitionComplexityStringFormArgs()
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(inTree.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: es}))
+	buffer.WriteString(inTree.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, ContextPath: ContextPath, esi: es}))
 	if test {
 		buffer.WriteString(") != (")
 	} else {
 		buffer.WriteString(") == (")
 	}
-	buffer.WriteString(outTree.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: es}))
+	buffer.WriteString(outTree.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, ContextPath: ContextPath, esi: es}))
 	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
 	buffer.WriteString(inStr)

@@ -12,11 +12,11 @@ func GetStringDefinitions() (defs []Definition) {
 		Name: "ToString",
 		// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			formAsSymbol, formIsSymbol := this.Parts[2].(*Symbol)
+			formAsSymbol, formIsSymbol := this.GetParts()[2].(*Symbol)
 			if !formIsSymbol {
 				return this
 			}
@@ -26,25 +26,25 @@ func GetStringDefinitions() (defs []Definition) {
 				return this
 			}
 
-			context, contextPath := ActualStringFormArgs(es)
+			context, ContextPath := ActualStringFormArgs(es)
 			stringParams := expreduceapi.ToStringParams{
 				form:         formAsSymbol.Name[7:],
 				context:      context,
-				contextPath:  contextPath,
-				previousHead: "<TOPLEVEL>",
+				ContextPath:  ContextPath,
+				PreviousHead: "<TOPLEVEL>",
 				esi:          es,
 			}
-			return NewString(this.Parts[1].StringForm(stringParams))
+			return NewString(this.GetParts()[1].StringForm(stringParams))
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "StringJoin",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " <> ", "", params)
+			return ToStringInfix(this.GetParts()[1:], " <> ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			toReturn := ""
-			for _, e := range this.Parts[1:] {
+			for _, e := range this.GetParts()[1:] {
 				asStr, isStr := e.(*String)
 				if !isStr {
 					return this
@@ -61,10 +61,10 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "StringLength",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			asStr, isStr := this.Parts[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*String)
 			if !isStr {
 				return this
 			}
@@ -74,19 +74,19 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "StringTake",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			asStr, isStr := this.Parts[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*String)
 			if !isStr {
 				return this
 			}
-			asList, isList := HeadAssertion(this.Parts[2], "System`List")
-			if !isList || len(asList.Parts) != 3 {
+			asList, isList := HeadAssertion(this.GetParts()[2], "System`List")
+			if !isList || len(asList.GetParts()) != 3 {
 				return this
 			}
-			sInt, sIsInt := asList.Parts[1].(*Integer)
-			eInt, eIsInt := asList.Parts[2].(*Integer)
+			sInt, sIsInt := asList.GetParts()[1].(*Integer)
+			eInt, eIsInt := asList.GetParts()[2].(*Integer)
 			if !sIsInt || !eIsInt {
 				return this
 			}
@@ -104,19 +104,19 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "StringReplace",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			asStr, isStr := this.Parts[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*String)
 			if !isStr {
 				return this
 			}
-			asRule, isRule := HeadAssertion(this.Parts[2], "System`Rule")
-			if !isRule || len(asRule.Parts) != 3 {
+			asRule, isRule := HeadAssertion(this.GetParts()[2], "System`Rule")
+			if !isRule || len(asRule.GetParts()) != 3 {
 				return this
 			}
-			bStr, bIsStr := asRule.Parts[1].(*String)
-			aStr, aIsStr := asRule.Parts[2].(*String)
+			bStr, bIsStr := asRule.GetParts()[1].(*String)
+			aStr, aIsStr := asRule.GetParts()[2].(*String)
 			if !bIsStr || !aIsStr {
 				return this
 			}
@@ -126,14 +126,14 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ExportString",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			asStr, isStr := this.Parts[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*String)
 			if !isStr {
 				return this
 			}
-			formatAsStr, formatIsStr := this.Parts[2].(*String)
+			formatAsStr, formatIsStr := this.GetParts()[2].(*String)
 			if !formatIsStr {
 				return this
 			}

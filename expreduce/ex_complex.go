@@ -28,14 +28,14 @@ func (this *Complex) StringForm(p expreduceapi.ToStringParams) string {
 	if p.form == "FullForm" {
 		return fmt.Sprintf("Complex[%v, %v]", this.Re, this.Im)
 	}
-	p.previousHead = "System`Plus"
+	p.PreviousHead = "System`Plus"
 	return fmt.Sprintf("(%v + %v*I)", this.Re.StringForm(p), this.Im.StringForm(p))
 }
 
 func (this *Complex) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := DefaultStringFormArgs()
+	context, ContextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{
-		form: "InputForm", context: context, contextPath: contextPath, esi: esi})
+		form: "InputForm", context: context, ContextPath: ContextPath, esi: esi})
 }
 
 func (this *Complex) IsEqual(other expreduceapi.Ex) string {

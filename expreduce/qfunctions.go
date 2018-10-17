@@ -14,10 +14,10 @@ type evalFnType (func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateIn
 
 func singleParamQEval(fn singleParamQType) evalFnType {
 	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-		if len(this.Parts) != 2 {
+		if len(this.GetParts()) != 2 {
 			return this
 		}
-		if fn(this.Parts[1]) {
+		if fn(this.GetParts()[1]) {
 			return NewSymbol("System`True")
 		}
 		return NewSymbol("System`False")
@@ -26,10 +26,10 @@ func singleParamQEval(fn singleParamQType) evalFnType {
 
 func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-		if len(this.Parts) != 2 {
+		if len(this.GetParts()) != 2 {
 			return this
 		}
-		if fn(this.Parts[1], &es.CASLogger) {
+		if fn(this.GetParts()[1], &es.CASLogger) {
 			return NewSymbol("System`True")
 		}
 		return NewSymbol("System`False")
@@ -38,10 +38,10 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 
 func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
 	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-		if len(this.Parts) != 3 {
+		if len(this.GetParts()) != 3 {
 			return this
 		}
-		if fn(this.Parts[1], this.Parts[2], &es.CASLogger) {
+		if fn(this.GetParts()[1], this.GetParts()[2], &es.CASLogger) {
 			return NewSymbol("System`True")
 		}
 		return NewSymbol("System`False")
@@ -71,8 +71,8 @@ func numberQ(e expreduceapi.Ex) bool {
 func vectorQ(e expreduceapi.Ex) bool {
 	l, isL := HeadAssertion(e, "System`List")
 	if isL {
-		for i := 1; i < len(l.Parts); i++ {
-			_, subIsL := HeadAssertion(l.Parts[i], "System`List")
+		for i := 1; i < len(l.GetParts()); i++ {
+			_, subIsL := HeadAssertion(l.GetParts()[i], "System`List")
 			if subIsL {
 				return false
 			}

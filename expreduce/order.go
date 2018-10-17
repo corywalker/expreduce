@@ -102,13 +102,13 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 		}
 		timesMode := aIsTimes && bIsTimes
 		if !timesMode {
-			if len(aAsExp.Parts) < len(bAsExp.Parts) {
+			if len(aAsExp.GetParts()) < len(bAsExp.GetParts()) {
 				return 1
-			} else if len(aAsExp.Parts) > len(bAsExp.Parts) {
+			} else if len(aAsExp.GetParts()) > len(bAsExp.GetParts()) {
 				return -1
 			}
-			for i := 0; i < len(aAsExp.Parts); i++ {
-				aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
+			for i := 0; i < len(aAsExp.GetParts()); i++ {
+				aPart, bPart := aAsExp.GetParts()[i], bAsExp.GetParts()[i]
 				o := ExOrder(aPart, bPart)
 				if o != 0 {
 					return o
@@ -116,10 +116,10 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 			}
 			return 0
 		} else {
-			ai := len(aAsExp.Parts) - 1
-			bi := len(bAsExp.Parts) - 1
+			ai := len(aAsExp.GetParts()) - 1
+			bi := len(bAsExp.GetParts()) - 1
 			for ai >= 0 && bi >= 0 {
-				aPart, bPart := aAsExp.Parts[ai], bAsExp.Parts[bi]
+				aPart, bPart := aAsExp.GetParts()[ai], bAsExp.GetParts()[bi]
 				ai, bi = ai-1, bi-1
 				if numberQ(aPart) && numberQ(bPart) {
 					continue
@@ -129,8 +129,8 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 					return o
 				}
 			}
-			for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
-				aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
+			for i := 0; i < Min(len(aAsExp.GetParts()), len(bAsExp.GetParts())); i++ {
+				aPart, bPart := aAsExp.GetParts()[i], bAsExp.GetParts()[i]
 				if numberQ(aPart) && numberQ(bPart) {
 					o := ExOrder(aPart, bPart)
 					if o != 0 {
@@ -138,9 +138,9 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 					}
 				}
 			}
-			if len(aAsExp.Parts) < len(bAsExp.Parts) {
+			if len(aAsExp.GetParts()) < len(bAsExp.GetParts()) {
 				return 1
-			} else if len(aAsExp.Parts) > len(bAsExp.Parts) {
+			} else if len(aAsExp.GetParts()) > len(bAsExp.GetParts()) {
 				return -1
 			} else {
 				return 0

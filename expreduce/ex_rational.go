@@ -64,15 +64,15 @@ func (this *Rational) StringForm(params expreduceapi.ToStringParams) string {
 	if params.form == "TeXForm" {
 		return fmt.Sprintf("\\frac{%d}{%d}", this.Num, this.Den)
 	}
-	if needsParens("System`Times", params.previousHead) {
+	if needsParens("System`Times", params.PreviousHead) {
 		return fmt.Sprintf("(%d/%d)", this.Num, this.Den)
 	}
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)
 }
 
 func (this *Rational) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
+	context, ContextPath := DefaultStringFormArgs()
+	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, ContextPath: ContextPath, esi: esi})
 }
 
 func (this *Rational) IsEqual(other expreduceapi.Ex) string {

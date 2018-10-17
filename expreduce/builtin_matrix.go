@@ -8,11 +8,11 @@ import (
 )
 
 func dimensions(ex expreduceapi.ExpressionInterface, level int, cl *logging.CASLogger) []int64 {
-	head := ex.Parts[0]
-	dims := []int64{int64(len(ex.Parts) - 1)}
+	head := ex.GetParts()[0]
+	dims := []int64{int64(len(ex.GetParts()) - 1)}
 	nextDims := []int64{}
-	for i := 1; i < len(ex.Parts); i++ {
-		subHead, isSubHead := headExAssertion(ex.Parts[i], head, cl)
+	for i := 1; i < len(ex.GetParts()); i++ {
+		subHead, isSubHead := headExAssertion(ex.GetParts()[i], head, cl)
 		if !isSubHead {
 			return dims
 		} else {
@@ -39,7 +39,7 @@ func intSliceToList(ints []int64) expreduceapi.Ex {
 	})
 
 	for _, i := range ints {
-		toReturn.Parts = append(toReturn.Parts, NewInteger(big.NewInt(i)))
+		toReturn.GetParts() = append(toReturn.GetParts(), NewInteger(big.NewInt(i)))
 	}
 	return toReturn
 }
@@ -47,7 +47,7 @@ func intSliceToList(ints []int64) expreduceapi.Ex {
 // This function assumes that mat is a matrix and that i and j are not out of
 // bounds. i and j are 1-indexed.
 func (mat *Expression) matrix2dGetElem(i, j int64) expreduceapi.Ex {
-	return (mat.Parts[i].(expreduceapi.ExpressionInterface)).Parts[j]
+	return (mat.GetParts()[i].(expreduceapi.ExpressionInterface)).GetParts()[j]
 }
 
 func calcIJ(i, j, innerDim int64, a, b expreduceapi.ExpressionInterface) expreduceapi.Ex {
@@ -69,10 +69,10 @@ func GetMatrixDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Dimensions",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
+			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if !isExpr {
 				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			}
@@ -90,36 +90,36 @@ func GetMatrixDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Dot",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) == 2 {
-				return this.Parts[1]
+			if len(this.GetParts()) == 2 {
+				return this.GetParts()[1]
 			}
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			aIsVector := vectorQ(this.Parts[1])
-			bIsVector := vectorQ(this.Parts[2])
+			aIsVector := vectorQ(this.GetParts()[1])
+			bIsVector := vectorQ(this.GetParts()[2])
 			if aIsVector && bIsVector {
-				aVector := this.Parts[1].(expreduceapi.ExpressionInterface)
-				bVector := this.Parts[2].(expreduceapi.ExpressionInterface)
-				if len(aVector.Parts) != len(bVector.Parts) {
+				aVector := this.GetParts()[1].(expreduceapi.ExpressionInterface)
+				bVector := this.GetParts()[2].(expreduceapi.ExpressionInterface)
+				if len(aVector.GetParts()) != len(bVector.GetParts()) {
 					return this
 				}
-				vecLen := len(aVector.Parts) - 1
+				vecLen := len(aVector.GetParts()) - 1
 				toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 				for i := 0; i < vecLen; i++ {
 					toReturn.appendEx(NewExpression([]expreduceapi.Ex{
 						NewSymbol("System`Times"),
-						aVector.Parts[i+1],
-						bVector.Parts[i+1],
+						aVector.GetParts()[i+1],
+						bVector.GetParts()[i+1],
 					}))
 				}
 				return toReturn
 			}
-			aIsMatrix := matrixQ(this.Parts[1], &es.CASLogger)
-			bIsMatrix := matrixQ(this.Parts[2], &es.CASLogger)
+			aIsMatrix := matrixQ(this.GetParts()[1], &es.CASLogger)
+			bIsMatrix := matrixQ(this.GetParts()[2], &es.CASLogger)
 			if aIsMatrix && bIsMatrix {
-				aEx := this.Parts[1].(expreduceapi.ExpressionInterface)
-				bEx := this.Parts[2].(expreduceapi.ExpressionInterface)
+				aEx := this.GetParts()[1].(expreduceapi.ExpressionInterface)
+				bEx := this.GetParts()[2].(expreduceapi.ExpressionInterface)
 				aDims := dimensions(aEx, 0, &es.CASLogger)
 				bDims := dimensions(bEx, 0, &es.CASLogger)
 				if len(aDims) != 2 || len(bDims) != 2 {
@@ -147,10 +147,10 @@ func GetMatrixDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Transpose",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			l, isL := HeadAssertion(this.Parts[1], "System`List")
+			l, isL := HeadAssertion(this.GetParts()[1], "System`List")
 			if !isL {
 				return this
 			}

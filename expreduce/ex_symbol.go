@@ -63,7 +63,7 @@ func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 	if strings.HasPrefix(this.Name, params.context.Val) {
 		return formatSymName(this.Name[len(params.context.Val):], params)
 	}
-	for _, pathPart := range params.contextPath.Parts[1:] {
+	for _, pathPart := range params.ContextPath.GetParts()[1:] {
 		path := pathPart.(*String).Val
 		if strings.HasPrefix(this.Name, path) {
 			return formatSymName(this.Name[len(path):], params)
@@ -73,8 +73,8 @@ func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 }
 
 func (this *Symbol) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
+	context, ContextPath := DefaultStringFormArgs()
+	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, ContextPath: ContextPath, esi: esi})
 }
 
 func (this *Symbol) IsEqual(other expreduceapi.Ex) string {
@@ -277,7 +277,7 @@ func ContainsSymbol(e expreduceapi.Ex, name string) bool {
 	}
 	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
-		for _, part := range asExpr.Parts {
+		for _, part := range asExpr.GetParts() {
 			if ContainsSymbol(part, name) {
 				return true
 			}

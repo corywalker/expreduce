@@ -31,7 +31,7 @@ type Expression struct {
 func HeadAssertion(ex expreduceapi.Ex, head string) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
-		sym, isSym := expr.Parts[0].(*Symbol)
+		sym, isSym := expr.GetParts()[0].(*Symbol)
 		if isSym {
 			if sym.Name == head {
 				return expr, true
@@ -44,7 +44,7 @@ func HeadAssertion(ex expreduceapi.Ex, head string) (*Expression, bool) {
 func headExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl *logging.CASLogger) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
-		if IsSameQ(head, expr.Parts[0], cl) {
+		if IsSameQ(head, expr.GetParts()[0], cl) {
 			return expr, true
 		}
 	}
@@ -54,9 +54,9 @@ func headExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl *logging.CASLo
 func OperatorAssertion(ex expreduceapi.Ex, opHead string) (*Expression, *Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
-		headExpr, headIsExpr := expr.Parts[0].(*Expression)
+		headExpr, headIsExpr := expr.GetParts()[0].(*Expression)
 		if headIsExpr {
-			sym, isSym := headExpr.Parts[0].(*Symbol)
+			sym, isSym := headExpr.GetParts()[0].(*Symbol)
 			if isSym {
 				if sym.Name == opHead {
 					return expr, headExpr, true
@@ -78,8 +78,8 @@ func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.E
 	if !isReturn {
 		return nil, false
 	}
-	if len(asReturn.Parts) >= 2 {
-		return asReturn.Parts[1], true
+	if len(asReturn.GetParts()) >= 2 {
+		return asReturn.GetParts()[1], true
 	}
 	return NewSymbol("System`Null"), true
 }
@@ -88,7 +88,7 @@ func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.E
 // creating copies.
 func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *Expression {
 	encounteredSeq := false
-	for _, e := range this.Parts {
+	for _, e := range this.GetParts() {
 		if _, isseq := HeadAssertion(e, headStr); isseq {
 			encounteredSeq = true
 			break
@@ -105,18 +105,18 @@ func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headS
 	// it should be combined. This version is not recursive, and it does not
 	// accept level depths. It is a specific case of Flatten.
 	res := NewEmptyExpression()
-	for _, e := range this.Parts {
+	for _, e := range this.GetParts() {
 		seq, isseq := HeadAssertion(e, headStr)
 		if isseq {
-			for _, seqPart := range seq.Parts[1:] {
+			for _, seqPart := range seq.GetParts()[1:] {
 				if shouldEval {
-					res.Parts = append(res.Parts, seqPart.Eval(es))
+					res.GetParts() = append(res.GetParts(), seqPart.Eval(es))
 				} else {
-					res.Parts = append(res.Parts, seqPart)
+					res.GetParts() = append(res.GetParts(), seqPart)
 				}
 			}
 		} else {
-			res.Parts = append(res.Parts, e)
+			res.GetParts() = append(res.GetParts(), e)
 		}
 	}
 	return res
@@ -124,22 +124,22 @@ func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headS
 
 func (this *Expression) propagateConditionals() (*Expression, bool) {
 	foundCond := false
-	for _, e := range this.Parts[1:] {
+	for _, e := range this.GetParts()[1:] {
 		if cond, isCond := HeadAssertion(e, "System`ConditionalExpression"); isCond {
-			if len(cond.Parts) == 3 {
+			if len(cond.GetParts()) == 3 {
 				foundCond = true
 				break
 			}
 		}
 	}
 	if foundCond {
-		resEx := E(this.Parts[0])
+		resEx := E(this.GetParts()[0])
 		resCond := E(S("And"))
-		for _, e := range this.Parts[1:] {
+		for _, e := range this.GetParts()[1:] {
 			if cond, isCond := HeadAssertion(e, "System`ConditionalExpression"); isCond {
-				if len(cond.Parts) == 3 {
-					resEx.appendEx(cond.Parts[1].DeepCopy())
-					resCond.appendEx(cond.Parts[2].DeepCopy())
+				if len(cond.GetParts()) == 3 {
+					resEx.appendEx(cond.GetParts()[1].DeepCopy())
+					resCond.appendEx(cond.GetParts()[2].DeepCopy())
 					continue
 				}
 			}
@@ -195,8 +195,8 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 				})
 
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
-				es.trace.Parts = append(
-					es.trace.Parts,
+				es.trace.GetParts() = append(
+					es.trace.GetParts(),
 					toAppend,
 				)
 			}
@@ -208,15 +208,15 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 		started := int64(0)
 		if es.IsProfiling() {
 			currStr = curr.String(es)
-			currHeadStr = curr.Parts[0].String(es)
+			currHeadStr = curr.GetParts()[0].String(es)
 			started = time.Now().UnixNano()
 		}
 
 		// Start by evaluating each argument
 		headSym, headIsSym := &Symbol{}, false
 		attrs := Attributes{}
-		if len(curr.Parts) > 0 {
-			headSym, headIsSym = curr.Parts[0].(*Symbol)
+		if len(curr.GetParts()) > 0 {
+			headSym, headIsSym = curr.GetParts()[0].(*Symbol)
 		}
 		if headIsSym {
 			attrs = headSym.Attrs(&es.defined)
@@ -227,7 +227,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 				return propagated.Eval(es)
 			}
 		}
-		for i := range curr.Parts {
+		for i := range curr.GetParts() {
 			if headIsSym && i == 1 && attrs.HoldFirst {
 				continue
 			}
@@ -243,21 +243,21 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			if es.trace != nil && !es.IsFrozen() {
 				es.trace = NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			}
-			oldHash := curr.Parts[i].Hash()
+			oldHash := curr.GetParts()[i].Hash()
 			//fmt.Println(curr, i)
-			curr.Parts[i] = curr.Parts[i].Eval(es)
+			curr.GetParts()[i] = curr.GetParts()[i].Eval(es)
 			if es.HasThrown() {
 				return es.thrown
 			}
-			if oldHash != curr.Parts[i].Hash() {
+			if oldHash != curr.GetParts()[i].Hash() {
 				curr.cachedHash = 0
 			}
 			if es.trace != nil && !es.IsFrozen() {
-				if len(es.trace.Parts) > 2 {
+				if len(es.trace.GetParts()) > 2 {
 					// The DeepCopy here doesn't seem to affect anything, but
 					// should be good to have.
 					//fmt.Printf("Argument eval: appending %v\n", es.trace.DeepCopy().StringForm("FullForm"))
-					traceBak.Parts = append(traceBak.Parts, es.trace.DeepCopy())
+					traceBak.GetParts() = append(traceBak.GetParts(), es.trace.DeepCopy())
 				}
 				es.trace = traceBak
 			}
@@ -270,10 +270,10 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 				currEx.DeepCopy(),
 			})
 
-			if !IsSameQ(es.trace.Parts[len(es.trace.Parts)-1], toAppend, &es.CASLogger) {
+			if !IsSameQ(es.trace.GetParts()[len(es.trace.GetParts())-1], toAppend, &es.CASLogger) {
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
-				es.trace.Parts = append(
-					es.trace.Parts,
+				es.trace.GetParts() = append(
+					es.trace.GetParts(),
 					toAppend,
 				)
 			}
@@ -294,7 +294,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 		// In case curr changed
 		currEx = curr
 
-		pureFunction, isPureFunction := HeadAssertion(curr.Parts[0], "System`Function")
+		pureFunction, isPureFunction := HeadAssertion(curr.GetParts()[0], "System`Function")
 		if headIsSym {
 			if attrs.Flat {
 				curr = curr.mergeSequences(es, headSym.Name, false)
@@ -336,7 +336,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 				}
 			}
 		} else if isPureFunction {
-			currEx = pureFunction.EvalFunction(es, curr.Parts[1:])
+			currEx = pureFunction.EvalFunction(es, curr.GetParts()[1:])
 		}
 		currExHash = hashEx(currEx)
 
@@ -356,8 +356,8 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 }
 
 func (this *Expression) EvalFunction(es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
-	if len(this.Parts) == 2 {
-		toReturn := this.Parts[1].DeepCopy()
+	if len(this.GetParts()) == 2 {
+		toReturn := this.GetParts()[1].DeepCopy()
 		for i, arg := range args {
 			toReturn = ReplaceAll(toReturn,
 				NewExpression([]expreduceapi.Ex{
@@ -373,12 +373,12 @@ func (this *Expression) EvalFunction(es expreduceapi.EvalStateInterface, args []
 				es, EmptyPD(), "System`Function")
 		}
 		return toReturn
-	} else if len(this.Parts) == 3 {
-		repSym, ok := this.Parts[1].(*Symbol)
+	} else if len(this.GetParts()) == 3 {
+		repSym, ok := this.GetParts()[1].(*Symbol)
 		if !ok {
 			return this
 		}
-		toReturn := this.Parts[2].DeepCopy()
+		toReturn := this.GetParts()[2].DeepCopy()
 		toReturn = ReplaceAll(toReturn,
 			NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Rule"),
@@ -396,30 +396,30 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es expreduc
 	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.Debugf("Rule r is: %s", r)
 
-	matchq, matches := IsMatchQ(this, r.Parts[1], EmptyPD(), es)
+	matchq, matches := IsMatchQ(this, r.GetParts()[1], EmptyPD(), es)
 	if matchq {
 		es.Debugf("After MatchQ, rule is: %s", r)
-		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.Parts[2])
-		return ReplacePD(r.Parts[2].DeepCopy(), es, matches)
+		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.GetParts()[2])
+		return ReplacePD(r.GetParts()[2].DeepCopy(), es, matches)
 	}
 
-	thisSym, thisSymOk := this.Parts[0].(*Symbol)
-	lhsExpr, lhsExprOk := r.Parts[1].(*Expression)
+	thisSym, thisSymOk := this.GetParts()[0].(*Symbol)
+	lhsExpr, lhsExprOk := r.GetParts()[1].(*Expression)
 	if lhsExprOk {
-		otherSym, otherSymOk := lhsExpr.Parts[0].(*Symbol)
+		otherSym, otherSymOk := lhsExpr.GetParts()[0].(*Symbol)
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
 				attrs := thisSym.Attrs(&es.defined)
 				if attrs.Flat {
-					return FlatReplace(this, lhsExpr, r.Parts[2], attrs.Orderless, es)
+					return FlatReplace(this, lhsExpr, r.GetParts()[2], attrs.Orderless, es)
 				}
 			}
 		}
 	}
 
 	maybeChanged := NewEmptyExpression()
-	for i := range this.Parts {
-		maybeChanged.Parts = append(maybeChanged.Parts, ReplaceAll(this.Parts[i], r, es, EmptyPD(), stopAtHead))
+	for i := range this.GetParts() {
+		maybeChanged.GetParts() = append(maybeChanged.GetParts(), ReplaceAll(this.GetParts()[i], r, es, EmptyPD(), stopAtHead))
 	}
 	if hashEx(maybeChanged) != hashEx(this) {
 		return maybeChanged
@@ -428,7 +428,7 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es expreduc
 }
 
 func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
-	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
+	headAsSym, isHeadSym := this.GetParts()[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm {
 		res, ok := "", false
@@ -442,7 +442,7 @@ func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
 		}
 	}
 
-	if len(this.Parts) == 2 && isHeadSym && (headAsSym.Name == "System`InputForm" ||
+	if len(this.GetParts()) == 2 && isHeadSym && (headAsSym.Name == "System`InputForm" ||
 		headAsSym.Name == "System`FullForm" ||
 		headAsSym.Name == "System`TraditionalForm" ||
 		headAsSym.Name == "System`TeXForm" ||
@@ -450,20 +450,20 @@ func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
 		headAsSym.Name == "System`OutputForm") {
 		mutatedParams := params
 		mutatedParams.form = headAsSym.Name[7:]
-		return this.Parts[1].StringForm(mutatedParams)
+		return this.GetParts()[1].StringForm(mutatedParams)
 	}
 
 	// Default printing format
 	var buffer bytes.Buffer
-	buffer.WriteString(this.Parts[0].StringForm(params))
+	buffer.WriteString(this.GetParts()[0].StringForm(params))
 	buffer.WriteString("[")
-	params.previousHead = "<TOPLEVEL>"
-	for i, e := range this.Parts {
+	params.PreviousHead = "<TOPLEVEL>"
+	for i, e := range this.GetParts() {
 		if i == 0 {
 			continue
 		}
 		buffer.WriteString(e.StringForm(params))
-		if i != len(this.Parts)-1 {
+		if i != len(this.GetParts())-1 {
 			buffer.WriteString(", ")
 		}
 	}
@@ -472,9 +472,9 @@ func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
 }
 
 func (this *Expression) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := DefaultStringFormArgs()
+	context, ContextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{
-		form: "InputForm", context: context, contextPath: contextPath, esi: esi})
+		form: "InputForm", context: context, ContextPath: ContextPath, esi: esi})
 }
 
 func (this *Expression) IsEqual(otherEx expreduceapi.Ex) string {
@@ -483,11 +483,11 @@ func (this *Expression) IsEqual(otherEx expreduceapi.Ex) string {
 		return "EQUAL_UNK"
 	}
 
-	if len(this.Parts) != len(other.Parts) {
+	if len(this.GetParts()) != len(other.GetParts()) {
 		return "EQUAL_UNK"
 	}
-	for i := range this.Parts {
-		res := this.Parts[i].IsEqual(other.Parts[i])
+	for i := range this.GetParts() {
+		res := this.GetParts()[i].IsEqual(other.GetParts()[i])
 		switch res {
 		case "EQUAL_FALSE":
 			return "EQUAL_UNK"
@@ -501,8 +501,8 @@ func (this *Expression) IsEqual(otherEx expreduceapi.Ex) string {
 
 func (this *Expression) DeepCopy() expreduceapi.Ex {
 	var thiscopy = NewEmptyExpression()
-	for i := range this.Parts {
-		thiscopy.Parts = append(thiscopy.Parts, this.Parts[i].DeepCopy())
+	for i := range this.GetParts() {
+		thiscopy.GetParts() = append(thiscopy.GetParts(), this.GetParts()[i].DeepCopy())
 	}
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
@@ -513,7 +513,7 @@ func (this *Expression) DeepCopy() expreduceapi.Ex {
 
 func (this *Expression) ShallowCopy() *Expression {
 	var thiscopy = NewEmptyExpression()
-	thiscopy.Parts = append([]expreduceapi.Ex{}, this.Parts...)
+	thiscopy.GetParts() = append([]expreduceapi.Ex{}, this.GetParts()...)
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
 	thiscopy.evaledHash = this.evaledHash
@@ -522,9 +522,9 @@ func (this *Expression) ShallowCopy() *Expression {
 }
 
 func (this *Expression) Copy() expreduceapi.Ex {
-	var thiscopy = NewEmptyExpressionOfLength(len(this.Parts))
-	for i := range this.Parts {
-		thiscopy.Parts[i] = this.Parts[i].Copy()
+	var thiscopy = NewEmptyExpressionOfLength(len(this.GetParts()))
+	for i := range this.GetParts() {
+		thiscopy.GetParts()[i] = this.GetParts()[i].Copy()
 	}
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
@@ -535,23 +535,23 @@ func (this *Expression) Copy() expreduceapi.Ex {
 
 // Implement the sort.Interface
 func (this *Expression) Len() int {
-	return len(this.Parts) - 1
+	return len(this.GetParts()) - 1
 }
 
 func (this *Expression) Less(i, j int) bool {
-	return ExOrder(this.Parts[i+1], this.Parts[j+1]) == 1
+	return ExOrder(this.GetParts()[i+1], this.GetParts()[j+1]) == 1
 }
 
 func (this *Expression) Swap(i, j int) {
-	this.Parts[j+1], this.Parts[i+1] = this.Parts[i+1], this.Parts[j+1]
+	this.GetParts()[j+1], this.GetParts()[i+1] = this.GetParts()[i+1], this.GetParts()[j+1]
 }
 
 func (this *Expression) appendEx(e expreduceapi.Ex) {
-	this.Parts = append(this.Parts, e)
+	this.GetParts() = append(this.GetParts(), e)
 }
 
 func (this *Expression) appendExArray(e []expreduceapi.Ex) {
-	this.Parts = append(this.Parts, e...)
+	this.GetParts() = append(this.GetParts(), e...)
 }
 
 func (this *Expression) NeedsEval() bool {
@@ -565,7 +565,7 @@ func (this *Expression) Hash() uint64 {
 	h := fnv.New64a()
 	h.Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
 	b := make([]byte, 8)
-	for _, part := range this.Parts {
+	for _, part := range this.GetParts() {
 		binary.LittleEndian.PutUint64(b, part.Hash())
 		h.Write(b)
 	}
@@ -574,7 +574,7 @@ func (this *Expression) Hash() uint64 {
 }
 
 func (this *Expression) HeadStr() string {
-	sym, isSym := this.Parts[0].(*Symbol)
+	sym, isSym := this.GetParts()[0].(*Symbol)
 	if isSym {
 		return sym.Name
 	}
@@ -613,5 +613,5 @@ func NewEmptyExpressionOfLength(n int) *Expression {
 }
 
 func (this *Expression) GetParts() []expreduceapi.Ex {
-	return this.Parts
+	return this.GetParts()
 }

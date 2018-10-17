@@ -11,7 +11,7 @@ func GetTimeDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "UnixTime",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 1 {
+			if len(this.GetParts()) != 1 {
 				return this
 			}
 
@@ -21,11 +21,11 @@ func GetTimeDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Pause",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			nInt, nIsInt := this.Parts[1].(*Integer)
-			nFlt, nIsFlt := this.Parts[1].(*Flt)
+			nInt, nIsInt := this.GetParts()[1].(*Integer)
+			nFlt, nIsFlt := this.GetParts()[1].(*Flt)
 			if !nIsInt && !nIsFlt {
 				return this
 			}

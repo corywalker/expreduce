@@ -41,38 +41,38 @@ func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 	instructions := []TestInstruction{}
 	for _, tiEx := range tc.GetParts()[1:] {
 		if st, isSt := HeadAssertion(tiEx, "System`ESameTest"); isSt {
-			if len(st.Parts) != 3 {
+			if len(st.GetParts()) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
 			instructions = append(instructions, &SameTestEx{
-				st.Parts[1], st.Parts[2]})
+				st.GetParts()[1], st.GetParts()[2]})
 			continue
 		}
 		if st, isSt := HeadAssertion(tiEx, "System`EStringTest"); isSt {
-			if len(st.Parts) != 3 {
+			if len(st.GetParts()) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
 			instructions = append(instructions, &StringTest{
-				st.Parts[1].(*String).Val, st.Parts[2].(*String).Val})
+				st.GetParts()[1].(*String).Val, st.GetParts()[2].(*String).Val})
 			continue
 		}
 		if st, isSt := HeadAssertion(tiEx, "System`EExampleOnlyInstruction"); isSt {
-			if len(st.Parts) != 3 {
+			if len(st.GetParts()) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
 			instructions = append(instructions, &ExampleOnlyInstruction{
-				st.Parts[1].(*String).Val, st.Parts[2].(*String).Val})
+				st.GetParts()[1].(*String).Val, st.GetParts()[2].(*String).Val})
 			continue
 		}
 		if st, isSt := HeadAssertion(tiEx, "System`EComment"); isSt {
-			if len(st.Parts) != 2 {
+			if len(st.GetParts()) != 2 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
-			comStr, comIsStr := st.Parts[1].(*String)
+			comStr, comIsStr := st.GetParts()[1].(*String)
 			if !comIsStr {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
@@ -82,7 +82,7 @@ func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 			continue
 		}
 		if st, isSt := HeadAssertion(tiEx, "System`EResetState"); isSt {
-			if len(st.Parts) != 1 {
+			if len(st.GetParts()) != 1 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
@@ -107,7 +107,7 @@ func (def *Definition) AnnotateWithDynamicTests(es expreduceapi.EvalStateInterfa
 	if !testsIsList {
 		return
 	}
-	for _, testCol := range testsList.Parts[1:] {
+	for _, testCol := range testsList.GetParts()[1:] {
 		testColExpr, testColIsExpr := testCol.(expreduceapi.ExpressionInterface)
 		if !testColIsExpr {
 			continue

@@ -52,7 +52,7 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 			return toReturn
 		}
 		exToReturn := NewEmptyExpression()
-		for _, part := range asExpr.Parts {
+		for _, part := range asExpr.GetParts() {
 			toAdd, defined, _ := es.GetDef(
 				"System`N",
 				NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), part}),
@@ -60,7 +60,7 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 			if !defined {
 				toAdd = exprToN(es, part)
 			}
-			exToReturn.Parts = append(exToReturn.Parts, toAdd)
+			exToReturn.GetParts() = append(exToReturn.GetParts(), toAdd)
 		}
 		return exToReturn
 	}
@@ -93,7 +93,7 @@ func TryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string
 	}
 
 	pathsToTry := []string{}
-	for _, pathEx := range pathL.Parts[1:] {
+	for _, pathEx := range pathL.GetParts()[1:] {
 		pathString, pathIsString := pathEx.(*String)
 		if !pathIsString {
 			fmt.Printf("Invalid path: %v\n", pathEx)
@@ -140,10 +140,10 @@ func snagUnique(context string, prefix string, es expreduceapi.EvalStateInterfac
 
 func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	// Coarse parsing of arguments.
-	if len(this.Parts) != 3 {
+	if len(this.GetParts()) != 3 {
 		return nil, false
 	}
-	locals, localsIsList := HeadAssertion(this.Parts[1], "System`List")
+	locals, localsIsList := HeadAssertion(this.GetParts()[1], "System`List")
 	if !localsIsList {
 		return nil, false
 	}
@@ -157,20 +157,20 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 		isSetDelayed bool
 	}
 	var parsedLocals []parsedLocal
-	for _, localEx := range locals.Parts[1:] {
+	for _, localEx := range locals.GetParts()[1:] {
 		pl := parsedLocal{}
 		symEx := localEx
 		localSet, localIsSet := HeadAssertion(localEx, "System`Set")
 		pl.isSet = localIsSet
 		localSetDelayed, localIsSetDelayed := HeadAssertion(localEx, "System`SetDelayed")
 		pl.isSetDelayed = localIsSetDelayed
-		if localIsSet && len(localSet.Parts) == 3 {
-			symEx = localSet.Parts[1]
-			pl.setValue = localSet.Parts[2]
+		if localIsSet && len(localSet.GetParts()) == 3 {
+			symEx = localSet.GetParts()[1]
+			pl.setValue = localSet.GetParts()[2]
 		}
-		if localIsSetDelayed && len(localSetDelayed.Parts) == 3 {
-			symEx = localSetDelayed.Parts[1]
-			pl.setValue = localSetDelayed.Parts[2]
+		if localIsSetDelayed && len(localSetDelayed.GetParts()) == 3 {
+			symEx = localSetDelayed.GetParts()[1]
+			pl.setValue = localSetDelayed.GetParts()[2]
 		}
 		localSym, localIsSym := symEx.(*Symbol)
 		pl.sym = localSym
@@ -187,7 +187,7 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 		}
 		parsedLocals[i].uniqueName = unique
 	}
-	toReturn := this.Parts[2]
+	toReturn := this.GetParts()[2]
 	pm := EmptyPD()
 	for _, pl := range parsedLocals {
 		if pl.isSet || pl.isSetDelayed {
@@ -196,8 +196,8 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 				rhs = rhs.Eval(es)
 			}
 			es.defined.Set(pl.uniqueName, Def{
-				downvalues: []DownValue{
-					DownValue{
+				Downvalues: []expreduceapi.DownValue{
+					expreduceapi.DownValue{
 						rule: NewExpression([]expreduceapi.Ex{
 							NewSymbol("System`Rule"),
 							E(S("HoldPattern"), NewSymbol(pl.uniqueName)),
@@ -222,15 +222,15 @@ func GetSystemDefinitions() (defs []Definition) {
 		Details:           "Logging output prints to the console. There can be a lot of logging output, especially for more complicated pattern matches. Valid levels are `Debug`, `Info`, `Notice`, `Warning`, `Error`, and `Critical`.",
 		ExpreduceSpecific: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			sym, ok := this.Parts[1].(*Symbol)
+			sym, ok := this.GetParts()[1].(*Symbol)
 			if ok {
 				if sym.Name == "System`True" {
 					errorStr := "Invalid level. Must be one of {Debug, Info, Notice}."
-					levelSym, lsOk := this.Parts[2].(*Symbol)
+					levelSym, lsOk := this.GetParts()[2].(*Symbol)
 					if !lsOk {
 						return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString(errorStr)})
 					}
@@ -272,11 +272,11 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Attributes",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 
-			sym, isSym := this.Parts[1].(*Symbol)
+			sym, isSym := this.GetParts()[1].(*Symbol)
 			if !isSym {
 				return this
 			}
@@ -291,11 +291,11 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Default",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 
-			sym, isSym := this.Parts[1].(*Symbol)
+			sym, isSym := this.GetParts()[1].(*Symbol)
 			if !isSym {
 				return this
 			}
@@ -310,7 +310,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Clear",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			for _, arg := range this.Parts[1:] {
+			for _, arg := range this.GetParts()[1:] {
 				es.Debugf("arg: %v", arg)
 				sym, isSym := arg.(*Symbol)
 				if isSym {
@@ -323,14 +323,14 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Definition",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return false, ""
 			}
 			if params.form != "InputForm" && params.form != "OutputForm" {
 				return false, ""
 			}
 
-			sym, ok := this.Parts[1].(*Symbol)
+			sym, ok := this.GetParts()[1].(*Symbol)
 			if !ok {
 				return false, ""
 			}
@@ -342,9 +342,9 @@ func GetSystemDefinitions() (defs []Definition) {
 				return true, "Null"
 			}
 			stringParams := params
-			stringParams.context, stringParams.contextPath =
+			stringParams.context, stringParams.ContextPath =
 				DefinitionComplexityStringFormArgs()
-			stringParams.previousHead = "<TOPLEVEL>"
+			stringParams.PreviousHead = "<TOPLEVEL>"
 			// To prevent things like "Definition[In]" from exploding:
 			stringParams.esi = nil
 			return true, def.StringForm(sym, stringParams)
@@ -353,11 +353,11 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "DownValues",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 
-			sym, ok := this.Parts[1].(*Symbol)
+			sym, ok := this.GetParts()[1].(*Symbol)
 			if !ok {
 				return this
 			}
@@ -366,15 +366,15 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !isd {
 				return res
 			}
-			for _, dv := range def.downvalues {
-				_, isLhsExpr := dv.rule.Parts[1].(expreduceapi.ExpressionInterface).Parts[1].(expreduceapi.ExpressionInterface)
+			for _, dv := range def.Downvalues {
+				_, isLhsExpr := dv.Rule.GetParts()[1].(expreduceapi.ExpressionInterface).GetParts()[1].(expreduceapi.ExpressionInterface)
 				if !isLhsExpr {
 					continue
 				}
-				res.Parts = append(res.Parts, NewExpression([]expreduceapi.Ex{
+				res.GetParts() = append(res.GetParts(), NewExpression([]expreduceapi.Ex{
 					NewSymbol("System`RuleDelayed"),
-					dv.rule.Parts[1],
-					dv.rule.Parts[2],
+					dv.Rule.GetParts()[1],
+					dv.Rule.GetParts()[2],
 				}))
 			}
 			return res
@@ -385,19 +385,19 @@ func GetSystemDefinitions() (defs []Definition) {
 		Usage:      "`lhs = rhs` sets `lhs` to stand for `rhs`.",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " = ", "System`Set", false, "", "", params)
+			return ToStringInfixAdvanced(this.GetParts()[1:], " = ", "System`Set", false, "", "", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			es.Define(this.Parts[1], this.Parts[2])
-			return this.Parts[2]
+			es.Define(this.GetParts()[1], this.GetParts()[2])
+			return this.GetParts()[2]
 		},
 		SimpleExamples: []TestInstruction{
 			&StringTest{"3", "x=1+2"},
@@ -433,25 +433,25 @@ func GetSystemDefinitions() (defs []Definition) {
 		Usage:      "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
 		Attributes: []string{"HoldAll", "SequenceHold"},
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.Parts[1:], " := ", "System`SetDelayed", false, "", "", params)
+			return ToStringInfixAdvanced(this.GetParts()[1:], " := ", "System`SetDelayed", false, "", "", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			lhs, lhsIsExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
+			lhs, lhsIsExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if lhsIsExpr {
-				for i := range lhs.Parts {
-					lhs.Parts[i] = lhs.Parts[i].Eval(es)
+				for i := range lhs.GetParts() {
+					lhs.GetParts()[i] = lhs.GetParts()[i].Eval(es)
 				}
-				es.Define(lhs, this.Parts[2])
+				es.Define(lhs, this.GetParts()[2])
 			}
-			es.Define(this.Parts[1], this.Parts[2])
+			es.Define(this.GetParts()[1], this.GetParts()[2])
 			return NewSymbol("System`Null")
 		},
 		SimpleExamples: []TestInstruction{
@@ -509,12 +509,12 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Timing",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 
 			start := time.Now()
-			res := this.Parts[1].Eval(es)
+			res := this.GetParts()[1].Eval(es)
 			elapsed := time.Since(start).Seconds()
 			return NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), NewReal(big.NewFloat(elapsed)), res})
 		},
@@ -524,20 +524,20 @@ func GetSystemDefinitions() (defs []Definition) {
 		Usage:     "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.",
 		Bootstrap: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) < 2 {
+			if len(this.GetParts()) < 2 {
 				return this
 			}
 
-			context, contextPath := ActualStringFormArgs(es)
+			context, ContextPath := ActualStringFormArgs(es)
 			stringParams := expreduceapi.ToStringParams{
 				form:         "OutputForm",
 				context:      context,
-				contextPath:  contextPath,
-				previousHead: "<TOPLEVEL>",
+				ContextPath:  ContextPath,
+				PreviousHead: "<TOPLEVEL>",
 				esi:          es,
 			}
-			for i := 1; i < len(this.Parts); i++ {
-				fmt.Printf("%s", this.Parts[i].StringForm(stringParams))
+			for i := 1; i < len(this.GetParts()); i++ {
+				fmt.Printf("%s", this.GetParts()[i].StringForm(stringParams))
 			}
 			fmt.Printf("\n")
 			return NewSymbol("System`Null")
@@ -549,7 +549,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Trace",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 
@@ -559,8 +559,8 @@ func GetSystemDefinitions() (defs []Definition) {
 			// Put system in trace mode:
 			es.trace = NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			// Evaluate first argument in trace mode:
-			this.Parts[1].Eval(es)
-			if es.trace != nil && len(es.trace.Parts) > 2 {
+			this.GetParts()[1].Eval(es)
+			if es.trace != nil && len(es.trace.GetParts()) > 2 {
 				// Take system out of trace mode:
 				toReturn := es.trace.DeepCopy()
 				es.trace = nil
@@ -573,10 +573,10 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "N",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			return exprToN(es, this.Parts[1])
+			return exprToN(es, this.GetParts()[1])
 		},
 	})
 	defs = append(defs, Definition{
@@ -634,10 +634,10 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Get",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			fileData, rawPath, ok := TryReadFile(this.Parts[1], es)
+			fileData, rawPath, ok := TryReadFile(this.GetParts()[1], es)
 			if !ok {
 				return NewSymbol("System`$Failed")
 			}
@@ -668,21 +668,21 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Hash",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 			i := big.NewInt(0)
-			i.SetUint64(hashEx(this.Parts[1]))
+			i.SetUint64(hashEx(this.GetParts()[1]))
 			return NewInteger(i)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "ReadList",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			fileData, rawPath, ok := TryReadFile(this.Parts[1], es)
+			fileData, rawPath, ok := TryReadFile(this.GetParts()[1], es)
 			if !ok {
 				return NewSymbol("System`$Failed")
 			}
@@ -710,7 +710,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Throw",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 			es.Throw(this)
@@ -720,12 +720,12 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Catch",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			res := this.Parts[1].Eval(es)
+			res := this.GetParts()[1].Eval(es)
 			if es.HasThrown() {
-				toReturn := es.thrown.Parts[1]
+				toReturn := es.thrown.GetParts()[1]
 				es.Throw(nil)
 				return toReturn
 			}
@@ -737,24 +737,24 @@ func GetSystemDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 			return NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Hold"),
-				maskNonConditional(this.Parts[1]),
+				maskNonConditional(this.GetParts()[1]),
 			})
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Unique",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) > 3 {
+			if len(this.GetParts()) > 3 {
 				return this
 			}
 			prefix := "$"
-			if len(this.Parts) == 2 {
-				asStr, isStr := this.Parts[1].(*String)
+			if len(this.GetParts()) == 2 {
+				asStr, isStr := this.GetParts()[1].(*String)
 				if !isStr {
 					return this
 				}
@@ -770,11 +770,11 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Sow",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				fmt.Println("Unsupported call to Sow.")
 				return this
 			}
-			res := this.Parts[1].Eval(es)
+			res := this.GetParts()[1].Eval(es)
 			if es.reapSown != nil {
 				es.reapSown.appendEx(res)
 			}
@@ -784,12 +784,12 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Reap",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 2 {
+			if len(this.GetParts()) != 2 {
 				fmt.Println("Unsupported call to Reap.")
 				return this
 			}
 			es.reapSown = E(S("List"))
-			res := this.Parts[1].Eval(es)
+			res := this.GetParts()[1].Eval(es)
 			res = E(S("List"), res, E(S("List"), es.reapSown))
 			// If I set this to nil, Int[((A + B*Cos[x])*(a + b*Sin[x])^-1), x]
 			// will not work for an unknown reason.

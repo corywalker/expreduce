@@ -9,11 +9,11 @@ import (
 
 func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-		if len(this.Parts) != 2 {
+		if len(this.GetParts()) != 2 {
 			return this
 		}
 
-		flt, ok := this.Parts[1].(*Flt)
+		flt, ok := this.GetParts()[1].(*Flt)
 		if ok {
 			if !onlyPos || flt.Val.Cmp(big.NewFloat(0)) == 1 {
 				return NewReal(fn(flt.Val))
@@ -120,27 +120,27 @@ func GetPowerDefinitions() (defs []Definition) {
 		Name:    "Power",
 		Default: "1",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfixAdvanced(this.Parts[1:], "^", "System`Power", false, "", "", params)
+			return ToStringInfixAdvanced(this.GetParts()[1:], "^", "System`Power", false, "", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.Parts) != 3 {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			baseInt, baseIsInt := this.Parts[1].(*Integer)
-			powerInt, powerIsInt := this.Parts[2].(*Integer)
-			baseFlt, baseIsFlt := this.Parts[1].(*Flt)
-			powerFlt, powerIsFlt := this.Parts[2].(*Flt)
+			baseInt, baseIsInt := this.GetParts()[1].(*Integer)
+			powerInt, powerIsInt := this.GetParts()[2].(*Integer)
+			baseFlt, baseIsFlt := this.GetParts()[1].(*Flt)
+			powerFlt, powerIsFlt := this.GetParts()[2].(*Flt)
 			//baseRat, baseIsRat := this.Parts[1].(*Rational)
-			powerRat, powerIsRat := this.Parts[2].(*Rational)
+			powerRat, powerIsRat := this.GetParts()[2].(*Rational)
 			// Anything raised to the 1st power is itself
 			if powerIsFlt {
 				if powerFlt.Val.Cmp(big.NewFloat(1)) == 0 {
-					return this.Parts[1]
+					return this.GetParts()[1]
 				}
 			} else if powerIsInt {
 				if powerInt.Val.Cmp(big.NewInt(1)) == 0 {
-					return this.Parts[1]
+					return this.GetParts()[1]
 				}
 			}
 			// Anything raised to the 0th power is 1, with a small exception
@@ -163,7 +163,7 @@ func GetPowerDefinitions() (defs []Definition) {
 				return NewInteger(big.NewInt(1))
 			}
 			if powerPositivity == 1 && basePositivity == 0 {
-				return this.Parts[1]
+				return this.GetParts()[1]
 			}
 			if basePositivity == -1 && powerIsFlt {
 				if powerFlt.Val.Cmp(big.NewFloat(-1)) == 0 {

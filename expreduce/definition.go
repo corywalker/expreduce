@@ -22,11 +22,11 @@ func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStr
 		buffer = append(buffer, e.StringForm(params))
 	}
 
-	for _, dv := range def.downvalues {
+	for _, dv := range def.Downvalues {
 		e := E(
 			S("SetDelayed"),
-			dv.rule.Parts[1].(expreduceapi.ExpressionInterface).Parts[1],
-			dv.rule.Parts[2],
+			dv.Rule.GetParts()[1].(expreduceapi.ExpressionInterface).GetParts()[1],
+			dv.Rule.GetParts()[2],
 		)
 		buffer = append(buffer, e.StringForm(params))
 	}

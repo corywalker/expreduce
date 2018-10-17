@@ -22,14 +22,14 @@ func RationalAssertion(num expreduceapi.Ex, den expreduceapi.Ex) (r *Rational, i
 	if !numIsInt || !denIsPow {
 		return nil, false
 	}
-	powInt, powIsInt := denPow.Parts[2].(*Integer)
+	powInt, powIsInt := denPow.GetParts()[2].(*Integer)
 	if !powIsInt {
 		return nil, false
 	}
 	if powInt.Val.Cmp(big.NewInt(-1)) != 0 {
 		return nil, false
 	}
-	denInt, denIsInt := denPow.Parts[1].(*Integer)
+	denInt, denIsInt := denPow.GetParts()[1].(*Integer)
 	if !denIsInt {
 		return nil, false
 	}
@@ -141,7 +141,7 @@ func computeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduc
 			}
 			continue
 		}
-		asFlt, isFlt := e.Parts[i].(*Flt)
+		asFlt, isFlt := e.GetParts()[i].(*Flt)
 		if isFlt {
 			if foldedFlt == nil {
 				foldedFlt = asFlt.DeepCopy().(*Flt)
@@ -154,7 +154,7 @@ func computeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduc
 			}
 			continue
 		}
-		asComp, isComp := e.Parts[i].(*Complex)
+		asComp, isComp := e.GetParts()[i].(*Complex)
 		if isComp {
 			if foldedComp == nil {
 				foldedComp = asComp.DeepCopy().(*Complex)
@@ -192,15 +192,15 @@ func splitTerm(e expreduceapi.Ex) (expreduceapi.Ex, expreduceapi.Ex, bool) {
 	}
 	asTimes, isTimes := HeadAssertion(e, "System`Times")
 	if isTimes {
-		if len(asTimes.Parts) < 2 {
+		if len(asTimes.GetParts()) < 2 {
 			return nil, nil, false
 		}
-		if numberQForTermCollection(asTimes.Parts[1]) {
-			if len(asTimes.Parts) > 2 {
-				return asTimes.Parts[1], NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.Parts[2:]...)), true
+		if numberQForTermCollection(asTimes.GetParts()[1]) {
+			if len(asTimes.GetParts()) > 2 {
+				return asTimes.GetParts()[1], NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.GetParts()[2:]...)), true
 			}
 		} else {
-			return NewInteger(big.NewInt(1)), NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.Parts[1:]...)), true
+			return NewInteger(big.NewInt(1)), NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.GetParts()[1:]...)), true
 		}
 	}
 	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
@@ -226,15 +226,15 @@ func collectedToTerm(coeffs []expreduceapi.Ex, vars expreduceapi.Ex, fullPart ex
 	toAdd := NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
 	cAsInt, cIsInt := finalC.(*Integer)
 	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
-		toAdd.Parts = append(toAdd.Parts, finalC)
+		toAdd.GetParts() = append(toAdd.GetParts(), finalC)
 	}
 	vAsExpr, vIsExpr := HeadAssertion(vars, "System`Times")
-	if vIsExpr && len(vAsExpr.Parts) == 2 {
-		vars = vAsExpr.Parts[1]
+	if vIsExpr && len(vAsExpr.GetParts()) == 2 {
+		vars = vAsExpr.GetParts()[1]
 	}
-	toAdd.Parts = append(toAdd.Parts, vars)
-	if len(toAdd.Parts) == 2 {
-		return toAdd.Parts[1]
+	toAdd.GetParts() = append(toAdd.GetParts(), vars)
+	if len(toAdd.GetParts()) == 2 {
+		return toAdd.GetParts()[1]
 	}
 	return toAdd
 }
@@ -244,7 +244,7 @@ func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInt
 	var lastVars expreduceapi.Ex
 	var lastFullPart expreduceapi.Ex
 	lastCoeffs := []expreduceapi.Ex{}
-	for _, part := range e.Parts[1:] {
+	for _, part := range e.GetParts()[1:] {
 		coeff, vars, isTerm := splitTerm(part)
 		if isTerm {
 			if lastVars == nil {
@@ -255,7 +255,7 @@ func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInt
 				if hashEx(vars) == hashEx(lastVars) {
 					lastCoeffs = append(lastCoeffs, coeff)
 				} else {
-					collected.Parts = append(collected.Parts, collectedToTerm(lastCoeffs, lastVars, lastFullPart))
+					collected.GetParts() = append(collected.GetParts(), collectedToTerm(lastCoeffs, lastVars, lastFullPart))
 
 					lastCoeffs = []expreduceapi.Ex{coeff}
 					lastVars = vars
@@ -263,11 +263,11 @@ func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInt
 				}
 			}
 		} else {
-			collected.Parts = append(collected.Parts, part)
+			collected.GetParts() = append(collected.GetParts(), part)
 		}
 	}
 	if lastVars != nil {
-		collected.Parts = append(collected.Parts, collectedToTerm(lastCoeffs, lastVars, lastFullPart))
+		collected.GetParts() = append(collected.GetParts(), collectedToTerm(lastCoeffs, lastVars, lastFullPart))
 	}
 	return collected
 }
@@ -277,11 +277,11 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Name:    "Plus",
 		Default: "0",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " + ", "System`Plus", params)
+			return ToStringInfix(this.GetParts()[1:], " + ", "System`Plus", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
-			if len(this.Parts) == 1 {
+			if len(this.GetParts()) == 1 {
 				return NewInteger(big.NewInt(0))
 			}
 
@@ -294,9 +294,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 				res = NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 				rAsInt, rIsInt := realPart.(*Integer)
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0) {
-					res.Parts = append(res.Parts, realPart)
+					res.GetParts() = append(res.GetParts(), realPart)
 				}
-				res.Parts = append(res.Parts, this.Parts[symStart:]...)
+				res.GetParts() = append(res.GetParts(), this.GetParts()[symStart:]...)
 			}
 
 			collected := collectTerms(res)
@@ -305,8 +305,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 			}
 
 			// If one expression remains, replace this Plus with the expression
-			if len(res.Parts) == 2 {
-				return res.Parts[1]
+			if len(res.GetParts()) == 2 {
+				return res.GetParts()[1]
 			}
 
 			// Not exactly right because of "1. + foo[1]", but close enough.
@@ -330,7 +330,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			if params.form == "TeXForm" {
 				delim = " "
 			}
-			ok, res := ToStringInfix(this.Parts[1:], delim, "System`Times", params)
+			ok, res := ToStringInfix(this.GetParts()[1:], delim, "System`Times", params)
 			if ok && strings.HasPrefix(res, "(-1)"+delim) {
 				return ok, "-" + res[5:]
 			}
@@ -338,7 +338,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
-			if len(this.Parts) == 1 {
+			if len(this.GetParts()) == 1 {
 				return NewInteger(big.NewInt(1))
 			}
 
@@ -351,7 +351,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 				res = NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
 				rAsInt, rIsInt := realPart.(*Integer)
 				if rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0 {
-					containsInfinity := MemberQ(this.Parts[symStart:], NewExpression([]expreduceapi.Ex{
+					containsInfinity := MemberQ(this.GetParts()[symStart:], NewExpression([]expreduceapi.Ex{
 						NewSymbol("System`Alternatives"),
 						NewSymbol("System`Infinity"),
 						NewSymbol("System`ComplexInfinity"),
@@ -363,25 +363,25 @@ func getArithmeticDefinitions() (defs []Definition) {
 					return NewInteger(big.NewInt(0))
 				}
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(1)) == 0) {
-					res.Parts = append(res.Parts, realPart)
+					res.GetParts() = append(res.GetParts(), realPart)
 				}
-				res.Parts = append(res.Parts, this.Parts[symStart:]...)
+				res.GetParts() = append(res.GetParts(), this.GetParts()[symStart:]...)
 			}
 
 			// If one expression remains, replace this Times with the expression
-			if len(res.Parts) == 2 {
-				return res.Parts[1]
+			if len(res.GetParts()) == 2 {
+				return res.GetParts()[1]
 			}
 
 			// Automatically Expand negations (*-1), not (*-1.) of a Plus expression
 			// Perhaps better implemented as a rule.
-			if len(res.Parts) == 3 {
-				leftint, leftintok := res.Parts[1].(*Integer)
-				rightplus, rightplusok := HeadAssertion(res.Parts[2], "System`Plus")
+			if len(res.GetParts()) == 3 {
+				leftint, leftintok := res.GetParts()[1].(*Integer)
+				rightplus, rightplusok := HeadAssertion(res.GetParts()[2], "System`Plus")
 				if leftintok && rightplusok {
 					if leftint.Val.Cmp(big.NewInt(-1)) == 0 {
 						toreturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
-						addends := rightplus.Parts[1:len(rightplus.Parts)]
+						addends := rightplus.GetParts()[1:len(rightplus.GetParts())]
 						for i := range addends {
 							toAppend := NewExpression([]expreduceapi.Ex{
 								NewSymbol("System`Times"),
@@ -389,7 +389,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 								NewInteger(big.NewInt(-1)),
 							})
 
-							toreturn.Parts = append(toreturn.Parts, toAppend)
+							toreturn.GetParts() = append(toreturn.GetParts(), toAppend)
 						}
 						return toreturn.Eval(es)
 					}
