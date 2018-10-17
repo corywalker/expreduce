@@ -21,7 +21,7 @@ func hashEx(e expreduceapi.Ex) uint64 {
 	return e.Hash()
 }
 
-func exprToN(es *expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi.Ex {
+func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi.Ex {
 	asInt, isInt := e.(*Integer)
 	if isInt {
 		toReturn, _ := IntegerToFlt(asInt)
@@ -42,7 +42,7 @@ func exprToN(es *expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceap
 			return toReturn
 		}
 	}
-	asExpr, isExpr := e.(*expreduceapi.ExpressionInterface)
+	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		toReturn, defined, _ := es.GetDef(
 			"System`N",
@@ -67,7 +67,7 @@ func exprToN(es *expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceap
 	return e.DeepCopy()
 }
 
-func TryReadFile(fn expreduceapi.Ex, es *expreduceapi.EvalStateInterface) (string, string, bool) {
+func TryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string, string, bool) {
 	pathSym := NewSymbol("System`$Path")
 	path, isDef, _ := es.GetDef("System`$Path", pathSym)
 	if !isDef {
@@ -115,7 +115,7 @@ func TryReadFile(fn expreduceapi.Ex, es *expreduceapi.EvalStateInterface) (strin
 	return "", "", false
 }
 
-func snagUnique(context string, prefix string, es *expreduceapi.EvalStateInterface) (string, bool) {
+func snagUnique(context string, prefix string, es expreduceapi.EvalStateInterface) (string, bool) {
 	mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
 	if !mnIsDef {
 		return "", false
@@ -138,7 +138,7 @@ func snagUnique(context string, prefix string, es *expreduceapi.EvalStateInterfa
 	return "", false
 }
 
-func applyModuleFn(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
+func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	// Coarse parsing of arguments.
 	if len(this.Parts) != 3 {
 		return nil, false
@@ -221,7 +221,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:              "ExpreduceSetLogging",
 		Details:           "Logging output prints to the console. There can be a lot of logging output, especially for more complicated pattern matches. Valid levels are `Debug`, `Info`, `Notice`, `Warning`, `Error`, and `Critical`.",
 		ExpreduceSpecific: true,
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -256,7 +256,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:              "ExpreduceDefinitionTimes",
 		Details:           "For timing information to record, debug mode must be enabled through `ExpreduceSetLogging`.",
 		ExpreduceSpecific: true,
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if *mymemprofile != "" {
 				f, err := os.Create(*mymemprofile)
 				if err != nil {
@@ -271,7 +271,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Attributes",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -290,7 +290,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Default",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -309,7 +309,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Clear",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			for _, arg := range this.Parts[1:] {
 				es.Debugf("arg: %v", arg)
 				sym, isSym := arg.(*Symbol)
@@ -322,7 +322,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Definition",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}
@@ -352,7 +352,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "DownValues",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -367,7 +367,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return res
 			}
 			for _, dv := range def.downvalues {
-				_, isLhsExpr := dv.rule.Parts[1].(*expreduceapi.ExpressionInterface).Parts[1].(*expreduceapi.ExpressionInterface)
+				_, isLhsExpr := dv.rule.Parts[1].(expreduceapi.ExpressionInterface).Parts[1].(expreduceapi.ExpressionInterface)
 				if !isLhsExpr {
 					continue
 				}
@@ -384,14 +384,14 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "Set",
 		Usage:      "`lhs = rhs` sets `lhs` to stand for `rhs`.",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
 			return ToStringInfixAdvanced(this.Parts[1:], " = ", "System`Set", false, "", "", params)
 		},
 		Bootstrap: true,
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -432,19 +432,19 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "SetDelayed",
 		Usage:      "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
 		Attributes: []string{"HoldAll", "SequenceHold"},
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
 			return ToStringInfixAdvanced(this.Parts[1:], " := ", "System`SetDelayed", false, "", "", params)
 		},
 		Bootstrap: true,
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
 
-			lhs, lhsIsExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			lhs, lhsIsExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if lhsIsExpr {
 				for i := range lhs.Parts {
 					lhs.Parts[i] = lhs.Parts[i].Eval(es)
@@ -508,7 +508,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Timing",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -523,7 +523,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:      "Print",
 		Usage:     "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.",
 		Bootstrap: true,
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) < 2 {
 				return this
 			}
@@ -548,7 +548,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Trace",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -572,7 +572,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "N",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -633,7 +633,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Get",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -646,7 +646,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Module",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			res, ok := applyModuleFn(this, es)
 			if !ok {
 				return this
@@ -667,7 +667,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Hash",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -678,7 +678,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReadList",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -709,7 +709,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Throw",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -719,7 +719,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Catch",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -736,7 +736,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:              "ExpreduceMaskNonConditional",
 		OmitDocumentation: true,
 		ExpreduceSpecific: true,
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -748,7 +748,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Unique",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) > 3 {
 				return this
 			}
@@ -769,7 +769,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Sow",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				fmt.Println("Unsupported call to Sow.")
 				return this
@@ -783,7 +783,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Reap",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				fmt.Println("Unsupported call to Reap.")
 				return this

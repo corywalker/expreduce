@@ -24,7 +24,7 @@ type Definition struct {
 	Details           string
 
 	// Map symbol to Eval() function
-	legacyEvalFn    (func(*expreduceapi.ExpressionInterface, *expreduceapi.EvalStateInterface) expreduceapi.Ex)
+	legacyEvalFn    (func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex)
 	SimpleExamples  []TestInstruction
 	FurtherExamples []TestInstruction
 	Tests           []TestInstruction
@@ -160,7 +160,7 @@ func (def *Definition) AnnotateWithDynamicUsage(es expreduceapi.EvalStateInterfa
 	}
 }
 
-func (def *Definition) AnnotateWithDynamic(es *expreduceapi.EvalStateInterface) {
+func (def *Definition) AnnotateWithDynamic(es expreduceapi.EvalStateInterface) {
 	def.AnnotateWithDynamicTests(es)
 	def.AnnotateWithDynamicUsage(es)
 }

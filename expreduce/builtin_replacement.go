@@ -2,13 +2,13 @@ package expreduce
 
 import "github.com/corywalker/expreduce/pkg/expreduceapi"
 
-func getValidRules(ruleArg expreduceapi.Ex) (rules []*expreduceapi.ExpressionInterface) {
+func getValidRules(ruleArg expreduceapi.Ex) (rules []expreduceapi.ExpressionInterface) {
 	rulesRule, ok := HeadAssertion(ruleArg, "System`Rule")
 	if !ok {
 		rulesRule, ok = HeadAssertion(ruleArg, "System`RuleDelayed")
 	}
 	if ok {
-		return []*expreduceapi.ExpressionInterface{rulesRule}
+		return []expreduceapi.ExpressionInterface{rulesRule}
 	}
 
 	// Also handle a list of Rules
@@ -27,7 +27,7 @@ func getValidRules(ruleArg expreduceapi.Ex) (rules []*expreduceapi.ExpressionInt
 	return
 }
 
-func rulesReplaceAll(e expreduceapi.Ex, rules []*expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func rulesReplaceAll(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	// TODO: fix the case where ReplaceAll[{x},{x->y,y->z}] returns incorrectly.
 	toReturn := e
 	for _, rule := range rules {
@@ -36,7 +36,7 @@ func rulesReplaceAll(e expreduceapi.Ex, rules []*expreduceapi.ExpressionInterfac
 	return toReturn
 }
 
-func rulesReplace(e expreduceapi.Ex, rules []*expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
+func rulesReplace(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	for _, rule := range rules {
 		res, replaced := Replace(e, rule, es)
 		if replaced {
@@ -46,8 +46,8 @@ func rulesReplace(e expreduceapi.Ex, rules []*expreduceapi.ExpressionInterface, 
 	return e, false
 }
 
-func replaceParts(e expreduceapi.Ex, rules []*expreduceapi.ExpressionInterface, part *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	expr, isExpr := e.(*expreduceapi.ExpressionInterface)
+func replaceParts(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, part expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+	expr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if !isExpr {
 		return e
 	}
@@ -81,13 +81,13 @@ func replaceParts(e expreduceapi.Ex, rules []*expreduceapi.ExpressionInterface, 
 func getReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceAll",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
 			return ToStringInfixAdvanced(this.Parts[1:], " /. ", "", true, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -101,7 +101,7 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Replace",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -121,13 +121,13 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReplaceRepeated",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
 			return ToStringInfixAdvanced(this.Parts[1:], " //. ", "", true, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -153,7 +153,7 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Rule",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -166,7 +166,7 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "RuleDelayed",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -179,7 +179,7 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReplacePart",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -187,7 +187,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if !isList {
 				return this
 			}
-			exprRules := [](*expreduceapi.ExpressionInterface){}
+			exprRules := [](expreduceapi.ExpressionInterface){}
 			for _, rulesPart := range rules.Parts[1:] {
 				rule, isRule := HeadAssertion(rulesPart, "System`Rule")
 				if !isRule {

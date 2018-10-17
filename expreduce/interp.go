@@ -21,7 +21,7 @@ var inequalityOps = map[string]bool{
 	"System`GreaterEqual": true,
 }
 
-func convertToInequality(expr *expreduceapi.ExpressionInterface) *expreduceapi.ExpressionInterface {
+func convertToInequality(expr expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
 	res := E(S("Inequality"))
 	for i, e := range expr.Parts[1:] {
 		if i != 0 {
@@ -35,7 +35,7 @@ func convertToInequality(expr *expreduceapi.ExpressionInterface) *expreduceapi.E
 func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceapi.Ex {
 	_, opIsIneq := inequalityOps[op]
 	if opIsIneq {
-		lhsEx, lhsIsEx := lhs.(*expreduceapi.ExpressionInterface)
+		lhsEx, lhsIsEx := lhs.(expreduceapi.ExpressionInterface)
 		if lhsIsEx {
 			lhsHead := lhsEx.HeadStr()
 			_, lhsIsIneq := inequalityOps[lhsHead]
@@ -60,7 +60,7 @@ func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceap
 }
 
 func removeParens(ex expreduceapi.Ex) {
-	expr, isExpr := ex.(*expreduceapi.ExpressionInterface)
+	expr, isExpr := ex.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		for i := range expr.Parts {
 			parens, isParens := NewEmptyExpression(), true
@@ -76,7 +76,7 @@ func removeParens(ex expreduceapi.Ex) {
 	return
 }
 
-func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string, es *expreduceapi.EvalStateInterface) {
+func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string, es expreduceapi.EvalStateInterface) {
 	if sym, isSym := e.(*Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
 			for _, toTry := range contextPath {
@@ -89,7 +89,7 @@ func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string
 		}
 		es.MarkSeen(sym.Name)
 	}
-	expr, isExpr := e.(*expreduceapi.ExpressionInterface)
+	expr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		for _, part := range expr.Parts {
 			addContextAndDefine(part, context, contextPath, es)
@@ -429,7 +429,7 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 			E(S("List"), NewInt(1)),
 		})
 	case 35:
-		set := ParserExprConv(expr.Expression2).(*expreduceapi.ExpressionInterface)
+		set := ParserExprConv(expr.Expression2).(expreduceapi.ExpressionInterface)
 		head := "System`TagSet"
 		if _, isDelayed := HeadAssertion(set, "System`SetDelayed"); isDelayed {
 			head = "System`TagSetDelayed"
@@ -482,7 +482,7 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 	return nil
 }
 
-func InterpBuf(buf *bytes.Buffer, fn string, es *expreduceapi.EvalStateInterface) (expreduceapi.Ex, error) {
+func InterpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, error) {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
 	in, err := wl.NewInput(buf, true)
 	if err != nil {
@@ -516,7 +516,7 @@ func InterpBuf(buf *bytes.Buffer, fn string, es *expreduceapi.EvalStateInterface
 	return parsed, nil
 }
 
-func Interp(src string, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func Interp(src string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	buf := bytes.NewBufferString(src)
 	expr, err := InterpBuf(buf, "nofile", es)
 	if err != nil {
@@ -526,11 +526,11 @@ func Interp(src string, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return expr
 }
 
-func EvalInterp(src string, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func EvalInterp(src string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return Interp(src, es).Eval(es)
 }
 
-func EvalInterpMany(doc string, fn string, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func EvalInterpMany(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	buf := bytes.NewBufferString(doc)
 	var lastExpr expreduceapi.Ex = NewSymbol("System`Null")
 	expr, err := InterpBuf(buf, fn, es)
@@ -544,7 +544,7 @@ func EvalInterpMany(doc string, fn string, es *expreduceapi.EvalStateInterface) 
 	return lastExpr
 }
 
-func ReadList(doc string, fn string, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	buf := bytes.NewBufferString(doc)
 	l := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 	expr, err := InterpBuf(buf, fn, es)
@@ -558,7 +558,7 @@ func ReadList(doc string, fn string, es *expreduceapi.EvalStateInterface) expred
 	return l
 }
 
-func EasyRun(src string, es *expreduceapi.EvalStateInterface) string {
+func EasyRun(src string, es expreduceapi.EvalStateInterface) string {
 	context, contextPath := ActualStringFormArgs(es)
 	stringParams := expreduceapi.ToStringParams{
 		form:        "InputForm",

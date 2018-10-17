@@ -13,7 +13,7 @@ func GetRandomDefinitions() (defs []Definition) {
 		Details: "`SeedRandom[UnixTime[]]` is called automatically upon " +
 			"initialization of Expreduce, so random number sequences will not " +
 			"repeat over subsequent sessions.",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 1 {
 				return this
 			}
@@ -26,7 +26,7 @@ func GetRandomDefinitions() (defs []Definition) {
 		Details: "`SeedRandom[UnixTime[]]` is called automatically upon " +
 			"initialization of Expreduce, so random number sequences will not " +
 			"repeat over subsequent sessions.",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

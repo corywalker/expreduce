@@ -51,7 +51,7 @@ func (this *PDManager) Len() int {
 	return len(this.patternDefined)
 }
 
-func (this *PDManager) String(es *expreduceapi.EvalStateInterface) string {
+func (this *PDManager) String(es expreduceapi.EvalStateInterface) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	// We sort the keys here such that converting identical PDManagers always
@@ -95,7 +95,7 @@ func (this *PDManager) Expression() expreduceapi.Ex {
 	return res
 }
 
-func DefineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, sequenceHead string, es *expreduceapi.EvalStateInterface) bool {
+func DefineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, sequenceHead string, es expreduceapi.EvalStateInterface) bool {
 	var attemptDefine expreduceapi.Ex = nil
 	if lhs.hasPat {
 		sequenceHeadSym := NewSymbol(sequenceHead)

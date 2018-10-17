@@ -280,7 +280,7 @@ func (this *EvalState) IsDef(name string) bool {
 	return isd
 }
 
-func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, bool, *expreduceapi.ExpressionInterface) {
+func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, bool, expreduceapi.ExpressionInterface) {
 	if !this.IsDef(name) {
 		return nil, false, nil
 	}
@@ -400,7 +400,7 @@ func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *
 		return 100
 	}
 	// Special case for single integer arguments.
-	expr, isExpr := lhs.(*expreduceapi.ExpressionInterface).Parts[1].(*expreduceapi.ExpressionInterface)
+	expr, isExpr := lhs.(expreduceapi.ExpressionInterface).Parts[1].(expreduceapi.ExpressionInterface)
 	if isExpr && len(expr.Parts) == 2 {
 		if _, isInt := expr.Parts[1].(*Integer); isInt {
 			return 110
@@ -441,7 +441,7 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	if ok {
 		name = LhsSym.Name
 	}
-	LhsF, ok := lhs.(*expreduceapi.ExpressionInterface)
+	LhsF, ok := lhs.(expreduceapi.ExpressionInterface)
 	if ok {
 		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
 		if headIsSym {
@@ -583,7 +583,7 @@ func (this *EvalState) GetStringDef(name string, defaultVal string) string {
 	return defString.Val
 }
 
-func (this *EvalState) GetListDef(name string) *expreduceapi.ExpressionInterface {
+func (this *EvalState) GetListDef(name string) expreduceapi.ExpressionInterface {
 	nameSym := NewSymbol(name)
 	def, isDef, _ := this.GetDef(name, nameSym)
 	if !isDef {
@@ -596,7 +596,7 @@ func (this *EvalState) GetListDef(name string) *expreduceapi.ExpressionInterface
 	return defList
 }
 
-func (es *EvalState) Throw(e *expreduceapi.ExpressionInterface) {
+func (es *EvalState) Throw(e expreduceapi.ExpressionInterface) {
 	es.thrown = e
 }
 

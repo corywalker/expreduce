@@ -14,7 +14,7 @@ type Rational struct {
 	needsEval bool
 }
 
-func (this *Rational) Eval(es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func (this *Rational) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
 		return NewSymbol("System`Indeterminate")
 	}

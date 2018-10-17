@@ -26,8 +26,8 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 	bAsSymbol, bIsSymbol := b.(*Symbol)
 	aAsString, aIsString := a.(*String)
 	bAsString, bIsString := b.(*String)
-	aAsExp, aIsExp := a.(*expreduceapi.ExpressionInterface)
-	bAsExp, bIsExp := b.(*expreduceapi.ExpressionInterface)
+	aAsExp, aIsExp := a.(expreduceapi.ExpressionInterface)
+	bAsExp, bIsExp := b.(expreduceapi.ExpressionInterface)
 
 	aAsFlt, aIsFlt := a.(*Flt)
 	bAsFlt, bIsFlt := b.(*Flt)

@@ -25,7 +25,7 @@ func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStr
 	for _, dv := range def.downvalues {
 		e := E(
 			S("SetDelayed"),
-			dv.rule.Parts[1].(*expreduceapi.ExpressionInterface).Parts[1],
+			dv.rule.Parts[1].(expreduceapi.ExpressionInterface).Parts[1],
 			dv.rule.Parts[2],
 		)
 		buffer = append(buffer, e.StringForm(params))

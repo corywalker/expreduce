@@ -86,7 +86,7 @@ func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.E
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
-func (this *Expression) mergeSequences(es *expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *Expression {
+func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *Expression {
 	encounteredSeq := false
 	for _, e := range this.Parts {
 		if _, isseq := HeadAssertion(e, headStr); isseq {
@@ -313,7 +313,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			}
 			headStr := headSym.Name
 
-			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, *expreduceapi.EvalStateInterface) expreduceapi.Ex)(nil), false
+			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, expreduceapi.EvalStateInterface) expreduceapi.Ex)(nil), false
 			if _, inDefined := es.defined.Get(headStr); inDefined {
 				if es.defined.GetDef(headStr).legacyEvalFn != nil {
 					hasLegacyEvalFn = true
@@ -355,7 +355,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 	return currEx
 }
 
-func (this *Expression) EvalFunction(es *expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
+func (this *Expression) EvalFunction(es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
 	if len(this.Parts) == 2 {
 		toReturn := this.Parts[1].DeepCopy()
 		for i, arg := range args {
@@ -392,7 +392,7 @@ func (this *Expression) EvalFunction(es *expreduceapi.EvalStateInterface, args [
 	return this
 }
 
-func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.Debugf("Rule r is: %s", r)
 

@@ -7,7 +7,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func dimensions(ex *expreduceapi.ExpressionInterface, level int, cl *logging.CASLogger) []int64 {
+func dimensions(ex expreduceapi.ExpressionInterface, level int, cl *logging.CASLogger) []int64 {
 	head := ex.Parts[0]
 	dims := []int64{int64(len(ex.Parts) - 1)}
 	nextDims := []int64{}
@@ -47,10 +47,10 @@ func intSliceToList(ints []int64) expreduceapi.Ex {
 // This function assumes that mat is a matrix and that i and j are not out of
 // bounds. i and j are 1-indexed.
 func (mat *Expression) matrix2dGetElem(i, j int64) expreduceapi.Ex {
-	return (mat.Parts[i].(*expreduceapi.ExpressionInterface)).Parts[j]
+	return (mat.Parts[i].(expreduceapi.ExpressionInterface)).Parts[j]
 }
 
-func calcIJ(i, j, innerDim int64, a, b *expreduceapi.ExpressionInterface) expreduceapi.Ex {
+func calcIJ(i, j, innerDim int64, a, b expreduceapi.ExpressionInterface) expreduceapi.Ex {
 	toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 	for pairI := int64(1); pairI <= innerDim; pairI++ {
 		toAdd := NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
@@ -68,11 +68,11 @@ func GetMatrixDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Dimensions",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if !isExpr {
 				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			}
@@ -89,7 +89,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Dot",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) == 2 {
 				return this.Parts[1]
 			}
@@ -99,8 +99,8 @@ func GetMatrixDefinitions() (defs []Definition) {
 			aIsVector := vectorQ(this.Parts[1])
 			bIsVector := vectorQ(this.Parts[2])
 			if aIsVector && bIsVector {
-				aVector := this.Parts[1].(*expreduceapi.ExpressionInterface)
-				bVector := this.Parts[2].(*expreduceapi.ExpressionInterface)
+				aVector := this.Parts[1].(expreduceapi.ExpressionInterface)
+				bVector := this.Parts[2].(expreduceapi.ExpressionInterface)
 				if len(aVector.Parts) != len(bVector.Parts) {
 					return this
 				}
@@ -118,8 +118,8 @@ func GetMatrixDefinitions() (defs []Definition) {
 			aIsMatrix := matrixQ(this.Parts[1], &es.CASLogger)
 			bIsMatrix := matrixQ(this.Parts[2], &es.CASLogger)
 			if aIsMatrix && bIsMatrix {
-				aEx := this.Parts[1].(*expreduceapi.ExpressionInterface)
-				bEx := this.Parts[2].(*expreduceapi.ExpressionInterface)
+				aEx := this.Parts[1].(expreduceapi.ExpressionInterface)
+				bEx := this.Parts[2].(expreduceapi.ExpressionInterface)
 				aDims := dimensions(aEx, 0, &es.CASLogger)
 				bDims := dimensions(bEx, 0, &es.CASLogger)
 				if len(aDims) != 2 || len(bDims) != 2 {
@@ -146,7 +146,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Transpose",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

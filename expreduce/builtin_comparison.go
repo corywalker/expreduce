@@ -13,7 +13,7 @@ const (
 	MinFn
 )
 
-func extremaFunction(this *expreduceapi.ExpressionInterface, fnType extremaFnType, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	// Flatten nested lists into arguments.
 	origHead := this.Parts[0]
 	this.Parts[0] = S("List")
@@ -77,10 +77,10 @@ func getCompSign(e expreduceapi.Ex) int {
 func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Equal",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " == ", "System`Equal", false, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) < 1 {
 				return this
 			}
@@ -101,10 +101,10 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Unequal",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " != ", "System`Unequal", false, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -123,10 +123,10 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "SameQ",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " === ", "System`SameQ", false, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) < 1 {
 				return this
 			}
@@ -144,10 +144,10 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "UnsameQ",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " =!= ", "System`UnsameQ", false, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) < 1 {
 				return this
 			}
@@ -164,12 +164,12 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "AtomQ",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
 
-			_, IsExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			_, IsExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if IsExpr {
 				return NewSymbol("System`False")
 			}
@@ -185,10 +185,10 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Less",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " < ", "", true, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -209,10 +209,10 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Greater",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " > ", "", true, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -232,10 +232,10 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "LessEqual",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " <= ", "", true, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -259,10 +259,10 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "GreaterEqual",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " >= ", "", true, "", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -292,13 +292,13 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Max",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			return extremaFunction(this, MaxFn, es)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Min",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			return extremaFunction(this, MinFn, es)
 		},
 	})
@@ -307,7 +307,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Element"})
 	defs = append(defs, Definition{
 		Name: "Inequality",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) == 1 {
 				return this
 			}

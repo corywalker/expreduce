@@ -92,7 +92,7 @@ func factorial(n *big.Int) (result *big.Int) {
 func getCombinatoricsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "IntegerPartitions",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 && len(this.Parts) != 3 {
 				return this
 			}
@@ -136,12 +136,12 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Permutations",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
 
-			list, listIsExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			list, listIsExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if !listIsExpr {
 				return this
 			}
@@ -165,7 +165,7 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Factorial",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

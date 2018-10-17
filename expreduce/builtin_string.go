@@ -11,7 +11,7 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ToString",
 		// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -39,10 +39,10 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "StringJoin",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " <> ", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			toReturn := ""
 			for _, e := range this.Parts[1:] {
 				asStr, isStr := e.(*String)
@@ -56,11 +56,11 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:     "Infix",
-		toString: (*expreduceapi.ExpressionInterface).ToStringInfix,
+		toString: (expreduceapi.ExpressionInterface).ToStringInfix,
 	})
 	defs = append(defs, Definition{
 		Name: "StringLength",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -73,7 +73,7 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "StringTake",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -103,7 +103,7 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "StringReplace",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -125,7 +125,7 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ExportString",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}

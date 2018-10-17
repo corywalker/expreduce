@@ -203,7 +203,7 @@ func splitTerm(e expreduceapi.Ex) (expreduceapi.Ex, expreduceapi.Ex, bool) {
 			return NewInteger(big.NewInt(1)), NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.Parts[1:]...)), true
 		}
 	}
-	asExpr, isExpr := e.(*expreduceapi.ExpressionInterface)
+	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		return NewInteger(big.NewInt(1)), NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Times"),
@@ -239,7 +239,7 @@ func collectedToTerm(coeffs []expreduceapi.Ex, vars expreduceapi.Ex, fullPart ex
 	return toAdd
 }
 
-func collectTerms(e *expreduceapi.ExpressionInterface) *expreduceapi.ExpressionInterface {
+func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
 	collected := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 	var lastVars expreduceapi.Ex
 	var lastFullPart expreduceapi.Ex
@@ -276,10 +276,10 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Plus",
 		Default: "0",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", "System`Plus", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
 			if len(this.Parts) == 1 {
 				return NewInteger(big.NewInt(0))
@@ -318,14 +318,14 @@ func getArithmeticDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Sum",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			return this.evalIterationFunc(es, NewInteger(big.NewInt(0)), "System`Plus")
 		},
 	})
 	defs = append(defs, Definition{
 		Name:    "Times",
 		Default: "1",
-		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			delim := "*"
 			if params.form == "TeXForm" {
 				delim = " "
@@ -336,7 +336,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			}
 			return ok, res
 		},
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
 			if len(this.Parts) == 1 {
 				return NewInteger(big.NewInt(1))
@@ -405,7 +405,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Product",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			return this.evalIterationFunc(es, NewInteger(big.NewInt(1)), "System`Times")
 		},
 	})

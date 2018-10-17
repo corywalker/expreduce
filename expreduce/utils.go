@@ -6,7 +6,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func ExArrayToString(exArray []expreduceapi.Ex, es *expreduceapi.EvalStateInterface) string {
+func ExArrayToString(exArray []expreduceapi.Ex, es expreduceapi.EvalStateInterface) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range exArray {
@@ -19,7 +19,7 @@ func ExArrayToString(exArray []expreduceapi.Ex, es *expreduceapi.EvalStateInterf
 	return buffer.String()
 }
 
-func PFArrayToString(pfArray []parsedForm, es *expreduceapi.EvalStateInterface) string {
+func PFArrayToString(pfArray []parsedForm, es expreduceapi.EvalStateInterface) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range pfArray {

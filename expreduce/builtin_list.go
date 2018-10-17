@@ -37,7 +37,7 @@ func (this *Expression) ToStringList(params expreduceapi.ToStringParams) (bool, 
 	return true, buffer.String()
 }
 
-func MemberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es *expreduceapi.EvalStateInterface) bool {
+func MemberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi.EvalStateInterface) bool {
 	for _, part := range components {
 		if matchq, _ := IsMatchQ(part, item, EmptyPD(), es); matchq {
 			return true
@@ -46,7 +46,7 @@ func MemberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es *expreduceap
 	return false
 }
 
-func ValidatePadParams(this *expreduceapi.ExpressionInterface) (list *expreduceapi.ExpressionInterface, n int64, x expreduceapi.Ex, valid bool) {
+func ValidatePadParams(this expreduceapi.ExpressionInterface) (list expreduceapi.ExpressionInterface, n int64, x expreduceapi.Ex, valid bool) {
 	valid = false
 	x = NewInteger(big.NewInt(0))
 	if len(this.Parts) == 4 {
@@ -61,7 +61,7 @@ func ValidatePadParams(this *expreduceapi.ExpressionInterface) (list *expreducea
 	}
 	n = nInt.Val.Int64()
 
-	list, listIsExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+	list, listIsExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 	if !listIsExpr {
 		return
 	}
@@ -90,7 +90,7 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 	if currDim >= len(indices) {
 		return ex, true
 	}
-	expr, isExpr := ex.(*expreduceapi.ExpressionInterface)
+	expr, isExpr := ex.(expreduceapi.ExpressionInterface)
 	if !isExpr {
 		return nil, false
 	}
@@ -142,7 +142,7 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 	return nil, false
 }
 
-func ThreadExpr(expr *expreduceapi.ExpressionInterface) (*expreduceapi.ExpressionInterface, bool) {
+func ThreadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionInterface, bool) {
 	lengths := []int{}
 	for i := 1; i < len(expr.Parts); i++ {
 		list, isList := HeadAssertion(expr.Parts[i], "System`List")
@@ -177,7 +177,7 @@ func ThreadExpr(expr *expreduceapi.ExpressionInterface) (*expreduceapi.Expressio
 	return toReturn, true
 }
 
-func countFunctionLevelSpec(pattern expreduceapi.Ex, e expreduceapi.Ex, partList []int64, generated *int64, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func countFunctionLevelSpec(pattern expreduceapi.Ex, e expreduceapi.Ex, partList []int64, generated *int64, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	if isMatch, _ := IsMatchQ(e, pattern, EmptyPD(), es); isMatch {
 		*generated++
 	}
@@ -187,7 +187,7 @@ func countFunctionLevelSpec(pattern expreduceapi.Ex, e expreduceapi.Ex, partList
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:     "List",
-		toString: (*expreduceapi.ExpressionInterface).ToStringList,
+		toString: (expreduceapi.ExpressionInterface).ToStringList,
 	})
 	defs = append(defs, Definition{
 		Name: "Total",
@@ -197,7 +197,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Table",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) >= 3 {
 				mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
 				if isOk {
@@ -221,7 +221,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ParallelTable",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) >= 3 {
 				mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
 				if isOk {
@@ -249,11 +249,11 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "MemberQ",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
 				if MemberQ(expr.Parts[1:], this.Parts[2], es) {
 					return NewSymbol("System`True")
@@ -264,12 +264,12 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Cases",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
 
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
 				toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				pattern := this.Parts[2]
@@ -298,12 +298,12 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "DeleteCases",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
 
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
 				toReturn := NewExpression([]expreduceapi.Ex{expr.Parts[0]})
 				pattern := this.Parts[2]
@@ -321,14 +321,14 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Union",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) == 1 {
 				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			}
 			var firstHead expreduceapi.Ex = nil
-			var allParts *expreduceapi.ExpressionInterface = nil
+			var allParts expreduceapi.ExpressionInterface = nil
 			for _, part := range this.Parts[1:] {
-				expr, isExpr := part.(*expreduceapi.ExpressionInterface)
+				expr, isExpr := part.(expreduceapi.ExpressionInterface)
 				if !isExpr {
 					return this
 				}
@@ -355,14 +355,14 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Complement",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) == 1 {
 				return this
 			}
 			var firstHead expreduceapi.Ex = nil
 			exclusions := map[uint64]bool{}
 			for _, part := range this.Parts[1:] {
-				expr, isExpr := part.(*expreduceapi.ExpressionInterface)
+				expr, isExpr := part.(expreduceapi.ExpressionInterface)
 				if !isExpr {
 					return this
 				}
@@ -378,7 +378,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			toReturn := NewExpression([]expreduceapi.Ex{firstHead})
 			added := map[uint64]bool{}
-			for _, part := range this.Parts[1].(*expreduceapi.ExpressionInterface).Parts[1:] {
+			for _, part := range this.Parts[1].(expreduceapi.ExpressionInterface).Parts[1:] {
 				hash := hashEx(part)
 				_, alreadyAdded := added[hash]
 				_, excluded := exclusions[hash]
@@ -393,7 +393,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "PadRight",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			list, n, x, valid := ValidatePadParams(this)
 			if !valid {
 				return this
@@ -411,7 +411,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "PadLeft",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			list, n, x, valid := ValidatePadParams(this)
 			if !valid {
 				return this
@@ -430,7 +430,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Range",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// I should probably refactor the IterSpec system so that it does not
 			// require being passed a list and a variable of iteration. TODO
 			iterSpecList := NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), NewSymbol("System`$DUMMY")})
@@ -449,7 +449,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Part",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) == 1 {
 				return this
 			}
@@ -464,11 +464,11 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "All"})
 	defs = append(defs, Definition{
 		Name: "Thread",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if !isExpr {
 				return this.Parts[1]
 			}
@@ -478,11 +478,11 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Append",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if !isExpr {
 				return this
 			}
@@ -496,11 +496,11 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Prepend",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if !isExpr {
 				return this
 			}
@@ -515,12 +515,12 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "DeleteDuplicates",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
 
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
 				toReturn := NewExpression([]expreduceapi.Ex{expr.Parts[0]})
 				seen := map[uint64]bool{}
@@ -539,7 +539,7 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Select",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			maxN := MaxInt64
 			if len(this.Parts) == 4 {
 				if asInt, isInt := this.Parts[3].(*Integer); isInt {
@@ -554,7 +554,7 @@ func GetListDefinitions() (defs []Definition) {
 				return this
 			}
 
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
 				res := NewExpression([]expreduceapi.Ex{expr.Parts[0]})
 				added := int64(0)
@@ -581,12 +581,12 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Scan",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
 
-			expr, isExpr := this.Parts[2].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[2].(expreduceapi.ExpressionInterface)
 			if !isExpr {
 				return this
 			}
@@ -610,14 +610,14 @@ func GetListDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Join",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) <= 1 {
 				return NewHead("System`List")
 			}
 
 			res := NewEmptyExpression()
 			for _, part := range this.Parts[1:] {
-				expr, isExpr := part.(*expreduceapi.ExpressionInterface)
+				expr, isExpr := part.(expreduceapi.ExpressionInterface)
 				if !isExpr {
 					return this
 				}
@@ -650,11 +650,11 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "ConstantArray"})
 	defs = append(defs, Definition{
 		Name: "Reverse",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			expr, isExpr := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			expr, isExpr := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if !isExpr {
 				return this
 			}

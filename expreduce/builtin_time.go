@@ -10,7 +10,7 @@ import (
 func GetTimeDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "UnixTime",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 1 {
 				return this
 			}
@@ -20,7 +20,7 @@ func GetTimeDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Pause",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

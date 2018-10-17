@@ -10,14 +10,14 @@ import (
 func GetSortDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Sort",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
 
-			exp, ok := this.Parts[1].(*expreduceapi.ExpressionInterface)
+			exp, ok := this.Parts[1].(expreduceapi.ExpressionInterface)
 			if ok {
-				sortedExp := exp.DeepCopy().(*expreduceapi.ExpressionInterface)
+				sortedExp := exp.DeepCopy().(expreduceapi.ExpressionInterface)
 				sortedExp.evaledHash = 0
 				sortedExp.cachedHash = 0
 				sort.Sort(sortedExp)
@@ -28,7 +28,7 @@ func GetSortDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Order",
-		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}

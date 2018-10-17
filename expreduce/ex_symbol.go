@@ -247,7 +247,7 @@ func attrsToStrings(this *expreduceapi.Attributes) []string {
 	return strings
 }
 
-func attrsToSymList(this *expreduceapi.Attributes) *expreduceapi.ExpressionInterface {
+func attrsToSymList(this *expreduceapi.Attributes) expreduceapi.ExpressionInterface {
 	toReturn := E(S("List"))
 	for _, s := range this.toStrings() {
 		toReturn.appendEx(S(s))
@@ -275,7 +275,7 @@ func ContainsSymbol(e expreduceapi.Ex, name string) bool {
 	if isSym {
 		return asSym.Name == name
 	}
-	asExpr, isExpr := e.(*expreduceapi.ExpressionInterface)
+	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		for _, part := range asExpr.Parts {
 			if ContainsSymbol(part, name) {

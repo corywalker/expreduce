@@ -7,8 +7,8 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func mathFnOneParam(fn func(float64) float64) func(*expreduceapi.ExpressionInterface, *expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	return (func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func mathFnOneParam(fn func(float64) float64) func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex {
+	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 		if len(this.Parts) != 2 {
 			return this
 		}
