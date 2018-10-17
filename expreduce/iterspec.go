@@ -223,7 +223,7 @@ func (this *multiIterSpec) currentPDManager() *PDManager {
 	return pm
 }
 
-func (this expreduceapi.ExpressionInterface) evalIterationFunc(es expreduceapi.EvalStateInterface, init expreduceapi.Ex, op string) expreduceapi.Ex {
+func evalIterationFunc(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, init expreduceapi.Ex, op string) expreduceapi.Ex {
 	if len(this.GetParts()) >= 3 {
 		mis, isOk := multiIterSpecFromLists(es, this.GetParts()[2:])
 		if isOk {

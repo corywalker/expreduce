@@ -776,7 +776,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			res := this.GetParts()[1].Eval(es)
 			if es.reapSown != nil {
-				es.reapSown.appendEx(res)
+				es.reapSown.AppendEx(res)
 			}
 			return res
 		},

@@ -138,12 +138,12 @@ func (this *Expression) propagateConditionals() (*Expression, bool) {
 		for _, e := range this.GetParts()[1:] {
 			if cond, isCond := HeadAssertion(e, "System`ConditionalExpression"); isCond {
 				if len(cond.GetParts()) == 3 {
-					resEx.appendEx(cond.GetParts()[1].DeepCopy())
-					resCond.appendEx(cond.GetParts()[2].DeepCopy())
+					resEx.AppendEx(cond.GetParts()[1].DeepCopy())
+					resCond.AppendEx(cond.GetParts()[2].DeepCopy())
 					continue
 				}
 			}
-			resEx.appendEx(e.DeepCopy())
+			resEx.AppendEx(e.DeepCopy())
 		}
 		return E(S("ConditionalExpression"), resEx, resCond), true
 	}
@@ -546,11 +546,11 @@ func (this *Expression) Swap(i, j int) {
 	this.GetParts()[j+1], this.GetParts()[i+1] = this.GetParts()[i+1], this.GetParts()[j+1]
 }
 
-func (this *Expression) appendEx(e expreduceapi.Ex) {
+func (this *Expression) AppendEx(e expreduceapi.Ex) {
 	this.GetParts() = append(this.GetParts(), e)
 }
 
-func (this *Expression) appendExArray(e []expreduceapi.Ex) {
+func (this *Expression) AppendExArray(e []expreduceapi.Ex) {
 	this.GetParts() = append(this.GetParts(), e...)
 }
 

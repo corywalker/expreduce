@@ -135,7 +135,7 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 			if !appOk {
 				return nil, false
 			}
-			toReturn.appendEx(applied)
+			toReturn.AppendEx(applied)
 		}
 		return toReturn, true
 	}
@@ -622,12 +622,12 @@ func GetListDefinitions() (defs []Definition) {
 					return this
 				}
 				if len(res.GetParts()) == 0 {
-					res.appendExArray(expr.GetParts())
+					res.AppendExArray(expr.GetParts())
 				} else {
 					if !IsSameQ(expr.GetParts()[0], res.GetParts()[0], &es.CASLogger) {
 						return this
 					}
-					res.appendExArray(expr.GetParts()[1:])
+					res.AppendExArray(expr.GetParts()[1:])
 				}
 			}
 			return res

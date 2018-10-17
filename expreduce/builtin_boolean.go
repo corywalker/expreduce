@@ -17,7 +17,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 						return NewSymbol("System`False")
 					}
 				} else {
-					res.appendEx(this.GetParts()[i])
+					res.AppendEx(this.GetParts()[i])
 				}
 			}
 			if len(res.GetParts()) == 1 {
@@ -43,7 +43,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 						return NewSymbol("System`True")
 					}
 				} else {
-					res.appendEx(this.GetParts()[i])
+					res.AppendEx(this.GetParts()[i])
 				}
 			}
 			if len(res.GetParts()) == 1 {

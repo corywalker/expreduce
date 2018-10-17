@@ -69,6 +69,14 @@ type ExpressionInterface interface {
 	Ex
 
 	GetParts() []Ex
+
+	EvalFunction(es EvalStateInterface, args []Ex) Ex
+	Len() int
+	Less(i, j int) bool
+	Swap(i, j int)
+	AppendEx(e Ex)
+	AppendExArray(e []Ex)
+	HeadStr() string
 }
 
 type StringInterface interface {

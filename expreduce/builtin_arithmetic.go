@@ -319,7 +319,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Sum",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			return this.evalIterationFunc(es, NewInteger(big.NewInt(0)), "System`Plus")
+			return evalIterationFunc(this, es, NewInteger(big.NewInt(0)), "System`Plus")
 		},
 	})
 	defs = append(defs, Definition{
@@ -406,7 +406,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Product",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			return this.evalIterationFunc(es, NewInteger(big.NewInt(1)), "System`Times")
+			return evalIterationFunc(this, es, NewInteger(big.NewInt(1)), "System`Times")
 		},
 	})
 	defs = append(defs, Definition{Name: "Abs"})

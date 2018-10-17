@@ -332,10 +332,10 @@ func getComparisonDefinitions() (defs []Definition) {
 						secondIneq := E(S("Inequality"))
 						for j := 1; j < len(this.GetParts()); j++ {
 							if j < i {
-								firstIneq.appendEx(this.GetParts()[j])
+								firstIneq.AppendEx(this.GetParts()[j])
 							}
 							if j > (i - 2) {
-								secondIneq.appendEx(this.GetParts()[j])
+								secondIneq.AppendEx(this.GetParts()[j])
 							}
 						}
 						return E(S("And"), firstIneq, secondIneq)
@@ -358,10 +358,10 @@ func getComparisonDefinitions() (defs []Definition) {
 				evalRes := E(op, lhs, rhs).Eval(es)
 				if !trueQ(evalRes, &es.CASLogger) {
 					if !IsSameQ(res.GetParts()[len(res.GetParts())-1], lhs, &es.CASLogger) {
-						res.appendEx(lhs)
+						res.AppendEx(lhs)
 					}
-					res.appendEx(op)
-					res.appendEx(rhs)
+					res.AppendEx(op)
+					res.AppendEx(rhs)
 				}
 			}
 			if len(res.GetParts()) == 1 {

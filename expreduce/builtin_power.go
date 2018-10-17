@@ -87,7 +87,7 @@ func extractPower(x *big.Int, r *Rational) expreduceapi.Ex {
 		thisR := r.DeepCopy().(*Rational)
 		thisR.MulBigI(bigPower)
 		thisR.needsEval = true
-		toReturn.appendEx(E(
+		toReturn.AppendEx(E(
 			S("Power"),
 			NewInteger(base),
 			thisR,

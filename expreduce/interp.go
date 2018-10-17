@@ -25,9 +25,9 @@ func convertToInequality(expr expreduceapi.ExpressionInterface) expreduceapi.Exp
 	res := E(S("Inequality"))
 	for i, e := range expr.GetParts()[1:] {
 		if i != 0 {
-			res.appendEx(expr.GetParts()[0])
+			res.AppendEx(expr.GetParts()[0])
 		}
-		res.appendEx(e)
+		res.AppendEx(e)
 	}
 	return res
 }
@@ -45,8 +45,8 @@ func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceap
 				if lhsHead != "System`Inequality" {
 					res = convertToInequality(lhsEx)
 				}
-				res.appendEx(NewSymbol(op))
-				res.appendEx(rhs)
+				res.AppendEx(NewSymbol(op))
+				res.AppendEx(rhs)
 				return res
 			}
 		}
@@ -353,7 +353,7 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 		e := NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression),
 		})
-		e.appendExArray(ParserExprListConv(expr.ExprList))
+		e.AppendExArray(ParserExprListConv(expr.ExprList))
 		return e
 	case 17: // {}
 		return NewExpression([]expreduceapi.Ex{
@@ -363,7 +363,7 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 		e := NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`List"),
 		})
-		e.appendExArray(ParserExprListConv(expr.ExprList))
+		e.AppendExArray(ParserExprListConv(expr.ExprList))
 		return e
 	case 14: // (a)
 		// Internal`Parens are a placeholder to prevent fullyAssoc from
@@ -377,7 +377,7 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 			NewSymbol("System`Part"),
 			ParserExprConv(expr.Expression),
 		})
-		e.appendExArray(ParserExprListConv(expr.ExprList))
+		e.AppendExArray(ParserExprListConv(expr.ExprList))
 		return e
 	case 16:
 		e := ParserExprConv(expr.Expression)
@@ -549,7 +549,7 @@ func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expredu
 	l := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 	expr, err := InterpBuf(buf, fn, es)
 	for err == nil {
-		l.appendEx(expr.Eval(es))
+		l.AppendEx(expr.Eval(es))
 		expr, err = InterpBuf(buf, fn, es)
 	}
 	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {

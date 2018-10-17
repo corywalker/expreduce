@@ -86,7 +86,7 @@ func (this *PDManager) Expression() expreduceapi.Ex {
 	sort.Strings(keys)
 	for _, k := range keys {
 		v := this.patternDefined[k]
-		res.appendEx(NewExpression([]expreduceapi.Ex{
+		res.AppendEx(NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Rule"),
 			NewString(k),
 			v,

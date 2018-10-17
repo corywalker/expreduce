@@ -112,7 +112,7 @@ func GetPatternDefinitions() (defs []Definition) {
 				matchq, newPd, done := mi.next()
 				cont = !done
 				if matchq {
-					res.appendEx(ReplacePD(rule.GetParts()[2], es, newPd))
+					res.AppendEx(ReplacePD(rule.GetParts()[2], es, newPd))
 				}
 			}
 			return res

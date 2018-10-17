@@ -250,7 +250,7 @@ func attrsToStrings(this *expreduceapi.Attributes) []string {
 func attrsToSymList(this *expreduceapi.Attributes) expreduceapi.ExpressionInterface {
 	toReturn := E(S("List"))
 	for _, s := range this.toStrings() {
-		toReturn.appendEx(S(s))
+		toReturn.AppendEx(S(s))
 	}
 	return toReturn
 }

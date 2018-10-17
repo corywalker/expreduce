@@ -54,9 +54,9 @@ func calcIJ(i, j, innerDim int64, a, b expreduceapi.ExpressionInterface) expredu
 	toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 	for pairI := int64(1); pairI <= innerDim; pairI++ {
 		toAdd := NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
-		toAdd.appendEx(a.matrix2dGetElem(i, pairI))
-		toAdd.appendEx(b.matrix2dGetElem(pairI, j))
-		toReturn.appendEx(toAdd)
+		toAdd.AppendEx(a.matrix2dGetElem(i, pairI))
+		toAdd.AppendEx(b.matrix2dGetElem(pairI, j))
+		toReturn.AppendEx(toAdd)
 	}
 	return toReturn
 }
@@ -107,7 +107,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 				vecLen := len(aVector.GetParts()) - 1
 				toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 				for i := 0; i < vecLen; i++ {
-					toReturn.appendEx(NewExpression([]expreduceapi.Ex{
+					toReturn.AppendEx(NewExpression([]expreduceapi.Ex{
 						NewSymbol("System`Times"),
 						aVector.GetParts()[i+1],
 						bVector.GetParts()[i+1],
@@ -135,9 +135,9 @@ func GetMatrixDefinitions() (defs []Definition) {
 					row := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 					for j := int64(1); j <= bW; j++ {
 						//row.appendEx(&Integer{big.NewInt(0)})
-						row.appendEx(calcIJ(i, j, aW, aEx, bEx))
+						row.AppendEx(calcIJ(i, j, aW, aEx, bEx))
 					}
-					toReturn.appendEx(row)
+					toReturn.AppendEx(row)
 				}
 				return toReturn
 			}
@@ -163,9 +163,9 @@ func GetMatrixDefinitions() (defs []Definition) {
 			for tI := int64(1); tI <= w; tI++ {
 				tRow := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for tJ := int64(1); tJ <= h; tJ++ {
-					tRow.appendEx(l.matrix2dGetElem(tJ, tI))
+					tRow.AppendEx(l.matrix2dGetElem(tJ, tI))
 				}
-				toReturn.appendEx(tRow)
+				toReturn.AppendEx(tRow)
 			}
 			return toReturn
 		},
