@@ -11,7 +11,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
@@ -41,7 +40,7 @@ func HeadAssertion(ex expreduceapi.Ex, head string) (*Expression, bool) {
 	return nil, false
 }
 
-func headExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl *logging.CASLogger) (*Expression, bool) {
+func headExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl expreduceapi.LoggingInterface) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		if IsSameQ(head, expr.GetParts()[0], cl) {
@@ -270,7 +269,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 				currEx.DeepCopy(),
 			})
 
-			if !IsSameQ(es.trace.GetParts()[len(es.trace.GetParts())-1], toAppend, &es.CASLogger) {
+			if !IsSameQ(es.trace.GetParts()[len(es.trace.GetParts())-1], toAppend, es.GetLogger()) {
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
 				es.trace.GetParts() = append(
 					es.trace.GetParts(),
@@ -324,7 +323,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			if hasLegacyEvalFn {
 				currEx = legacyEvalFn(curr, es)
 				// TODO: I could potentially have the legacyevalfn return this.
-				unchanged = IsSameQ(currEx, curr, &es.CASLogger)
+				unchanged = IsSameQ(currEx, curr, es.GetLogger())
 			}
 			if unchanged {
 				theRes, isDefined, def := es.GetDef(headStr, curr)

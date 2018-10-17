@@ -137,7 +137,7 @@ func parseLevelSpec(this expreduceapi.Ex, es expreduceapi.EvalStateInterface) le
 	}
 
 	//If the head of the expression is not List, return false
-	expression, isList := headExAssertion(expression, NewSymbol("System`List"), &es.CASLogger)
+	expression, isList := headExAssertion(expression, NewSymbol("System`List"), es.GetLogger())
 	if !isList {
 		return levelSpec{false, false, 1, 1, false}
 	}
@@ -629,7 +629,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 			currVal := this.GetParts()[2]
 			nextVal := E(this.GetParts()[1], currVal).Eval(es)
-			for !IsSameQ(currVal, nextVal, &es.CASLogger) {
+			for !IsSameQ(currVal, nextVal, es.GetLogger()) {
 				currVal = nextVal
 				nextVal = E(this.GetParts()[1], currVal).Eval(es)
 			}

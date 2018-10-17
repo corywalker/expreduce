@@ -12,8 +12,8 @@ func GetBooleanDefinitions() (defs []Definition) {
 			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`And")})
 			for i := 1; i < len(this.GetParts()); i++ {
 				this.GetParts()[i] = this.GetParts()[i].Eval(es)
-				if booleanQ(this.GetParts()[i], &es.CASLogger) {
-					if falseQ(this.GetParts()[i], &es.CASLogger) {
+				if booleanQ(this.GetParts()[i], es.GetLogger()) {
+					if falseQ(this.GetParts()[i], es.GetLogger()) {
 						return NewSymbol("System`False")
 					}
 				} else {
@@ -38,8 +38,8 @@ func GetBooleanDefinitions() (defs []Definition) {
 			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`Or")})
 			for i := 1; i < len(this.GetParts()); i++ {
 				this.GetParts()[i] = this.GetParts()[i].Eval(es)
-				if booleanQ(this.GetParts()[i], &es.CASLogger) {
-					if trueQ(this.GetParts()[i], &es.CASLogger) {
+				if booleanQ(this.GetParts()[i], es.GetLogger()) {
+					if trueQ(this.GetParts()[i], es.GetLogger()) {
 						return NewSymbol("System`True")
 					}
 				} else {
@@ -61,10 +61,10 @@ func GetBooleanDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			if trueQ(this.GetParts()[1], &es.CASLogger) {
+			if trueQ(this.GetParts()[1], es.GetLogger()) {
 				return NewSymbol("System`False")
 			}
-			if falseQ(this.GetParts()[1], &es.CASLogger) {
+			if falseQ(this.GetParts()[1], es.GetLogger()) {
 				return NewSymbol("System`True")
 			}
 			return this

@@ -3,11 +3,10 @@ package expreduce
 import (
 	"math/big"
 
-	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func dimensions(ex expreduceapi.ExpressionInterface, level int, cl *logging.CASLogger) []int64 {
+func dimensions(ex expreduceapi.ExpressionInterface, level int, cl expreduceapi.LoggingInterface) []int64 {
 	head := ex.GetParts()[0]
 	dims := []int64{int64(len(ex.GetParts()) - 1)}
 	nextDims := []int64{}
@@ -76,7 +75,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 			if !isExpr {
 				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			}
-			return intSliceToList(dimensions(expr, 0, &es.CASLogger))
+			return intSliceToList(dimensions(expr, 0, es.GetLogger()))
 		},
 	})
 	defs = append(defs, Definition{
@@ -115,13 +114,13 @@ func GetMatrixDefinitions() (defs []Definition) {
 				}
 				return toReturn
 			}
-			aIsMatrix := matrixQ(this.GetParts()[1], &es.CASLogger)
-			bIsMatrix := matrixQ(this.GetParts()[2], &es.CASLogger)
+			aIsMatrix := matrixQ(this.GetParts()[1], es.GetLogger())
+			bIsMatrix := matrixQ(this.GetParts()[2], es.GetLogger())
 			if aIsMatrix && bIsMatrix {
 				aEx := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 				bEx := this.GetParts()[2].(expreduceapi.ExpressionInterface)
-				aDims := dimensions(aEx, 0, &es.CASLogger)
-				bDims := dimensions(bEx, 0, &es.CASLogger)
+				aDims := dimensions(aEx, 0, es.GetLogger())
+				bDims := dimensions(bEx, 0, es.GetLogger())
 				if len(aDims) != 2 || len(bDims) != 2 {
 					return this
 				}
@@ -154,7 +153,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 			if !isL {
 				return this
 			}
-			dims := dimensions(l, 0, &es.CASLogger)
+			dims := dimensions(l, 0, es.GetLogger())
 			if len(dims) < 2 {
 				return this
 			}

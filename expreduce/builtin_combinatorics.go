@@ -3,7 +3,6 @@ package expreduce
 import (
 	"math/big"
 
-	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -25,7 +24,7 @@ func genIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]in
 }
 
 // Used for the Permutations builtin
-func permListContains(permList [][]expreduceapi.Ex, perm []expreduceapi.Ex, cl *logging.CASLogger) bool {
+func permListContains(permList [][]expreduceapi.Ex, perm []expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 	for _, permInList := range permList {
 		if len(permInList) != len(perm) {
 			continue
@@ -45,7 +44,7 @@ func permListContains(permList [][]expreduceapi.Ex, perm []expreduceapi.Ex, cl *
 }
 
 // Used for the Permutations builtin
-func genPermutations(parts []expreduceapi.Ex, cl *logging.CASLogger) (perms [][]expreduceapi.Ex) {
+func genPermutations(parts []expreduceapi.Ex, cl expreduceapi.LoggingInterface) (perms [][]expreduceapi.Ex) {
 	// Base case
 	if len(parts) == 1 {
 		return [][]expreduceapi.Ex{parts}
@@ -146,7 +145,7 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 				return this
 			}
 
-			perms := genPermutations(list.GetParts()[1:], &es.CASLogger)
+			perms := genPermutations(list.GetParts()[1:], es.GetLogger())
 
 			exPerms := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			for _, perm := range perms {

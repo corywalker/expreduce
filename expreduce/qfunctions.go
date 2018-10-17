@@ -3,13 +3,12 @@ package expreduce
 import (
 	"math/big"
 
-	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 type singleParamQType (func(expreduceapi.Ex) bool)
-type singleParamQLogType (func(expreduceapi.Ex, *logging.CASLogger) bool)
-type doubleParamQLogType (func(expreduceapi.Ex, expreduceapi.Ex, *logging.CASLogger) bool)
+type singleParamQLogType (func(expreduceapi.Ex, expreduceapi.LoggingInterface) bool)
+type doubleParamQLogType (func(expreduceapi.Ex, expreduceapi.Ex, expreduceapi.LoggingInterface) bool)
 type evalFnType (func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex)
 
 func singleParamQEval(fn singleParamQType) evalFnType {
@@ -29,7 +28,7 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 		if len(this.GetParts()) != 2 {
 			return this
 		}
-		if fn(this.GetParts()[1], &es.CASLogger) {
+		if fn(this.GetParts()[1], es.GetLogger()) {
 			return NewSymbol("System`True")
 		}
 		return NewSymbol("System`False")
@@ -41,7 +40,7 @@ func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
 		if len(this.GetParts()) != 3 {
 			return this
 		}
-		if fn(this.GetParts()[1], this.GetParts()[2], &es.CASLogger) {
+		if fn(this.GetParts()[1], this.GetParts()[2], es.GetLogger()) {
 			return NewSymbol("System`True")
 		}
 		return NewSymbol("System`False")
@@ -82,7 +81,7 @@ func vectorQ(e expreduceapi.Ex) bool {
 	return false
 }
 
-func matrixQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
+func matrixQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 	l, isL := HeadAssertion(e, "System`List")
 	if isL {
 		return len(dimensions(l, 0, cl)) == 2
@@ -90,7 +89,7 @@ func matrixQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
 	return false
 }
 
-func symbolNameQ(e expreduceapi.Ex, name string, cl *logging.CASLogger) bool {
+func symbolNameQ(e expreduceapi.Ex, name string, cl expreduceapi.LoggingInterface) bool {
 	sym, isSym := e.(*Symbol)
 	if isSym {
 		return sym.Name == name
@@ -98,15 +97,15 @@ func symbolNameQ(e expreduceapi.Ex, name string, cl *logging.CASLogger) bool {
 	return false
 }
 
-func trueQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
+func trueQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 	return symbolNameQ(e, "System`True", cl)
 }
 
-func falseQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
+func falseQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 	return symbolNameQ(e, "System`False", cl)
 }
 
-func booleanQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
+func booleanQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 	sym, isSym := e.(*Symbol)
 	if isSym {
 		return sym.Name == "System`False" || sym.Name == "System`True"

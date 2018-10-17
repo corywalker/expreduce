@@ -168,7 +168,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	verbatimOp, opExpr, isVerbatimOp := OperatorAssertion(b, "System`Verbatim")
 	if aIsExpression && isVerbatimOp {
 		if len(opExpr.GetParts()) == 2 {
-			if IsSameQ(aExpression.GetParts()[0], opExpr.GetParts()[1], &es.CASLogger) {
+			if IsSameQ(aExpression.GetParts()[0], opExpr.GetParts()[1], es.GetLogger()) {
 				b = NewExpression(append([]expreduceapi.Ex{opExpr.GetParts()[1]}, verbatimOp.GetParts()[1:]...))
 				bExpression, bIsExpression = b.(expreduceapi.ExpressionInterface)
 				forceOrdered = true
@@ -195,7 +195,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	}
 
 	if IsBlankTypeOnly(b) {
-		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headEx, pm, &es.CASLogger)
+		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headEx, pm, es.GetLogger())
 		if ibtc {
 			return &dummyMatchIter{ibtcNewPDs}, true
 		}
@@ -262,7 +262,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 
 	if !assumingHead {
 		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational || aIsComplex {
-			if IsSameQ(a, b, &es.CASLogger) {
+			if IsSameQ(a, b, es.GetLogger()) {
 				return &dummyMatchIter{nil}, true
 			}
 			return nil, false
@@ -420,7 +420,7 @@ func NewSequenceMatchIter(components []expreduceapi.Ex, lhs_components []expredu
 	headDefault := (NewSymbol(sequenceHead)).Default(&es.defined)
 	fp_components := make([]parsedForm, len(lhs_components))
 	for i, comp := range lhs_components {
-		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, headDefault, &es.CASLogger)
+		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, headDefault, es.GetLogger())
 	}
 	return NewSequenceMatchIterPreparsed(components, fp_components, isOrderless, sequenceHead, pm, es)
 }

@@ -63,6 +63,8 @@ type EvalStateInterface interface {
 	Throw(e ExpressionInterface)
 	HasThrown() bool
 	ProcessTopLevelResult(in Ex, out Ex) Ex
+
+	GetLogger() LoggingInterface
 }
 
 type ExpressionInterface interface {

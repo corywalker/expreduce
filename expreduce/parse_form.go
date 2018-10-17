@@ -1,7 +1,6 @@
 package expreduce
 
 import (
-	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -42,7 +41,7 @@ func ParseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, in
 	return e.GetParts()[1], min, max, true
 }
 
-func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl *logging.CASLogger) (res parsedForm) {
+func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl expreduceapi.LoggingInterface) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	toParse := lhs_component
 	optional, isOptional := HeadAssertion(toParse, "System`Optional")

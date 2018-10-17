@@ -3,11 +3,10 @@ package expreduce
 import (
 	"math"
 
-	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func IsSameQ(a expreduceapi.Ex, b expreduceapi.Ex, cl *logging.CASLogger) bool {
+func IsSameQ(a expreduceapi.Ex, b expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 	aFlt, aIsFlt := a.(*Flt)
 	bFlt, bIsFlt := b.(*Flt)
 	_, aIsInteger := a.(*Integer)

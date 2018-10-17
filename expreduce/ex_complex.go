@@ -17,7 +17,7 @@ type Complex struct {
 func (this *Complex) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	this.Re = this.Re.Eval(es)
 	this.Im = this.Im.Eval(es)
-	if IsSameQ(this.Im, NewInt(0), &es.CASLogger) {
+	if IsSameQ(this.Im, NewInt(0), es.GetLogger()) {
 		return this.Re
 	}
 	this.needsEval = false

@@ -335,7 +335,7 @@ func GetListDefinitions() (defs []Definition) {
 				if firstHead == nil {
 					firstHead = expr.GetParts()[0]
 					allParts = NewExpression([]expreduceapi.Ex{firstHead})
-				} else if !IsSameQ(firstHead, expr.GetParts()[0], &es.CASLogger) {
+				} else if !IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
 					return this
 				}
 				allParts.GetParts() = append(allParts.GetParts(), expr.GetParts()[1:]...)
@@ -344,7 +344,7 @@ func GetListDefinitions() (defs []Definition) {
 			toReturn := NewExpression([]expreduceapi.Ex{firstHead})
 			var lastEx expreduceapi.Ex = nil
 			for _, part := range allParts.GetParts()[1:] {
-				if lastEx == nil || !IsSameQ(lastEx, part, &es.CASLogger) {
+				if lastEx == nil || !IsSameQ(lastEx, part, es.GetLogger()) {
 					lastEx = part
 					toReturn.GetParts() = append(toReturn.GetParts(), part)
 				}
@@ -369,7 +369,7 @@ func GetListDefinitions() (defs []Definition) {
 				if firstHead == nil {
 					firstHead = expr.GetParts()[0]
 					continue
-				} else if !IsSameQ(firstHead, expr.GetParts()[0], &es.CASLogger) {
+				} else if !IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
 					return this
 				}
 				for _, excludedPart := range expr.GetParts()[1:] {
@@ -624,7 +624,7 @@ func GetListDefinitions() (defs []Definition) {
 				if len(res.GetParts()) == 0 {
 					res.AppendExArray(expr.GetParts())
 				} else {
-					if !IsSameQ(expr.GetParts()[0], res.GetParts()[0], &es.CASLogger) {
+					if !IsSameQ(expr.GetParts()[0], res.GetParts()[0], es.GetLogger()) {
 						return this
 					}
 					res.AppendExArray(expr.GetParts()[1:])

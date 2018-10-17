@@ -18,11 +18,11 @@ func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType
 	origHead := this.GetParts()[0]
 	this.GetParts()[0] = S("List")
 	dst := E(S("List"))
-	flattenExpr(this, dst, 999999999, &es.CASLogger)
+	flattenExpr(this, dst, 999999999, es.GetLogger())
 	// Previously I always set the pointer but it led to an endless
 	// eval loop. I think evaluation might use the pointer to make a
 	// "same" comparison.
-	if !IsSameQ(this, dst, &es.CASLogger) {
+	if !IsSameQ(this, dst, es.GetLogger()) {
 		this = dst
 		sort.Sort(this)
 	}
@@ -133,7 +133,7 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			issame := true
 			for i := 2; i < len(this.GetParts()); i++ {
-				issame = issame && IsSameQ(this.GetParts()[1], this.GetParts()[i], &es.CASLogger)
+				issame = issame && IsSameQ(this.GetParts()[1], this.GetParts()[i], es.GetLogger())
 			}
 			if issame {
 				return NewSymbol("System`True")
@@ -154,7 +154,7 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			for i := 1; i < len(this.GetParts()); i++ {
 				for j := i + 1; j < len(this.GetParts()); j++ {
-					if IsSameQ(this.GetParts()[i], this.GetParts()[j], &es.CASLogger) {
+					if IsSameQ(this.GetParts()[i], this.GetParts()[j], es.GetLogger()) {
 						return NewSymbol("System`False")
 					}
 				}
@@ -351,13 +351,13 @@ func getComparisonDefinitions() (defs []Definition) {
 				op := this.GetParts()[2*i+2]
 				rhs := this.GetParts()[2*i+3]
 				for rhsI := 2*i + 3; rhsI < len(this.GetParts()); rhsI += 2 {
-					if falseQ(E(op, lhs, this.GetParts()[rhsI]).Eval(es), &es.CASLogger) {
+					if falseQ(E(op, lhs, this.GetParts()[rhsI]).Eval(es), es.GetLogger()) {
 						return S("False")
 					}
 				}
 				evalRes := E(op, lhs, rhs).Eval(es)
-				if !trueQ(evalRes, &es.CASLogger) {
-					if !IsSameQ(res.GetParts()[len(res.GetParts())-1], lhs, &es.CASLogger) {
+				if !trueQ(evalRes, es.GetLogger()) {
+					if !IsSameQ(res.GetParts()[len(res.GetParts())-1], lhs, es.GetLogger()) {
 						res.AppendEx(lhs)
 					}
 					res.AppendEx(op)

@@ -143,7 +143,7 @@ func getReplacementDefinitions() (defs []Definition) {
 				})).Eval(es)
 				es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
-				if IsSameQ(oldEx, newEx, &es.CASLogger) {
+				if IsSameQ(oldEx, newEx, es.GetLogger()) {
 					isSame = true
 				}
 				oldEx = newEx

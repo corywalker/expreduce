@@ -570,6 +570,10 @@ func (this *EvalState) SetFrozen(frozen bool) {
 	this.freeze = frozen
 }
 
+func (this *EvalState) GetLogger() expreduceapi.LoggingInterface {
+	return &this.CASLogger
+}
+
 func (this *EvalState) GetStringDef(name string, defaultVal string) string {
 	nameSym := NewSymbol(name)
 	def, isDef, _ := this.GetDef(name, nameSym)

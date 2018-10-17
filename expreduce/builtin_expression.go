@@ -3,7 +3,6 @@ package expreduce
 import (
 	"math/big"
 
-	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -20,7 +19,7 @@ func CalcDepth(ex expreduceapi.Ex) int {
 	return theMax + 1
 }
 
-func flattenExpr(src expreduceapi.ExpressionInterface, dst expreduceapi.ExpressionInterface, level int64, cl *logging.CASLogger) {
+func flattenExpr(src expreduceapi.ExpressionInterface, dst expreduceapi.ExpressionInterface, level int64, cl expreduceapi.LoggingInterface) {
 	continueFlatten := level > 0
 	for i := 1; i < len(src.GetParts()); i++ {
 		expr, isExpr := src.GetParts()[i].(expreduceapi.ExpressionInterface)
@@ -147,7 +146,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 				return this
 			}
 			dst := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
-			flattenExpr(expr, dst, level, &es.CASLogger)
+			flattenExpr(expr, dst, level, es.GetLogger())
 			return dst
 		},
 	})
