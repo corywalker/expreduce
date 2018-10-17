@@ -1,8 +1,10 @@
 package expreduce
 
 import (
-	"github.com/kavehmz/prime"
 	"math/big"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+	"github.com/kavehmz/prime"
 )
 
 // Compute the prime factors of a positive n.
@@ -64,7 +66,7 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "GCD",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			zero := big.NewInt(0)
 			var ints [](*big.Int)
 			for i := 1; i < len(this.Parts); i++ {
@@ -97,7 +99,7 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "LCM"})
 	defs = append(defs, Definition{
 		Name: "Mod",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -118,7 +120,7 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 		Name:       "PrimePi",
 		Usage:      "`PrimePi[n]` returns the number of primes less than or equal to `n`.",
 		Attributes: []string{"Listable"},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

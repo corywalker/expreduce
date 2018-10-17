@@ -1,12 +1,9 @@
 package expreduce
 
 import (
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/orcaman/concurrent-map"
 )
-
-type definitionMap struct {
-	internalMap cmap.ConcurrentMap
-}
 
 func newDefinitionMap() definitionMap {
 	var dm definitionMap
@@ -51,7 +48,7 @@ func (dm definitionMap) CopyDefs() definitionMap {
 		newDef := Def{}
 		for _, dv := range v.downvalues {
 			newDv := DownValue{
-				rule:        dv.rule.DeepCopy().(*Expression),
+				rule:        dv.rule.DeepCopy().(*expreduceapi.Expression),
 				specificity: dv.specificity,
 			}
 			newDef.downvalues = append(newDef.downvalues, newDv)

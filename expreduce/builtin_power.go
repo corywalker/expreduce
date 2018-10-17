@@ -1,12 +1,14 @@
 package expreduce
 
 import (
-	"github.com/corywalker/mathbigext"
 	"math/big"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+	"github.com/corywalker/mathbigext"
 )
 
-func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(*Expression, *EvalState) Ex {
-	return (func(this *Expression, es *EvalState) Ex {
+func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(*expreduceapi.Expression, *expreduceapi.EvalState) expreduceapi.Ex {
+	return (func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 		if len(this.Parts) != 2 {
 			return this
 		}
@@ -57,7 +59,7 @@ func NthRoot(x *big.Int, n *big.Int) *big.Int {
 	}
 }
 
-func extractPower(x *big.Int, r *Rational) Ex {
+func extractPower(x *big.Int, r *Rational) expreduceapi.Ex {
 	talliedFactors := primeFactorsTallied(x)
 	hasPowerAtLeastTwo := false
 	for _, tf := range talliedFactors {
@@ -117,10 +119,10 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Power",
 		Default: "1",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], "^", "System`Power", false, "", "", params)
 		},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -241,9 +243,9 @@ func GetPowerDefinitions() (defs []Definition) {
 						return NewInteger(big.NewInt(-1))
 					}
 					//return NewExpression([]Ex{&Symbol{"System`Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}})
-					return NewExpression([]Ex{NewSymbol("System`Rational"), NewInteger(big.NewInt(1)), NewInteger(newbase)})
+					return NewExpression([]expreduceapi.Ex{NewSymbol("System`Rational"), NewInteger(big.NewInt(1)), NewInteger(newbase)})
 				} else {
-					return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Unexpected zero power in Power evaluation.")})
+					return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString("Unexpected zero power in Power evaluation.")})
 				}
 			}
 
@@ -285,7 +287,7 @@ func GetPowerDefinitions() (defs []Definition) {
 						if xPositivity == -1 {
 							radicand.Neg(radicand)
 						}
-						var coeff Ex = NewInteger(extracted)
+						var coeff expreduceapi.Ex = NewInteger(extracted)
 						if mPositivity == -1 {
 							coeff = NewRational(big.NewInt(1), extracted)
 						}

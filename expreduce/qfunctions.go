@@ -4,15 +4,16 @@ import (
 	"math/big"
 
 	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-type singleParamQType (func(Ex) bool)
-type singleParamQLogType (func(Ex, *logging.CASLogger) bool)
-type doubleParamQLogType (func(Ex, Ex, *logging.CASLogger) bool)
-type evalFnType (func(*Expression, *EvalState) Ex)
+type singleParamQType (func(expreduceapi.Ex) bool)
+type singleParamQLogType (func(expreduceapi.Ex, *logging.CASLogger) bool)
+type doubleParamQLogType (func(expreduceapi.Ex, expreduceapi.Ex, *logging.CASLogger) bool)
+type evalFnType (func(*expreduceapi.Expression, *expreduceapi.EvalState) expreduceapi.Ex)
 
 func singleParamQEval(fn singleParamQType) evalFnType {
-	return (func(this *Expression, es *EvalState) Ex {
+	return (func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 		if len(this.Parts) != 2 {
 			return this
 		}
@@ -24,7 +25,7 @@ func singleParamQEval(fn singleParamQType) evalFnType {
 }
 
 func singleParamQLogEval(fn singleParamQLogType) evalFnType {
-	return (func(this *Expression, es *EvalState) Ex {
+	return (func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 		if len(this.Parts) != 2 {
 			return this
 		}
@@ -36,7 +37,7 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 }
 
 func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
-	return (func(this *Expression, es *EvalState) Ex {
+	return (func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 		if len(this.Parts) != 3 {
 			return this
 		}
@@ -47,7 +48,7 @@ func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
 	})
 }
 
-func numberQ(e Ex) bool {
+func numberQ(e expreduceapi.Ex) bool {
 	_, ok := e.(*Integer)
 	if ok {
 		return true
@@ -67,7 +68,7 @@ func numberQ(e Ex) bool {
 	return false
 }
 
-func vectorQ(e Ex) bool {
+func vectorQ(e expreduceapi.Ex) bool {
 	l, isL := HeadAssertion(e, "System`List")
 	if isL {
 		for i := 1; i < len(l.Parts); i++ {
@@ -81,7 +82,7 @@ func vectorQ(e Ex) bool {
 	return false
 }
 
-func matrixQ(e Ex, cl *logging.CASLogger) bool {
+func matrixQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
 	l, isL := HeadAssertion(e, "System`List")
 	if isL {
 		return len(dimensions(l, 0, cl)) == 2
@@ -89,7 +90,7 @@ func matrixQ(e Ex, cl *logging.CASLogger) bool {
 	return false
 }
 
-func symbolNameQ(e Ex, name string, cl *logging.CASLogger) bool {
+func symbolNameQ(e expreduceapi.Ex, name string, cl *logging.CASLogger) bool {
 	sym, isSym := e.(*Symbol)
 	if isSym {
 		return sym.Name == name
@@ -97,15 +98,15 @@ func symbolNameQ(e Ex, name string, cl *logging.CASLogger) bool {
 	return false
 }
 
-func trueQ(e Ex, cl *logging.CASLogger) bool {
+func trueQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
 	return symbolNameQ(e, "System`True", cl)
 }
 
-func falseQ(e Ex, cl *logging.CASLogger) bool {
+func falseQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
 	return symbolNameQ(e, "System`False", cl)
 }
 
-func booleanQ(e Ex, cl *logging.CASLogger) bool {
+func booleanQ(e expreduceapi.Ex, cl *logging.CASLogger) bool {
 	sym, isSym := e.(*Symbol)
 	if isSym {
 		return sym.Name == "System`False" || sym.Name == "System`True"
@@ -113,7 +114,7 @@ func booleanQ(e Ex, cl *logging.CASLogger) bool {
 	return false
 }
 
-func primeQ(e Ex) bool {
+func primeQ(e expreduceapi.Ex) bool {
 	asInt, ok := e.(*Integer)
 	if !ok {
 		return false

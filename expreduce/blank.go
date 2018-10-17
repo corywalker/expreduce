@@ -1,8 +1,11 @@
 package expreduce
 
-import "github.com/corywalker/expreduce/expreduce/logging"
+import (
+	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
-func IsBlankTypeOnly(e Ex) bool {
+func IsBlankTypeOnly(e expreduceapi.Ex) bool {
 	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
 	if patternOk {
 		_, blankOk := HeadAssertion(asPattern.Parts[2], "System`Blank")
@@ -21,7 +24,7 @@ func IsBlankTypeOnly(e Ex) bool {
 	return false
 }
 
-func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *logging.CASLogger) (bool, *PDManager) {
+func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expreduceapi.Ex, pm *PDManager, cl *logging.CASLogger) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
 	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
@@ -30,7 +33,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *logging.C
 		asBS, bsOk := HeadAssertion(asPattern.Parts[2], "System`BlankSequence")
 		asBNS, bnsOk := HeadAssertion(asPattern.Parts[2], "System`BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
-			parts := []Ex{}
+			parts := []expreduceapi.Ex{}
 			if blankOk {
 				parts = asBlank.Parts
 			} else if bsOk {
@@ -73,7 +76,7 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *logging.C
 	asBS, bsOk := HeadAssertion(e, "System`BlankSequence")
 	asBNS, bnsOk := HeadAssertion(e, "System`BlankNullSequence")
 	if blankOk || bsOk || bnsOk {
-		parts := []Ex{}
+		parts := []expreduceapi.Ex{}
 		if blankOk {
 			parts = asBlank.Parts
 		} else if bsOk {
@@ -89,16 +92,16 @@ func IsBlankTypeCapturing(e Ex, target Ex, head Ex, pm *PDManager, cl *logging.C
 	return false, pm
 }
 
-func BlankNullSequenceToBlank(bns *Expression) *Expression {
+func BlankNullSequenceToBlank(bns *expreduceapi.Expression) *expreduceapi.Expression {
 	if len(bns.Parts) < 2 {
-		return NewExpression([]Ex{NewSymbol("System`Blank")})
+		return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank")})
 	}
-	return NewExpression([]Ex{NewSymbol("System`Blank"), bns.Parts[1]})
+	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank"), bns.Parts[1]})
 }
 
-func BlankSequenceToBlank(bs *Expression) *Expression {
+func BlankSequenceToBlank(bs *expreduceapi.Expression) *expreduceapi.Expression {
 	if len(bs.Parts) < 2 {
-		return NewExpression([]Ex{NewSymbol("System`Blank")})
+		return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank")})
 	}
-	return NewExpression([]Ex{NewSymbol("System`Blank"), bs.Parts[1]})
+	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank"), bs.Parts[1]})
 }

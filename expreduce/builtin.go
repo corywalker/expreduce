@@ -1,7 +1,11 @@
 package expreduce
 
-import "log"
-import "fmt"
+import (
+	"fmt"
+	"log"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 type Rule struct {
 	Lhs string
@@ -20,20 +24,20 @@ type Definition struct {
 	Details           string
 
 	// Map symbol to Eval() function
-	legacyEvalFn    (func(*Expression, *EvalState) Ex)
+	legacyEvalFn    (func(*expreduceapi.Expression, *expreduceapi.EvalState) expreduceapi.Ex)
 	SimpleExamples  []TestInstruction
 	FurtherExamples []TestInstruction
 	Tests           []TestInstruction
 	KnownFailures   []TestInstruction
 	KnownDangerous  []TestInstruction
 
-	toString ToStringFnType
+	toString expreduceapi.ToStringFnType
 
 	Attributes []string
 	Default    string
 }
 
-func ToTestInstructions(tc *Expression) []TestInstruction {
+func ToTestInstructions(tc *expreduceapi.Expression) []TestInstruction {
 	instructions := []TestInstruction{}
 	for _, tiEx := range tc.Parts[1:] {
 		if st, isSt := HeadAssertion(tiEx, "System`ESameTest"); isSt {
@@ -94,7 +98,7 @@ func ToTestInstructions(tc *Expression) []TestInstruction {
 	return instructions
 }
 
-func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
+func (def *Definition) AnnotateWithDynamicTests(es *expreduceapi.EvalState) {
 	tests, testsDef := es.GetSymDef("Tests`" + def.Name)
 	if !testsDef {
 		return
@@ -104,7 +108,7 @@ func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
 		return
 	}
 	for _, testCol := range testsList.Parts[1:] {
-		testColExpr, testColIsExpr := testCol.(*Expression)
+		testColExpr, testColIsExpr := testCol.(*expreduceapi.Expression)
 		if !testColIsExpr {
 			continue
 		}
@@ -138,11 +142,11 @@ func (def *Definition) AnnotateWithDynamicTests(es *EvalState) {
 	}
 }
 
-func (def *Definition) AnnotateWithDynamicUsage(es *EvalState) {
+func (def *Definition) AnnotateWithDynamicUsage(es *expreduceapi.EvalState) {
 	if len(def.Usage) > 0 {
 		return
 	}
-	lhs := NewExpression([]Ex{
+	lhs := NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`MessageName"),
 		NewSymbol("System`" + def.Name),
 		NewString("usage"),
@@ -156,7 +160,7 @@ func (def *Definition) AnnotateWithDynamicUsage(es *EvalState) {
 	}
 }
 
-func (def *Definition) AnnotateWithDynamic(es *EvalState) {
+func (def *Definition) AnnotateWithDynamic(es *expreduceapi.EvalState) {
 	def.AnnotateWithDynamicTests(es)
 	def.AnnotateWithDynamicUsage(es)
 }

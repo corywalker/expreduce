@@ -3,11 +3,13 @@ package expreduce
 import (
 	"bytes"
 	"fmt"
-	"github.com/cznic/wl"
 	"go/token"
 	"log"
 	"math/big"
 	"strings"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+	"github.com/cznic/wl"
 )
 
 var inequalityOps = map[string]bool{
@@ -19,7 +21,7 @@ var inequalityOps = map[string]bool{
 	"System`GreaterEqual": true,
 }
 
-func convertToInequality(expr *Expression) *Expression {
+func convertToInequality(expr *expreduceapi.Expression) *expreduceapi.Expression {
 	res := E(S("Inequality"))
 	for i, e := range expr.Parts[1:] {
 		if i != 0 {
@@ -30,10 +32,10 @@ func convertToInequality(expr *Expression) *Expression {
 	return res
 }
 
-func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
+func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceapi.Ex {
 	_, opIsIneq := inequalityOps[op]
 	if opIsIneq {
-		lhsEx, lhsIsEx := lhs.(*Expression)
+		lhsEx, lhsIsEx := lhs.(*expreduceapi.Expression)
 		if lhsIsEx {
 			lhsHead := lhsEx.HeadStr()
 			_, lhsIsIneq := inequalityOps[lhsHead]
@@ -54,11 +56,11 @@ func fullyAssoc(op string, lhs Ex, rhs Ex) Ex {
 		opExpr.Parts = append(opExpr.Parts, rhs)
 		return opExpr
 	}
-	return NewExpression([]Ex{NewSymbol(op), lhs, rhs})
+	return NewExpression([]expreduceapi.Ex{NewSymbol(op), lhs, rhs})
 }
 
-func removeParens(ex Ex) {
-	expr, isExpr := ex.(*Expression)
+func removeParens(ex expreduceapi.Ex) {
+	expr, isExpr := ex.(*expreduceapi.Expression)
 	if isExpr {
 		for i := range expr.Parts {
 			parens, isParens := NewEmptyExpression(), true
@@ -74,7 +76,7 @@ func removeParens(ex Ex) {
 	return
 }
 
-func addContextAndDefine(e Ex, context string, contextPath []string, es *EvalState) {
+func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string, es *expreduceapi.EvalState) {
 	if sym, isSym := e.(*Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
 			for _, toTry := range contextPath {
@@ -87,7 +89,7 @@ func addContextAndDefine(e Ex, context string, contextPath []string, es *EvalSta
 		}
 		es.MarkSeen(sym.Name)
 	}
-	expr, isExpr := e.(*Expression)
+	expr, isExpr := e.(*expreduceapi.Expression)
 	if isExpr {
 		for _, part := range expr.Parts {
 			addContextAndDefine(part, context, contextPath, es)
@@ -95,7 +97,7 @@ func addContextAndDefine(e Ex, context string, contextPath []string, es *EvalSta
 	}
 }
 
-func parsePattern(buf string) Ex {
+func parsePattern(buf string) expreduceapi.Ex {
 	delim := "_"
 	blankType := NewSymbol("System`Blank")
 	if strings.Contains(buf, "___") {
@@ -107,33 +109,33 @@ func parsePattern(buf string) Ex {
 	}
 	parts := strings.Split(buf, delim)
 	if len(parts) == 1 {
-		return NewExpression([]Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]Ex{blankType})})
+		return NewExpression([]expreduceapi.Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]expreduceapi.Ex{blankType})})
 	}
 	if len(parts) == 2 {
 		if parts[0] == "" {
 			if parts[1] == "" {
-				return NewExpression([]Ex{blankType})
+				return NewExpression([]expreduceapi.Ex{blankType})
 			} else if delim == "_" && parts[1] == "." {
-				return NewExpression([]Ex{NewSymbol("System`Optional"), NewExpression([]Ex{blankType})})
+				return NewExpression([]expreduceapi.Ex{NewSymbol("System`Optional"), NewExpression([]expreduceapi.Ex{blankType})})
 			}
-			return NewExpression([]Ex{blankType, NewSymbol(parts[1])})
+			return NewExpression([]expreduceapi.Ex{blankType, NewSymbol(parts[1])})
 		} else {
 			if parts[1] == "" {
-				return NewExpression([]Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]Ex{blankType})})
+				return NewExpression([]expreduceapi.Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]expreduceapi.Ex{blankType})})
 			} else if delim == "_" && parts[1] == "." {
-				return NewExpression([]Ex{NewSymbol("System`Optional"), NewExpression([]Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]Ex{blankType})})})
+				return NewExpression([]expreduceapi.Ex{NewSymbol("System`Optional"), NewExpression([]expreduceapi.Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]expreduceapi.Ex{blankType})})})
 			}
-			return NewExpression([]Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]Ex{blankType, NewSymbol(parts[1])})})
+			return NewExpression([]expreduceapi.Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]expreduceapi.Ex{blankType, NewSymbol(parts[1])})})
 		}
 	}
-	return NewExpression([]Ex{NewSymbol("System`Error"), NewString("Pattern parse error.")})
+	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString("Pattern parse error.")})
 }
 
 var unicodeRedefineMap = map[string]string{
 	"π": "Pi",
 }
 
-func ParserTokenConv(tk wl.Token) Ex {
+func ParserTokenConv(tk wl.Token) expreduceapi.Ex {
 	switch tk.Rune {
 	case wl.IDENT:
 		redefined, isRedefined := unicodeRedefineMap[tk.Val]
@@ -168,7 +170,7 @@ func ParserTokenConv(tk wl.Token) Ex {
 				log.Fatal("Failed in integer parsing.")
 			}
 		}
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Slot"),
 			NewInteger(tmpi),
 		})
@@ -180,11 +182,11 @@ func ParserTokenConv(tk wl.Token) Ex {
 	return nil
 }
 
-func ParserTagConv(tag *wl.Tag) Ex {
+func ParserTagConv(tag *wl.Tag) expreduceapi.Ex {
 	return ParserTokenConv(tag.Token)
 }
 
-func ParserExprListConv(l *wl.ExprList) (res []Ex) {
+func ParserExprListConv(l *wl.ExprList) (res []expreduceapi.Ex) {
 	for l != nil {
 		if l.Expression != nil {
 			res = append(res, ParserExprConv(l.Expression))
@@ -291,12 +293,12 @@ var headsToTokens = map[string]int{
 	"System`UnsameQ":            57464,
 }
 
-func ParserExprConv(expr *wl.Expression) Ex {
+func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 	if _, ok := terminals[expr.Case]; ok {
 		return ParserTokenConv(expr.Token)
 	}
 	if head, ok := binaryOps[expr.Case]; ok {
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`" + head),
 			ParserExprConv(expr.Expression),
 			ParserExprConv(expr.Expression2),
@@ -310,7 +312,7 @@ func ParserExprConv(expr *wl.Expression) Ex {
 		)
 	}
 	if head, ok := unaryOps[expr.Case]; ok {
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`" + head),
 			ParserExprConv(expr.Expression),
 		})
@@ -332,33 +334,33 @@ func ParserExprConv(expr *wl.Expression) Ex {
 		if _, isPat := HeadAssertion(e, "System`Pattern"); isPat {
 			head = "System`Optional"
 		}
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol(head),
 			e,
 			ParserExprConv(expr.Expression2),
 		})
 	case wl.ExpressionMessageName:
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`MessageName"),
 			ParserTokenConv(expr.Token),
 			NewString(ParserTagConv(expr.Tag).(*Symbol).Name),
 		})
 	case 132: // a[]
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression),
 		})
 	case 133: // a[b]
-		e := NewExpression([]Ex{
+		e := NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression),
 		})
 		e.appendExArray(ParserExprListConv(expr.ExprList))
 		return e
 	case 17: // {}
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`List"),
 		})
 	case 18: // {a}
-		e := NewExpression([]Ex{
+		e := NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`List"),
 		})
 		e.appendExArray(ParserExprListConv(expr.ExprList))
@@ -366,12 +368,12 @@ func ParserExprConv(expr *wl.Expression) Ex {
 	case 14: // (a)
 		// Internal`Parens are a placeholder to prevent fullyAssoc from
 		// translating "(x==2) == (x==2)" to "x == 2 == (x == 2)"
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("Internal`Parens"),
 			ParserExprConv(expr.Expression),
 		})
 	case 54: // a[[b]]
-		e := NewExpression([]Ex{
+		e := NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Part"),
 			ParserExprConv(expr.Expression),
 		})
@@ -384,16 +386,16 @@ func ParserExprConv(expr *wl.Expression) Ex {
 		} else if flt, isFlt := e.(*Flt); isFlt {
 			return NewReal(flt.Val.Neg(flt.Val))
 		}
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Times"),
 			e,
 			NewInteger(big.NewInt(-1)),
 		})
 	case 122:
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Times"),
 			ParserExprConv(expr.Expression),
-			NewExpression([]Ex{
+			NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Power"),
 				ParserExprConv(expr.Expression2),
 				NewInteger(big.NewInt(-1)),
@@ -403,36 +405,36 @@ func ParserExprConv(expr *wl.Expression) Ex {
 		return fullyAssoc(
 			"System`Plus",
 			ParserExprConv(expr.Expression),
-			NewExpression([]Ex{
+			NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Times"),
 				ParserExprConv(expr.Expression2),
 				NewInteger(big.NewInt(-1)),
 			}),
 		)
 	case 32:
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression2),
 			ParserExprConv(expr.Expression),
 		})
 	case 131:
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression),
 			ParserExprConv(expr.Expression2),
 		})
 	case 53:
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Apply"),
 			ParserExprConv(expr.Expression),
 			ParserExprConv(expr.Expression2),
 			E(S("List"), NewInt(1)),
 		})
 	case 35:
-		set := ParserExprConv(expr.Expression2).(*Expression)
+		set := ParserExprConv(expr.Expression2).(*expreduceapi.Expression)
 		head := "System`TagSet"
 		if _, isDelayed := HeadAssertion(set, "System`SetDelayed"); isDelayed {
 			head = "System`TagSetDelayed"
 		}
-		e := NewExpression([]Ex{
+		e := NewExpression([]expreduceapi.Ex{
 			NewSymbol(head),
 			ParserExprConv(expr.Expression),
 			set.Parts[1],
@@ -440,15 +442,15 @@ func ParserExprConv(expr *wl.Expression) Ex {
 		})
 		return e
 	case 137:
-		return NewExpression([]Ex{
-			NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
+			NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Derivative"),
 				NewInt(1),
 			}),
 			ParserExprConv(expr.Expression),
 		})
 	case 11:
-		return NewExpression([]Ex{
+		return NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Sqrt"),
 			ParserExprConv(expr.Expression),
 		})
@@ -480,7 +482,7 @@ func ParserExprConv(expr *wl.Expression) Ex {
 	return nil
 }
 
-func InterpBuf(buf *bytes.Buffer, fn string, es *EvalState) (Ex, error) {
+func InterpBuf(buf *bytes.Buffer, fn string, es *expreduceapi.EvalState) (expreduceapi.Ex, error) {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
 	in, err := wl.NewInput(buf, true)
 	if err != nil {
@@ -514,7 +516,7 @@ func InterpBuf(buf *bytes.Buffer, fn string, es *EvalState) (Ex, error) {
 	return parsed, nil
 }
 
-func Interp(src string, es *EvalState) Ex {
+func Interp(src string, es *expreduceapi.EvalState) expreduceapi.Ex {
 	buf := bytes.NewBufferString(src)
 	expr, err := InterpBuf(buf, "nofile", es)
 	if err != nil {
@@ -524,13 +526,13 @@ func Interp(src string, es *EvalState) Ex {
 	return expr
 }
 
-func EvalInterp(src string, es *EvalState) Ex {
+func EvalInterp(src string, es *expreduceapi.EvalState) expreduceapi.Ex {
 	return Interp(src, es).Eval(es)
 }
 
-func EvalInterpMany(doc string, fn string, es *EvalState) Ex {
+func EvalInterpMany(doc string, fn string, es *expreduceapi.EvalState) expreduceapi.Ex {
 	buf := bytes.NewBufferString(doc)
-	var lastExpr Ex = NewSymbol("System`Null")
+	var lastExpr expreduceapi.Ex = NewSymbol("System`Null")
 	expr, err := InterpBuf(buf, fn, es)
 	for err == nil {
 		lastExpr = expr.Eval(es)
@@ -542,9 +544,9 @@ func EvalInterpMany(doc string, fn string, es *EvalState) Ex {
 	return lastExpr
 }
 
-func ReadList(doc string, fn string, es *EvalState) Ex {
+func ReadList(doc string, fn string, es *expreduceapi.EvalState) expreduceapi.Ex {
 	buf := bytes.NewBufferString(doc)
-	l := NewExpression([]Ex{NewSymbol("System`List")})
+	l := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 	expr, err := InterpBuf(buf, fn, es)
 	for err == nil {
 		l.appendEx(expr.Eval(es))
@@ -556,7 +558,7 @@ func ReadList(doc string, fn string, es *EvalState) Ex {
 	return l
 }
 
-func EasyRun(src string, es *EvalState) string {
+func EasyRun(src string, es *expreduceapi.EvalState) string {
 	context, contextPath := ActualStringFormArgs(es)
 	stringParams := ToStringParams{
 		form:        "InputForm",

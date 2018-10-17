@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"sort"
 	"strings"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 type PDManager struct {
-	patternDefined map[string]Ex
+	patternDefined map[string]expreduceapi.Ex
 }
 
 func EmptyPD() *PDManager {
@@ -28,7 +30,7 @@ func CopyPD(orig *PDManager) (dest *PDManager) {
 
 func (this *PDManager) LazyMakeMap() {
 	if this.patternDefined == nil {
-		this.patternDefined = make(map[string]Ex)
+		this.patternDefined = make(map[string]expreduceapi.Ex)
 	}
 }
 
@@ -49,7 +51,7 @@ func (this *PDManager) Len() int {
 	return len(this.patternDefined)
 }
 
-func (this *PDManager) String(es *EvalState) string {
+func (this *PDManager) String(es *expreduceapi.EvalState) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	// We sort the keys here such that converting identical PDManagers always
@@ -73,8 +75,8 @@ func (this *PDManager) String(es *EvalState) string {
 	return buffer.String()
 }
 
-func (this *PDManager) Expression() Ex {
-	res := NewExpression([]Ex{NewSymbol("System`List")})
+func (this *PDManager) Expression() expreduceapi.Ex {
+	res := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 	// We sort the keys here such that converting identical PDManagers always
 	// produces the same string.
 	keys := []string{}
@@ -84,7 +86,7 @@ func (this *PDManager) Expression() Ex {
 	sort.Strings(keys)
 	for _, k := range keys {
 		v := this.patternDefined[k]
-		res.appendEx(NewExpression([]Ex{
+		res.appendEx(NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Rule"),
 			NewString(k),
 			v,
@@ -93,8 +95,8 @@ func (this *PDManager) Expression() Ex {
 	return res
 }
 
-func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead string, es *EvalState) bool {
-	var attemptDefine Ex = nil
+func DefineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, sequenceHead string, es *expreduceapi.EvalState) bool {
+	var attemptDefine expreduceapi.Ex = nil
 	if lhs.hasPat {
 		sequenceHeadSym := NewSymbol(sequenceHead)
 		oneIdent := sequenceHeadSym.Attrs(&es.defined).OneIdentity
@@ -103,10 +105,10 @@ func DefineSequence(lhs parsedForm, sequence []Ex, pm *PDManager, sequenceHead s
 		} else if len(sequence) == 0 && lhs.isOptional && lhs.defaultExpr != nil {
 			attemptDefine = lhs.defaultExpr
 		} else if lhs.isImpliedBs {
-			attemptDefine = NewExpression(append([]Ex{sequenceHeadSym}, sequence...))
+			attemptDefine = NewExpression(append([]expreduceapi.Ex{sequenceHeadSym}, sequence...))
 		} else {
 			head := NewSymbol("System`Sequence")
-			attemptDefine = NewExpression(append([]Ex{head}, sequence...))
+			attemptDefine = NewExpression(append([]expreduceapi.Ex{head}, sequence...))
 		}
 
 		if pm.patternDefined != nil {

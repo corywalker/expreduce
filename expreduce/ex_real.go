@@ -6,6 +6,8 @@ import (
 	"hash/fnv"
 	"math/big"
 	"strings"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 // Floating point numbers represented by big.Float
@@ -13,7 +15,7 @@ type Flt struct {
 	Val *big.Float
 }
 
-func (f *Flt) Eval(es *EvalState) Ex {
+func (f *Flt) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	return f
 }
 
@@ -47,7 +49,7 @@ func (this *Flt) String(esi EvalStateInterface) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
-func (this *Flt) IsEqual(other Ex) string {
+func (this *Flt) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Flt)
 	if !ok {
 		otherInteger, ok := other.(*Integer)
@@ -68,13 +70,13 @@ func (this *Flt) IsEqual(other Ex) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Flt) DeepCopy() Ex {
+func (this *Flt) DeepCopy() expreduceapi.Ex {
 	tmp := big.NewFloat(0)
 	tmp.Copy(this.Val)
 	return NewReal(tmp)
 }
 
-func (this *Flt) Copy() Ex {
+func (this *Flt) Copy() expreduceapi.Ex {
 	return this.DeepCopy()
 }
 

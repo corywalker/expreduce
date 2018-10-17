@@ -1,20 +1,10 @@
 package expreduce
 
-import "strings"
+import (
+	"strings"
 
-type DownValue struct {
-	rule        *Expression
-	specificity int
-}
-
-type Def struct {
-	downvalues  []DownValue
-	attributes  Attributes
-	defaultExpr Ex
-
-	// A function defined here will override downvalues.
-	legacyEvalFn (func(*Expression, *EvalState) Ex)
-}
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func (def *Def) StringForm(defSym *Symbol, params ToStringParams) string {
 	var buffer []string
@@ -35,7 +25,7 @@ func (def *Def) StringForm(defSym *Symbol, params ToStringParams) string {
 	for _, dv := range def.downvalues {
 		e := E(
 			S("SetDelayed"),
-			dv.rule.Parts[1].(*Expression).Parts[1],
+			dv.rule.Parts[1].(*expreduceapi.Expression).Parts[1],
 			dv.rule.Parts[2],
 		)
 		buffer = append(buffer, e.StringForm(params))

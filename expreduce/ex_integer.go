@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"hash/fnv"
 	"math/big"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 // Integer numbers represented by big.Int
@@ -12,7 +14,7 @@ type Integer struct {
 	cachedHash uint64
 }
 
-func (f *Integer) Eval(es *EvalState) Ex {
+func (f *Integer) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	return f
 }
 
@@ -37,7 +39,7 @@ func (this *Integer) String(esi EvalStateInterface) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
-func (this *Integer) IsEqual(other Ex) string {
+func (this *Integer) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Integer)
 	if !ok {
 		otherFlt, ok := other.(*Flt)
@@ -56,13 +58,13 @@ func (this *Integer) IsEqual(other Ex) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Integer) DeepCopy() Ex {
+func (this *Integer) DeepCopy() expreduceapi.Ex {
 	tmp := big.NewInt(0)
 	tmp.Set(this.Val)
 	return &Integer{Val: tmp, cachedHash: this.cachedHash}
 }
 
-func (this *Integer) Copy() Ex {
+func (this *Integer) Copy() expreduceapi.Ex {
 	return this
 }
 

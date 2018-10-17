@@ -2,8 +2,9 @@ package expreduce
 
 import (
 	"fmt"
-	"github.com/stretchr/testify/assert"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func newPf(startI int, endI int) parsedForm {

@@ -4,9 +4,10 @@ import (
 	"math"
 
 	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func IsSameQ(a Ex, b Ex, cl *logging.CASLogger) bool {
+func IsSameQ(a expreduceapi.Ex, b expreduceapi.Ex, cl *logging.CASLogger) bool {
 	aFlt, aIsFlt := a.(*Flt)
 	bFlt, bIsFlt := b.(*Flt)
 	_, aIsInteger := a.(*Integer)
@@ -19,8 +20,8 @@ func IsSameQ(a Ex, b Ex, cl *logging.CASLogger) bool {
 	_, bIsRational := b.(*Rational)
 	_, aIsComplex := a.(*Complex)
 	_, bIsComplex := b.(*Complex)
-	_, aIsExpression := a.(*Expression)
-	_, bIsExpression := b.(*Expression)
+	_, aIsExpression := a.(*expreduceapi.Expression)
+	_, bIsExpression := b.(*expreduceapi.Expression)
 
 	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) || (aIsRational && bIsRational) || (aIsComplex && bIsComplex) {
 		// a and b are identical raw types

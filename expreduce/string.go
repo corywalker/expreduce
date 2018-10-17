@@ -1,16 +1,11 @@
 package expreduce
 
-import "bytes"
-import "github.com/cznic/wl"
+import (
+	"bytes"
 
-type ToStringParams struct {
-	form         string
-	context      *String
-	contextPath  *Expression
-	previousHead string
-	// Used by Definition[]
-	esi EvalStateInterface
-}
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+	"github.com/cznic/wl"
+)
 
 func needsParens(thisHead string, previousHead string) bool {
 	if previousHead == "<TOPLEVEL>" {
@@ -30,7 +25,7 @@ func needsParens(thisHead string, previousHead string) bool {
 	return true
 }
 
-func ToStringInfix(parts []Ex, delim string, thisHead string, p ToStringParams) (bool, string) {
+func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p ToStringParams) (bool, string) {
 	if p.form != "InputForm" && p.form != "OutputForm" && p.form != "TeXForm" {
 		return false, ""
 	}
@@ -64,11 +59,11 @@ func ToStringInfix(parts []Ex, delim string, thisHead string, p ToStringParams) 
 	return true, buffer.String()
 }
 
-func (this *Expression) ToStringInfix(p ToStringParams) (bool, string) {
+func (this *expreduceapi.Expression) ToStringInfix(p ToStringParams) (bool, string) {
 	if len(this.Parts) != 3 {
 		return false, ""
 	}
-	expr, isExpr := this.Parts[1].(*Expression)
+	expr, isExpr := this.Parts[1].(*expreduceapi.Expression)
 	delim, delimIsStr := this.Parts[2].(*String)
 	if !isExpr || !delimIsStr {
 		return false, ""
@@ -77,7 +72,7 @@ func (this *Expression) ToStringInfix(p ToStringParams) (bool, string) {
 }
 
 // TODO(corywalker): Remove start, end. No users of these values.
-func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params ToStringParams) (bool, string) {
+func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params ToStringParams) (bool, string) {
 	if params.form != "InputForm" && params.form != "OutputForm" && params.form != "TeXForm" {
 		return false, ""
 	}
@@ -123,28 +118,28 @@ func ToStringInfixAdvanced(parts []Ex, delim string, thisHead string, surroundEa
 	return true, buffer.String()
 }
 
-func DefaultStringFormArgs() (*String, *Expression) {
-	return NewString("Global`"), NewExpression([]Ex{
+func DefaultStringFormArgs() (*String, *expreduceapi.Expression) {
+	return NewString("Global`"), NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`List"),
 		NewString("System`"),
 	})
 }
 
-func DefinitionComplexityStringFormArgs() (*String, *Expression) {
+func DefinitionComplexityStringFormArgs() (*String, *expreduceapi.Expression) {
 	// This was created because the "Private`" names in the blanks were
 	// indicating greater complexity than they deserved.
-	return NewString("Global`"), NewExpression([]Ex{
+	return NewString("Global`"), NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`List"),
 		NewString("System`"),
 		NewString("Private`"),
 	})
 }
 
-func ActualStringFormArgs(es *EvalState) (*String, *Expression) {
+func ActualStringFormArgs(es *expreduceapi.EvalState) (*String, *expreduceapi.Expression) {
 	return NewString(es.GetStringDef("System`$Context", "Global`")), es.GetListDef("System`$ContextPath")
 }
 
-func ActualStringFormArgsFull(form string, es *EvalState) ToStringParams {
+func ActualStringFormArgsFull(form string, es *expreduceapi.EvalState) ToStringParams {
 	return ToStringParams{
 		form:         form,
 		context:      NewString(es.GetStringDef("System`$Context", "Global`")),
@@ -155,8 +150,8 @@ func ActualStringFormArgsFull(form string, es *EvalState) ToStringParams {
 
 }
 
-func simpleTeXToString(fnName string) func(*Expression, ToStringParams) (bool, string) {
-	return (func(this *Expression, params ToStringParams) (bool, string) {
+func simpleTeXToString(fnName string) func(*expreduceapi.Expression, ToStringParams) (bool, string) {
+	return (func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
 		if params.form != "TeXForm" {
 			return false, ""
 		}

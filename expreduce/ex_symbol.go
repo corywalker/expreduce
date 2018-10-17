@@ -5,6 +5,8 @@ import (
 	"hash/fnv"
 	"sort"
 	"strings"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 // Symbols are defined by a string-based name
@@ -13,7 +15,7 @@ type Symbol struct {
 	cachedHash uint64
 }
 
-func (this *Symbol) Eval(es *EvalState) Ex {
+func (this *Symbol) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	//definition, isdefined := es.defined[this.Name]
 	definition, isdefined, _ := es.GetDef(this.Name, this)
 	if isdefined {
@@ -75,7 +77,7 @@ func (this *Symbol) String(esi EvalStateInterface) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
-func (this *Symbol) IsEqual(other Ex) string {
+func (this *Symbol) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Symbol)
 	if !ok {
 		return "EQUAL_UNK"
@@ -92,36 +94,13 @@ func (this *Symbol) IsEqual(other Ex) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Symbol) DeepCopy() Ex {
+func (this *Symbol) DeepCopy() expreduceapi.Ex {
 	thiscopy := *this
 	return &thiscopy
 }
 
-func (this *Symbol) Copy() Ex {
+func (this *Symbol) Copy() expreduceapi.Ex {
 	return this
-}
-
-// Functions for working with the attributes of symbols:
-type Attributes struct {
-	Orderless       bool
-	Flat            bool
-	OneIdentity     bool
-	Listable        bool
-	Constant        bool
-	NumericFunction bool
-	Protected       bool
-	Locked          bool
-	ReadProtected   bool
-	HoldFirst       bool
-	HoldRest        bool
-	HoldAll         bool
-	HoldAllComplete bool
-	NHoldFirst      bool
-	NHoldRest       bool
-	NHoldAll        bool
-	SequenceHold    bool
-	Temporary       bool
-	Stub            bool
 }
 
 func (this *Symbol) Attrs(dm *definitionMap) Attributes {
@@ -132,7 +111,7 @@ func (this *Symbol) Attrs(dm *definitionMap) Attributes {
 	return def.attributes
 }
 
-func (this *Symbol) Default(dm *definitionMap) Ex {
+func (this *Symbol) Default(dm *definitionMap) expreduceapi.Ex {
 	def, isDef := (*dm).Get(this.Name)
 	if !isDef {
 		return nil
@@ -268,7 +247,7 @@ func (this *Attributes) toStrings() []string {
 	return strings
 }
 
-func (this *Attributes) toSymList() *Expression {
+func (this *Attributes) toSymList() *expreduceapi.Expression {
 	toReturn := E(S("List"))
 	for _, s := range this.toStrings() {
 		toReturn.appendEx(S(s))
@@ -291,12 +270,12 @@ func (this *Symbol) Hash() uint64 {
 	return h.Sum64()
 }
 
-func ContainsSymbol(e Ex, name string) bool {
+func ContainsSymbol(e expreduceapi.Ex, name string) bool {
 	asSym, isSym := e.(*Symbol)
 	if isSym {
 		return asSym.Name == name
 	}
-	asExpr, isExpr := e.(*Expression)
+	asExpr, isExpr := e.(*expreduceapi.Expression)
 	if isExpr {
 		for _, part := range asExpr.Parts {
 			if ContainsSymbol(part, name) {
@@ -311,6 +290,6 @@ func NewSymbol(name string) *Symbol {
 	return &Symbol{Name: name}
 }
 
-func S(name string) Ex {
+func S(name string) expreduceapi.Ex {
 	return NewSymbol("System`" + name)
 }

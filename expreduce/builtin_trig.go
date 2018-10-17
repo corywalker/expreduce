@@ -1,10 +1,14 @@
 package expreduce
 
-import "math/big"
-import "math"
+import (
+	"math"
+	"math/big"
 
-func mathFnOneParam(fn func(float64) float64) func(*Expression, *EvalState) Ex {
-	return (func(this *Expression, es *EvalState) Ex {
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
+
+func mathFnOneParam(fn func(float64) float64) func(*expreduceapi.Expression, *expreduceapi.EvalState) expreduceapi.Ex {
+	return (func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 		if len(this.Parts) != 2 {
 			return this
 		}

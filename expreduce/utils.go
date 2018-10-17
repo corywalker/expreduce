@@ -2,9 +2,11 @@ package expreduce
 
 import (
 	"bytes"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func ExArrayToString(exArray []Ex, es *EvalState) string {
+func ExArrayToString(exArray []expreduceapi.Ex, es *expreduceapi.EvalState) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range exArray {
@@ -17,7 +19,7 @@ func ExArrayToString(exArray []Ex, es *EvalState) string {
 	return buffer.String()
 }
 
-func PFArrayToString(pfArray []parsedForm, es *EvalState) string {
+func PFArrayToString(pfArray []parsedForm, es *expreduceapi.EvalState) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	for i, e := range pfArray {
@@ -30,8 +32,8 @@ func PFArrayToString(pfArray []parsedForm, es *EvalState) string {
 	return buffer.String()
 }
 
-func ExArrayDeepCopy(exArray []Ex) []Ex {
-	res := make([]Ex, len(exArray))
+func ExArrayDeepCopy(exArray []expreduceapi.Ex) []expreduceapi.Ex {
+	res := make([]expreduceapi.Ex, len(exArray))
 	for i, e := range exArray {
 		res[i] = e.DeepCopy()
 	}

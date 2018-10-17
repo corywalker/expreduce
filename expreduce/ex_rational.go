@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"hash/fnv"
 	"math/big"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 type Rational struct {
@@ -12,7 +14,7 @@ type Rational struct {
 	needsEval bool
 }
 
-func (this *Rational) Eval(es *EvalState) Ex {
+func (this *Rational) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
 		return NewSymbol("System`Indeterminate")
 	}
@@ -73,7 +75,7 @@ func (this *Rational) String(esi EvalStateInterface) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
-func (this *Rational) IsEqual(other Ex) string {
+func (this *Rational) IsEqual(other expreduceapi.Ex) string {
 	otherConv, otherIsRational := other.(*Rational)
 	if !otherIsRational {
 		return "EQUAL_FALSE"
@@ -85,7 +87,7 @@ func (this *Rational) IsEqual(other Ex) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Rational) DeepCopy() Ex {
+func (this *Rational) DeepCopy() expreduceapi.Ex {
 	tmpn := big.NewInt(0)
 	tmpn.Set(this.Num)
 	tmpd := big.NewInt(0)
@@ -93,7 +95,7 @@ func (this *Rational) DeepCopy() Ex {
 	return &Rational{tmpn, tmpd, this.needsEval}
 }
 
-func (this *Rational) Copy() Ex {
+func (this *Rational) Copy() expreduceapi.Ex {
 	return this.DeepCopy()
 }
 

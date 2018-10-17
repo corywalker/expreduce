@@ -4,9 +4,10 @@ import (
 	"math/big"
 
 	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func dimensions(ex *Expression, level int, cl *logging.CASLogger) []int64 {
+func dimensions(ex *expreduceapi.Expression, level int, cl *logging.CASLogger) []int64 {
 	head := ex.Parts[0]
 	dims := []int64{int64(len(ex.Parts) - 1)}
 	nextDims := []int64{}
@@ -32,8 +33,8 @@ func dimensions(ex *Expression, level int, cl *logging.CASLogger) []int64 {
 	return append(dims, nextDims...)
 }
 
-func intSliceToList(ints []int64) Ex {
-	toReturn := NewExpression([]Ex{
+func intSliceToList(ints []int64) expreduceapi.Ex {
+	toReturn := NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`List"),
 	})
 
@@ -45,14 +46,14 @@ func intSliceToList(ints []int64) Ex {
 
 // This function assumes that mat is a matrix and that i and j are not out of
 // bounds. i and j are 1-indexed.
-func (mat *Expression) matrix2dGetElem(i, j int64) Ex {
-	return (mat.Parts[i].(*Expression)).Parts[j]
+func (mat *expreduceapi.Expression) matrix2dGetElem(i, j int64) expreduceapi.Ex {
+	return (mat.Parts[i].(*expreduceapi.Expression)).Parts[j]
 }
 
-func calcIJ(i, j, innerDim int64, a, b *Expression) Ex {
-	toReturn := NewExpression([]Ex{NewSymbol("System`Plus")})
+func calcIJ(i, j, innerDim int64, a, b *expreduceapi.Expression) expreduceapi.Ex {
+	toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 	for pairI := int64(1); pairI <= innerDim; pairI++ {
-		toAdd := NewExpression([]Ex{NewSymbol("System`Times")})
+		toAdd := NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
 		toAdd.appendEx(a.matrix2dGetElem(i, pairI))
 		toAdd.appendEx(b.matrix2dGetElem(pairI, j))
 		toReturn.appendEx(toAdd)
@@ -67,13 +68,13 @@ func GetMatrixDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Dimensions",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
-			expr, isExpr := this.Parts[1].(*Expression)
+			expr, isExpr := this.Parts[1].(*expreduceapi.Expression)
 			if !isExpr {
-				return NewExpression([]Ex{NewSymbol("System`List")})
+				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			}
 			return intSliceToList(dimensions(expr, 0, &es.CASLogger))
 		},
@@ -88,7 +89,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Dot",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) == 2 {
 				return this.Parts[1]
 			}
@@ -98,15 +99,15 @@ func GetMatrixDefinitions() (defs []Definition) {
 			aIsVector := vectorQ(this.Parts[1])
 			bIsVector := vectorQ(this.Parts[2])
 			if aIsVector && bIsVector {
-				aVector := this.Parts[1].(*Expression)
-				bVector := this.Parts[2].(*Expression)
+				aVector := this.Parts[1].(*expreduceapi.Expression)
+				bVector := this.Parts[2].(*expreduceapi.Expression)
 				if len(aVector.Parts) != len(bVector.Parts) {
 					return this
 				}
 				vecLen := len(aVector.Parts) - 1
-				toReturn := NewExpression([]Ex{NewSymbol("System`Plus")})
+				toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 				for i := 0; i < vecLen; i++ {
-					toReturn.appendEx(NewExpression([]Ex{
+					toReturn.appendEx(NewExpression([]expreduceapi.Ex{
 						NewSymbol("System`Times"),
 						aVector.Parts[i+1],
 						bVector.Parts[i+1],
@@ -117,8 +118,8 @@ func GetMatrixDefinitions() (defs []Definition) {
 			aIsMatrix := matrixQ(this.Parts[1], &es.CASLogger)
 			bIsMatrix := matrixQ(this.Parts[2], &es.CASLogger)
 			if aIsMatrix && bIsMatrix {
-				aEx := this.Parts[1].(*Expression)
-				bEx := this.Parts[2].(*Expression)
+				aEx := this.Parts[1].(*expreduceapi.Expression)
+				bEx := this.Parts[2].(*expreduceapi.Expression)
 				aDims := dimensions(aEx, 0, &es.CASLogger)
 				bDims := dimensions(bEx, 0, &es.CASLogger)
 				if len(aDims) != 2 || len(bDims) != 2 {
@@ -129,9 +130,9 @@ func GetMatrixDefinitions() (defs []Definition) {
 				if aW != bH {
 					return this
 				}
-				toReturn := NewExpression([]Ex{NewSymbol("System`List")})
+				toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for i := int64(1); i <= aH; i++ {
-					row := NewExpression([]Ex{NewSymbol("System`List")})
+					row := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 					for j := int64(1); j <= bW; j++ {
 						//row.appendEx(&Integer{big.NewInt(0)})
 						row.appendEx(calcIJ(i, j, aW, aEx, bEx))
@@ -145,7 +146,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Transpose",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -158,9 +159,9 @@ func GetMatrixDefinitions() (defs []Definition) {
 				return this
 			}
 			h, w := dims[0], dims[1]
-			toReturn := NewExpression([]Ex{NewSymbol("System`List")})
+			toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			for tI := int64(1); tI <= w; tI++ {
-				tRow := NewExpression([]Ex{NewSymbol("System`List")})
+				tRow := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for tJ := int64(1); tJ <= h; tJ++ {
 					tRow.appendEx(l.matrix2dGetElem(tJ, tI))
 				}

@@ -2,12 +2,14 @@ package expreduce
 
 import (
 	"math/big"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 //The following functions help to interpret the Ex interface, they could probably be moved
 //to another file since they are useful in many common situations
 
-func parseInteger(part Ex) (value int64, isInteger bool) {
+func parseInteger(part expreduceapi.Ex) (value int64, isInteger bool) {
 	integer, isInteger := part.(*Integer)
 	if isInteger {
 		return integer.Val.Int64(), true
@@ -16,7 +18,7 @@ func parseInteger(part Ex) (value int64, isInteger bool) {
 	}
 }
 
-func parseFloat(part Ex) (value float64, isFloat bool) {
+func parseFloat(part expreduceapi.Ex) (value float64, isFloat bool) {
 	float, isFloat := part.(*Flt)
 	if isFloat {
 		value, _ := float.Val.Float64()
@@ -26,17 +28,17 @@ func parseFloat(part Ex) (value float64, isFloat bool) {
 	}
 }
 
-func parseExpression(part Ex) (expression *Expression, isExpression bool) {
-	expression, isExpression = part.(*Expression)
+func parseExpression(part expreduceapi.Ex) (expression *expreduceapi.Expression, isExpression bool) {
+	expression, isExpression = part.(*expreduceapi.Expression)
 	return expression, isExpression
 }
 
-func parseSymbol(part Ex) (symbol *Symbol, isSymbol bool) {
+func parseSymbol(part expreduceapi.Ex) (symbol *Symbol, isSymbol bool) {
 	symbol, isSymbol = part.(*Symbol)
 	return symbol, isSymbol
 }
 
-func parseInfinity(part Ex, es *EvalState) bool {
+func parseInfinity(part expreduceapi.Ex, es *expreduceapi.EvalState) bool {
 	symbol, isSymbol := parseSymbol(part)
 	if isSymbol {
 		return symbol.IsEqual(NewSymbol("System`Infinity")) == "EQUAL_TRUE"
@@ -44,10 +46,10 @@ func parseInfinity(part Ex, es *EvalState) bool {
 	return false
 }
 
-func parseNegativeInfinity(part Ex, es *EvalState) bool {
+func parseNegativeInfinity(part expreduceapi.Ex, es *expreduceapi.EvalState) bool {
 	expr, isExpr := parseExpression(part)
 	if isExpr {
-		template := NewExpression([]Ex{
+		template := NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Times"),
 			NewInt(-1),
 			NewSymbol("System`Infinity"),
@@ -106,7 +108,7 @@ func (spec levelSpec) checkDepth(depth int64) bool {
 
 // Levels can be specified in the form n, {n}, {n1, n2}, Infinity, -Infinity
 // n, n1, n2 are integers which can be positive or negative
-func parseLevelSpec(this Ex, es *EvalState) levelSpec {
+func parseLevelSpec(this expreduceapi.Ex, es *expreduceapi.EvalState) levelSpec {
 	integer, isInteger := parseInteger(this)
 	expression, isExpression := parseExpression(this)
 	isInfinity := parseInfinity(this, es)
@@ -209,8 +211,8 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec {
 
 //This is an optimization with regards to expressionWalkMapBackwards which only deals with level specification,
 //expressionWalkMapBackwards also deals with depths, but has to visit the entire expression tree.
-func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec []int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) *Expression {
-	toReturn := NewExpression([]Ex{this.Parts[0]})
+func expressionWalkMap(f func(expreduceapi.Ex, expreduceapi.Ex, []int64, *int64, *expreduceapi.EvalState) expreduceapi.Ex, head expreduceapi.Ex, partSpec []int64, this *expreduceapi.Expression, es *expreduceapi.EvalState, spec levelSpec, generated *int64) *expreduceapi.Expression {
+	toReturn := NewExpression([]expreduceapi.Ex{this.Parts[0]})
 
 	for i, expr := range this.Parts[1:] {
 		newExpression := expr
@@ -221,7 +223,7 @@ func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, 
 
 		//If this part is nonatomic and its level is covered by the level specification,
 		//apply expressionWalkMap recursively
-		expression, isExpression := newExpression.(*Expression)
+		expression, isExpression := newExpression.(*expreduceapi.Expression)
 		if isExpression && level < spec.max {
 			newExpression = expressionWalkMap(f, head, currentPartSpec, expression, es, spec, generated)
 		}
@@ -239,8 +241,8 @@ func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, 
 	return toReturn
 }
 
-func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec []int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) (*Expression, int64) {
-	toReturn := NewExpression([]Ex{this.Parts[0]})
+func expressionWalkMapBackwards(f func(expreduceapi.Ex, expreduceapi.Ex, []int64, *int64, *expreduceapi.EvalState) expreduceapi.Ex, head expreduceapi.Ex, partSpec []int64, this *expreduceapi.Expression, es *expreduceapi.EvalState, spec levelSpec, generated *int64) (*expreduceapi.Expression, int64) {
+	toReturn := NewExpression([]expreduceapi.Ex{this.Parts[0]})
 	currentMaxDepth := int64(1)
 
 	for i, expr := range this.Parts[1:] {
@@ -250,7 +252,7 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, 
 		currentPartSpec := append(partSpec, int64(i+1))
 		level := int64(len(currentPartSpec))
 
-		expression, isExpression := newExpression.(*Expression)
+		expression, isExpression := newExpression.(*expreduceapi.Expression)
 		if isExpression {
 			//Determine the depth of this part
 			newExpression, depth = expressionWalkMapBackwards(f, head, currentPartSpec, expression, es, spec, generated)
@@ -280,25 +282,25 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, 
 	return toReturn, currentMaxDepth + 1
 }
 
-func wrapWithHead(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
-	return NewExpression([]Ex{head, expr})
+func wrapWithHead(head expreduceapi.Ex, expr expreduceapi.Ex, partList []int64, _ *int64, es *expreduceapi.EvalState) expreduceapi.Ex {
+	return NewExpression([]expreduceapi.Ex{head, expr})
 }
 
-func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
-	partSpec := []Ex{NewSymbol("System`List")}
+func wrapWithHeadIndexed(head expreduceapi.Ex, expr expreduceapi.Ex, partList []int64, _ *int64, es *expreduceapi.EvalState) expreduceapi.Ex {
+	partSpec := []expreduceapi.Ex{NewSymbol("System`List")}
 	for _, part := range partList {
 		partSpec = append(partSpec, NewInt(part))
 	}
 	partSpecExpr := NewExpression(partSpec)
-	return NewExpression([]Ex{head, expr, partSpecExpr})
+	return NewExpression([]expreduceapi.Ex{head, expr, partSpecExpr})
 }
 
-func applyHead(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
-	expression, isExpr := expr.(*Expression)
+func applyHead(head expreduceapi.Ex, expr expreduceapi.Ex, partList []int64, _ *int64, es *expreduceapi.EvalState) expreduceapi.Ex {
+	expression, isExpr := expr.(*expreduceapi.Expression)
 	if !isExpr {
 		return expr
 	}
-	toReturn := NewExpression([]Ex{head})
+	toReturn := NewExpression([]expreduceapi.Ex{head})
 	toReturn.Parts = append(toReturn.Parts, expression.Parts[1:]...)
 	return toReturn
 }
@@ -311,7 +313,7 @@ const (
 	applyOptimizedSimpleLevelSpec
 )
 
-func exOrGenerated(e Ex, generated *int64, returnGenerated bool) Ex {
+func exOrGenerated(e expreduceapi.Ex, generated *int64, returnGenerated bool) expreduceapi.Ex {
 	if returnGenerated {
 		return NewInt(*generated)
 	}
@@ -319,21 +321,21 @@ func exOrGenerated(e Ex, generated *int64, returnGenerated bool) Ex {
 }
 
 func levelSpecFunction(
-	f func(Ex, Ex, []int64, *int64, *EvalState) Ex,
+	f func(expreduceapi.Ex, expreduceapi.Ex, []int64, *int64, *expreduceapi.EvalState) expreduceapi.Ex,
 	optStrat levelSpecOptimizationStrategy,
 	returnGenerated bool,
 	leveledExprIsFirst bool,
-) func(*Expression, *EvalState) Ex {
-	return func(this *Expression, es *EvalState) Ex {
+) func(*expreduceapi.Expression, *expreduceapi.EvalState) expreduceapi.Ex {
+	return func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 		// Optimization of the very common case where the levelspec-ed
 		// operation has two arguments
 		if len(this.Parts) == 3 {
 			if optStrat == mapOptimizedSimpleLevelSpec {
-				expr, isExpr := this.Parts[2].(*Expression)
+				expr, isExpr := this.Parts[2].(*expreduceapi.Expression)
 				if isExpr {
-					toReturn := NewExpression([]Ex{expr.Parts[0]})
+					toReturn := NewExpression([]expreduceapi.Ex{expr.Parts[0]})
 					for i := 1; i < len(expr.Parts); i++ {
-						toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
+						toReturn.Parts = append(toReturn.Parts, NewExpression([]expreduceapi.Ex{
 							this.Parts[1],
 							expr.Parts[i],
 						}))
@@ -343,9 +345,9 @@ func levelSpecFunction(
 				return this.Parts[2]
 			} else if optStrat == applyOptimizedSimpleLevelSpec {
 				sym, isSym := this.Parts[1].(*Symbol)
-				expr, isExpr := this.Parts[2].(*Expression)
+				expr, isExpr := this.Parts[2].(*expreduceapi.Expression)
 				if isSym && isExpr {
-					toReturn := NewExpression([]Ex{sym})
+					toReturn := NewExpression([]expreduceapi.Ex{sym})
 					toReturn.Parts = append(toReturn.Parts, expr.Parts[1:]...)
 					return toReturn.Eval(es)
 				}
@@ -375,7 +377,7 @@ func levelSpecFunction(
 
 		// If the leveled expression is atomic, it will be ignored except in
 		// one case
-		expression, nonAtomic := leveledExpr.(*Expression)
+		expression, nonAtomic := leveledExpr.(*expreduceapi.Expression)
 		if !nonAtomic {
 			if spec.checkLevel(0) && spec.checkDepth(0) {
 				return exOrGenerated(f(dataExpr, leveledExpr, []int64{}, generated, es), generated, returnGenerated)
@@ -437,26 +439,26 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 	defs = append(defs, Definition{
 		Name: "FoldList",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 4 {
 				return this
 			}
 
 			f := this.Parts[1]
 			first := this.Parts[2]
-			values, nonAtomic := this.Parts[3].(*Expression)
+			values, nonAtomic := this.Parts[3].(*expreduceapi.Expression)
 
 			if !nonAtomic {
 				return this
 			}
 
-			toReturn := NewExpression([]Ex{values.Parts[0], first})
+			toReturn := NewExpression([]expreduceapi.Ex{values.Parts[0], first})
 
 			if len(values.Parts) < 2 {
 				return toReturn
 			}
 
-			expr := NewExpression([]Ex{
+			expr := NewExpression([]expreduceapi.Ex{
 				f,
 				first,
 				values.Parts[1],
@@ -465,7 +467,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 			toReturn.Parts = append(toReturn.Parts, expr)
 
 			for i := 2; i < len(values.Parts); i++ {
-				expr = NewExpression([]Ex{
+				expr = NewExpression([]expreduceapi.Ex{
 					f,
 					expr,
 					values.Parts[i],
@@ -481,7 +483,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 	defs = append(defs, Definition{
 		Name: "NestList",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 4 {
 				return this
 			}
@@ -497,10 +499,10 @@ func getFunctionalDefinitions() (defs []Definition) {
 				return this
 			}
 
-			toReturn := NewExpression([]Ex{NewSymbol("System`List"), expr})
+			toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), expr})
 
 			for i := int64(1); i <= n; i++ {
-				expr = NewExpression([]Ex{
+				expr = NewExpression([]expreduceapi.Ex{
 					f,
 					expr,
 				})
@@ -515,7 +517,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Nest"})
 	defs = append(defs, Definition{
 		Name: "NestWhileList",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) < 4 || len(this.Parts) > 7 {
 				return this
 			}
@@ -572,13 +574,13 @@ func getFunctionalDefinitions() (defs []Definition) {
 				}
 			}
 
-			evaluated := []Ex{expr.DeepCopy().Eval(es)}
-			toReturn := NewExpression([]Ex{NewSymbol("System`List"), expr})
+			evaluated := []expreduceapi.Ex{expr.DeepCopy().Eval(es)}
+			toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), expr})
 
 			isequal := "EQUAL_TRUE"
 			cont := isequal == "EQUAL_TRUE"
 			for i := int64(2); cont; i++ {
-				expr = NewExpression([]Ex{
+				expr = NewExpression([]expreduceapi.Ex{
 					f,
 					expr,
 				})
@@ -586,7 +588,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 				evaluated = append(evaluated, expr.DeepCopy().Eval(es)) // Could use a stack of length m
 
 				if i >= m {
-					testExpression := NewExpression([]Ex{test})
+					testExpression := NewExpression([]expreduceapi.Ex{test})
 					if m >= 0 {
 						testExpression.Parts = append(testExpression.Parts, evaluated[int64(len(evaluated))-m:]...)
 					} else {
@@ -603,7 +605,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 			if n > 0 {
 				for i := int64(0); i < n; i++ {
-					expr = NewExpression([]Ex{
+					expr = NewExpression([]expreduceapi.Ex{
 						f,
 						expr,
 					})
@@ -620,7 +622,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "FixedPointList"})
 	defs = append(defs, Definition{
 		Name: "FixedPoint",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -636,7 +638,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Array",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -644,9 +646,9 @@ func getFunctionalDefinitions() (defs []Definition) {
 			nInt, nOk := this.Parts[2].(*Integer)
 			if nOk {
 				n := nInt.Val.Int64()
-				toReturn := NewExpression([]Ex{NewSymbol("System`List")})
+				toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for i := int64(1); i <= n; i++ {
-					toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
+					toReturn.Parts = append(toReturn.Parts, NewExpression([]expreduceapi.Ex{
 						this.Parts[1],
 						NewInteger(big.NewInt(i)),
 					}))

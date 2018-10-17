@@ -4,10 +4,11 @@ import (
 	"math/big"
 
 	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func CalcDepth(ex Ex) int {
-	expr, isExpr := ex.(*Expression)
+func CalcDepth(ex expreduceapi.Ex) int {
+	expr, isExpr := ex.(*expreduceapi.Expression)
 	if !isExpr {
 		return 1
 	}
@@ -19,10 +20,10 @@ func CalcDepth(ex Ex) int {
 	return theMax + 1
 }
 
-func flattenExpr(src *Expression, dst *Expression, level int64, cl *logging.CASLogger) {
+func flattenExpr(src *expreduceapi.Expression, dst *expreduceapi.Expression, level int64, cl *logging.CASLogger) {
 	continueFlatten := level > 0
 	for i := 1; i < len(src.Parts); i++ {
-		expr, isExpr := src.Parts[i].(*Expression)
+		expr, isExpr := src.Parts[i].(*expreduceapi.Expression)
 		if continueFlatten && isExpr {
 			if IsSameQ(src.Parts[0], expr.Parts[0], cl) {
 				flattenExpr(expr, dst, level-1, cl)
@@ -33,8 +34,8 @@ func flattenExpr(src *Expression, dst *Expression, level int64, cl *logging.CASL
 	}
 }
 
-func leafCount(e Ex) int64 {
-	if asExpr, isExpr := e.(*Expression); isExpr {
+func leafCount(e expreduceapi.Ex) int64 {
+	if asExpr, isExpr := e.(*expreduceapi.Expression); isExpr {
 		res := int64(0)
 		for _, part := range asExpr.Parts {
 			res += leafCount(part)
@@ -47,7 +48,7 @@ func leafCount(e Ex) int64 {
 func GetExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Head",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -76,7 +77,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if IsComplex {
 				return NewSymbol("System`Complex")
 			}
-			asExpr, IsExpression := this.Parts[1].(*Expression)
+			asExpr, IsExpression := this.Parts[1].(*expreduceapi.Expression)
 			if IsExpression {
 				return asExpr.Parts[0]
 			}
@@ -85,7 +86,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Depth",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
@@ -94,12 +95,12 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Length",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
 
-			expr, isExpr := this.Parts[1].(*Expression)
+			expr, isExpr := this.Parts[1].(*expreduceapi.Expression)
 			if isExpr {
 				return NewInteger(big.NewInt(int64(len(expr.Parts) - 1)))
 			}
@@ -117,7 +118,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "HoldForm",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}
@@ -129,7 +130,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Flatten",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) < 2 {
 				return this
 			}
@@ -141,18 +142,18 @@ func GetExpressionDefinitions() (defs []Definition) {
 				}
 				level = int64(asInt.Val.Int64())
 			}
-			expr, isExpr := this.Parts[1].(*Expression)
+			expr, isExpr := this.Parts[1].(*expreduceapi.Expression)
 			if !isExpr {
 				return this
 			}
-			dst := NewExpression([]Ex{expr.Parts[0]})
+			dst := NewExpression([]expreduceapi.Ex{expr.Parts[0]})
 			flattenExpr(expr, dst, level, &es.CASLogger)
 			return dst
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "LeafCount",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

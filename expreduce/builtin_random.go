@@ -1,7 +1,11 @@
 package expreduce
 
-import "math/big"
-import "math/rand"
+import (
+	"math/big"
+	"math/rand"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func GetRandomDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
@@ -9,7 +13,7 @@ func GetRandomDefinitions() (defs []Definition) {
 		Details: "`SeedRandom[UnixTime[]]` is called automatically upon " +
 			"initialization of Expreduce, so random number sequences will not " +
 			"repeat over subsequent sessions.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 1 {
 				return this
 			}
@@ -22,7 +26,7 @@ func GetRandomDefinitions() (defs []Definition) {
 		Details: "`SeedRandom[UnixTime[]]` is called automatically upon " +
 			"initialization of Expreduce, so random number sequences will not " +
 			"repeat over subsequent sessions.",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

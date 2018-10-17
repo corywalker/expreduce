@@ -8,44 +8,29 @@ import (
 	"strings"
 	"time"
 
-	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-type EvalState struct {
-	// Embedded type for logging
-	logging.CASLogger
-
-	defined     definitionMap
-	trace       *Expression
-	NoInit      bool
-	timeCounter timecounter.Group
-	freeze      bool
-	thrown      *Expression
-	reapSown    *Expression
-	interrupted bool
-	toStringFns map[string]ToStringFnType
-}
-
-func (es *EvalState) GetDefined(name string) (Def, bool) {
+func (es *expreduceapi.EvalState) GetDefined(name string) (Def, bool) {
 	return es.defined.Get(name)
 }
 
-func (es *EvalState) GetStringFn(headStr string) (ToStringFnType, bool) {
+func (es *expreduceapi.EvalState) GetStringFn(headStr string) (expreduceapi.ToStringFnType, bool) {
 	fn, ok := es.toStringFns[headStr]
 	return fn, ok
 }
 
-func (this *EvalState) Load(def Definition) {
+func (this *expreduceapi.EvalState) Load(def Definition) {
 	// TODO: deprecate most of this. We should be using .m files now.
 	def.Name = this.GetStringDef("System`$Context", "") + def.Name
 	this.MarkSeen(def.Name)
 	EvalInterp("$Context = \"Private`\"", this)
 
 	if len(def.Usage) > 0 {
-		(NewExpression([]Ex{
+		(NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`SetDelayed"),
-			NewExpression([]Ex{
+			NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`MessageName"),
 				NewSymbol(def.Name),
 				NewString("usage"),
@@ -75,13 +60,13 @@ func (this *EvalState) Load(def Definition) {
 	EvalInterp("$Context = \"System`\"", this)
 }
 
-func (es *EvalState) Init(loadAllDefs bool) {
+func (es *expreduceapi.EvalState) Init(loadAllDefs bool) {
 	es.defined = newDefinitionMap()
-	es.toStringFns = make(map[string]ToStringFnType)
+	es.toStringFns = make(map[string]expreduceapi.ToStringFnType)
 	// These are fundamental symbols that affect even the parsing of
 	// expressions. We must define them before even the bootstrap definitions.
 	es.Define(NewSymbol("System`$Context"), NewString("System`"))
-	es.Define(NewSymbol("System`$ContextPath"), NewExpression([]Ex{
+	es.Define(NewSymbol("System`$ContextPath"), NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`List"),
 		NewString("System`"),
 	}))
@@ -249,8 +234,8 @@ func (es *EvalState) Init(loadAllDefs bool) {
 	EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
 }
 
-func NewEvalState() *EvalState {
-	var es EvalState
+func NewEvalState() *expreduceapi.EvalState {
+	var es expreduceapi.EvalState
 	es.Init(true)
 
 	es.SetUpLogging()
@@ -267,19 +252,19 @@ func NewEvalState() *EvalState {
 	return &es
 }
 
-func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
-	var es EvalState
+func NewEvalStateNoLog(loadAllDefs bool) *expreduceapi.EvalState {
+	var es expreduceapi.EvalState
 	es.Init(loadAllDefs)
 	es.CASLogger.SetDebugState(false)
 	return &es
 }
 
-func (this *EvalState) IsDef(name string) bool {
+func (this *expreduceapi.EvalState) IsDef(name string) bool {
 	_, isd := this.defined.Get(name)
 	return isd
 }
 
-func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
+func (this *expreduceapi.EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, bool, *expreduceapi.Expression) {
 	if !this.IsDef(name) {
 		return nil, false, nil
 	}
@@ -325,13 +310,13 @@ func (this *EvalState) GetDef(name string, lhs Ex) (Ex, bool, *Expression) {
 	return nil, false, nil
 }
 
-func (this *EvalState) GetSymDef(name string) (Ex, bool) {
+func (this *expreduceapi.EvalState) GetSymDef(name string) (expreduceapi.Ex, bool) {
 	sym := NewSymbol(name)
 	symDef, isDef, _ := this.GetDef(name, sym)
 	return symDef, isDef
 }
 
-func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
+func (this *expreduceapi.EvalState) DefineAttrs(sym *Symbol, rhs expreduceapi.Ex) {
 	attrsList, attrsIsList := HeadAssertion(rhs, "System`List")
 	if !attrsIsList {
 		return
@@ -356,7 +341,7 @@ func (this *EvalState) DefineAttrs(sym *Symbol, rhs Ex) {
 	this.defined.Set(sym.Name, tmp)
 }
 
-func (this *EvalState) DefineDownValues(sym *Symbol, rhs Ex) {
+func (this *expreduceapi.EvalState) DefineDownValues(sym *Symbol, rhs expreduceapi.Ex) {
 	dvList, isList := HeadAssertion(rhs, "System`List")
 	if !isList {
 		fmt.Println("Assignment to DownValues must be List of Rules.")
@@ -383,7 +368,7 @@ func (this *EvalState) DefineDownValues(sym *Symbol, rhs Ex) {
 	this.defined.Set(sym.Name, tmp)
 }
 
-func (this *EvalState) MarkSeen(name string) {
+func (this *expreduceapi.EvalState) MarkSeen(name string) {
 	if !this.IsDef(name) {
 		newDef := Def{
 			downvalues: []DownValue{},
@@ -394,12 +379,12 @@ func (this *EvalState) MarkSeen(name string) {
 
 // Attempts to compute a specificity metric for a rule. Higher specificity rules
 // should be tried first.
-func ruleSpecificity(lhs Ex, rhs Ex, name string, es *EvalState) int {
+func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *expreduceapi.EvalState) int {
 	if name == "Rubi`Int" {
 		return 100
 	}
 	// Special case for single integer arguments.
-	expr, isExpr := lhs.(*Expression).Parts[1].(*Expression)
+	expr, isExpr := lhs.(*expreduceapi.Expression).Parts[1].(*expreduceapi.Expression)
 	if isExpr && len(expr.Parts) == 2 {
 		if _, isInt := expr.Parts[1].(*Integer); isInt {
 			return 110
@@ -429,7 +414,7 @@ func ruleSpecificity(lhs Ex, rhs Ex, name string, es *EvalState) int {
 	return specificity
 }
 
-func (this *EvalState) Define(lhs Ex, rhs Ex) {
+func (this *expreduceapi.EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	if this.IsFrozen() {
 		return
 	}
@@ -440,7 +425,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 	if ok {
 		name = LhsSym.Name
 	}
-	LhsF, ok := lhs.(*Expression)
+	LhsF, ok := lhs.(*expreduceapi.Expression)
 	if ok {
 		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
 		if headIsSym {
@@ -485,7 +470,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 		newDef := Def{
 			downvalues: []DownValue{
 				DownValue{
-					rule: NewExpression([]Ex{
+					rule: NewExpression([]expreduceapi.Ex{
 						NewSymbol("System`Rule"), heldLhs, rhs,
 					}),
 				},
@@ -526,7 +511,7 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			)
 		}
 		if dv.specificity < newSpecificity {
-			newRule := NewExpression([]Ex{NewSymbol("System`Rule"), heldLhs, rhs})
+			newRule := NewExpression([]expreduceapi.Ex{NewSymbol("System`Rule"), heldLhs, rhs})
 			tmp.downvalues = append(
 				tmp.downvalues[:i],
 				append(
@@ -541,15 +526,15 @@ func (this *EvalState) Define(lhs Ex, rhs Ex) {
 			return
 		}
 	}
-	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]Ex{NewSymbol("System`Rule"), heldLhs, rhs})})
+	tmp.downvalues = append(tmp.downvalues, DownValue{rule: NewExpression([]expreduceapi.Ex{NewSymbol("System`Rule"), heldLhs, rhs})})
 	this.defined.Set(name, tmp)
 }
 
-func (this *EvalState) ClearAll() {
+func (this *expreduceapi.EvalState) ClearAll() {
 	this.Init(!this.NoInit)
 }
 
-func (this *EvalState) Clear(name string) {
+func (this *expreduceapi.EvalState) Clear(name string) {
 	_, ok := this.defined.Get(name)
 	if ok {
 		this.defined.Set(name, Def{})
@@ -557,19 +542,19 @@ func (this *EvalState) Clear(name string) {
 	}
 }
 
-func (this *EvalState) GetDefinedSnapshot() definitionMap {
+func (this *expreduceapi.EvalState) GetDefinedSnapshot() definitionMap {
 	return this.defined.CopyDefs()
 }
 
-func (this *EvalState) IsFrozen() bool {
+func (this *expreduceapi.EvalState) IsFrozen() bool {
 	return this.freeze
 }
 
-func (this *EvalState) SetFrozen(frozen bool) {
+func (this *expreduceapi.EvalState) SetFrozen(frozen bool) {
 	this.freeze = frozen
 }
 
-func (this *EvalState) GetStringDef(name string, defaultVal string) string {
+func (this *expreduceapi.EvalState) GetStringDef(name string, defaultVal string) string {
 	nameSym := NewSymbol(name)
 	def, isDef, _ := this.GetDef(name, nameSym)
 	if !isDef {
@@ -582,32 +567,32 @@ func (this *EvalState) GetStringDef(name string, defaultVal string) string {
 	return defString.Val
 }
 
-func (this *EvalState) GetListDef(name string) *Expression {
+func (this *expreduceapi.EvalState) GetListDef(name string) *expreduceapi.Expression {
 	nameSym := NewSymbol(name)
 	def, isDef, _ := this.GetDef(name, nameSym)
 	if !isDef {
-		return NewExpression([]Ex{NewSymbol("System`List")})
+		return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 	}
 	defList, defIsList := HeadAssertion(def, "System`List")
 	if !defIsList {
-		return NewExpression([]Ex{NewSymbol("System`List")})
+		return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 	}
 	return defList
 }
 
-func (es *EvalState) Throw(e *Expression) {
+func (es *expreduceapi.EvalState) Throw(e *expreduceapi.Expression) {
 	es.thrown = e
 }
 
-func (es *EvalState) HasThrown() bool {
+func (es *expreduceapi.EvalState) HasThrown() bool {
 	return es.thrown != nil
 }
 
-func (es *EvalState) ProcessTopLevelResult(in Ex, out Ex) Ex {
+func (es *expreduceapi.EvalState) ProcessTopLevelResult(in expreduceapi.Ex, out expreduceapi.Ex) expreduceapi.Ex {
 	theRes := out
 	if es.HasThrown() {
 		fmt.Printf("Throw::nocatch: %v returned to top level but uncaught.\n\n", es.thrown)
-		theRes = NewExpression([]Ex{
+		theRes = NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Hold"),
 			es.thrown,
 		})
@@ -627,10 +612,10 @@ func (es *EvalState) ProcessTopLevelResult(in Ex, out Ex) Ex {
 	return theRes
 }
 
-func maskNonConditional(e Ex) Ex {
-	var res Ex = NewSymbol("System`ExpreduceNonConditional")
+func maskNonConditional(e expreduceapi.Ex) expreduceapi.Ex {
+	var res expreduceapi.Ex = NewSymbol("System`ExpreduceNonConditional")
 	if asHead, isHead := HeadAssertion(e, "System`Condition"); isHead {
-		res = NewExpression([]Ex{
+		res = NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Condition"),
 			maskNonConditional(asHead.Parts[1]),
 			asHead.Parts[2],
@@ -641,7 +626,7 @@ func maskNonConditional(e Ex) Ex {
 		if asHead, isHead := HeadAssertion(e, head); isHead {
 			if len(asHead.Parts) == 3 {
 				if _, hasCond := HeadAssertion(asHead.Parts[2], "System`Condition"); hasCond {
-					res = NewExpression([]Ex{
+					res = NewExpression([]expreduceapi.Ex{
 						NewSymbol(head),
 						asHead.Parts[1],
 						maskNonConditional(asHead.Parts[2]),

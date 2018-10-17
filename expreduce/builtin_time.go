@@ -1,12 +1,16 @@
 package expreduce
 
-import "math/big"
-import "time"
+import (
+	"math/big"
+	"time"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func GetTimeDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "UnixTime",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 1 {
 				return this
 			}
@@ -16,7 +20,7 @@ func GetTimeDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Pause",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

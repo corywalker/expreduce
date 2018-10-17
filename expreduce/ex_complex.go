@@ -4,15 +4,17 @@ import (
 	"encoding/binary"
 	"fmt"
 	"hash/fnv"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 type Complex struct {
-	Re        Ex
-	Im        Ex
+	Re        expreduceapi.Ex
+	Im        expreduceapi.Ex
 	needsEval bool
 }
 
-func (this *Complex) Eval(es *EvalState) Ex {
+func (this *Complex) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	this.Re = this.Re.Eval(es)
 	this.Im = this.Im.Eval(es)
 	if IsSameQ(this.Im, NewInt(0), &es.CASLogger) {
@@ -36,7 +38,7 @@ func (this *Complex) String(esi EvalStateInterface) string {
 		form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
-func (this *Complex) IsEqual(other Ex) string {
+func (this *Complex) IsEqual(other expreduceapi.Ex) string {
 	otherConv, otherIsComplex := other.(*Complex)
 	if !otherIsComplex {
 		return "EQUAL_FALSE"
@@ -47,11 +49,11 @@ func (this *Complex) IsEqual(other Ex) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *Complex) DeepCopy() Ex {
+func (this *Complex) DeepCopy() expreduceapi.Ex {
 	return &Complex{this.Re.DeepCopy(), this.Im.DeepCopy(), this.needsEval}
 }
 
-func (this *Complex) Copy() Ex {
+func (this *Complex) Copy() expreduceapi.Ex {
 	return this.DeepCopy()
 }
 
@@ -59,7 +61,7 @@ func (this *Complex) NeedsEval() bool {
 	return this.needsEval
 }
 
-func NewComplex(r Ex, i Ex) *Complex {
+func NewComplex(r expreduceapi.Ex, i expreduceapi.Ex) *Complex {
 	return &Complex{r, i, true}
 }
 
@@ -74,7 +76,7 @@ func (this *Complex) Hash() uint64 {
 	return h.Sum64()
 }
 
-func (this *Complex) addReal(e Ex) {
+func (this *Complex) addReal(e expreduceapi.Ex) {
 	a, _ := computeNumericPart(FoldFnAdd, E(S("Dummy"), this.Re, e))
 	this.Re = a
 	this.needsEval = true
@@ -100,7 +102,7 @@ func (this *Complex) AddC(c *Complex) {
 	this.needsEval = true
 }
 
-func (this *Complex) mulReal(e Ex) {
+func (this *Complex) mulReal(e expreduceapi.Ex) {
 	a, _ := computeNumericPart(FoldFnMul, E(S("Dummy"), this.Re, e))
 	b, _ := computeNumericPart(FoldFnMul, E(S("Dummy"), this.Im, e))
 	this.Re = a

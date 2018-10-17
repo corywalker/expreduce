@@ -1,9 +1,11 @@
 package expreduce
 
+import "github.com/corywalker/expreduce/pkg/expreduceapi"
+
 func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Rational",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -17,11 +19,11 @@ func getAtomsDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Complex",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
-			validComplexType := func(e Ex) bool {
+			validComplexType := func(e expreduceapi.Ex) bool {
 				switch e.(type) {
 				case *Integer:
 					return true

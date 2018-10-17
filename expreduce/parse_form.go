@@ -1,21 +1,24 @@
 package expreduce
 
-import "github.com/corywalker/expreduce/expreduce/logging"
+import (
+	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 type parsedForm struct {
 	startI      int
 	endI        int
-	form        Ex
-	origForm    Ex
+	form        expreduceapi.Ex
+	origForm    expreduceapi.Ex
 	isBlank     bool
 	isImpliedBs bool
 	isOptional  bool
-	defaultExpr Ex
+	defaultExpr expreduceapi.Ex
 	hasPat      bool
 	patSym      *Symbol
 }
 
-func ParseRepeated(e *Expression) (Ex, int, int, bool) {
+func ParseRepeated(e *expreduceapi.Expression) (expreduceapi.Ex, int, int, bool) {
 	min, max := -1, -1
 	if len(e.Parts) < 2 {
 		return nil, min, max, false
@@ -39,7 +42,7 @@ func ParseRepeated(e *Expression) (Ex, int, int, bool) {
 	return e.Parts[1], min, max, true
 }
 
-func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault Ex, cl *logging.CASLogger) (res parsedForm) {
+func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl *logging.CASLogger) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	toParse := lhs_component
 	optional, isOptional := HeadAssertion(toParse, "System`Optional")
@@ -74,7 +77,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 	form := toParse
 	startI := 1 // also includes implied blanksequence
 	endI := 1
-	var defaultExpr Ex
+	var defaultExpr expreduceapi.Ex
 
 	if isOptional {
 		defaultToUse := headDefault
@@ -106,7 +109,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 			if isSym {
 				// If we have a pattern like k__Plus
 				if sym.Name == sequenceHead {
-					form = NewExpression([]Ex{NewSymbol("System`Blank")})
+					form = NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank")})
 					startI = 2
 				} else {
 					endI = 1
@@ -141,7 +144,7 @@ func ParseForm(lhs_component Ex, isFlat bool, sequenceHead string, headDefault E
 	}
 
 	if isPatTest {
-		form = NewExpression([]Ex{patTest.Parts[0], form, patTest.Parts[2]})
+		form = NewExpression([]expreduceapi.Ex{patTest.Parts[0], form, patTest.Parts[2]})
 	}
 
 	res.startI = startI

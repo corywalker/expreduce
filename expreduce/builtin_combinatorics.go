@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 // Used for the IntegerPartitions builtin
@@ -24,7 +25,7 @@ func genIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]in
 }
 
 // Used for the Permutations builtin
-func permListContains(permList [][]Ex, perm []Ex, cl *logging.CASLogger) bool {
+func permListContains(permList [][]expreduceapi.Ex, perm []expreduceapi.Ex, cl *logging.CASLogger) bool {
 	for _, permInList := range permList {
 		if len(permInList) != len(perm) {
 			continue
@@ -44,25 +45,25 @@ func permListContains(permList [][]Ex, perm []Ex, cl *logging.CASLogger) bool {
 }
 
 // Used for the Permutations builtin
-func genPermutations(parts []Ex, cl *logging.CASLogger) (perms [][]Ex) {
+func genPermutations(parts []expreduceapi.Ex, cl *logging.CASLogger) (perms [][]expreduceapi.Ex) {
 	// Base case
 	if len(parts) == 1 {
-		return [][]Ex{parts}
+		return [][]expreduceapi.Ex{parts}
 	}
 	// Recursion
-	toReturn := [][]Ex{}
+	toReturn := [][]expreduceapi.Ex{}
 	for i, first := range parts {
 		// We must make a copy of "parts" because selecting "others" actually
 		// modifies "parts" and corrupts it.
-		copyParts := make([]Ex, len(parts))
+		copyParts := make([]expreduceapi.Ex, len(parts))
 		copy(copyParts, parts)
 		others := append(copyParts[:i], copyParts[i+1:]...)
 		// TODO: This might be bad for memory complexity.
 		otherPerms := genPermutations(others, cl)
 		for _, perm := range otherPerms {
-			prepended := make([]Ex, len(perm))
+			prepended := make([]expreduceapi.Ex, len(perm))
 			copy(prepended, perm)
-			perm = append([]Ex{first}, perm...)
+			perm = append([]expreduceapi.Ex{first}, perm...)
 			// TODO: And this is bad for time complexity:
 			if !permListContains(toReturn, perm, cl) {
 				toReturn = append(toReturn, perm)
@@ -91,7 +92,7 @@ func factorial(n *big.Int) (result *big.Int) {
 func getCombinatoricsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "IntegerPartitions",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 && len(this.Parts) != 3 {
 				return this
 			}
@@ -113,17 +114,17 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 
 			cmpVal := n.Val.Cmp(big.NewInt(0))
 			if cmpVal == -1 {
-				return NewExpression([]Ex{NewSymbol("System`List")})
+				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			} else if cmpVal == 0 {
-				return NewExpression([]Ex{NewSymbol("System`List"), NewExpression([]Ex{NewSymbol("System`List")})})
+				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})})
 			}
 
 			var parts [][]int
 			genIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
 
-			exParts := NewExpression([]Ex{NewSymbol("System`List")})
+			exParts := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			for _, partition := range parts {
-				toAppend := NewExpression([]Ex{NewSymbol("System`List")})
+				toAppend := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for _, integer := range partition {
 					toAppend.Parts = append(toAppend.Parts, NewInteger(big.NewInt(int64(integer))))
 				}
@@ -135,21 +136,21 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Permutations",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
 
-			list, listIsExpr := this.Parts[1].(*Expression)
+			list, listIsExpr := this.Parts[1].(*expreduceapi.Expression)
 			if !listIsExpr {
 				return this
 			}
 
 			perms := genPermutations(list.Parts[1:], &es.CASLogger)
 
-			exPerms := NewExpression([]Ex{NewSymbol("System`List")})
+			exPerms := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			for _, perm := range perms {
-				toAppend := NewExpression([]Ex{NewSymbol("System`List")})
+				toAppend := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for _, ex := range perm {
 					toAppend.Parts = append(toAppend.Parts, ex)
 				}
@@ -164,7 +165,7 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Factorial",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}

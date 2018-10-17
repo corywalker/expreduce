@@ -1,9 +1,13 @@
 package expreduce
 
-import "math/big"
-import "strings"
+import (
+	"math/big"
+	"strings"
 
-func ExArrayContainsFloat(a []Ex) bool {
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
+
+func ExArrayContainsFloat(a []expreduceapi.Ex) bool {
 	res := false
 	for _, e := range a {
 		_, isfloat := e.(*Flt)
@@ -12,7 +16,7 @@ func ExArrayContainsFloat(a []Ex) bool {
 	return res
 }
 
-func RationalAssertion(num Ex, den Ex) (r *Rational, isR bool) {
+func RationalAssertion(num expreduceapi.Ex, den expreduceapi.Ex) (r *Rational, isR bool) {
 	numInt, numIsInt := num.(*Integer)
 	denPow, denIsPow := HeadAssertion(den, "System`Power")
 	if !numIsInt || !denIsPow {
@@ -39,7 +43,7 @@ const (
 	FoldFnMul
 )
 
-func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) Ex {
+func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) expreduceapi.Ex {
 	if c != nil {
 		toReturn := c
 		if f != nil {
@@ -100,7 +104,7 @@ func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) Ex {
 	return nil
 }
 
-func computeNumericPart(fn FoldFn, e *Expression) (Ex, int) {
+func computeNumericPart(fn FoldFn, e *expreduceapi.Expression) (expreduceapi.Ex, int) {
 	var foldedInt *Integer
 	var foldedRat *Rational
 	var foldedFlt *Flt
@@ -170,7 +174,7 @@ func computeNumericPart(fn FoldFn, e *Expression) (Ex, int) {
 
 // Define a special NumberQ for our purposes since this logic does not support
 // complex numbers yet. TODO(corywalker): fix this.
-func numberQForTermCollection(e Ex) bool {
+func numberQForTermCollection(e expreduceapi.Ex) bool {
 	// _, ok := e.(*Complex)
 	// if ok {
 	// 	return false
@@ -178,10 +182,10 @@ func numberQForTermCollection(e Ex) bool {
 	return numberQ(e)
 }
 
-func splitTerm(e Ex) (Ex, Ex, bool) {
+func splitTerm(e expreduceapi.Ex) (expreduceapi.Ex, expreduceapi.Ex, bool) {
 	asSym, isSym := e.(*Symbol)
 	if isSym {
-		return NewInteger(big.NewInt(1)), NewExpression([]Ex{
+		return NewInteger(big.NewInt(1)), NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Times"),
 			asSym,
 		}), true
@@ -193,15 +197,15 @@ func splitTerm(e Ex) (Ex, Ex, bool) {
 		}
 		if numberQForTermCollection(asTimes.Parts[1]) {
 			if len(asTimes.Parts) > 2 {
-				return asTimes.Parts[1], NewExpression(append([]Ex{NewSymbol("System`Times")}, asTimes.Parts[2:]...)), true
+				return asTimes.Parts[1], NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.Parts[2:]...)), true
 			}
 		} else {
-			return NewInteger(big.NewInt(1)), NewExpression(append([]Ex{NewSymbol("System`Times")}, asTimes.Parts[1:]...)), true
+			return NewInteger(big.NewInt(1)), NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.Parts[1:]...)), true
 		}
 	}
-	asExpr, isExpr := e.(*Expression)
+	asExpr, isExpr := e.(*expreduceapi.Expression)
 	if isExpr {
-		return NewInteger(big.NewInt(1)), NewExpression([]Ex{
+		return NewInteger(big.NewInt(1)), NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Times"),
 			asExpr,
 		}), true
@@ -209,17 +213,17 @@ func splitTerm(e Ex) (Ex, Ex, bool) {
 	return nil, nil, false
 }
 
-func collectedToTerm(coeffs []Ex, vars Ex, fullPart Ex) Ex {
+func collectedToTerm(coeffs []expreduceapi.Ex, vars expreduceapi.Ex, fullPart expreduceapi.Ex) expreduceapi.Ex {
 	// Preserve the original expression if there is no need to change it.
 	// We can keep all the cached values like the hash.
 	if len(coeffs) == 1 {
 		return fullPart
 	}
 
-	finalC, _ := computeNumericPart(FoldFnAdd, NewExpression(append([]Ex{
+	finalC, _ := computeNumericPart(FoldFnAdd, NewExpression(append([]expreduceapi.Ex{
 		NewSymbol("System`Plus")}, coeffs...)))
 
-	toAdd := NewExpression([]Ex{NewSymbol("System`Times")})
+	toAdd := NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
 	cAsInt, cIsInt := finalC.(*Integer)
 	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
 		toAdd.Parts = append(toAdd.Parts, finalC)
@@ -235,16 +239,16 @@ func collectedToTerm(coeffs []Ex, vars Ex, fullPart Ex) Ex {
 	return toAdd
 }
 
-func collectTerms(e *Expression) *Expression {
-	collected := NewExpression([]Ex{NewSymbol("System`Plus")})
-	var lastVars Ex
-	var lastFullPart Ex
-	lastCoeffs := []Ex{}
+func collectTerms(e *expreduceapi.Expression) *expreduceapi.Expression {
+	collected := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
+	var lastVars expreduceapi.Ex
+	var lastFullPart expreduceapi.Ex
+	lastCoeffs := []expreduceapi.Ex{}
 	for _, part := range e.Parts[1:] {
 		coeff, vars, isTerm := splitTerm(part)
 		if isTerm {
 			if lastVars == nil {
-				lastCoeffs = []Ex{coeff}
+				lastCoeffs = []expreduceapi.Ex{coeff}
 				lastVars = vars
 				lastFullPart = part
 			} else {
@@ -253,7 +257,7 @@ func collectTerms(e *Expression) *Expression {
 				} else {
 					collected.Parts = append(collected.Parts, collectedToTerm(lastCoeffs, lastVars, lastFullPart))
 
-					lastCoeffs = []Ex{coeff}
+					lastCoeffs = []expreduceapi.Ex{coeff}
 					lastVars = vars
 					lastFullPart = part
 				}
@@ -272,10 +276,10 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Plus",
 		Default: "0",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " + ", "System`Plus", params)
 		},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			// Calls without argument receive identity values
 			if len(this.Parts) == 1 {
 				return NewInteger(big.NewInt(0))
@@ -287,7 +291,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 				if symStart == -1 {
 					return realPart
 				}
-				res = NewExpression([]Ex{NewSymbol("System`Plus")})
+				res = NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 				rAsInt, rIsInt := realPart.(*Integer)
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0) {
 					res.Parts = append(res.Parts, realPart)
@@ -314,14 +318,14 @@ func getArithmeticDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Sum",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			return this.evalIterationFunc(es, NewInteger(big.NewInt(0)), "System`Plus")
 		},
 	})
 	defs = append(defs, Definition{
 		Name:    "Times",
 		Default: "1",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
 			delim := "*"
 			if params.form == "TeXForm" {
 				delim = " "
@@ -332,7 +336,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			}
 			return ok, res
 		},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			// Calls without argument receive identity values
 			if len(this.Parts) == 1 {
 				return NewInteger(big.NewInt(1))
@@ -344,10 +348,10 @@ func getArithmeticDefinitions() (defs []Definition) {
 				if symStart == -1 {
 					return realPart
 				}
-				res = NewExpression([]Ex{NewSymbol("System`Times")})
+				res = NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
 				rAsInt, rIsInt := realPart.(*Integer)
 				if rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0 {
-					containsInfinity := MemberQ(this.Parts[symStart:], NewExpression([]Ex{
+					containsInfinity := MemberQ(this.Parts[symStart:], NewExpression([]expreduceapi.Ex{
 						NewSymbol("System`Alternatives"),
 						NewSymbol("System`Infinity"),
 						NewSymbol("System`ComplexInfinity"),
@@ -376,10 +380,10 @@ func getArithmeticDefinitions() (defs []Definition) {
 				rightplus, rightplusok := HeadAssertion(res.Parts[2], "System`Plus")
 				if leftintok && rightplusok {
 					if leftint.Val.Cmp(big.NewInt(-1)) == 0 {
-						toreturn := NewExpression([]Ex{NewSymbol("System`Plus")})
+						toreturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 						addends := rightplus.Parts[1:len(rightplus.Parts)]
 						for i := range addends {
-							toAppend := NewExpression([]Ex{
+							toAppend := NewExpression([]expreduceapi.Ex{
 								NewSymbol("System`Times"),
 								addends[i],
 								NewInteger(big.NewInt(-1)),
@@ -401,7 +405,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Product",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			return this.evalIterationFunc(es, NewInteger(big.NewInt(1)), "System`Times")
 		},
 	})

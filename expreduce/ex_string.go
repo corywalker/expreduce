@@ -3,13 +3,11 @@ package expreduce
 import (
 	"fmt"
 	"hash/fnv"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-type String struct {
-	Val string
-}
-
-func (this *String) Eval(es *EvalState) Ex {
+func (this *String) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	return this
 }
 
@@ -27,7 +25,7 @@ func (this *String) String(esi EvalStateInterface) string {
 	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
-func (this *String) IsEqual(other Ex) string {
+func (this *String) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*String)
 	if !ok {
 		return "EQUAL_FALSE"
@@ -38,12 +36,12 @@ func (this *String) IsEqual(other Ex) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *String) DeepCopy() Ex {
+func (this *String) DeepCopy() expreduceapi.Ex {
 	thiscopy := *this
 	return &thiscopy
 }
 
-func (this *String) Copy() Ex {
+func (this *String) Copy() expreduceapi.Ex {
 	return this.DeepCopy()
 }
 

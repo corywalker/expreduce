@@ -1,35 +1,39 @@
 package expreduce
 
-import "math/big"
+import (
+	"math/big"
+
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 type iterSpec interface {
 	// Should be called before every iteration:
 	reset()
 	next()
 	cont() bool
-	getCurr() Ex
-	getI() Ex
+	getCurr() expreduceapi.Ex
+	getI() expreduceapi.Ex
 	getIName() string
 }
 
 type iterSpecRange struct {
-	i     Ex
+	i     expreduceapi.Ex
 	iName string
-	iMin  Ex
-	iMax  Ex
-	step  Ex
-	curr  Ex
-	es    *EvalState
+	iMin  expreduceapi.Ex
+	iMax  expreduceapi.Ex
+	step  expreduceapi.Ex
+	curr  expreduceapi.Ex
+	es    *expreduceapi.EvalState
 }
 
 type iterSpecList struct {
-	i     Ex
+	i     expreduceapi.Ex
 	iName string
 	pos   int
-	list  *Expression
+	list  *expreduceapi.Expression
 }
 
-func tryIterParam(e Ex) (Ex, bool) {
+func tryIterParam(e expreduceapi.Ex) (expreduceapi.Ex, bool) {
 	if _, isInt := e.(*Integer); isInt {
 		return e, true
 	}
@@ -45,7 +49,7 @@ func tryIterParam(e Ex) (Ex, bool) {
 	return nil, false
 }
 
-func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
+func iterSpecFromList(es *expreduceapi.EvalState, listEx expreduceapi.Ex) (iterSpec, bool) {
 	isr := &iterSpecRange{}
 	isr.es = es
 	isl := &iterSpecList{}
@@ -61,7 +65,7 @@ func iterSpecFromList(es *EvalState, listEx Ex) (iterSpec, bool) {
 				isr.i, isl.i = iAsSymbol, iAsSymbol
 				isr.iName, isl.iName = iAsSymbol.Name, iAsSymbol.Name
 			}
-			iAsExpression, iIsExpression := list.Parts[1].(*Expression)
+			iAsExpression, iIsExpression := list.Parts[1].(*expreduceapi.Expression)
 			if iIsExpression {
 				headAsSymbol, headIsSymbol := iAsExpression.Parts[0].(*Symbol)
 				if headIsSymbol {
@@ -115,11 +119,11 @@ func (this *iterSpecRange) cont() bool {
 	return ExOrder(this.curr, this.iMax) >= 0
 }
 
-func (this *iterSpecRange) getCurr() Ex {
+func (this *iterSpecRange) getCurr() expreduceapi.Ex {
 	return this.curr
 }
 
-func (this *iterSpecRange) getI() Ex {
+func (this *iterSpecRange) getI() expreduceapi.Ex {
 	return this.i
 }
 
@@ -139,11 +143,11 @@ func (this *iterSpecList) cont() bool {
 	return this.pos < len(this.list.Parts)
 }
 
-func (this *iterSpecList) getCurr() Ex {
+func (this *iterSpecList) getCurr() expreduceapi.Ex {
 	return this.list.Parts[this.pos]
 }
 
-func (this *iterSpecList) getI() Ex {
+func (this *iterSpecList) getI() expreduceapi.Ex {
 	return this.i
 }
 
@@ -153,12 +157,12 @@ func (this *iterSpecList) getIName() string {
 
 type multiIterSpec struct {
 	iSpecs     []iterSpec
-	origDefs   []Ex
+	origDefs   []expreduceapi.Ex
 	isOrigDefs []bool
 	shouldCont bool
 }
 
-func multiIterSpecFromLists(es *EvalState, lists []Ex) (mis multiIterSpec, isOk bool) {
+func multiIterSpecFromLists(es *expreduceapi.EvalState, lists []expreduceapi.Ex) (mis multiIterSpec, isOk bool) {
 	// Retrieve variables of iteration
 	mis.shouldCont = true
 	for i := range lists {
@@ -187,15 +191,15 @@ func (this *multiIterSpec) cont() bool {
 	return this.shouldCont
 }
 
-func (this *multiIterSpec) takeVarSnapshot(es *EvalState) {
-	this.origDefs = make([]Ex, len(this.iSpecs))
+func (this *multiIterSpec) takeVarSnapshot(es *expreduceapi.EvalState) {
+	this.origDefs = make([]expreduceapi.Ex, len(this.iSpecs))
 	this.isOrigDefs = make([]bool, len(this.iSpecs))
 	for i := range this.iSpecs {
 		this.origDefs[i], this.isOrigDefs[i], _ = es.GetDef(this.iSpecs[i].getIName(), this.iSpecs[i].getI())
 	}
 }
 
-func (this *multiIterSpec) restoreVarSnapshot(es *EvalState) {
+func (this *multiIterSpec) restoreVarSnapshot(es *expreduceapi.EvalState) {
 	for i := range this.iSpecs {
 		if this.isOrigDefs[i] {
 			es.Define(this.iSpecs[i].getI(), this.origDefs[i])
@@ -205,30 +209,30 @@ func (this *multiIterSpec) restoreVarSnapshot(es *EvalState) {
 	}
 }
 
-func (this *multiIterSpec) defineCurrent(es *EvalState) {
+func (this *multiIterSpec) defineCurrent(es *expreduceapi.EvalState) {
 	for i := range this.iSpecs {
 		es.Define(this.iSpecs[i].getI(), this.iSpecs[i].getCurr())
 	}
 }
 
 func (this *multiIterSpec) currentPDManager() *PDManager {
-	pm := &PDManager{make(map[string]Ex)}
+	pm := &PDManager{make(map[string]expreduceapi.Ex)}
 	for i := range this.iSpecs {
 		pm.patternDefined[this.iSpecs[i].getIName()] = this.iSpecs[i].getCurr()
 	}
 	return pm
 }
 
-func (this *Expression) evalIterationFunc(es *EvalState, init Ex, op string) Ex {
+func (this *expreduceapi.Expression) evalIterationFunc(es *expreduceapi.EvalState, init expreduceapi.Ex, op string) expreduceapi.Ex {
 	if len(this.Parts) >= 3 {
 		mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
 		if isOk {
 			// Simulate evaluation within Block[]
 			mis.takeVarSnapshot(es)
-			var toReturn Ex = init
+			var toReturn expreduceapi.Ex = init
 			for mis.cont() {
 				mis.defineCurrent(es)
-				toReturn = (NewExpression([]Ex{NewSymbol(op), toReturn, this.Parts[1].DeepCopy().Eval(es)})).Eval(es)
+				toReturn = (NewExpression([]expreduceapi.Ex{NewSymbol(op), toReturn, this.Parts[1].DeepCopy().Eval(es)})).Eval(es)
 				mis.next()
 			}
 			mis.restoreVarSnapshot(es)
@@ -238,12 +242,12 @@ func (this *Expression) evalIterationFunc(es *EvalState, init Ex, op string) Ex 
 	return this
 }
 
-func evalIterSpecCandidate(es *EvalState, cand Ex) Ex {
+func evalIterSpecCandidate(es *expreduceapi.EvalState, cand expreduceapi.Ex) expreduceapi.Ex {
 	// Special handling for Lists, which might have variables of iteration in
 	// them.
 	list, isList := HeadAssertion(cand, "System`List")
 	if isList {
-		toReturn := NewExpression([]Ex{NewSymbol("System`List")})
+		toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 		for i := 1; i < len(list.Parts); i++ {
 			toAdd := list.Parts[i].DeepCopy()
 			// Do not evaluate the variable of iteration. Even if "n" is

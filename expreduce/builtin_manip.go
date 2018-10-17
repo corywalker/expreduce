@@ -1,13 +1,15 @@
 package expreduce
 
-func distribute(e *Expression, built *Expression, res *Expression) {
+import "github.com/corywalker/expreduce/pkg/expreduceapi"
+
+func distribute(e *expreduceapi.Expression, built *expreduceapi.Expression, res *expreduceapi.Expression) {
 	i := len(built.Parts)
 	if i >= len(e.Parts) {
 		res.Parts = append(res.Parts, built)
 		return
 	}
 	shouldDistribute := false
-	partAsExpr, partIsExpr := e.Parts[i].(*Expression)
+	partAsExpr, partIsExpr := e.Parts[i].(*expreduceapi.Expression)
 	if partIsExpr {
 		if hashEx(partAsExpr.Parts[0]) == hashEx(res.Parts[0]) {
 			shouldDistribute = true
@@ -37,17 +39,17 @@ func GetManipDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Distribute",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
 
-			expr, isExpr := this.Parts[1].(*Expression)
+			expr, isExpr := this.Parts[1].(*expreduceapi.Expression)
 			if !isExpr {
 				return this.Parts[1]
 			}
-			res := NewExpression([]Ex{this.Parts[2]})
-			firstBuilt := NewExpression([]Ex{expr.Parts[0]})
+			res := NewExpression([]expreduceapi.Ex{this.Parts[2]})
+			firstBuilt := NewExpression([]expreduceapi.Ex{expr.Parts[0]})
 			distribute(expr, firstBuilt, res)
 			return res
 		},
