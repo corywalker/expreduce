@@ -24,7 +24,7 @@ type Definition struct {
 	Details           string
 
 	// Map symbol to Eval() function
-	legacyEvalFn    (func(*expreduceapi.Expression, *expreduceapi.EvalState) expreduceapi.Ex)
+	legacyEvalFn    (func(*expreduceapi.ExpressionInterface, *expreduceapi.EvalStateInterface) expreduceapi.Ex)
 	SimpleExamples  []TestInstruction
 	FurtherExamples []TestInstruction
 	Tests           []TestInstruction
@@ -37,9 +37,9 @@ type Definition struct {
 	Default    string
 }
 
-func ToTestInstructions(tc *expreduceapi.Expression) []TestInstruction {
+func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 	instructions := []TestInstruction{}
-	for _, tiEx := range tc.Parts[1:] {
+	for _, tiEx := range tc.GetParts()[1:] {
 		if st, isSt := HeadAssertion(tiEx, "System`ESameTest"); isSt {
 			if len(st.Parts) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
@@ -98,7 +98,7 @@ func ToTestInstructions(tc *expreduceapi.Expression) []TestInstruction {
 	return instructions
 }
 
-func (def *Definition) AnnotateWithDynamicTests(es *expreduceapi.EvalState) {
+func (def *Definition) AnnotateWithDynamicTests(es expreduceapi.EvalStateInterface) {
 	tests, testsDef := es.GetSymDef("Tests`" + def.Name)
 	if !testsDef {
 		return
@@ -108,11 +108,11 @@ func (def *Definition) AnnotateWithDynamicTests(es *expreduceapi.EvalState) {
 		return
 	}
 	for _, testCol := range testsList.Parts[1:] {
-		testColExpr, testColIsExpr := testCol.(*expreduceapi.Expression)
+		testColExpr, testColIsExpr := testCol.(expreduceapi.ExpressionInterface)
 		if !testColIsExpr {
 			continue
 		}
-		headSym, headIsSym := testColExpr.Parts[0].(*Symbol)
+		headSym, headIsSym := testColExpr.GetParts()[0].(*Symbol)
 		if !headIsSym {
 			continue
 		}
@@ -142,7 +142,7 @@ func (def *Definition) AnnotateWithDynamicTests(es *expreduceapi.EvalState) {
 	}
 }
 
-func (def *Definition) AnnotateWithDynamicUsage(es *expreduceapi.EvalState) {
+func (def *Definition) AnnotateWithDynamicUsage(es expreduceapi.EvalStateInterface) {
 	if len(def.Usage) > 0 {
 		return
 	}
@@ -160,7 +160,7 @@ func (def *Definition) AnnotateWithDynamicUsage(es *expreduceapi.EvalState) {
 	}
 }
 
-func (def *Definition) AnnotateWithDynamic(es *expreduceapi.EvalState) {
+func (def *Definition) AnnotateWithDynamic(es *expreduceapi.EvalStateInterface) {
 	def.AnnotateWithDynamicTests(es)
 	def.AnnotateWithDynamicUsage(es)
 }

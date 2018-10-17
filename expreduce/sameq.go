@@ -20,8 +20,8 @@ func IsSameQ(a expreduceapi.Ex, b expreduceapi.Ex, cl *logging.CASLogger) bool {
 	_, bIsRational := b.(*Rational)
 	_, aIsComplex := a.(*Complex)
 	_, bIsComplex := b.(*Complex)
-	_, aIsExpression := a.(*expreduceapi.Expression)
-	_, bIsExpression := b.(*expreduceapi.Expression)
+	_, aIsExpression := a.(*expreduceapi.ExpressionInterface)
+	_, bIsExpression := b.(*expreduceapi.ExpressionInterface)
 
 	if (aIsFlt && bIsFlt) || (aIsString && bIsString) || (aIsInteger && bIsInteger) || (aIsSymbol && bIsSymbol) || (aIsRational && bIsRational) || (aIsComplex && bIsComplex) {
 		// a and b are identical raw types

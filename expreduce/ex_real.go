@@ -15,7 +15,7 @@ type Flt struct {
 	Val *big.Float
 }
 
-func (f *Flt) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
+func (f *Flt) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return f
 }
 
@@ -44,7 +44,7 @@ func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	return buffer.String()
 }
 
-func (this *Flt) String(esi EvalStateInterface) string {
+func (this *Flt) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }

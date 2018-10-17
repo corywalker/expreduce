@@ -24,7 +24,7 @@ func ToStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi
 func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "MatchQ",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -38,7 +38,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Pattern",
-		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -64,19 +64,19 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Blank",
-		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringBlankType("_", this.Parts, params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankSequence",
-		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringBlankType("__", this.Parts, params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankNullSequence",
-		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringBlankType("___", this.Parts, params)
 		},
 	})
@@ -97,7 +97,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReplaceList",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -121,7 +121,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Repeated"})
 	defs = append(defs, Definition{
 		Name: "Optional",
-		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}

@@ -19,9 +19,17 @@ import (
 var printevals = flag.Bool("printevals", false, "")
 var checkhashes = flag.Bool("checkhashes", false, "")
 
+type Expression struct {
+	Parts                 []expreduceapi.Ex
+	needsEval             bool
+	correctlyInstantiated bool
+	evaledHash            uint64
+	cachedHash            uint64
+}
+
 // Deprecated in favor of headExAssertion
-func HeadAssertion(ex expreduceapi.Ex, head string) (*expreduceapi.Expression, bool) {
-	expr, isExpr := ex.(*expreduceapi.Expression)
+func HeadAssertion(ex expreduceapi.Ex, head string) (*Expression, bool) {
+	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		sym, isSym := expr.Parts[0].(*Symbol)
 		if isSym {
@@ -33,8 +41,8 @@ func HeadAssertion(ex expreduceapi.Ex, head string) (*expreduceapi.Expression, b
 	return nil, false
 }
 
-func headExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl *logging.CASLogger) (*expreduceapi.Expression, bool) {
-	expr, isExpr := ex.(*expreduceapi.Expression)
+func headExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl *logging.CASLogger) (*Expression, bool) {
+	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		if IsSameQ(head, expr.Parts[0], cl) {
 			return expr, true
@@ -43,10 +51,10 @@ func headExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl *logging.CASLo
 	return nil, false
 }
 
-func OperatorAssertion(ex expreduceapi.Ex, opHead string) (*expreduceapi.Expression, *expreduceapi.Expression, bool) {
-	expr, isExpr := ex.(*expreduceapi.Expression)
+func OperatorAssertion(ex expreduceapi.Ex, opHead string) (*Expression, *Expression, bool) {
+	expr, isExpr := ex.(*Expression)
 	if isExpr {
-		headExpr, headIsExpr := expr.Parts[0].(*expreduceapi.Expression)
+		headExpr, headIsExpr := expr.Parts[0].(*Expression)
 		if headIsExpr {
 			sym, isSym := headExpr.Parts[0].(*Symbol)
 			if isSym {
@@ -59,7 +67,7 @@ func OperatorAssertion(ex expreduceapi.Ex, opHead string) (*expreduceapi.Express
 	return nil, nil, false
 }
 
-func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es *expreduceapi.EvalState) (expreduceapi.Ex, bool) {
+func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	if es.interrupted {
 		if origEx != nil {
 			fmt.Println(origEx)
@@ -78,7 +86,7 @@ func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es *expreduceapi.
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
-func (this *expreduceapi.Expression) mergeSequences(es *expreduceapi.EvalState, headStr string, shouldEval bool) *expreduceapi.Expression {
+func (this *Expression) mergeSequences(es *expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *Expression {
 	encounteredSeq := false
 	for _, e := range this.Parts {
 		if _, isseq := HeadAssertion(e, headStr); isseq {
@@ -114,7 +122,7 @@ func (this *expreduceapi.Expression) mergeSequences(es *expreduceapi.EvalState, 
 	return res
 }
 
-func (this *expreduceapi.Expression) propagateConditionals() (*expreduceapi.Expression, bool) {
+func (this *Expression) propagateConditionals() (*Expression, bool) {
 	foundCond := false
 	for _, e := range this.Parts[1:] {
 		if cond, isCond := HeadAssertion(e, "System`ConditionalExpression"); isCond {
@@ -142,7 +150,7 @@ func (this *expreduceapi.Expression) propagateConditionals() (*expreduceapi.Expr
 	return this, false
 }
 
-func (this *expreduceapi.Expression) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
+func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	var origEx expreduceapi.Ex = this
 
 	lastExHash := uint64(0)
@@ -155,7 +163,7 @@ func (this *expreduceapi.Expression) Eval(es *expreduceapi.EvalState) expreducea
 	insideDefinition := false
 	for currExHash != lastExHash {
 		lastExHash = currExHash
-		curr, isExpr := currEx.(*expreduceapi.Expression)
+		curr, isExpr := currEx.(*Expression)
 		if *checkhashes {
 			if isExpr && curr.evaledHash != 0 && currExHash != curr.evaledHash {
 				fmt.Printf("invalid cache: %v. Used to be %v\n", curr, lastEx)
@@ -305,7 +313,7 @@ func (this *expreduceapi.Expression) Eval(es *expreduceapi.EvalState) expreducea
 			}
 			headStr := headSym.Name
 
-			legacyEvalFn, hasLegacyEvalFn := (func(*expreduceapi.Expression, *expreduceapi.EvalState) expreduceapi.Ex)(nil), false
+			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, *expreduceapi.EvalStateInterface) expreduceapi.Ex)(nil), false
 			if _, inDefined := es.defined.Get(headStr); inDefined {
 				if es.defined.GetDef(headStr).legacyEvalFn != nil {
 					hasLegacyEvalFn = true
@@ -339,7 +347,7 @@ func (this *expreduceapi.Expression) Eval(es *expreduceapi.EvalState) expreducea
 			es.timeCounter.AddTime(timecounter.CounterGroupHeadEvalTime, currHeadStr, elapsed)
 		}
 	}
-	curr, isExpr := currEx.(*expreduceapi.Expression)
+	curr, isExpr := currEx.(*Expression)
 	if isExpr {
 		curr.needsEval = false
 		curr.evaledHash = currExHash
@@ -347,7 +355,7 @@ func (this *expreduceapi.Expression) Eval(es *expreduceapi.EvalState) expreducea
 	return currEx
 }
 
-func (this *expreduceapi.Expression) EvalFunction(es *expreduceapi.EvalState, args []expreduceapi.Ex) expreduceapi.Ex {
+func (this *Expression) EvalFunction(es *expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
 	if len(this.Parts) == 2 {
 		toReturn := this.Parts[1].DeepCopy()
 		for i, arg := range args {
@@ -384,7 +392,7 @@ func (this *expreduceapi.Expression) EvalFunction(es *expreduceapi.EvalState, ar
 	return this
 }
 
-func (this *expreduceapi.Expression) ReplaceAll(r *expreduceapi.Expression, stopAtHead string, es *expreduceapi.EvalState) expreduceapi.Ex {
+func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.Debugf("Rule r is: %s", r)
 
@@ -396,7 +404,7 @@ func (this *expreduceapi.Expression) ReplaceAll(r *expreduceapi.Expression, stop
 	}
 
 	thisSym, thisSymOk := this.Parts[0].(*Symbol)
-	lhsExpr, lhsExprOk := r.Parts[1].(*expreduceapi.Expression)
+	lhsExpr, lhsExprOk := r.Parts[1].(*Expression)
 	if lhsExprOk {
 		otherSym, otherSymOk := lhsExpr.Parts[0].(*Symbol)
 		if thisSymOk && otherSymOk {
@@ -419,7 +427,7 @@ func (this *expreduceapi.Expression) ReplaceAll(r *expreduceapi.Expression, stop
 	return this
 }
 
-func (this *expreduceapi.Expression) StringForm(params expreduceapi.ToStringParams) string {
+func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm {
@@ -463,14 +471,14 @@ func (this *expreduceapi.Expression) StringForm(params expreduceapi.ToStringPara
 	return buffer.String()
 }
 
-func (this *expreduceapi.Expression) String(esi EvalStateInterface) string {
+func (this *Expression) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{
 		form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
-func (this *expreduceapi.Expression) IsEqual(otherEx expreduceapi.Ex) string {
-	other, ok := otherEx.(*expreduceapi.Expression)
+func (this *Expression) IsEqual(otherEx expreduceapi.Ex) string {
+	other, ok := otherEx.(*Expression)
 	if !ok {
 		return "EQUAL_UNK"
 	}
@@ -491,7 +499,7 @@ func (this *expreduceapi.Expression) IsEqual(otherEx expreduceapi.Ex) string {
 	return "EQUAL_TRUE"
 }
 
-func (this *expreduceapi.Expression) DeepCopy() expreduceapi.Ex {
+func (this *Expression) DeepCopy() expreduceapi.Ex {
 	var thiscopy = NewEmptyExpression()
 	for i := range this.Parts {
 		thiscopy.Parts = append(thiscopy.Parts, this.Parts[i].DeepCopy())
@@ -503,7 +511,7 @@ func (this *expreduceapi.Expression) DeepCopy() expreduceapi.Ex {
 	return thiscopy
 }
 
-func (this *expreduceapi.Expression) ShallowCopy() *expreduceapi.Expression {
+func (this *Expression) ShallowCopy() *Expression {
 	var thiscopy = NewEmptyExpression()
 	thiscopy.Parts = append([]expreduceapi.Ex{}, this.Parts...)
 	thiscopy.needsEval = this.needsEval
@@ -513,7 +521,7 @@ func (this *expreduceapi.Expression) ShallowCopy() *expreduceapi.Expression {
 	return thiscopy
 }
 
-func (this *expreduceapi.Expression) Copy() expreduceapi.Ex {
+func (this *Expression) Copy() expreduceapi.Ex {
 	var thiscopy = NewEmptyExpressionOfLength(len(this.Parts))
 	for i := range this.Parts {
 		thiscopy.Parts[i] = this.Parts[i].Copy()
@@ -526,31 +534,31 @@ func (this *expreduceapi.Expression) Copy() expreduceapi.Ex {
 }
 
 // Implement the sort.Interface
-func (this *expreduceapi.Expression) Len() int {
+func (this *Expression) Len() int {
 	return len(this.Parts) - 1
 }
 
-func (this *expreduceapi.Expression) Less(i, j int) bool {
+func (this *Expression) Less(i, j int) bool {
 	return ExOrder(this.Parts[i+1], this.Parts[j+1]) == 1
 }
 
-func (this *expreduceapi.Expression) Swap(i, j int) {
+func (this *Expression) Swap(i, j int) {
 	this.Parts[j+1], this.Parts[i+1] = this.Parts[i+1], this.Parts[j+1]
 }
 
-func (this *expreduceapi.Expression) appendEx(e expreduceapi.Ex) {
+func (this *Expression) appendEx(e expreduceapi.Ex) {
 	this.Parts = append(this.Parts, e)
 }
 
-func (this *expreduceapi.Expression) appendExArray(e []expreduceapi.Ex) {
+func (this *Expression) appendExArray(e []expreduceapi.Ex) {
 	this.Parts = append(this.Parts, e...)
 }
 
-func (this *expreduceapi.Expression) NeedsEval() bool {
+func (this *Expression) NeedsEval() bool {
 	return this.needsEval
 }
 
-func (this *expreduceapi.Expression) Hash() uint64 {
+func (this *Expression) Hash() uint64 {
 	if atomic.LoadUint64(&this.cachedHash) > 0 {
 		return this.cachedHash
 	}
@@ -565,7 +573,7 @@ func (this *expreduceapi.Expression) Hash() uint64 {
 	return h.Sum64()
 }
 
-func (this *expreduceapi.Expression) HeadStr() string {
+func (this *Expression) HeadStr() string {
 	sym, isSym := this.Parts[0].(*Symbol)
 	if isSym {
 		return sym.Name
@@ -573,33 +581,37 @@ func (this *expreduceapi.Expression) HeadStr() string {
 	return ""
 }
 
-func NewExpression(parts []expreduceapi.Ex) *expreduceapi.Expression {
-	return &expreduceapi.Expression{
+func NewExpression(parts []expreduceapi.Ex) *Expression {
+	return &expreduceapi.ExpressionInterface{
 		Parts:                 parts,
 		needsEval:             true,
 		correctlyInstantiated: true,
 	}
 }
 
-func E(parts ...expreduceapi.Ex) *expreduceapi.Expression {
+func E(parts ...expreduceapi.Ex) *Expression {
 	return NewExpression(parts)
 }
 
-func NewHead(head string) *expreduceapi.Expression {
+func NewHead(head string) *Expression {
 	return NewExpression([]expreduceapi.Ex{NewSymbol(head)})
 }
 
-func NewEmptyExpression() *expreduceapi.Expression {
-	return &expreduceapi.Expression{
+func NewEmptyExpression() *Expression {
+	return &expreduceapi.ExpressionInterface{
 		needsEval:             true,
 		correctlyInstantiated: true,
 	}
 }
 
-func NewEmptyExpressionOfLength(n int) *expreduceapi.Expression {
-	return &expreduceapi.Expression{
+func NewEmptyExpressionOfLength(n int) *Expression {
+	return &expreduceapi.ExpressionInterface{
 		Parts:                 make([]expreduceapi.Ex, n),
 		needsEval:             true,
 		correctlyInstantiated: true,
 	}
+}
+
+func (this *Expression) GetParts() []expreduceapi.Ex {
+	return this.Parts
 }

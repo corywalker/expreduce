@@ -15,7 +15,7 @@ type Symbol struct {
 	cachedHash uint64
 }
 
-func (this *Symbol) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
+func (this *Symbol) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	//definition, isdefined := es.defined[this.Name]
 	definition, isdefined, _ := es.GetDef(this.Name, this)
 	if isdefined {
@@ -72,7 +72,7 @@ func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 	return formatSymName(this.Name, params)
 }
 
-func (this *Symbol) String(esi EvalStateInterface) string {
+func (this *Symbol) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
@@ -103,10 +103,10 @@ func (this *Symbol) Copy() expreduceapi.Ex {
 	return this
 }
 
-func (this *Symbol) Attrs(dm *expreduceapi.DefinitionMap) Attributes {
+func (this *Symbol) Attrs(dm *expreduceapi.DefinitionMap) expreduceapi.Attributes {
 	def, isDef := (*dm).Get(this.Name)
 	if !isDef {
-		return Attributes{}
+		return expreduceapi.Attributes{}
 	}
 	return def.attributes
 }
@@ -119,8 +119,8 @@ func (this *Symbol) Default(dm *expreduceapi.DefinitionMap) expreduceapi.Ex {
 	return def.defaultExpr
 }
 
-func stringsToAttributes(strings []string) Attributes {
-	attrs := Attributes{}
+func stringsToAttributes(strings []string) expreduceapi.Attributes {
+	attrs := expreduceapi.Attributes{}
 	for _, s := range strings {
 		if s == "Orderless" {
 			attrs.Orderless = true
@@ -183,7 +183,7 @@ func stringsToAttributes(strings []string) Attributes {
 	return attrs
 }
 
-func (this *Attributes) toStrings() []string {
+func attrsToStrings(this *expreduceapi.Attributes) []string {
 	var strings []string
 	if this.Orderless {
 		strings = append(strings, "Orderless")
@@ -247,7 +247,7 @@ func (this *Attributes) toStrings() []string {
 	return strings
 }
 
-func (this *Attributes) toSymList() *expreduceapi.Expression {
+func attrsToSymList(this *expreduceapi.Attributes) *expreduceapi.ExpressionInterface {
 	toReturn := E(S("List"))
 	for _, s := range this.toStrings() {
 		toReturn.appendEx(S(s))
@@ -275,7 +275,7 @@ func ContainsSymbol(e expreduceapi.Ex, name string) bool {
 	if isSym {
 		return asSym.Name == name
 	}
-	asExpr, isExpr := e.(*expreduceapi.Expression)
+	asExpr, isExpr := e.(*expreduceapi.ExpressionInterface)
 	if isExpr {
 		for _, part := range asExpr.Parts {
 			if ContainsSymbol(part, name) {

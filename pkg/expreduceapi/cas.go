@@ -2,16 +2,11 @@
 
 package expreduceapi
 
-import (
-	"github.com/corywalker/expreduce/expreduce/logging"
-	"github.com/corywalker/expreduce/expreduce/timecounter"
-)
-
-type ToStringFnType (func(*Expression, ToStringParams) (bool, string))
+type ToStringFnType (func(ExpressionInterface, ToStringParams) (bool, string))
 type ToStringParams struct {
 	form         string
-	context      *String
-	contextPath  *Expression
+	context      StringInterface
+	contextPath  ExpressionInterface
 	previousHead string
 	// Used by Definition[]
 	esi EvalStateInterface
@@ -19,7 +14,7 @@ type ToStringParams struct {
 
 // The interface that fundamental types must implement.
 type Ex interface {
-	Eval(es *EvalState) Ex
+	Eval(es EvalStateInterface) Ex
 	// TODO(corywalker): Deprecate this function. All stringification should go
 	// through StringForm.
 	String(es EvalStateInterface) string
@@ -31,36 +26,19 @@ type Ex interface {
 	Hash() uint64
 }
 
-type EvalState struct {
-	// Embedded type for logging
-	logging.CASLogger
-
-	defined     DefinitionMap
-	trace       *Expression
-	NoInit      bool
-	timeCounter timecounter.Group
-	freeze      bool
-	thrown      *Expression
-	reapSown    *Expression
-	interrupted bool
-	toStringFns map[string]ToStringFnType
-}
-
 type EvalStateInterface interface {
 	GetDefined(name string) (Def, bool)
 	GetStringFn(headStr string) (ToStringFnType, bool)
 }
 
-type Expression struct {
-	Parts                 []Ex
-	needsEval             bool
-	correctlyInstantiated bool
-	evaledHash            uint64
-	cachedHash            uint64
+type ExpressionInterface interface {
+	Ex
+
+	GetParts() []Ex
 }
 
-type String struct {
-	Val string
+type StringInterface interface {
+	Ex
 }
 
 type DefinitionMap interface {
@@ -73,7 +51,7 @@ type DefinitionMap interface {
 }
 
 type DownValue struct {
-	rule        *Expression
+	rule        ExpressionInterface
 	specificity int
 }
 
@@ -83,7 +61,7 @@ type Def struct {
 	defaultExpr Ex
 
 	// A function defined here will override downvalues.
-	legacyEvalFn (func(*Expression, *EvalState) Ex)
+	legacyEvalFn (func(ExpressionInterface, EvalStateInterface) Ex)
 }
 
 // Functions for working with the attributes of symbols:

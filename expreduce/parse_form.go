@@ -18,7 +18,7 @@ type parsedForm struct {
 	patSym      *Symbol
 }
 
-func ParseRepeated(e *expreduceapi.Expression) (expreduceapi.Ex, int, int, bool) {
+func ParseRepeated(e *expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, int, bool) {
 	min, max := -1, -1
 	if len(e.Parts) < 2 {
 		return nil, min, max, false

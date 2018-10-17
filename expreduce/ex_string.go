@@ -7,7 +7,11 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func (this *String) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
+type String struct {
+	Val string
+}
+
+func (this *String) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return this
 }
 
@@ -20,7 +24,7 @@ func (this *String) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("\"%v\"", this.Val)
 }
 
-func (this *String) String(esi EvalStateInterface) string {
+func (this *String) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }

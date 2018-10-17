@@ -8,20 +8,36 @@ import (
 	"strings"
 	"time"
 
+	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func (es *expreduceapi.EvalState) GetDefined(name string) (expreduceapi.Def, bool) {
+type EvalState struct {
+	// Embedded type for logging
+	logging.CASLogger
+
+	defined     expreduceapi.DefinitionMap
+	trace       expreduceapi.ExpressionInterface
+	NoInit      bool
+	timeCounter timecounter.Group
+	freeze      bool
+	thrown      expreduceapi.ExpressionInterface
+	reapSown    expreduceapi.ExpressionInterface
+	interrupted bool
+	toStringFns map[string]expreduceapi.ToStringFnType
+}
+
+func (es *EvalState) GetDefined(name string) (expreduceapi.Def, bool) {
 	return es.defined.Get(name)
 }
 
-func (es *expreduceapi.EvalState) GetStringFn(headStr string) (expreduceapi.ToStringFnType, bool) {
+func (es *EvalState) GetStringFn(headStr string) (expreduceapi.ToStringFnType, bool) {
 	fn, ok := es.toStringFns[headStr]
 	return fn, ok
 }
 
-func (this *expreduceapi.EvalState) Load(def Definition) {
+func (this *EvalState) Load(def Definition) {
 	// TODO: deprecate most of this. We should be using .m files now.
 	def.Name = this.GetStringDef("System`$Context", "") + def.Name
 	this.MarkSeen(def.Name)
@@ -60,7 +76,7 @@ func (this *expreduceapi.EvalState) Load(def Definition) {
 	EvalInterp("$Context = \"System`\"", this)
 }
 
-func (es *expreduceapi.EvalState) Init(loadAllDefs bool) {
+func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = newDefinitionMap()
 	es.toStringFns = make(map[string]expreduceapi.ToStringFnType)
 	// These are fundamental symbols that affect even the parsing of
@@ -234,8 +250,8 @@ func (es *expreduceapi.EvalState) Init(loadAllDefs bool) {
 	EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
 }
 
-func NewEvalState() *expreduceapi.EvalState {
-	var es expreduceapi.EvalState
+func NewEvalState() *EvalState {
+	var es EvalState
 	es.Init(true)
 
 	es.SetUpLogging()
@@ -252,19 +268,19 @@ func NewEvalState() *expreduceapi.EvalState {
 	return &es
 }
 
-func NewEvalStateNoLog(loadAllDefs bool) *expreduceapi.EvalState {
-	var es expreduceapi.EvalState
+func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
+	var es EvalState
 	es.Init(loadAllDefs)
 	es.CASLogger.SetDebugState(false)
 	return &es
 }
 
-func (this *expreduceapi.EvalState) IsDef(name string) bool {
+func (this *EvalState) IsDef(name string) bool {
 	_, isd := this.defined.Get(name)
 	return isd
 }
 
-func (this *expreduceapi.EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, bool, *expreduceapi.Expression) {
+func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, bool, *expreduceapi.ExpressionInterface) {
 	if !this.IsDef(name) {
 		return nil, false, nil
 	}
@@ -310,13 +326,13 @@ func (this *expreduceapi.EvalState) GetDef(name string, lhs expreduceapi.Ex) (ex
 	return nil, false, nil
 }
 
-func (this *expreduceapi.EvalState) GetSymDef(name string) (expreduceapi.Ex, bool) {
+func (this *EvalState) GetSymDef(name string) (expreduceapi.Ex, bool) {
 	sym := NewSymbol(name)
 	symDef, isDef, _ := this.GetDef(name, sym)
 	return symDef, isDef
 }
 
-func (this *expreduceapi.EvalState) DefineAttrs(sym *Symbol, rhs expreduceapi.Ex) {
+func (this *EvalState) DefineAttrs(sym *Symbol, rhs expreduceapi.Ex) {
 	attrsList, attrsIsList := HeadAssertion(rhs, "System`List")
 	if !attrsIsList {
 		return
@@ -341,7 +357,7 @@ func (this *expreduceapi.EvalState) DefineAttrs(sym *Symbol, rhs expreduceapi.Ex
 	this.defined.Set(sym.Name, tmp)
 }
 
-func (this *expreduceapi.EvalState) DefineDownValues(sym *Symbol, rhs expreduceapi.Ex) {
+func (this *EvalState) DefineDownValues(sym *Symbol, rhs expreduceapi.Ex) {
 	dvList, isList := HeadAssertion(rhs, "System`List")
 	if !isList {
 		fmt.Println("Assignment to DownValues must be List of Rules.")
@@ -368,7 +384,7 @@ func (this *expreduceapi.EvalState) DefineDownValues(sym *Symbol, rhs expreducea
 	this.defined.Set(sym.Name, tmp)
 }
 
-func (this *expreduceapi.EvalState) MarkSeen(name string) {
+func (this *EvalState) MarkSeen(name string) {
 	if !this.IsDef(name) {
 		newDef := Def{
 			downvalues: []DownValue{},
@@ -379,12 +395,12 @@ func (this *expreduceapi.EvalState) MarkSeen(name string) {
 
 // Attempts to compute a specificity metric for a rule. Higher specificity rules
 // should be tried first.
-func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *expreduceapi.EvalState) int {
+func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *EvalState) int {
 	if name == "Rubi`Int" {
 		return 100
 	}
 	// Special case for single integer arguments.
-	expr, isExpr := lhs.(*expreduceapi.Expression).Parts[1].(*expreduceapi.Expression)
+	expr, isExpr := lhs.(*expreduceapi.ExpressionInterface).Parts[1].(*expreduceapi.ExpressionInterface)
 	if isExpr && len(expr.Parts) == 2 {
 		if _, isInt := expr.Parts[1].(*Integer); isInt {
 			return 110
@@ -414,7 +430,7 @@ func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *
 	return specificity
 }
 
-func (this *expreduceapi.EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
+func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	if this.IsFrozen() {
 		return
 	}
@@ -425,7 +441,7 @@ func (this *expreduceapi.EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi
 	if ok {
 		name = LhsSym.Name
 	}
-	LhsF, ok := lhs.(*expreduceapi.Expression)
+	LhsF, ok := lhs.(*expreduceapi.ExpressionInterface)
 	if ok {
 		headAsSym, headIsSym := LhsF.Parts[0].(*Symbol)
 		if headIsSym {
@@ -530,11 +546,11 @@ func (this *expreduceapi.EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi
 	this.defined.Set(name, tmp)
 }
 
-func (this *expreduceapi.EvalState) ClearAll() {
+func (this *EvalState) ClearAll() {
 	this.Init(!this.NoInit)
 }
 
-func (this *expreduceapi.EvalState) Clear(name string) {
+func (this *EvalState) Clear(name string) {
 	_, ok := this.defined.Get(name)
 	if ok {
 		this.defined.Set(name, Def{})
@@ -542,19 +558,19 @@ func (this *expreduceapi.EvalState) Clear(name string) {
 	}
 }
 
-func (this *expreduceapi.EvalState) GetDefinedSnapshot() expreduceapi.DefinitionMap {
+func (this *EvalState) GetDefinedSnapshot() expreduceapi.DefinitionMap {
 	return this.defined.CopyDefs()
 }
 
-func (this *expreduceapi.EvalState) IsFrozen() bool {
+func (this *EvalState) IsFrozen() bool {
 	return this.freeze
 }
 
-func (this *expreduceapi.EvalState) SetFrozen(frozen bool) {
+func (this *EvalState) SetFrozen(frozen bool) {
 	this.freeze = frozen
 }
 
-func (this *expreduceapi.EvalState) GetStringDef(name string, defaultVal string) string {
+func (this *EvalState) GetStringDef(name string, defaultVal string) string {
 	nameSym := NewSymbol(name)
 	def, isDef, _ := this.GetDef(name, nameSym)
 	if !isDef {
@@ -567,7 +583,7 @@ func (this *expreduceapi.EvalState) GetStringDef(name string, defaultVal string)
 	return defString.Val
 }
 
-func (this *expreduceapi.EvalState) GetListDef(name string) *expreduceapi.Expression {
+func (this *EvalState) GetListDef(name string) *expreduceapi.ExpressionInterface {
 	nameSym := NewSymbol(name)
 	def, isDef, _ := this.GetDef(name, nameSym)
 	if !isDef {
@@ -580,15 +596,15 @@ func (this *expreduceapi.EvalState) GetListDef(name string) *expreduceapi.Expres
 	return defList
 }
 
-func (es *expreduceapi.EvalState) Throw(e *expreduceapi.Expression) {
+func (es *EvalState) Throw(e *expreduceapi.ExpressionInterface) {
 	es.thrown = e
 }
 
-func (es *expreduceapi.EvalState) HasThrown() bool {
+func (es *EvalState) HasThrown() bool {
 	return es.thrown != nil
 }
 
-func (es *expreduceapi.EvalState) ProcessTopLevelResult(in expreduceapi.Ex, out expreduceapi.Ex) expreduceapi.Ex {
+func (es *EvalState) ProcessTopLevelResult(in expreduceapi.Ex, out expreduceapi.Ex) expreduceapi.Ex {
 	theRes := out
 	if es.HasThrown() {
 		fmt.Printf("Throw::nocatch: %v returned to top level but uncaught.\n\n", es.thrown)

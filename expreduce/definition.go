@@ -6,7 +6,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func (def *expreduceapi.Def) StringForm(defSym *Symbol, params expreduceapi.ToStringParams) string {
+func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStringParams) string {
 	var buffer []string
 
 	attrs := def.attributes.toStrings()
@@ -25,7 +25,7 @@ func (def *expreduceapi.Def) StringForm(defSym *Symbol, params expreduceapi.ToSt
 	for _, dv := range def.downvalues {
 		e := E(
 			S("SetDelayed"),
-			dv.rule.Parts[1].(*expreduceapi.Expression).Parts[1],
+			dv.rule.Parts[1].(*expreduceapi.ExpressionInterface).Parts[1],
 			dv.rule.Parts[2],
 		)
 		buffer = append(buffer, e.StringForm(params))

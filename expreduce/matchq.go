@@ -39,9 +39,9 @@ var symSym = NewSymbol("System`Symbol")
 var ratSym = NewSymbol("System`Rational")
 var complexSym = NewSymbol("System`Complex")
 
-func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es *expreduceapi.EvalState) (matchIter, bool) {
+func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es *expreduceapi.EvalStateInterface) (matchIter, bool) {
 	patternHead := ""
-	patExpr, patIsExpr := b.(*expreduceapi.Expression)
+	patExpr, patIsExpr := b.(*expreduceapi.ExpressionInterface)
 	if patIsExpr {
 		sym, isSym := patExpr.Parts[0].(*Symbol)
 		if isSym {
@@ -160,8 +160,8 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es *expre
 	_, aIsSymbol := a.(*Symbol)
 	aRational, aIsRational := a.(*Rational)
 	aComplex, aIsComplex := a.(*Complex)
-	aExpression, aIsExpression := a.(*expreduceapi.Expression)
-	bExpression, bIsExpression := b.(*expreduceapi.Expression)
+	aExpression, aIsExpression := a.(*expreduceapi.ExpressionInterface)
+	bExpression, bIsExpression := b.(*expreduceapi.ExpressionInterface)
 
 	// Special case for the operator form of Verbatim
 	forceOrdered := false
@@ -170,7 +170,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es *expre
 		if len(opExpr.Parts) == 2 {
 			if IsSameQ(aExpression.Parts[0], opExpr.Parts[1], &es.CASLogger) {
 				b = NewExpression(append([]expreduceapi.Ex{opExpr.Parts[1]}, verbatimOp.Parts[1:]...))
-				bExpression, bIsExpression = b.(*expreduceapi.Expression)
+				bExpression, bIsExpression = b.(*expreduceapi.ExpressionInterface)
 				forceOrdered = true
 			}
 		}
@@ -293,7 +293,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es *expre
 	return nomi, true
 }
 
-func isMatchQRational(a *Rational, b *expreduceapi.Expression, pm *PDManager, es *expreduceapi.EvalState) (bool, *PDManager) {
+func isMatchQRational(a *Rational, b *expreduceapi.ExpressionInterface, pm *PDManager, es *expreduceapi.EvalStateInterface) (bool, *PDManager) {
 	return IsMatchQ(
 		NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Rational"),
@@ -304,7 +304,7 @@ func isMatchQRational(a *Rational, b *expreduceapi.Expression, pm *PDManager, es
 		b, pm, es)
 }
 
-func isMatchQComplex(a *Complex, b *expreduceapi.Expression, pm *PDManager, es *expreduceapi.EvalState) (bool, *PDManager) {
+func isMatchQComplex(a *Complex, b *expreduceapi.ExpressionInterface, pm *PDManager, es *expreduceapi.EvalStateInterface) (bool, *PDManager) {
 	return IsMatchQ(
 		NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Complex"),
@@ -329,7 +329,7 @@ type assignedMatchIter struct {
 	lhs_components []parsedForm
 	pm             *PDManager
 	sequenceHead   string
-	es             *expreduceapi.EvalState
+	es             *expreduceapi.EvalStateInterface
 	stack          []assignedIterState
 }
 
@@ -410,13 +410,13 @@ type sequenceMatchIter struct {
 	lhs_components []parsedForm
 	pm             *PDManager
 	sequenceHead   string
-	es             *expreduceapi.EvalState
+	es             *expreduceapi.EvalStateInterface
 	ai             assnIter
 	iteratingAmi   bool
 	ami            assignedMatchIter
 }
 
-func NewSequenceMatchIter(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *expreduceapi.EvalState) (matchIter, bool) {
+func NewSequenceMatchIter(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *expreduceapi.EvalStateInterface) (matchIter, bool) {
 	headDefault := (NewSymbol(sequenceHead)).Default(&es.defined)
 	fp_components := make([]parsedForm, len(lhs_components))
 	for i, comp := range lhs_components {
@@ -425,7 +425,7 @@ func NewSequenceMatchIter(components []expreduceapi.Ex, lhs_components []expredu
 	return NewSequenceMatchIterPreparsed(components, fp_components, isOrderless, sequenceHead, pm, es)
 }
 
-func NewSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components []parsedForm, isOrderless bool, sequenceHead string, pm *PDManager, es *expreduceapi.EvalState) (matchIter, bool) {
+func NewSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components []parsedForm, isOrderless bool, sequenceHead string, pm *PDManager, es *expreduceapi.EvalStateInterface) (matchIter, bool) {
 	nomi := &sequenceMatchIter{}
 	nomi.components = components
 	nomi.lhs_components = lhs_components
@@ -483,7 +483,7 @@ func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
 
 // HELPER FUNCTIONS
 
-func ComponentsIsMatchQ(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *expreduceapi.EvalState) (bool, *PDManager) {
+func ComponentsIsMatchQ(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es *expreduceapi.EvalStateInterface) (bool, *PDManager) {
 	omi, cont := NewSequenceMatchIter(components, lhs_components, isOrderless, isFlat, sequenceHead, pm, es)
 	return GetMatchQ(omi, cont, pm)
 }
@@ -502,7 +502,7 @@ func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 }
 
 // TODO: do not export this
-func IsMatchQ(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es *expreduceapi.EvalState) (bool, *PDManager) {
+func IsMatchQ(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es *expreduceapi.EvalStateInterface) (bool, *PDManager) {
 	mi, cont := NewMatchIter(a, b, pm, es)
 	return GetMatchQ(mi, cont, pm)
 }

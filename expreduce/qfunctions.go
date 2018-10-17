@@ -10,10 +10,10 @@ import (
 type singleParamQType (func(expreduceapi.Ex) bool)
 type singleParamQLogType (func(expreduceapi.Ex, *logging.CASLogger) bool)
 type doubleParamQLogType (func(expreduceapi.Ex, expreduceapi.Ex, *logging.CASLogger) bool)
-type evalFnType (func(*expreduceapi.Expression, *expreduceapi.EvalState) expreduceapi.Ex)
+type evalFnType (func(*expreduceapi.ExpressionInterface, *expreduceapi.EvalStateInterface) expreduceapi.Ex)
 
 func singleParamQEval(fn singleParamQType) evalFnType {
-	return (func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+	return (func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 		if len(this.Parts) != 2 {
 			return this
 		}
@@ -25,7 +25,7 @@ func singleParamQEval(fn singleParamQType) evalFnType {
 }
 
 func singleParamQLogEval(fn singleParamQLogType) evalFnType {
-	return (func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+	return (func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 		if len(this.Parts) != 2 {
 			return this
 		}
@@ -37,7 +37,7 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 }
 
 func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
-	return (func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+	return (func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 		if len(this.Parts) != 3 {
 			return this
 		}

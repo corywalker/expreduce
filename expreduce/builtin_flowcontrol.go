@@ -2,7 +2,7 @@ package expreduce
 
 import "github.com/corywalker/expreduce/pkg/expreduceapi"
 
-func applyWithFn(e *expreduceapi.Expression, es *expreduceapi.EvalState) (expreduceapi.Ex, bool) {
+func applyWithFn(e *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	if len(e.Parts) != 3 {
 		return nil, false
 	}
@@ -10,14 +10,14 @@ func applyWithFn(e *expreduceapi.Expression, es *expreduceapi.EvalState) (expred
 	if !isList {
 		return nil, false
 	}
-	rules := []*expreduceapi.Expression{}
+	rules := []*expreduceapi.ExpressionInterface{}
 	for _, vDef := range vars.Parts[1:] {
 		set, isSet := HeadAssertion(vDef, "System`Set")
 		setDelayed, isSetDelayed := HeadAssertion(vDef, "System`SetDelayed")
 		if !(isSet || isSetDelayed) {
 			return nil, false
 		}
-		var setEx *expreduceapi.Expression = nil
+		var setEx *expreduceapi.ExpressionInterface = nil
 		ruleHead := ""
 		if isSet {
 			setEx = set
@@ -48,7 +48,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		Name: "If",
 		// WARNING: Watch out for putting rules here. It can interfere with how
 		// Return works.
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) > 4 || len(this.Parts) < 3 {
 				return this
 			}
@@ -71,7 +71,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "While",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 3 {
 				return this
 			}
@@ -93,7 +93,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "CompoundExpression",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			var toReturn expreduceapi.Ex
 			for i := 1; i < len(this.Parts); i++ {
 				toReturn = this.Parts[i].Eval(es)
@@ -111,7 +111,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Return"})
 	defs = append(defs, Definition{
 		Name: "Which",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts)%2 != 1 {
 				return this
 			}
@@ -130,7 +130,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Switch",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) < 4 || len(this.Parts)%2 != 0 {
 				return this
 			}
@@ -144,7 +144,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "With",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			res, ok := applyWithFn(this, es)
 			if !ok {
 				return this
@@ -154,7 +154,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Do",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) >= 3 {
 				mis, isOk := multiIterSpecFromLists(es, this.Parts[2:])
 				if isOk {

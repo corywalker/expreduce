@@ -14,7 +14,7 @@ type Complex struct {
 	needsEval bool
 }
 
-func (this *Complex) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
+func (this *Complex) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	this.Re = this.Re.Eval(es)
 	this.Im = this.Im.Eval(es)
 	if IsSameQ(this.Im, NewInt(0), &es.CASLogger) {
@@ -32,7 +32,7 @@ func (this *Complex) StringForm(p expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("(%v + %v*I)", this.Re.StringForm(p), this.Im.StringForm(p))
 }
 
-func (this *Complex) String(esi EvalStateInterface) string {
+func (this *Complex) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{
 		form: "InputForm", context: context, contextPath: contextPath, esi: esi})

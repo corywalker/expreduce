@@ -14,7 +14,7 @@ type Integer struct {
 	cachedHash uint64
 }
 
-func (f *Integer) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
+func (f *Integer) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return f
 }
 
@@ -34,7 +34,7 @@ func (i *Integer) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("%d", i.Val)
 }
 
-func (this *Integer) String(esi EvalStateInterface) string {
+func (this *Integer) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }

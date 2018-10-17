@@ -3,7 +3,7 @@ package expreduce
 import "github.com/corywalker/expreduce/pkg/expreduceapi"
 
 // This function assumes e and lhs have the same head and that the head is Flat.
-func FlatReplace(e *expreduceapi.Expression, lhs *expreduceapi.Expression, rhs expreduceapi.Ex, orderless bool, es *expreduceapi.EvalState) expreduceapi.Ex {
+func FlatReplace(e *expreduceapi.ExpressionInterface, lhs *expreduceapi.ExpressionInterface, rhs expreduceapi.Ex, orderless bool, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	looseLhs := NewExpression([]expreduceapi.Ex{})
 	looseLhs.Parts = append(looseLhs.Parts, lhs.Parts[0])
 	if !orderless {
@@ -53,7 +53,7 @@ func ReplacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool)
 		}
 	}
 	thisDirty := false
-	asExpr, isExpr := e.(*expreduceapi.Expression)
+	asExpr, isExpr := e.(*expreduceapi.ExpressionInterface)
 	if isExpr {
 		for i := range asExpr.Parts {
 			possiblyNewExpr, dirty := ReplacePDInternal(asExpr.Parts[i], pm)
@@ -69,7 +69,7 @@ func ReplacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool)
 	return e, thisDirty
 }
 
-func ReplacePD(this expreduceapi.Ex, es *expreduceapi.EvalState, pm *PDManager) expreduceapi.Ex {
+func ReplacePD(this expreduceapi.Ex, es *expreduceapi.EvalStateInterface, pm *PDManager) expreduceapi.Ex {
 	if pm == nil {
 		return this
 	}
@@ -94,9 +94,9 @@ func ReplacePD(this expreduceapi.Ex, es *expreduceapi.EvalState, pm *PDManager) 
 // RHS upon successful matches. We will NOT substitute any named patterns in
 // the RHS. We will merely make sure that the named patterns are added to pm.
 // Final named pattern substitution will occur at the last possible time.
-func ReplaceAll(this expreduceapi.Ex, r *expreduceapi.Expression, es *expreduceapi.EvalState, pm *PDManager,
+func ReplaceAll(this expreduceapi.Ex, r *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface, pm *PDManager,
 	stopAtHead string) expreduceapi.Ex {
-	asExpression, isExpression := this.(*expreduceapi.Expression)
+	asExpression, isExpression := this.(*expreduceapi.ExpressionInterface)
 
 	if isExpression {
 		_, isRestrictedHead := HeadAssertion(this, stopAtHead)
@@ -114,7 +114,7 @@ func ReplaceAll(this expreduceapi.Ex, r *expreduceapi.Expression, es *expreducea
 	return this
 }
 
-func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es *expreduceapi.EvalState) (expreduceapi.Ex, bool) {
+func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es *expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	asCond, isCond := HeadAssertion(rhs, "System`Condition")
 	if !isCond {
 		if asWith, isWith := HeadAssertion(rhs, "System`With"); isWith {
@@ -151,7 +151,7 @@ func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es *expreduceap
 	return rhs, true
 }
 
-func Replace(this expreduceapi.Ex, r *expreduceapi.Expression, es *expreduceapi.EvalState) (expreduceapi.Ex, bool) {
+func Replace(this expreduceapi.Ex, r *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	mi, cont := NewMatchIter(this, r.Parts[1], EmptyPD(), es)
 	for cont {
 		res, matches, done := mi.next()

@@ -92,16 +92,16 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 	return false, pm
 }
 
-func BlankNullSequenceToBlank(bns *expreduceapi.Expression) *expreduceapi.Expression {
-	if len(bns.Parts) < 2 {
+func BlankNullSequenceToBlank(bns expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
+	if len(bns.GetParts()) < 2 {
 		return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank")})
 	}
-	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank"), bns.Parts[1]})
+	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank"), bns.GetParts()[1]})
 }
 
-func BlankSequenceToBlank(bs *expreduceapi.Expression) *expreduceapi.Expression {
-	if len(bs.Parts) < 2 {
+func BlankSequenceToBlank(bs expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
+	if len(bs.GetParts()) < 2 {
 		return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank")})
 	}
-	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank"), bs.Parts[1]})
+	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank"), bs.GetParts()[1]})
 }

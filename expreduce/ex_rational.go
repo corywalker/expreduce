@@ -14,7 +14,7 @@ type Rational struct {
 	needsEval bool
 }
 
-func (this *Rational) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
+func (this *Rational) Eval(es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
 		return NewSymbol("System`Indeterminate")
 	}
@@ -70,7 +70,7 @@ func (this *Rational) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)
 }
 
-func (this *Rational) String(esi EvalStateInterface) string {
+func (this *Rational) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }

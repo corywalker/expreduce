@@ -5,10 +5,10 @@ import "github.com/corywalker/expreduce/pkg/expreduceapi"
 func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "And",
-		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " && ", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`And")})
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
@@ -31,10 +31,10 @@ func GetBooleanDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Or",
-		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " || ", "", params)
 		},
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`Or")})
 			for i := 1; i < len(this.Parts); i++ {
 				this.Parts[i] = this.Parts[i].Eval(es)
@@ -57,7 +57,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Not",
-		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
+		legacyEvalFn: func(this *expreduceapi.ExpressionInterface, es *expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.Parts) != 2 {
 				return this
 			}
