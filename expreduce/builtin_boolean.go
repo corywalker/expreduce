@@ -5,7 +5,7 @@ import "github.com/corywalker/expreduce/pkg/expreduceapi"
 func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "And",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " && ", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
@@ -31,7 +31,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Or",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " || ", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {

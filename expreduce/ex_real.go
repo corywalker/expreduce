@@ -19,7 +19,7 @@ func (f *Flt) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	return f
 }
 
-func (f *Flt) StringForm(params ToStringParams) string {
+func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	var buffer bytes.Buffer
 	useParens := false
 	if f.Val.Cmp(big.NewFloat(0)) < 0 {
@@ -46,7 +46,7 @@ func (f *Flt) StringForm(params ToStringParams) string {
 
 func (this *Flt) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
+	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
 func (this *Flt) IsEqual(other expreduceapi.Ex) string {

@@ -6,7 +6,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func (def *Def) StringForm(defSym *Symbol, params ToStringParams) string {
+func (def *expreduceapi.Def) StringForm(defSym *Symbol, params expreduceapi.ToStringParams) string {
 	var buffer []string
 
 	attrs := def.attributes.toStrings()

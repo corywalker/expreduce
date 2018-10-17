@@ -12,7 +12,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func (es *expreduceapi.EvalState) GetDefined(name string) (Def, bool) {
+func (es *expreduceapi.EvalState) GetDefined(name string) (expreduceapi.Def, bool) {
 	return es.defined.Get(name)
 }
 
@@ -396,7 +396,7 @@ func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *
 	// "complexity" score, order then matters. TODO: Create better measure of
 	// complexity (or specificity)
 	context, contextPath := DefinitionComplexityStringFormArgs()
-	stringParams := ToStringParams{
+	stringParams := expreduceapi.ToStringParams{
 		form:        "InputForm",
 		context:     context,
 		contextPath: contextPath,
@@ -542,7 +542,7 @@ func (this *expreduceapi.EvalState) Clear(name string) {
 	}
 }
 
-func (this *expreduceapi.EvalState) GetDefinedSnapshot() definitionMap {
+func (this *expreduceapi.EvalState) GetDefinedSnapshot() expreduceapi.DefinitionMap {
 	return this.defined.CopyDefs()
 }
 

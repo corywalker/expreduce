@@ -24,7 +24,7 @@ func (this *Complex) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	return this
 }
 
-func (this *Complex) StringForm(p ToStringParams) string {
+func (this *Complex) StringForm(p expreduceapi.ToStringParams) string {
 	if p.form == "FullForm" {
 		return fmt.Sprintf("Complex[%v, %v]", this.Re, this.Im)
 	}
@@ -34,7 +34,7 @@ func (this *Complex) StringForm(p ToStringParams) string {
 
 func (this *Complex) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{
+	return this.StringForm(expreduceapi.ToStringParams{
 		form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 

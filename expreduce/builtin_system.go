@@ -322,7 +322,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Definition",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}
@@ -384,7 +384,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "Set",
 		Usage:      "`lhs = rhs` sets `lhs` to stand for `rhs`.",
 		Attributes: []string{"HoldFirst", "SequenceHold"},
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -432,7 +432,7 @@ func GetSystemDefinitions() (defs []Definition) {
 		Name:       "SetDelayed",
 		Usage:      "`lhs := rhs` sets `lhs` to stand for `rhs`, with `rhs` not being evaluated until it is referenced by `lhs`.",
 		Attributes: []string{"HoldAll", "SequenceHold"},
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -529,7 +529,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 
 			context, contextPath := ActualStringFormArgs(es)
-			stringParams := ToStringParams{
+			stringParams := expreduceapi.ToStringParams{
 				form:         "OutputForm",
 				context:      context,
 				contextPath:  contextPath,

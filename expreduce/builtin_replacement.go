@@ -81,7 +81,7 @@ func replaceParts(e expreduceapi.Ex, rules []*expreduceapi.Expression, part *exp
 func getReplacementDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ReplaceAll",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -121,7 +121,7 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReplaceRepeated",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -153,7 +153,7 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Rule",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -166,7 +166,7 @@ func getReplacementDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "RuleDelayed",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}

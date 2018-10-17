@@ -119,7 +119,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Power",
 		Default: "1",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], "^", "System`Power", false, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {

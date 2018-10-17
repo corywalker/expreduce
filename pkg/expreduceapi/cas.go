@@ -5,7 +5,6 @@ package expreduceapi
 import (
 	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
-	"github.com/orcaman/concurrent-map"
 )
 
 type ToStringFnType (func(*Expression, ToStringParams) (bool, string))
@@ -36,7 +35,7 @@ type EvalState struct {
 	// Embedded type for logging
 	logging.CASLogger
 
-	defined     definitionMap
+	defined     DefinitionMap
 	trace       *Expression
 	NoInit      bool
 	timeCounter timecounter.Group
@@ -64,8 +63,13 @@ type String struct {
 	Val string
 }
 
-type definitionMap struct {
-	internalMap cmap.ConcurrentMap
+type DefinitionMap interface {
+	Set(key string, value Def)
+	Get(key string) (Def, bool)
+	GetDef(key string) Def
+	LockKey(key string)
+	UnlockKey(key string)
+	CopyDefs() DefinitionMap
 }
 
 type DownValue struct {
@@ -104,4 +108,3 @@ type Attributes struct {
 	Temporary       bool
 	Stub            bool
 }
-

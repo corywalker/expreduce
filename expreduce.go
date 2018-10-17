@@ -1,17 +1,17 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
 	"github.com/corywalker/expreduce/expreduce"
 	"gopkg.in/readline.v1"
 	"log"
-	"os"
-	"bytes"
-	"bufio"
-	"runtime/pprof"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"runtime/pprof"
 )
 
 var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
@@ -21,13 +21,10 @@ var netprofile = flag.Bool("netprofile", false, "Enable live profiling at http:/
 var scriptfile = flag.String("script", "", "script `file` to read from")
 var initfile = flag.String("initfile", "", "A script to run on initialization.")
 
-
-
-
 func main() {
 	flag.Parse()
 
- 	if *cpuprofile != "" {
+	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
 			log.Fatal(err)
@@ -74,13 +71,11 @@ func main() {
 	}
 }
 
-
 func scriptSession(es *expreduce.EvalState, srcText string, srcPath string) {
 	exp := expreduce.EvalInterpMany(srcText, srcPath, es)
 	res := exp.Eval(es)
 	res = es.ProcessTopLevelResult(res, res)
 }
-
 
 func interactiveSession(es *expreduce.EvalState) {
 	rl, err := readline.NewEx(&readline.Config{
@@ -121,7 +116,6 @@ func interactiveSession(es *expreduce.EvalState) {
 		promptNum += 1
 	}
 }
-
 
 func printFormattedOutput(es *expreduce.EvalState, res expreduce.Ex, isInteractive bool, promptNum int) {
 	isNull := false

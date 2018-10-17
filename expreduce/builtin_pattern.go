@@ -6,7 +6,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func ToStringBlankType(repr string, parts []expreduceapi.Ex, params ToStringParams) (bool, string) {
+func ToStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi.ToStringParams) (bool, string) {
 	if params.form == "FullForm" {
 		return false, ""
 	}
@@ -38,7 +38,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Pattern",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 3 {
 				return false, ""
 			}
@@ -64,19 +64,19 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Blank",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringBlankType("_", this.Parts, params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankSequence",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringBlankType("__", this.Parts, params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankNullSequence",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringBlankType("___", this.Parts, params)
 		},
 	})
@@ -121,7 +121,7 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Repeated"})
 	defs = append(defs, Definition{
 		Name: "Optional",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			if len(this.Parts) != 2 {
 				return false, ""
 			}

@@ -27,7 +27,7 @@ func GetStringDefinitions() (defs []Definition) {
 			}
 
 			context, contextPath := ActualStringFormArgs(es)
-			stringParams := ToStringParams{
+			stringParams := expreduceapi.ToStringParams{
 				form:         formAsSymbol.Name[7:],
 				context:      context,
 				contextPath:  contextPath,
@@ -39,7 +39,7 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "StringJoin",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfix(this.Parts[1:], " <> ", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {

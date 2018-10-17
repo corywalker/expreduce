@@ -419,7 +419,7 @@ func (this *expreduceapi.Expression) ReplaceAll(r *expreduceapi.Expression, stop
 	return this
 }
 
-func (this *expreduceapi.Expression) StringForm(params ToStringParams) string {
+func (this *expreduceapi.Expression) StringForm(params expreduceapi.ToStringParams) string {
 	headAsSym, isHeadSym := this.Parts[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm {
@@ -465,7 +465,7 @@ func (this *expreduceapi.Expression) StringForm(params ToStringParams) string {
 
 func (this *expreduceapi.Expression) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{
+	return this.StringForm(expreduceapi.ToStringParams{
 		form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 

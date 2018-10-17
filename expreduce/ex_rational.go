@@ -57,7 +57,7 @@ func (this *Rational) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	return this
 }
 
-func (this *Rational) StringForm(params ToStringParams) string {
+func (this *Rational) StringForm(params expreduceapi.ToStringParams) string {
 	if params.form == "FullForm" {
 		return fmt.Sprintf("Rational[%d, %d]", this.Num, this.Den)
 	}
@@ -72,7 +72,7 @@ func (this *Rational) StringForm(params ToStringParams) string {
 
 func (this *Rational) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
+	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
 func (this *Rational) IsEqual(other expreduceapi.Ex) string {

@@ -560,7 +560,7 @@ func ReadList(doc string, fn string, es *expreduceapi.EvalState) expreduceapi.Ex
 
 func EasyRun(src string, es *expreduceapi.EvalState) string {
 	context, contextPath := ActualStringFormArgs(es)
-	stringParams := ToStringParams{
+	stringParams := expreduceapi.ToStringParams{
 		form:        "InputForm",
 		context:     context,
 		contextPath: contextPath,

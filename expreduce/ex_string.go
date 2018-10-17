@@ -11,7 +11,7 @@ func (this *String) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	return this
 }
 
-func (this *String) StringForm(params ToStringParams) string {
+func (this *String) StringForm(params expreduceapi.ToStringParams) string {
 	if params.form == "OutputForm" ||
 		params.form == "TraditionalForm" ||
 		params.form == "StandardForm" {
@@ -22,7 +22,7 @@ func (this *String) StringForm(params ToStringParams) string {
 
 func (this *String) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
+	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
 func (this *String) IsEqual(other expreduceapi.Ex) string {

@@ -9,7 +9,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func (this *expreduceapi.Expression) ToStringList(params ToStringParams) (bool, string) {
+func (this *expreduceapi.Expression) ToStringList(params expreduceapi.ToStringParams) (bool, string) {
 	if params.form == "FullForm" {
 		return false, ""
 	}

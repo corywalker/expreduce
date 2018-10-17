@@ -5,25 +5,29 @@ import (
 	"github.com/orcaman/concurrent-map"
 )
 
-func newDefinitionMap() definitionMap {
-	var dm definitionMap
+type ThreadSafeDefinitionMap struct {
+	internalMap cmap.ConcurrentMap
+}
+
+func newDefinitionMap() ThreadSafeDefinitionMap {
+	var dm ThreadSafeDefinitionMap
 	dm.internalMap = cmap.New()
 	return dm
 }
 
-func (dm definitionMap) Set(key string, value Def) {
+func (dm ThreadSafeDefinitionMap) Set(key string, value expreduceapi.Def) {
 	dm.internalMap.Set(key, value)
 }
 
-func (dm definitionMap) Get(key string) (Def, bool) {
+func (dm ThreadSafeDefinitionMap) Get(key string) (expreduceapi.Def, bool) {
 	if !dm.internalMap.Has(key) {
-		return Def{}, false
+		return expreduceapi.Def{}, false
 	}
 	value, ok := dm.internalMap.Get(key)
-	return value.(Def), ok
+	return value.(expreduceapi.Def), ok
 }
 
-func (dm definitionMap) GetDef(key string) Def {
+func (dm ThreadSafeDefinitionMap) GetDef(key string) expreduceapi.Def {
 	value, ok := dm.Get(key)
 	if !ok {
 		panic("Reading missing value in GetDef()!")
@@ -31,21 +35,21 @@ func (dm definitionMap) GetDef(key string) Def {
 	return value
 }
 
-func (dm definitionMap) LockKey(key string) {
+func (dm ThreadSafeDefinitionMap) LockKey(key string) {
 	shard := dm.internalMap.GetShard(key)
 	shard.Lock()
 }
 
-func (dm definitionMap) UnlockKey(key string) {
+func (dm ThreadSafeDefinitionMap) UnlockKey(key string) {
 	shard := dm.internalMap.GetShard(key)
 	shard.Unlock()
 }
 
-func (dm definitionMap) CopyDefs() definitionMap {
+func (dm ThreadSafeDefinitionMap) CopyDefs() expreduceapi.DefinitionMap {
 	out := newDefinitionMap()
 	for mapTuple := range dm.internalMap.IterBuffered() {
-		k, v := mapTuple.Key, mapTuple.Val.(Def)
-		newDef := Def{}
+		k, v := mapTuple.Key, mapTuple.Val.(expreduceapi.Def)
+		newDef := expreduceapi.Def{}
 		for _, dv := range v.downvalues {
 			newDv := DownValue{
 				rule:        dv.rule.DeepCopy().(*expreduceapi.Expression),

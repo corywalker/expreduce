@@ -38,7 +38,7 @@ func (this *Symbol) Eval(es *expreduceapi.EvalState) expreduceapi.Ex {
 	return this
 }
 
-func formatSymName(name string, params ToStringParams) string {
+func formatSymName(name string, params expreduceapi.ToStringParams) string {
 	if params.form == "TeXForm" {
 		if name == "E" {
 			return "e"
@@ -56,7 +56,7 @@ func formatSymName(name string, params ToStringParams) string {
 	return fmt.Sprintf("%v", name)
 }
 
-func (this *Symbol) StringForm(params ToStringParams) string {
+func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
@@ -74,7 +74,7 @@ func (this *Symbol) StringForm(params ToStringParams) string {
 
 func (this *Symbol) String(esi EvalStateInterface) string {
 	context, contextPath := DefaultStringFormArgs()
-	return this.StringForm(ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
+	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, contextPath: contextPath, esi: esi})
 }
 
 func (this *Symbol) IsEqual(other expreduceapi.Ex) string {
@@ -103,7 +103,7 @@ func (this *Symbol) Copy() expreduceapi.Ex {
 	return this
 }
 
-func (this *Symbol) Attrs(dm *definitionMap) Attributes {
+func (this *Symbol) Attrs(dm *expreduceapi.DefinitionMap) Attributes {
 	def, isDef := (*dm).Get(this.Name)
 	if !isDef {
 		return Attributes{}
@@ -111,7 +111,7 @@ func (this *Symbol) Attrs(dm *definitionMap) Attributes {
 	return def.attributes
 }
 
-func (this *Symbol) Default(dm *definitionMap) expreduceapi.Ex {
+func (this *Symbol) Default(dm *expreduceapi.DefinitionMap) expreduceapi.Ex {
 	def, isDef := (*dm).Get(this.Name)
 	if !isDef {
 		return nil

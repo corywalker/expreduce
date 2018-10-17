@@ -77,7 +77,7 @@ func getCompSign(e expreduceapi.Ex) int {
 func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Equal",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " == ", "System`Equal", false, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
@@ -101,7 +101,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Unequal",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " != ", "System`Unequal", false, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
@@ -123,7 +123,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "SameQ",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " === ", "System`SameQ", false, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
@@ -144,7 +144,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "UnsameQ",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " =!= ", "System`UnsameQ", false, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
@@ -185,7 +185,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Less",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " < ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
@@ -209,7 +209,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Greater",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " > ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
@@ -232,7 +232,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "LessEqual",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " <= ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
@@ -259,7 +259,7 @@ func getComparisonDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "GreaterEqual",
-		toString: func(this *expreduceapi.Expression, params ToStringParams) (bool, string) {
+		toString: func(this *expreduceapi.Expression, params expreduceapi.ToStringParams) (bool, string) {
 			return ToStringInfixAdvanced(this.Parts[1:], " >= ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this *expreduceapi.Expression, es *expreduceapi.EvalState) expreduceapi.Ex {
