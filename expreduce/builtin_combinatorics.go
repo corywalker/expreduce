@@ -127,7 +127,7 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 				for _, integer := range partition {
 					toAppend.GetParts() = append(toAppend.GetParts(), NewInteger(big.NewInt(int64(integer))))
 				}
-				exParts.GetParts() = append(exParts.GetParts(), toAppend)
+				exParts.AppendEx(toAppend)
 			}
 
 			return exParts
@@ -151,9 +151,9 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 			for _, perm := range perms {
 				toAppend := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for _, ex := range perm {
-					toAppend.GetParts() = append(toAppend.GetParts(), ex)
+					toAppend.AppendEx(ex)
 				}
-				exPerms.GetParts() = append(exPerms.GetParts(), toAppend)
+				exPerms.AppendEx(toAppend)
 			}
 
 			return exPerms

@@ -25,7 +25,7 @@ func (f *Integer) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 func (i *Integer) StringForm(params expreduceapi.ToStringParams) string {
 	if i.Val.Cmp(big.NewInt(0)) < 0 {
 		if needsParens("System`Times", params.PreviousHead) {
-			if params.form == "TeXForm" {
+			if params.Form == "TeXForm" {
 				return fmt.Sprintf("{(%d)}", i.Val)
 			}
 			return fmt.Sprintf("(%d)", i.Val)
@@ -36,7 +36,7 @@ func (i *Integer) StringForm(params expreduceapi.ToStringParams) string {
 
 func (this *Integer) String(esi expreduceapi.EvalStateInterface) string {
 	context, ContextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, ContextPath: ContextPath, esi: esi})
+	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
 }
 
 func (this *Integer) IsEqual(other expreduceapi.Ex) string {

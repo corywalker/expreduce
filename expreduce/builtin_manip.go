@@ -5,7 +5,7 @@ import "github.com/corywalker/expreduce/pkg/expreduceapi"
 func distribute(e expreduceapi.ExpressionInterface, built expreduceapi.ExpressionInterface, res expreduceapi.ExpressionInterface) {
 	i := len(built.GetParts())
 	if i >= len(e.GetParts()) {
-		res.GetParts() = append(res.GetParts(), built)
+		res.AppendEx(built)
 		return
 	}
 	shouldDistribute := false

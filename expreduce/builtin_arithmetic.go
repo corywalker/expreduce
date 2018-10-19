@@ -226,13 +226,13 @@ func collectedToTerm(coeffs []expreduceapi.Ex, vars expreduceapi.Ex, fullPart ex
 	toAdd := NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
 	cAsInt, cIsInt := finalC.(*Integer)
 	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
-		toAdd.GetParts() = append(toAdd.GetParts(), finalC)
+		toAdd.AppendEx(finalC)
 	}
 	vAsExpr, vIsExpr := HeadAssertion(vars, "System`Times")
 	if vIsExpr && len(vAsExpr.GetParts()) == 2 {
 		vars = vAsExpr.GetParts()[1]
 	}
-	toAdd.GetParts() = append(toAdd.GetParts(), vars)
+	toAdd.AppendEx(vars)
 	if len(toAdd.GetParts()) == 2 {
 		return toAdd.GetParts()[1]
 	}
@@ -263,7 +263,7 @@ func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInt
 				}
 			}
 		} else {
-			collected.GetParts() = append(collected.GetParts(), part)
+			collected.AppendEx(part)
 		}
 	}
 	if lastVars != nil {
@@ -294,9 +294,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 				res = NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 				rAsInt, rIsInt := realPart.(*Integer)
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0) {
-					res.GetParts() = append(res.GetParts(), realPart)
+					res.AppendEx(realPart)
 				}
-				res.GetParts() = append(res.GetParts(), this.GetParts()[symStart:]...)
+				res.AppendExArray(this.GetParts()[symStart:])
 			}
 
 			collected := collectTerms(res)
@@ -327,7 +327,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Default: "1",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			delim := "*"
-			if params.form == "TeXForm" {
+			if params.Form == "TeXForm" {
 				delim = " "
 			}
 			ok, res := ToStringInfix(this.GetParts()[1:], delim, "System`Times", params)
@@ -363,9 +363,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 					return NewInteger(big.NewInt(0))
 				}
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(1)) == 0) {
-					res.GetParts() = append(res.GetParts(), realPart)
+					res.AppendEx(realPart)
 				}
-				res.GetParts() = append(res.GetParts(), this.GetParts()[symStart:]...)
+				res.AppendExArray(this.GetParts()[symStart:])
 			}
 
 			// If one expression remains, replace this Times with the expression
@@ -389,7 +389,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 								NewInteger(big.NewInt(-1)),
 							})
 
-							toreturn.GetParts() = append(toreturn.GetParts(), toAppend)
+							toreturn.AppendEx(toAppend)
 						}
 						return toreturn.Eval(es)
 					}

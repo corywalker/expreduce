@@ -52,7 +52,7 @@ func replaceParts(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, p
 		return e
 	}
 	res := E(expr.GetParts()[0])
-	part.GetParts() = append(part.GetParts(), NewInt(0))
+	part.AppendExArray(NewInt)
 	dirty := false
 	for i, p := range expr.GetParts()[1:] {
 		part.GetParts()[len(part.GetParts())-1] = NewInt(int64(i + 1))
@@ -61,11 +61,11 @@ func replaceParts(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, p
 			repVal, replaced = rulesReplace(part.GetParts()[1], rules, es)
 		}
 		if replaced {
-			res.GetParts() = append(res.GetParts(), repVal)
+			res.AppendEx(repVal)
 			dirty = true
 		} else {
 			newVal := replaceParts(p, rules, part, es)
-			res.GetParts() = append(res.GetParts(), newVal)
+			res.AppendEx(newVal)
 			if newVal != p {
 				dirty = true
 			}
@@ -158,7 +158,7 @@ func getReplacementDefinitions() (defs []Definition) {
 				return false, ""
 			}
 			delim := " -> "
-			if params.form == "TeXForm" {
+			if params.Form == "TeXForm" {
 				delim = "\\to "
 			}
 			return ToStringInfixAdvanced(this.GetParts()[1:], delim, "System`Rule", false, "", "", params)
@@ -171,7 +171,7 @@ func getReplacementDefinitions() (defs []Definition) {
 				return false, ""
 			}
 			delim := " :> "
-			if params.form == "TeXForm" {
+			if params.Form == "TeXForm" {
 				delim = ":\\to "
 			}
 			return ToStringInfixAdvanced(this.GetParts()[1:], delim, "System`RuleDelayed", false, "", "", params)

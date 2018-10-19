@@ -53,7 +53,7 @@ func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceap
 	}
 	opExpr, isOp := HeadAssertion(lhs, op)
 	if isOp {
-		opExpr.GetParts() = append(opExpr.GetParts(), rhs)
+		opExpr.AppendEx(rhs)
 		return opExpr
 	}
 	return NewExpression([]expreduceapi.Ex{NewSymbol(op), lhs, rhs})
@@ -561,10 +561,10 @@ func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expredu
 func EasyRun(src string, es expreduceapi.EvalStateInterface) string {
 	context, ContextPath := ActualStringFormArgs(es)
 	stringParams := expreduceapi.ToStringParams{
-		form:        "InputForm",
-		context:     context,
+		Form:        "InputForm",
+		Context:     context,
 		ContextPath: ContextPath,
-		esi:         es,
+		Esi:         es,
 	}
 	return EvalInterp(src, es).StringForm(stringParams)
 }

@@ -255,7 +255,7 @@ func evalIterSpecCandidate(es expreduceapi.EvalStateInterface, cand expreduceapi
 			if i != 1 {
 				toAdd = toAdd.Eval(es)
 			}
-			toReturn.GetParts() = append(toReturn.GetParts(), toAdd)
+			toReturn.AppendEx(toAdd)
 		}
 		return toReturn
 	}

@@ -73,7 +73,7 @@ func (this expreduceapi.ExpressionInterface) ToStringInfix(p expreduceapi.ToStri
 
 // TODO(corywalker): Remove start, end. No users of these values.
 func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params expreduceapi.ToStringParams) (bool, string) {
-	if params.form != "InputForm" && params.form != "OutputForm" && params.form != "TeXForm" {
+	if params.Form != "InputForm" && params.Form != "OutputForm" && params.Form != "TeXForm" {
 		return false, ""
 	}
 	if len(parts) < 2 {
@@ -82,7 +82,7 @@ func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 	var buffer bytes.Buffer
 	addParens := needsParens(thisHead, params.PreviousHead)
 	if addParens {
-		if params.form == "TeXForm" {
+		if params.Form == "TeXForm" {
 			buffer.WriteString("{\\left(")
 		} else {
 			buffer.WriteString("(")
@@ -109,7 +109,7 @@ func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 		buffer.WriteString(end)
 	}
 	if addParens {
-		if params.form == "TeXForm" {
+		if params.Form == "TeXForm" {
 			buffer.WriteString("\\right)}")
 		} else {
 			buffer.WriteString(")")
@@ -141,18 +141,18 @@ func ActualStringFormArgs(es expreduceapi.EvalStateInterface) (*String, expreduc
 
 func ActualStringFormArgsFull(form string, es expreduceapi.EvalStateInterface) expreduceapi.ToStringParams {
 	return expreduceapi.ToStringParams{
-		form:         form,
-		context:      NewString(es.GetStringDef("System`$Context", "Global`")),
+		Form:         form,
+		Context:      NewString(es.GetStringDef("System`$Context", "Global`")),
 		ContextPath:  es.GetListDef("System`$ContextPath"),
 		PreviousHead: "<TOPLEVEL>",
-		esi:          es,
+		Esi:          es,
 	}
 
 }
 
 func simpleTeXToString(fnName string) func(expreduceapi.ExpressionInterface, expreduceapi.ToStringParams) (bool, string) {
 	return (func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-		if params.form != "TeXForm" {
+		if params.Form != "TeXForm" {
 			return false, ""
 		}
 		var buffer bytes.Buffer

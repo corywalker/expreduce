@@ -25,7 +25,7 @@ func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	if f.Val.Cmp(big.NewFloat(0)) < 0 {
 		if needsParens("System`Times", params.PreviousHead) {
 			useParens = true
-			if params.form == "TeXForm" {
+			if params.Form == "TeXForm" {
 				buffer.WriteString("{")
 			}
 			buffer.WriteString("(")
@@ -37,7 +37,7 @@ func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	}
 	if useParens {
 		buffer.WriteString(")")
-		if params.form == "TeXForm" {
+		if params.Form == "TeXForm" {
 			buffer.WriteString("}")
 		}
 	}
@@ -46,7 +46,7 @@ func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 
 func (this *Flt) String(esi expreduceapi.EvalStateInterface) string {
 	context, ContextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, ContextPath: ContextPath, esi: esi})
+	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
 }
 
 func (this *Flt) IsEqual(other expreduceapi.Ex) string {

@@ -232,9 +232,9 @@ func expressionWalkMap(f func(expreduceapi.Ex, expreduceapi.Ex, []int64, *int64,
 		//specified by the first argument of Map
 		if level >= spec.min {
 			newExpression = f(head, newExpression, currentPartSpec, generated, es)
-			toReturn.GetParts() = append(toReturn.GetParts(), newExpression)
+			toReturn.AppendEx(newExpression)
 		} else {
-			toReturn.GetParts() = append(toReturn.GetParts(), newExpression)
+			toReturn.AppendEx(newExpression)
 		}
 	}
 
@@ -262,9 +262,9 @@ func expressionWalkMapBackwards(f func(expreduceapi.Ex, expreduceapi.Ex, []int64
 
 			if spec.checkLevel(level) && spec.checkDepth(depth) {
 				newExpression = f(head, newExpression, currentPartSpec, generated, es)
-				toReturn.GetParts() = append(toReturn.GetParts(), newExpression)
+				toReturn.AppendEx(newExpression)
 			} else {
-				toReturn.GetParts() = append(toReturn.GetParts(), newExpression)
+				toReturn.AppendEx(newExpression)
 			}
 		} else { //If the node is atomic
 			level = level + 1
@@ -272,9 +272,9 @@ func expressionWalkMapBackwards(f func(expreduceapi.Ex, expreduceapi.Ex, []int64
 
 			if spec.checkLevel(level) && spec.checkDepth(depth) {
 				newExpression = f(head, expr, currentPartSpec, generated, es)
-				toReturn.GetParts() = append(toReturn.GetParts(), newExpression)
+				toReturn.AppendEx(newExpression)
 			} else {
-				toReturn.GetParts() = append(toReturn.GetParts(), newExpression)
+				toReturn.AppendEx(newExpression)
 			}
 		}
 	}
@@ -301,7 +301,8 @@ func applyHead(head expreduceapi.Ex, expr expreduceapi.Ex, partList []int64, _ *
 		return expr
 	}
 	toReturn := NewExpression([]expreduceapi.Ex{head})
-	toReturn.GetParts() = append(toReturn.GetParts(), expression.GetParts()[1:]...)
+	//toReturn.AppendExArray(expression.GetParts()[1:])
+	toReturn.AppendExArray(expression.GetParts()[1:])
 	return toReturn
 }
 
@@ -348,7 +349,7 @@ func levelSpecFunction(
 				expr, isExpr := this.GetParts()[2].(expreduceapi.ExpressionInterface)
 				if isSym && isExpr {
 					toReturn := NewExpression([]expreduceapi.Ex{sym})
-					toReturn.GetParts() = append(toReturn.GetParts(), expr.GetParts()[1:]...)
+					toReturn.AppendExArray(expr.GetParts()[1:])
 					return toReturn.Eval(es)
 				}
 				return this.GetParts()[2]
@@ -464,7 +465,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 				values.GetParts()[1],
 			})
 
-			toReturn.GetParts() = append(toReturn.GetParts(), expr)
+			toReturn.AppendEx(expr)
 
 			for i := 2; i < len(values.GetParts()); i++ {
 				expr = NewExpression([]expreduceapi.Ex{
@@ -473,7 +474,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 					values.GetParts()[i],
 				})
 
-				toReturn.GetParts() = append(toReturn.GetParts(), expr)
+				toReturn.AppendEx(expr)
 			}
 
 			return toReturn
@@ -507,7 +508,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 					expr,
 				})
 
-				toReturn.GetParts() = append(toReturn.GetParts(), expr)
+				toReturn.AppendEx(expr)
 			}
 
 			return toReturn
@@ -584,7 +585,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 					f,
 					expr,
 				})
-				toReturn.GetParts() = append(toReturn.GetParts(), expr)
+				toReturn.AppendEx(expr)
 				evaluated = append(evaluated, expr.DeepCopy().Eval(es)) // Could use a stack of length m
 
 				if i >= m {
@@ -592,7 +593,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 					if m >= 0 {
 						testExpression.GetParts() = append(testExpression.GetParts(), evaluated[int64(len(evaluated))-m:]...)
 					} else {
-						testExpression.GetParts() = append(testExpression.GetParts(), evaluated...)
+						testExpression.AppendExArray(evaluated)
 					}
 					isequal = testExpression.Eval(es).IsEqual(NewSymbol("System`True"))
 					cont = isequal == "EQUAL_TRUE"
@@ -609,7 +610,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 						f,
 						expr,
 					})
-					toReturn.GetParts() = append(toReturn.GetParts(), expr)
+					toReturn.AppendEx(expr)
 				}
 			} else {
 				toReturn.GetParts() = toReturn.GetParts()[:int64(len(toReturn.GetParts()))+n]

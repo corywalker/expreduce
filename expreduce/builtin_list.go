@@ -10,11 +10,11 @@ import (
 )
 
 func (this *Expression) ToStringList(params expreduceapi.ToStringParams) (bool, string) {
-	if params.form == "FullForm" {
+	if params.Form == "FullForm" {
 		return false, ""
 	}
 	var buffer bytes.Buffer
-	if params.form == "TeXForm" {
+	if params.Form == "TeXForm" {
 		buffer.WriteString("\\left\\{")
 	} else {
 		buffer.WriteString("{")
@@ -24,12 +24,12 @@ func (this *Expression) ToStringList(params expreduceapi.ToStringParams) (bool, 
 		buffer.WriteString(e.StringForm(params))
 		if i != len(this.GetParts()[1:])-1 {
 			buffer.WriteString(",")
-			if params.form != "TeXForm" {
+			if params.Form != "TeXForm" {
 				buffer.WriteString(" ")
 			}
 		}
 	}
-	if params.form == "TeXForm" {
+	if params.Form == "TeXForm" {
 		buffer.WriteString("\\right\\}")
 	} else {
 		buffer.WriteString("}")
@@ -172,7 +172,7 @@ func ThreadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionI
 				thisExpr.GetParts() = append(thisExpr.GetParts(), expr.GetParts()[i])
 			}
 		}
-		toReturn.GetParts() = append(toReturn.GetParts(), thisExpr)
+		toReturn.AppendEx(thisExpr)
 	}
 	return toReturn, true
 }
@@ -287,7 +287,7 @@ func GetListDefinitions() (defs []Definition) {
 						if isRule {
 							toAdd = ReplacePD(rule.GetParts()[2], es, pd)
 						}
-						toReturn.GetParts() = append(toReturn.GetParts(), toAdd)
+						toReturn.AppendEx(toAdd)
 					}
 				}
 
@@ -310,7 +310,7 @@ func GetListDefinitions() (defs []Definition) {
 				for i := 1; i < len(expr.GetParts()); i++ {
 					if matchq, _ := IsMatchQ(expr.GetParts()[i], pattern, EmptyPD(), es); !matchq {
 						toAdd := expr.GetParts()[i]
-						toReturn.GetParts() = append(toReturn.GetParts(), toAdd)
+						toReturn.AppendEx(toAdd)
 					}
 				}
 
@@ -338,7 +338,7 @@ func GetListDefinitions() (defs []Definition) {
 				} else if !IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
 					return this
 				}
-				allParts.GetParts() = append(allParts.GetParts(), expr.GetParts()[1:]...)
+				allParts.AppendExArray(expr.GetParts()[1:])
 			}
 			sort.Sort(allParts)
 			toReturn := NewExpression([]expreduceapi.Ex{firstHead})
@@ -346,7 +346,7 @@ func GetListDefinitions() (defs []Definition) {
 			for _, part := range allParts.GetParts()[1:] {
 				if lastEx == nil || !IsSameQ(lastEx, part, es.GetLogger()) {
 					lastEx = part
-					toReturn.GetParts() = append(toReturn.GetParts(), part)
+					toReturn.AppendEx(part)
 				}
 			}
 
@@ -384,7 +384,7 @@ func GetListDefinitions() (defs []Definition) {
 				_, excluded := exclusions[hash]
 				if !excluded && !alreadyAdded {
 					added[hash] = true
-					toReturn.GetParts() = append(toReturn.GetParts(), part)
+					toReturn.AppendEx(part)
 				}
 			}
 			sort.Sort(toReturn)
@@ -401,7 +401,7 @@ func GetListDefinitions() (defs []Definition) {
 			toReturn := NewExpression([]expreduceapi.Ex{list.GetParts()[0]})
 			for i := int64(0); i < n; i++ {
 				if i >= int64(len(list.GetParts())-1) {
-					toReturn.GetParts() = append(toReturn.GetParts(), x)
+					toReturn.AppendEx(x)
 				} else {
 					toReturn.GetParts() = append(toReturn.GetParts(), list.GetParts()[i+1])
 				}
@@ -419,7 +419,7 @@ func GetListDefinitions() (defs []Definition) {
 			toReturn := NewExpression([]expreduceapi.Ex{list.GetParts()[0]})
 			for i := int64(0); i < n; i++ {
 				if i < n-int64(len(list.GetParts()))+1 {
-					toReturn.GetParts() = append(toReturn.GetParts(), x)
+					toReturn.AppendEx(x)
 				} else {
 					listI := int64(len(list.GetParts())) - (n - i)
 					toReturn.GetParts() = append(toReturn.GetParts(), list.GetParts()[listI])
@@ -434,7 +434,7 @@ func GetListDefinitions() (defs []Definition) {
 			// I should probably refactor the IterSpec system so that it does not
 			// require being passed a list and a variable of iteration. TODO
 			iterSpecList := NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), NewSymbol("System`$DUMMY")})
-			iterSpecList.GetParts() = append(iterSpecList.GetParts(), this.GetParts()[1:]...)
+			iterSpecList.AppendExArray(this.GetParts()[1:])
 			is, isOk := iterSpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
@@ -506,7 +506,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			res := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 			res.GetParts() = append(res.GetParts(), this.GetParts()[2])
-			res.GetParts() = append(res.GetParts(), expr.GetParts()[1:]...)
+			res.AppendExArray(expr.GetParts()[1:])
 			return res
 		},
 	})
@@ -529,7 +529,7 @@ func GetListDefinitions() (defs []Definition) {
 					_, isDupe := seen[hash]
 					if !isDupe {
 						seen[hash] = true
-						toReturn.GetParts() = append(toReturn.GetParts(), orig)
+						toReturn.AppendEx(orig)
 					}
 				}
 				return toReturn
@@ -569,7 +569,7 @@ func GetListDefinitions() (defs []Definition) {
 					passSymbol, passIsSymbol := pass.(*Symbol)
 					if passIsSymbol {
 						if passSymbol.Name == "System`True" {
-							res.GetParts() = append(res.GetParts(), part)
+							res.AppendEx(part)
 							added += 1
 						}
 					}

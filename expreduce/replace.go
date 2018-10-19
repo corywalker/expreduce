@@ -13,7 +13,7 @@ func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.Expression
 			NewExpression([]expreduceapi.Ex{NewSymbol("System`BlankNullSequence")}),
 		}))
 	}
-	looseLhs.GetParts() = append(looseLhs.GetParts(), lhs.GetParts()[1:]...)
+	looseLhs.AppendExArray(lhs.GetParts()[1:])
 	looseLhs.GetParts() = append(looseLhs.GetParts(), NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`Pattern"),
 		NewSymbol("System`Expreduce`end"),

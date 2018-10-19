@@ -121,7 +121,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return false, ""
 			}
-			if params.form == "FullForm" {
+			if params.Form == "FullForm" {
 				return false, ""
 			}
 			return true, this.GetParts()[1].StringForm(params)

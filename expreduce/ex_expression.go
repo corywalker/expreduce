@@ -111,11 +111,11 @@ func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headS
 				if shouldEval {
 					res.GetParts() = append(res.GetParts(), seqPart.Eval(es))
 				} else {
-					res.GetParts() = append(res.GetParts(), seqPart)
+					res.AppendEx(seqPart)
 				}
 			}
 		} else {
-			res.GetParts() = append(res.GetParts(), e)
+			res.AppendEx(e)
 		}
 	}
 	return res
@@ -187,15 +187,15 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 		if !isExpr {
 			toReturn := currEx.Eval(es)
 			// Handle tracing
-			if es.trace != nil && !es.IsFrozen() {
+			if es.GetTrace() != nil && !es.IsFrozen() {
 				toAppend := NewExpression([]expreduceapi.Ex{
 					NewSymbol("System`HoldForm"),
 					toReturn.DeepCopy(),
 				})
 
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
-				es.trace.GetParts() = append(
-					es.trace.GetParts(),
+				es.GetTrace().GetParts() = append(
+					es.GetTrace().GetParts(),
 					toAppend,
 				)
 			}
@@ -238,9 +238,9 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			}
 
 			// Handle tracing
-			traceBak := es.trace
-			if es.trace != nil && !es.IsFrozen() {
-				es.trace = NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			traceBak := es.GetTrace()
+			if es.GetTrace() != nil && !es.IsFrozen() {
+				es.GetTrace() = NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			}
 			oldHash := curr.GetParts()[i].Hash()
 			//fmt.Println(curr, i)
@@ -251,28 +251,28 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			if oldHash != curr.GetParts()[i].Hash() {
 				curr.cachedHash = 0
 			}
-			if es.trace != nil && !es.IsFrozen() {
-				if len(es.trace.GetParts()) > 2 {
+			if es.GetTrace() != nil && !es.IsFrozen() {
+				if len(es.GetTrace().GetParts()) > 2 {
 					// The DeepCopy here doesn't seem to affect anything, but
 					// should be good to have.
 					//fmt.Printf("Argument eval: appending %v\n", es.trace.DeepCopy().StringForm("FullForm"))
-					traceBak.GetParts() = append(traceBak.GetParts(), es.trace.DeepCopy())
+					traceBak.GetParts() = append(traceBak.GetParts(), es.GetTrace().DeepCopy())
 				}
-				es.trace = traceBak
+				es.GetTrace() = traceBak
 			}
 		}
 
 		// Handle tracing
-		if es.trace != nil && !es.IsFrozen() {
+		if es.GetTrace() != nil && !es.IsFrozen() {
 			toAppend := NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`HoldForm"),
 				currEx.DeepCopy(),
 			})
 
-			if !IsSameQ(es.trace.GetParts()[len(es.trace.GetParts())-1], toAppend, es.GetLogger()) {
+			if !IsSameQ(es.GetTrace().GetParts()[len(es.GetTrace().GetParts())-1], toAppend, es.GetLogger()) {
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
-				es.trace.GetParts() = append(
-					es.trace.GetParts(),
+				es.GetTrace().GetParts() = append(
+					es.GetTrace().GetParts(),
 					toAppend,
 				)
 			}
@@ -432,7 +432,7 @@ func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
 	if isHeadSym && !fullForm {
 		res, ok := "", false
 		headStr := headAsSym.Name
-		toStringFn, hasToStringFn := params.esi.GetStringFn(headStr)
+		toStringFn, hasToStringFn := params.Esi.GetStringFn(headStr)
 		if hasToStringFn {
 			ok, res = toStringFn(this, params)
 		}
@@ -473,7 +473,7 @@ func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
 func (this *Expression) String(esi expreduceapi.EvalStateInterface) string {
 	context, ContextPath := DefaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{
-		form: "InputForm", context: context, ContextPath: ContextPath, esi: esi})
+		Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
 }
 
 func (this *Expression) IsEqual(otherEx expreduceapi.Ex) string {
@@ -546,11 +546,11 @@ func (this *Expression) Swap(i, j int) {
 }
 
 func (this *Expression) AppendEx(e expreduceapi.Ex) {
-	this.GetParts() = append(this.GetParts(), e)
+	this.AppendEx(e)
 }
 
 func (this *Expression) AppendExArray(e []expreduceapi.Ex) {
-	this.GetParts() = append(this.GetParts(), e...)
+	this.AppendExArray(e)
 }
 
 func (this *Expression) NeedsEval() bool {

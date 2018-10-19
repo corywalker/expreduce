@@ -28,11 +28,11 @@ func GetStringDefinitions() (defs []Definition) {
 
 			context, ContextPath := ActualStringFormArgs(es)
 			stringParams := expreduceapi.ToStringParams{
-				form:         formAsSymbol.Name[7:],
-				context:      context,
+				Form:         formAsSymbol.Name[7:],
+				Context:      context,
 				ContextPath:  ContextPath,
 				PreviousHead: "<TOPLEVEL>",
-				esi:          es,
+				Esi:          es,
 			}
 			return NewString(this.GetParts()[1].StringForm(stringParams))
 		},

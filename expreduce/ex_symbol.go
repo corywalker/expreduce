@@ -39,7 +39,7 @@ func (this *Symbol) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 }
 
 func formatSymName(name string, params expreduceapi.ToStringParams) string {
-	if params.form == "TeXForm" {
+	if params.Form == "TeXForm" {
 		if name == "E" {
 			return "e"
 		}
@@ -60,8 +60,8 @@ func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
-	if strings.HasPrefix(this.Name, params.context.Val) {
-		return formatSymName(this.Name[len(params.context.Val):], params)
+	if strings.HasPrefix(this.Name, params.Context.Val) {
+		return formatSymName(this.Name[len(params.Context.Val):], params)
 	}
 	for _, pathPart := range params.ContextPath.GetParts()[1:] {
 		path := pathPart.(*String).Val
@@ -74,7 +74,7 @@ func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 
 func (this *Symbol) String(esi expreduceapi.EvalStateInterface) string {
 	context, ContextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{form: "InputForm", context: context, ContextPath: ContextPath, esi: esi})
+	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
 }
 
 func (this *Symbol) IsEqual(other expreduceapi.Ex) string {

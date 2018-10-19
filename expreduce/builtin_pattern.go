@@ -7,7 +7,7 @@ import (
 )
 
 func ToStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi.ToStringParams) (bool, string) {
-	if params.form == "FullForm" {
+	if params.Form == "FullForm" {
 		return false, ""
 	}
 	if len(parts) == 1 {
@@ -15,7 +15,7 @@ func ToStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi
 	} else if len(parts) == 2 {
 		var buffer bytes.Buffer
 		buffer.WriteString(repr)
-		buffer.WriteString(parts[1].String(params.esi))
+		buffer.WriteString(parts[1].String(params.Esi))
 		return true, buffer.String()
 	}
 	return false, ""
@@ -42,7 +42,7 @@ func GetPatternDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			if params.form != "InputForm" && params.form != "OutputForm" {
+			if params.Form != "InputForm" && params.Form != "OutputForm" {
 				return false, ""
 			}
 			var buffer bytes.Buffer
@@ -125,7 +125,7 @@ func GetPatternDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return false, ""
 			}
-			if params.form != "InputForm" && params.form != "OutputForm" {
+			if params.Form != "InputForm" && params.Form != "OutputForm" {
 				return false, ""
 			}
 			var buffer bytes.Buffer

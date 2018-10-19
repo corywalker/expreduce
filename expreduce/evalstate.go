@@ -91,7 +91,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 	es.NoInit = !loadAllDefs
 	if !es.NoInit {
 		// Init modules
-		// Mark all core builtins as seen in the System context:
+		// Mark all core builtins as seen in the System Context:
 		es.MarkSeen("System`Symbol")
 		es.MarkSeen("System`Integer")
 		es.MarkSeen("System`Rational")
@@ -413,12 +413,12 @@ func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *
 	// complexity (or specificity)
 	context, ContextPath := DefinitionComplexityStringFormArgs()
 	stringParams := expreduceapi.ToStringParams{
-		form:        "InputForm",
-		context:     context,
+		Form:        "InputForm",
+		Context:     context,
 		ContextPath: ContextPath,
 		// No need for the EvalState reference. Used for string expansion for
 		// Definition[], which should not be in an actual definition.
-		esi: es,
+		Esi: es,
 	}
 	specificity := len(lhs.StringForm(stringParams))
 	if _, rhsIsCond := HeadAssertion(rhs, "System`Condition"); rhsIsCond {
@@ -606,6 +606,10 @@ func (es *EvalState) Throw(e expreduceapi.ExpressionInterface) {
 
 func (es *EvalState) HasThrown() bool {
 	return es.thrown != nil
+}
+
+func (es *EvalState) GetTrace() expreduceapi.ExpressionInterface {
+	return es.GetTrace()
 }
 
 func (es *EvalState) ProcessTopLevelResult(in expreduceapi.Ex, out expreduceapi.Ex) expreduceapi.Ex {

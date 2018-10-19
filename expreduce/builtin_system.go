@@ -60,7 +60,7 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 			if !defined {
 				toAdd = exprToN(es, part)
 			}
-			exToReturn.GetParts() = append(exToReturn.GetParts(), toAdd)
+			exToReturn.AppendEx(toAdd)
 		}
 		return exToReturn
 	}
@@ -326,7 +326,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return false, ""
 			}
-			if params.form != "InputForm" && params.form != "OutputForm" {
+			if params.Form != "InputForm" && params.Form != "OutputForm" {
 				return false, ""
 			}
 
@@ -334,10 +334,10 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return false, ""
 			}
-			if params.esi == nil {
+			if params.Esi == nil {
 				return true, "Definiton[<WITHOUT_CONTEXT>]"
 			}
-			def, isd := params.esi.GetDefined(sym.Name)
+			def, isd := params.Esi.GetDefined(sym.Name)
 			if !isd {
 				return true, "Null"
 			}
@@ -530,11 +530,11 @@ func GetSystemDefinitions() (defs []Definition) {
 
 			context, ContextPath := ActualStringFormArgs(es)
 			stringParams := expreduceapi.ToStringParams{
-				form:         "OutputForm",
-				context:      context,
+				Form:         "OutputForm",
+				Context:      context,
 				ContextPath:  ContextPath,
 				PreviousHead: "<TOPLEVEL>",
-				esi:          es,
+				Esi:          es,
 			}
 			for i := 1; i < len(this.GetParts()); i++ {
 				fmt.Printf("%s", this.GetParts()[i].StringForm(stringParams))
@@ -557,16 +557,16 @@ func GetSystemDefinitions() (defs []Definition) {
 			// way.
 
 			// Put system in trace mode:
-			es.trace = NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			es.GetTrace() = NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			// Evaluate first argument in trace mode:
 			this.GetParts()[1].Eval(es)
-			if es.trace != nil && len(es.trace.GetParts()) > 2 {
+			if es.GetTrace() != nil && len(es.GetTrace().GetParts()) > 2 {
 				// Take system out of trace mode:
-				toReturn := es.trace.DeepCopy()
-				es.trace = nil
+				toReturn := es.GetTrace().DeepCopy()
+				es.GetTrace() = nil
 				return toReturn
 			}
-			es.trace = nil
+			es.GetTrace() = nil
 			return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 		},
 	})
