@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/corywalker/expreduce/expreduce"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"gopkg.in/readline.v1"
 	"log"
 	"net/http"
@@ -117,7 +118,7 @@ func interactiveSession(es *expreduce.EvalState) {
 	}
 }
 
-func printFormattedOutput(es *expreduce.EvalState, res expreduce.Ex, isInteractive bool, promptNum int) {
+func printFormattedOutput(es *expreduce.EvalState, res expreduceapi.Ex, isInteractive bool, promptNum int) {
 	isNull := false
 	asSym, isSym := res.(*expreduce.Symbol)
 	if isSym {
