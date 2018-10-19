@@ -23,7 +23,7 @@ func distribute(e expreduceapi.ExpressionInterface, built expreduceapi.Expressio
 		}
 		return
 	}
-	built.GetParts() = append(built.GetParts(), e.GetParts()[i])
+	built.AppendEx(e.GetParts()[i])
 	distribute(e, built, res)
 	return
 }

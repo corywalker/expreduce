@@ -109,7 +109,7 @@ func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headS
 		if isseq {
 			for _, seqPart := range seq.GetParts()[1:] {
 				if shouldEval {
-					res.GetParts() = append(res.GetParts(), seqPart.Eval(es))
+					res.AppendEx(seqPart.Eval(es))
 				} else {
 					res.AppendEx(seqPart)
 				}
@@ -218,7 +218,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			headSym, headIsSym = curr.GetParts()[0].(*Symbol)
 		}
 		if headIsSym {
-			attrs = headSym.Attrs(&es.defined)
+			attrs = headSym.Attrs(es.GetDefinedMap())
 		}
 		if attrs.NumericFunction {
 			propagated, changed := curr.propagateConditionals()
@@ -256,7 +256,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 					// The DeepCopy here doesn't seem to affect anything, but
 					// should be good to have.
 					//fmt.Printf("Argument eval: appending %v\n", es.trace.DeepCopy().StringForm("FullForm"))
-					traceBak.GetParts() = append(traceBak.GetParts(), es.GetTrace().DeepCopy())
+					traceBak.AppendEx(es.GetTrace().DeepCopy())
 				}
 				es.GetTrace() = traceBak
 			}
@@ -313,10 +313,10 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			headStr := headSym.Name
 
 			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, expreduceapi.EvalStateInterface) expreduceapi.Ex)(nil), false
-			if _, inDefined := es.defined.Get(headStr); inDefined {
-				if es.defined.GetDef(headStr).legacyEvalFn != nil {
+			if _, inDefined := es.GetDefinedMap().Get(headStr); inDefined {
+				if es.GetDefinedMap().GetDef(headStr).legacyEvalFn != nil {
 					hasLegacyEvalFn = true
-					legacyEvalFn = es.defined.GetDef(headStr).legacyEvalFn
+					legacyEvalFn = es.GetDefinedMap().GetDef(headStr).legacyEvalFn
 				}
 			}
 			unchanged := true
@@ -408,7 +408,7 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es expreduc
 		otherSym, otherSymOk := lhsExpr.GetParts()[0].(*Symbol)
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
-				attrs := thisSym.Attrs(&es.defined)
+				attrs := thisSym.Attrs(es.GetDefinedMap())
 				if attrs.Flat {
 					return FlatReplace(this, lhsExpr, r.GetParts()[2], attrs.Orderless, es)
 				}
@@ -418,7 +418,7 @@ func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es expreduc
 
 	maybeChanged := NewEmptyExpression()
 	for i := range this.GetParts() {
-		maybeChanged.GetParts() = append(maybeChanged.GetParts(), ReplaceAll(this.GetParts()[i], r, es, EmptyPD(), stopAtHead))
+		maybeChanged.AppendEx(ReplaceAll(this.GetParts()[i], r, es, EmptyPD(), stopAtHead))
 	}
 	if hashEx(maybeChanged) != hashEx(this) {
 		return maybeChanged
@@ -501,7 +501,7 @@ func (this *Expression) IsEqual(otherEx expreduceapi.Ex) string {
 func (this *Expression) DeepCopy() expreduceapi.Ex {
 	var thiscopy = NewEmptyExpression()
 	for i := range this.GetParts() {
-		thiscopy.GetParts() = append(thiscopy.GetParts(), this.GetParts()[i].DeepCopy())
+		thiscopy.AppendEx(this.GetParts()[i].DeepCopy())
 	}
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated

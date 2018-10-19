@@ -5,16 +5,16 @@ import "github.com/corywalker/expreduce/pkg/expreduceapi"
 // This function assumes e and lhs have the same head and that the head is Flat.
 func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.ExpressionInterface, rhs expreduceapi.Ex, orderless bool, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	looseLhs := NewExpression([]expreduceapi.Ex{})
-	looseLhs.GetParts() = append(looseLhs.GetParts(), lhs.GetParts()[0])
+	looseLhs.AppendEx(lhs.GetParts()[0])
 	if !orderless {
-		looseLhs.GetParts() = append(looseLhs.GetParts(), NewExpression([]expreduceapi.Ex{
+		looseLhs.AppendEx(NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Pattern"),
 			NewSymbol("System`Expreduce`start"),
 			NewExpression([]expreduceapi.Ex{NewSymbol("System`BlankNullSequence")}),
 		}))
 	}
 	looseLhs.AppendExArray(lhs.GetParts()[1:])
-	looseLhs.GetParts() = append(looseLhs.GetParts(), NewExpression([]expreduceapi.Ex{
+	looseLhs.AppendEx(NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`Pattern"),
 		NewSymbol("System`Expreduce`end"),
 		NewExpression([]expreduceapi.Ex{NewSymbol("System`BlankNullSequence")}),

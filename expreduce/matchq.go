@@ -225,8 +225,8 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	if bIsExpression {
 		bExpressionSym, bExpressionSymOk := bExpression.GetParts()[0].(*Symbol)
 		if bExpressionSymOk {
-			oneIdentity := bExpressionSym.Attrs(&es.defined).OneIdentity
-			hasDefaultExpr := bExpressionSym.Default(&es.defined) != nil
+			oneIdentity := bExpressionSym.Attrs(es.GetDefinedMap()).OneIdentity
+			hasDefaultExpr := bExpressionSym.Default(es.GetDefinedMap()) != nil
 			containsOptional := false
 			for _, part := range bExpression.GetParts()[1:] {
 				if _, isOpt := HeadAssertion(part, "System`Optional"); isOpt {
@@ -278,7 +278,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	bExpressionSym, bExpressionSymOk := bExpression.GetParts()[0].(*Symbol)
 	if aExpressionSymOk && bExpressionSymOk {
 		if aExpressionSym.Name == bExpressionSym.Name {
-			attrs = aExpressionSym.Attrs(&es.defined)
+			attrs = aExpressionSym.Attrs(es.GetDefinedMap())
 			sequenceHead = aExpressionSym.Name
 			startI = 1
 		}
@@ -417,7 +417,7 @@ type sequenceMatchIter struct {
 }
 
 func NewSequenceMatchIter(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (matchIter, bool) {
-	headDefault := (NewSymbol(sequenceHead)).Default(&es.defined)
+	headDefault := (NewSymbol(sequenceHead)).Default(es.GetDefinedMap())
 	fp_components := make([]parsedForm, len(lhs_components))
 	for i, comp := range lhs_components {
 		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, headDefault, es.GetLogger())

@@ -336,7 +336,7 @@ func levelSpecFunction(
 				if isExpr {
 					toReturn := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 					for i := 1; i < len(expr.GetParts()); i++ {
-						toReturn.GetParts() = append(toReturn.GetParts(), NewExpression([]expreduceapi.Ex{
+						toReturn.AppendEx(NewExpression([]expreduceapi.Ex{
 							this.GetParts()[1],
 							expr.GetParts()[i],
 						}))
@@ -591,7 +591,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 				if i >= m {
 					testExpression := NewExpression([]expreduceapi.Ex{test})
 					if m >= 0 {
-						testExpression.GetParts() = append(testExpression.GetParts(), evaluated[int64(len(evaluated))-m:]...)
+						testExpression.AppendEx(evaluated[int64(len(evaluated))-m:]...)
 					} else {
 						testExpression.AppendExArray(evaluated)
 					}
@@ -649,7 +649,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 				n := nInt.Val.Int64()
 				toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for i := int64(1); i <= n; i++ {
-					toReturn.GetParts() = append(toReturn.GetParts(), NewExpression([]expreduceapi.Ex{
+					toReturn.AppendEx(NewExpression([]expreduceapi.Ex{
 						this.GetParts()[1],
 						NewInteger(big.NewInt(i)),
 					}))

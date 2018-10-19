@@ -99,7 +99,7 @@ func DefineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, s
 	var attemptDefine expreduceapi.Ex = nil
 	if lhs.hasPat {
 		sequenceHeadSym := NewSymbol(sequenceHead)
-		oneIdent := sequenceHeadSym.Attrs(&es.defined).OneIdentity
+		oneIdent := sequenceHeadSym.Attrs(es.GetDefinedMap()).OneIdentity
 		if len(sequence) == 1 && (lhs.isBlank || oneIdent || lhs.isOptional) {
 			attemptDefine = sequence[0]
 		} else if len(sequence) == 0 && lhs.isOptional && lhs.defaultExpr != nil {

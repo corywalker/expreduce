@@ -255,7 +255,7 @@ func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInt
 				if hashEx(vars) == hashEx(lastVars) {
 					lastCoeffs = append(lastCoeffs, coeff)
 				} else {
-					collected.GetParts() = append(collected.GetParts(), collectedToTerm(lastCoeffs, lastVars, lastFullPart))
+					collected.AppendEx(collectedToTerm(lastCoeffs, lastVars, lastFullPart))
 
 					lastCoeffs = []expreduceapi.Ex{coeff}
 					lastVars = vars
@@ -267,7 +267,7 @@ func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInt
 		}
 	}
 	if lastVars != nil {
-		collected.GetParts() = append(collected.GetParts(), collectedToTerm(lastCoeffs, lastVars, lastFullPart))
+		collected.AppendEx(collectedToTerm(lastCoeffs, lastVars, lastFullPart))
 	}
 	return collected
 }

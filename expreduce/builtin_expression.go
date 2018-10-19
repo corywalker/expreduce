@@ -29,7 +29,7 @@ func flattenExpr(src expreduceapi.ExpressionInterface, dst expreduceapi.Expressi
 				continue
 			}
 		}
-		dst.GetParts() = append(dst.GetParts(), src.GetParts()[i])
+		dst.AppendEx(src.GetParts()[i])
 	}
 }
 

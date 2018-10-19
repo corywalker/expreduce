@@ -179,10 +179,10 @@ func TestLowLevel(t *testing.T) {
 	assert.Equal(t, "(a*b*c*d*e*f)", EasyRun("a * b * c *d *e *f", es))
 
 	CasAssertSame(t, es, "2", "iubjndxuier = 2")
-	_, containsTest := es.defined.Get("Global`iubjndxuier")
+	_, containsTest := es.GetDefinedMap().Get("Global`iubjndxuier")
 	assert.True(t, containsTest)
 	es.ClearAll()
-	_, containsTest = es.defined.Get("Global`iubjndxuier")
+	_, containsTest = es.GetDefinedMap().Get("Global`iubjndxuier")
 	assert.False(t, containsTest)
 
 	// Test raw recursion speed

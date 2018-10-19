@@ -195,7 +195,7 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 			if pl.isSet {
 				rhs = rhs.Eval(es)
 			}
-			es.defined.Set(pl.uniqueName, Def{
+			es.GetDefinedMap().Set(pl.uniqueName, expreduceapi.Def{
 				Downvalues: []expreduceapi.DownValue{
 					expreduceapi.DownValue{
 						rule: NewExpression([]expreduceapi.Ex{
@@ -207,7 +207,7 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 				},
 			})
 		} else {
-			es.defined.Set(pl.uniqueName, Def{})
+			es.GetDefinedMap().Set(pl.uniqueName, expreduceapi.Def{})
 		}
 		pm.LazyMakeMap()
 		pm.patternDefined[pl.sym.Name] = NewSymbol(pl.uniqueName)
@@ -281,7 +281,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			def, isDef := es.defined.Get(sym.Name)
+			def, isDef := es.GetDefinedMap().Get(sym.Name)
 			if isDef {
 				return def.attributes.toSymList()
 			}
@@ -300,7 +300,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			def := sym.Default(&es.defined)
+			def := sym.Default(es.GetDefinedMap())
 			if def != nil {
 				return def
 			}
@@ -362,7 +362,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
-			def, isd := es.defined.Get(sym.Name)
+			def, isd := es.GetDefinedMap().Get(sym.Name)
 			if !isd {
 				return res
 			}
@@ -371,7 +371,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				if !isLhsExpr {
 					continue
 				}
-				res.GetParts() = append(res.GetParts(), NewExpression([]expreduceapi.Ex{
+				res.AppendEx(NewExpression([]expreduceapi.Ex{
 					NewSymbol("System`RuleDelayed"),
 					dv.Rule.GetParts()[1],
 					dv.Rule.GetParts()[2],
@@ -775,8 +775,8 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 			res := this.GetParts()[1].Eval(es)
-			if es.reapSown != nil {
-				es.reapSown.AppendEx(res)
+			if es.GetReapSown() != nil {
+				es.GetReapSown().AppendEx(res)
 			}
 			return res
 		},
@@ -788,12 +788,12 @@ func GetSystemDefinitions() (defs []Definition) {
 				fmt.Println("Unsupported call to Reap.")
 				return this
 			}
-			es.reapSown = E(S("List"))
+			es.SetReapSown(E(S("List")))
 			res := this.GetParts()[1].Eval(es)
-			res = E(S("List"), res, E(S("List"), es.reapSown))
+			res = E(S("List"), res, E(S("List"), es.GetReapSown()))
 			// If I set this to nil, Int[((A + B*Cos[x])*(a + b*Sin[x])^-1), x]
 			// will not work for an unknown reason.
-			es.reapSown = E(S("List"))
+			es.SetReapSown(E(S("List")))
 			return res
 		},
 	})

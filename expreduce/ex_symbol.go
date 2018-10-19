@@ -103,16 +103,16 @@ func (this *Symbol) Copy() expreduceapi.Ex {
 	return this
 }
 
-func (this *Symbol) Attrs(dm *expreduceapi.DefinitionMap) expreduceapi.Attributes {
-	def, isDef := (*dm).Get(this.Name)
+func (this *Symbol) Attrs(dm expreduceapi.DefinitionMap) expreduceapi.Attributes {
+	def, isDef := dm.Get(this.Name)
 	if !isDef {
 		return expreduceapi.Attributes{}
 	}
 	return def.attributes
 }
 
-func (this *Symbol) Default(dm *expreduceapi.DefinitionMap) expreduceapi.Ex {
-	def, isDef := (*dm).Get(this.Name)
+func (this *Symbol) Default(dm expreduceapi.DefinitionMap) expreduceapi.Ex {
+	def, isDef := dm.Get(this.Name)
 	if !isDef {
 		return nil
 	}

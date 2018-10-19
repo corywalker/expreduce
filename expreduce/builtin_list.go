@@ -167,9 +167,9 @@ func ThreadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionI
 		for i := 1; i < len(expr.GetParts()); i++ {
 			list, isList := HeadAssertion(expr.GetParts()[i], "System`List")
 			if isList {
-				thisExpr.GetParts() = append(thisExpr.GetParts(), list.GetParts()[listI+1])
+				thisExpr.AppendEx(list.GetParts()[listI+1])
 			} else {
-				thisExpr.GetParts() = append(thisExpr.GetParts(), expr.GetParts()[i])
+				thisExpr.AppendEx(expr.GetParts()[i])
 			}
 		}
 		toReturn.AppendEx(thisExpr)
@@ -208,7 +208,7 @@ func GetListDefinitions() (defs []Definition) {
 						mis.defineCurrent(es)
 						// TODO: use ReplacePD for this. We're only replacing
 						// symbols. Don't need a full Eval.
-						toReturn.GetParts() = append(toReturn.GetParts(), this.GetParts()[1].DeepCopy().Eval(es))
+						toReturn.AppendEx(this.GetParts()[1].DeepCopy().Eval(es))
 						es.Debugf("%v\n", toReturn)
 						mis.next()
 					}
@@ -228,7 +228,7 @@ func GetListDefinitions() (defs []Definition) {
 					// Simulate evaluation within Block[]
 					toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 					for mis.cont() {
-						toReturn.GetParts() = append(toReturn.GetParts(), ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.currentPDManager()))
+						toReturn.AppendEx(ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.currentPDManager()))
 						es.Debugf("%v\n", toReturn)
 						mis.next()
 					}
@@ -403,7 +403,7 @@ func GetListDefinitions() (defs []Definition) {
 				if i >= int64(len(list.GetParts())-1) {
 					toReturn.AppendEx(x)
 				} else {
-					toReturn.GetParts() = append(toReturn.GetParts(), list.GetParts()[i+1])
+					toReturn.AppendEx(list.GetParts()[i+1])
 				}
 			}
 			return toReturn
@@ -422,7 +422,7 @@ func GetListDefinitions() (defs []Definition) {
 					toReturn.AppendEx(x)
 				} else {
 					listI := int64(len(list.GetParts())) - (n - i)
-					toReturn.GetParts() = append(toReturn.GetParts(), list.GetParts()[listI])
+					toReturn.AppendEx(list.GetParts()[listI])
 				}
 			}
 			return toReturn
@@ -441,7 +441,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 			for is.cont() {
-				toReturn.GetParts() = append(toReturn.GetParts(), is.getCurr())
+				toReturn.AppendEx(is.getCurr())
 				is.next()
 			}
 			return toReturn
@@ -487,7 +487,7 @@ func GetListDefinitions() (defs []Definition) {
 				return this
 			}
 			res := NewExpression(append([]expreduceapi.Ex{}, expr.GetParts()...))
-			res.GetParts() = append(res.GetParts(), this.GetParts()[2])
+			res.AppendEx(this.GetParts()[2])
 			return res
 		},
 	})
@@ -505,7 +505,7 @@ func GetListDefinitions() (defs []Definition) {
 				return this
 			}
 			res := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
-			res.GetParts() = append(res.GetParts(), this.GetParts()[2])
+			res.AppendEx(this.GetParts()[2])
 			res.AppendExArray(expr.GetParts()[1:])
 			return res
 		},
@@ -660,7 +660,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			res := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 			for i := len(expr.GetParts()) - 1; i > 0; i-- {
-				res.GetParts() = append(res.GetParts(), expr.GetParts()[i])
+				res.AppendEx(expr.GetParts()[i])
 			}
 			return res
 		},

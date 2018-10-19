@@ -38,7 +38,7 @@ func intSliceToList(ints []int64) expreduceapi.Ex {
 	})
 
 	for _, i := range ints {
-		toReturn.GetParts() = append(toReturn.GetParts(), NewInteger(big.NewInt(i)))
+		toReturn.AppendEx(NewInteger(big.NewInt(i)))
 	}
 	return toReturn
 }
