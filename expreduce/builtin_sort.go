@@ -18,8 +18,7 @@ func GetSortDefinitions() (defs []Definition) {
 			exp, ok := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if ok {
 				sortedExp := exp.DeepCopy().(expreduceapi.ExpressionInterface)
-				sortedExp.evaledHash = 0
-				sortedExp.cachedHash = 0
+				sortedExp.ClearHashes()
 				sort.Sort(sortedExp)
 				return sortedExp
 			}

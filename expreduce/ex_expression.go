@@ -612,3 +612,8 @@ func (this *Expression) GetParts() []expreduceapi.Ex {
 func (this *Expression) SetParts(newParts []expreduceapi.Ex) {
 	this.Parts = newParts
 }
+
+func (this *Expression) ClearHashes() {
+	this.evaledHash = 0
+	this.cachedHash = 0
+}

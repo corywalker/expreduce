@@ -347,7 +347,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			stringParams.PreviousHead = "<TOPLEVEL>"
 			// To prevent things like "Definition[In]" from exploding:
 			stringParams.Esi = nil
-			return true, def.StringForm(sym, stringParams)
+			return true, StringForm(&def, sym, stringParams)
 		},
 	})
 	defs = append(defs, Definition{
@@ -725,7 +725,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			res := this.GetParts()[1].Eval(es)
 			if es.HasThrown() {
-				toReturn := es.thrown.GetParts()[1]
+				toReturn := es.Thrown().GetParts()[1]
 				es.Throw(nil)
 				return toReturn
 			}

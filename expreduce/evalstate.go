@@ -61,8 +61,8 @@ func (this *EvalState) Load(def Definition) {
 		newDef = expreduceapi.Def{}
 	}
 
-	if def.LegacyEvalFn != nil {
-		newDef.LegacyEvalFn = def.LegacyEvalFn
+	if def.legacyEvalFn != nil {
+		newDef.LegacyEvalFn = def.legacyEvalFn
 	}
 	protectedAttrs := append(def.Attributes, "Protected")
 	newDef.Attributes = stringsToAttributes(protectedAttrs)

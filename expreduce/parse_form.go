@@ -148,7 +148,7 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 
 	res.startI = startI
 	res.endI = endI
-	res.Form = form
+	res.form = form
 	res.DefaultExpr = defaultExpr
 	res.origForm = lhs_component
 	res.isImpliedBs = isImpliedBs

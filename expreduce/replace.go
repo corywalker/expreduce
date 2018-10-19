@@ -60,8 +60,7 @@ func ReplacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool)
 			if dirty {
 				thisDirty = true
 				// Mark the expression as dirty and needing eval.
-				asExpr.evaledHash = 0
-				asExpr.cachedHash = 0
+				asExpr.ClearHashes()
 			}
 			asExpr.GetParts()[i] = possiblyNewExpr
 		}
