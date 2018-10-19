@@ -385,7 +385,7 @@ func (this *Expression) EvalFunction(es expreduceapi.EvalStateInterface, args []
 	return this
 }
 
-func (this *Expression) ReplaceAll(r *Expression, stopAtHead string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func ExprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.ExpressionInterface, stopAtHead string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.Debugf("Rule r is: %s", r)
 
@@ -504,7 +504,8 @@ func (this *Expression) DeepCopy() expreduceapi.Ex {
 	return thiscopy
 }
 
-func (this *Expression) ShallowCopy() *Expression {
+func ShallowCopy(thisExprInt expreduceapi.ExpressionInterface) *Expression {
+	this := thisExprInt.(*Expression)
 	var thiscopy = NewEmptyExpression()
 	thiscopy.Parts = append([]expreduceapi.Ex{}, this.GetParts()...)
 	thiscopy.needsEval = this.needsEval

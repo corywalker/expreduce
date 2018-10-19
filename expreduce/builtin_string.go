@@ -56,7 +56,7 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:     "Infix",
-		toString: (expreduceapi.ExpressionInterface).ToStringInfix,
+		toString: ToStringInfixFn,
 	})
 	defs = append(defs, Definition{
 		Name: "StringLength",

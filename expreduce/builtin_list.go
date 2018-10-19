@@ -9,7 +9,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func (this *Expression) ToStringList(params expreduceapi.ToStringParams) (bool, string) {
+func ToStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 	if params.Form == "FullForm" {
 		return false, ""
 	}
@@ -187,7 +187,7 @@ func countFunctionLevelSpec(pattern expreduceapi.Ex, e expreduceapi.Ex, partList
 func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:     "List",
-		toString: (expreduceapi.ExpressionInterface).ToStringList,
+		toString: ToStringList,
 	})
 	defs = append(defs, Definition{
 		Name: "Total",
@@ -596,7 +596,7 @@ func GetListDefinitions() (defs []Definition) {
 					part,
 				})).Eval(es)
 				if es.HasThrown() {
-					return es.thrown
+					return es.Thrown()
 				}
 				if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
 					if len(asReturn.GetParts()) < 2 {

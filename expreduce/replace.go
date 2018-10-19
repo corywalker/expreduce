@@ -104,7 +104,7 @@ func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es exp
 		} else {
 			// Continue recursion
 			es.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
-			return asExpression.ReplaceAll(r, stopAtHead, es)
+			return ExprReplaceAll(asExpression, r, stopAtHead, es)
 		}
 	}
 	if res, matches := IsMatchQ(this, r.GetParts()[1], pm, es); res {

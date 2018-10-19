@@ -4,16 +4,17 @@ package expreduceapi
 
 import (
 	gologging "github.com/op/go-logging"
+	"github.com/corywalker/expreduce/expreduce/timecounter"
 )
 
 type ToStringFnType (func(ExpressionInterface, ToStringParams) (bool, string))
 type ToStringParams struct {
-	form         string
-	context      StringInterface
+	Form         string
+	Context      StringInterface
 	ContextPath  ExpressionInterface
 	PreviousHead string
 	// Used by Definition[]
-	esi EvalStateInterface
+	Esi EvalStateInterface
 }
 
 // The interface that fundamental types must implement.
@@ -58,19 +59,30 @@ type EvalStateInterface interface {
 	GetDefinedSnapshot() DefinitionMap
 	IsFrozen() bool
 	SetFrozen(frozen bool)
+	IsInterrupted() bool
 	GetStringDef(name string, defaultVal string) string
 	GetListDef(name string) ExpressionInterface
 	Throw(e ExpressionInterface)
 	HasThrown() bool
+	Thrown() ExpressionInterface
 	ProcessTopLevelResult(in Ex, out Ex) Ex
 
 	GetLogger() LoggingInterface
+	GetTrace() ExpressionInterface
+	SetTrace(newTrace ExpressionInterface)
+	GetDefinedMap() DefinitionMap
+	GetReapSown() ExpressionInterface
+	SetReapSown(ex ExpressionInterface)
+
+	GetTimeCounter() *timecounter.Group
 }
 
 type ExpressionInterface interface {
 	Ex
 
 	GetParts() []Ex
+	SetParts(newParts []Ex)
+	ClearHashes()
 
 	EvalFunction(es EvalStateInterface, args []Ex) Ex
 	Len() int
@@ -83,6 +95,8 @@ type ExpressionInterface interface {
 
 type StringInterface interface {
 	Ex
+
+	GetValue() string
 }
 
 type DefinitionMap interface {
@@ -99,13 +113,14 @@ type DownValue struct {
 	Specificity int
 }
 
+type EvalFnType (func(ExpressionInterface, EvalStateInterface) Ex)
 type Def struct {
 	Downvalues  []DownValue
-	attributes  Attributes
+	Attributes  Attributes
 	DefaultExpr Ex
 
 	// A function defined here will override downvalues.
-	legacyEvalFn (func(ExpressionInterface, EvalStateInterface) Ex)
+	LegacyEvalFn EvalFnType
 }
 
 // Functions for working with the attributes of symbols:

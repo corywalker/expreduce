@@ -52,7 +52,7 @@ func replaceParts(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, p
 		return e
 	}
 	res := E(expr.GetParts()[0])
-	part.AppendExArray(NewInt)
+	part.AppendEx(NewInt(0))
 	dirty := false
 	for i, p := range expr.GetParts()[1:] {
 		part.GetParts()[len(part.GetParts())-1] = NewInt(int64(i + 1))

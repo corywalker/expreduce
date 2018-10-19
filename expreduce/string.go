@@ -59,7 +59,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 	return true, buffer.String()
 }
 
-/*func ToStringInfix(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
+func ToStringInfixFn(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
 	if len(this.GetParts()) != 3 {
 		return false, ""
 	}
@@ -69,7 +69,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 		return false, ""
 	}
 	return ToStringInfix(expr.GetParts()[1:], delim.Val, "", p)
-}*/
+}
 
 // TODO(corywalker): Remove start, end. No users of these values.
 func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params expreduceapi.ToStringParams) (bool, string) {

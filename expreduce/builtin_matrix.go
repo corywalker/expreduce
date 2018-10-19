@@ -45,7 +45,7 @@ func intSliceToList(ints []int64) expreduceapi.Ex {
 
 // This function assumes that mat is a matrix and that i and j are not out of
 // bounds. i and j are 1-indexed.
-func (mat *Expression) matrix2dGetElem(i, j int64) expreduceapi.Ex {
+func matrix2dGetElem(mat expreduceapi.ExpressionInterface, i, j int64) expreduceapi.Ex {
 	return (mat.GetParts()[i].(expreduceapi.ExpressionInterface)).GetParts()[j]
 }
 
@@ -53,8 +53,8 @@ func calcIJ(i, j, innerDim int64, a, b expreduceapi.ExpressionInterface) expredu
 	toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
 	for pairI := int64(1); pairI <= innerDim; pairI++ {
 		toAdd := NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
-		toAdd.AppendEx(a.matrix2dGetElem(i, pairI))
-		toAdd.AppendEx(b.matrix2dGetElem(pairI, j))
+		toAdd.AppendEx(matrix2dGetElem(a, i, pairI))
+		toAdd.AppendEx(matrix2dGetElem(b, pairI, j))
 		toReturn.AppendEx(toAdd)
 	}
 	return toReturn
@@ -162,7 +162,7 @@ func GetMatrixDefinitions() (defs []Definition) {
 			for tI := int64(1); tI <= w; tI++ {
 				tRow := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 				for tJ := int64(1); tJ <= h; tJ++ {
-					tRow.AppendEx(l.matrix2dGetElem(tJ, tI))
+					tRow.AppendEx(matrix2dGetElem(l, tJ, tI))
 				}
 				toReturn.AppendEx(tRow)
 			}
