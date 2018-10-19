@@ -60,8 +60,8 @@ func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 	if len(this.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
-	if strings.HasPrefix(this.Name, params.Context.Val) {
-		return formatSymName(this.Name[len(params.Context.Val):], params)
+	if strings.HasPrefix(this.Name, params.Context.GetValue()) {
+		return formatSymName(this.Name[len(params.Context.GetValue()):], params)
 	}
 	for _, pathPart := range params.ContextPath.GetParts()[1:] {
 		path := pathPart.(*String).Val

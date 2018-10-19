@@ -67,7 +67,7 @@ func OperatorAssertion(ex expreduceapi.Ex, opHead string) (*Expression, *Express
 }
 
 func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
-	if es.interrupted {
+	if es.IsInterrupted() {
 		if origEx != nil {
 			fmt.Println(origEx)
 		}
@@ -210,7 +210,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 
 		// Start by evaluating each argument
 		headSym, headIsSym := &Symbol{}, false
-		attrs := Attributes{}
+		attrs := expreduceapi.Attributes{}
 		if len(curr.GetParts()) > 0 {
 			headSym, headIsSym = curr.GetParts()[0].(*Symbol)
 		}
@@ -243,7 +243,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			//fmt.Println(curr, i)
 			curr.GetParts()[i] = curr.GetParts()[i].Eval(es)
 			if es.HasThrown() {
-				return es.thrown
+				return es.Thrown()
 			}
 			if oldHash != curr.GetParts()[i].Hash() {
 				curr.cachedHash = 0
@@ -306,7 +306,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			}
 			headStr := headSym.Name
 
-			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, expreduceapi.EvalStateInterface) expreduceapi.Ex)(nil), false
+			legacyEvalFn, hasLegacyEvalFn := (expreduceapi.EvalFnType)(nil), false
 			if _, inDefined := es.GetDefinedMap().Get(headStr); inDefined {
 				if es.GetDefinedMap().GetDef(headStr).LegacyEvalFn != nil {
 					hasLegacyEvalFn = true
@@ -336,8 +336,8 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 		// Handle end of profiling
 		if es.IsProfiling() {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
-			es.timeCounter.AddTime(timecounter.CounterGroupEvalTime, currStr, elapsed)
-			es.timeCounter.AddTime(timecounter.CounterGroupHeadEvalTime, currHeadStr, elapsed)
+			es.GetTimeCounter().AddTime(timecounter.CounterGroupEvalTime, currStr, elapsed)
+			es.GetTimeCounter().AddTime(timecounter.CounterGroupHeadEvalTime, currHeadStr, elapsed)
 		}
 	}
 	curr, isExpr := currEx.(*Expression)
@@ -575,7 +575,7 @@ func (this *Expression) HeadStr() string {
 }
 
 func NewExpression(parts []expreduceapi.Ex) *Expression {
-	return &expreduceapi.ExpressionInterface{
+	return &Expression{
 		Parts:                 parts,
 		needsEval:             true,
 		correctlyInstantiated: true,
@@ -591,14 +591,14 @@ func NewHead(head string) *Expression {
 }
 
 func NewEmptyExpression() *Expression {
-	return &expreduceapi.ExpressionInterface{
+	return &Expression{
 		needsEval:             true,
 		correctlyInstantiated: true,
 	}
 }
 
 func NewEmptyExpressionOfLength(n int) *Expression {
-	return &expreduceapi.ExpressionInterface{
+	return &Expression{
 		Parts:                 make([]expreduceapi.Ex, n),
 		needsEval:             true,
 		correctlyInstantiated: true,

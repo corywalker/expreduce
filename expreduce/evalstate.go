@@ -563,7 +563,7 @@ func (this *EvalState) GetDefinedSnapshot() expreduceapi.DefinitionMap {
 }
 
 func (this *EvalState) GetDefinedMap() expreduceapi.DefinitionMap {
-	return &this.defined
+	return this.defined
 }
 
 func (this *EvalState) IsFrozen() bool {
@@ -572,6 +572,10 @@ func (this *EvalState) IsFrozen() bool {
 
 func (this *EvalState) SetFrozen(frozen bool) {
 	this.freeze = frozen
+}
+
+func (this *EvalState) IsInterrupted() bool {
+	return this.interrupted
 }
 
 func (this *EvalState) GetLogger() expreduceapi.LoggingInterface {
@@ -630,6 +634,10 @@ func (es *EvalState) GetReapSown() expreduceapi.ExpressionInterface {
 
 func (es *EvalState) SetReapSown(ex expreduceapi.ExpressionInterface) {
 	es.reapSown = ex
+}
+
+func (es *EvalState) GetTimeCounter() *timecounter.Group {
+	return &es.timeCounter
 }
 
 func (es *EvalState) ProcessTopLevelResult(in expreduceapi.Ex, out expreduceapi.Ex) expreduceapi.Ex {

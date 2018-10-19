@@ -265,7 +265,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				pprof.WriteHeapProfile(f)
 				f.Close()
 			}
-			fmt.Println(es.timeCounter.String())
+			fmt.Println(es.GetTimeCounter().String())
 			return NewSymbol("System`Null")
 		},
 	})
@@ -283,7 +283,7 @@ func GetSystemDefinitions() (defs []Definition) {
 
 			def, isDef := es.GetDefinedMap().Get(sym.Name)
 			if isDef {
-				return def.Attributes.toSymList()
+				return attrsToSymList(&def.Attributes)
 			}
 			return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 		},
@@ -342,11 +342,11 @@ func GetSystemDefinitions() (defs []Definition) {
 				return true, "Null"
 			}
 			stringParams := params
-			stringParams.context, stringParams.ContextPath =
+			stringParams.Context, stringParams.ContextPath =
 				DefinitionComplexityStringFormArgs()
 			stringParams.PreviousHead = "<TOPLEVEL>"
 			// To prevent things like "Definition[In]" from exploding:
-			stringParams.esi = nil
+			stringParams.Esi = nil
 			return true, def.StringForm(sym, stringParams)
 		},
 	})

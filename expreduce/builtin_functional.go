@@ -591,7 +591,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 				if i >= m {
 					testExpression := NewExpression([]expreduceapi.Ex{test})
 					if m >= 0 {
-						testExpression.AppendEx(evaluated[int64(len(evaluated))-m:]...)
+						testExpression.AppendExArray(evaluated[int64(len(evaluated))-m:])
 					} else {
 						testExpression.AppendExArray(evaluated)
 					}

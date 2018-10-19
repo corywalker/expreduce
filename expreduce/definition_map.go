@@ -9,10 +9,10 @@ type ThreadSafeDefinitionMap struct {
 	internalMap cmap.ConcurrentMap
 }
 
-func newDefinitionMap() ThreadSafeDefinitionMap {
+func newDefinitionMap() *ThreadSafeDefinitionMap {
 	var dm ThreadSafeDefinitionMap
 	dm.internalMap = cmap.New()
-	return dm
+	return &dm
 }
 
 func (dm ThreadSafeDefinitionMap) Set(key string, value expreduceapi.Def) {

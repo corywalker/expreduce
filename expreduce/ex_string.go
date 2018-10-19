@@ -53,6 +53,10 @@ func (this *String) NeedsEval() bool {
 	return false
 }
 
+func (this *String) GetValue() string {
+	return this.Val
+}
+
 func (this *String) Hash() uint64 {
 	h := fnv.New64a()
 	h.Write([]byte{102, 206, 57, 172, 207, 100, 198, 133})
