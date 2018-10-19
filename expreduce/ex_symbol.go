@@ -108,7 +108,7 @@ func (this *Symbol) Attrs(dm expreduceapi.DefinitionMap) expreduceapi.Attributes
 	if !isDef {
 		return expreduceapi.Attributes{}
 	}
-	return def.attributes
+	return def.Attributes
 }
 
 func (this *Symbol) Default(dm expreduceapi.DefinitionMap) expreduceapi.Ex {
@@ -116,7 +116,7 @@ func (this *Symbol) Default(dm expreduceapi.DefinitionMap) expreduceapi.Ex {
 	if !isDef {
 		return nil
 	}
-	return def.defaultExpr
+	return def.DefaultExpr
 }
 
 func stringsToAttributes(strings []string) expreduceapi.Attributes {

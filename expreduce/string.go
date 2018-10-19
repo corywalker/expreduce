@@ -26,7 +26,7 @@ func needsParens(thisHead string, PreviousHead string) bool {
 }
 
 func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p expreduceapi.ToStringParams) (bool, string) {
-	if p.form != "InputForm" && p.form != "OutputForm" && p.form != "TeXForm" {
+	if p.Form != "InputForm" && p.Form != "OutputForm" && p.Form != "TeXForm" {
 		return false, ""
 	}
 	if len(parts) < 2 {
@@ -35,7 +35,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 	addParens := needsParens(thisHead, p.PreviousHead)
 	var buffer bytes.Buffer
 	if addParens {
-		if p.form == "TeXForm" {
+		if p.Form == "TeXForm" {
 			buffer.WriteString("{\\left(")
 		} else {
 			buffer.WriteString("(")
@@ -50,7 +50,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 		}
 	}
 	if addParens {
-		if p.form == "TeXForm" {
+		if p.Form == "TeXForm" {
 			buffer.WriteString("\\right)}")
 		} else {
 			buffer.WriteString(")")
@@ -59,7 +59,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 	return true, buffer.String()
 }
 
-func (this expreduceapi.ExpressionInterface) ToStringInfix(p expreduceapi.ToStringParams) (bool, string) {
+/*func ToStringInfix(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
 	if len(this.GetParts()) != 3 {
 		return false, ""
 	}
@@ -69,7 +69,7 @@ func (this expreduceapi.ExpressionInterface) ToStringInfix(p expreduceapi.ToStri
 		return false, ""
 	}
 	return ToStringInfix(expr.GetParts()[1:], delim.Val, "", p)
-}
+}*/
 
 // TODO(corywalker): Remove start, end. No users of these values.
 func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params expreduceapi.ToStringParams) (bool, string) {

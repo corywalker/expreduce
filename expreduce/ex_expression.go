@@ -194,10 +194,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 				})
 
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
-				es.GetTrace().GetParts() = append(
-					es.GetTrace().GetParts(),
-					toAppend,
-				)
+				es.GetTrace().AppendEx(toAppend)
 			}
 			return toReturn
 		}
@@ -240,7 +237,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 			// Handle tracing
 			traceBak := es.GetTrace()
 			if es.GetTrace() != nil && !es.IsFrozen() {
-				es.GetTrace() = NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+				es.SetTrace(NewExpression([]expreduceapi.Ex{NewSymbol("System`List")}))
 			}
 			oldHash := curr.GetParts()[i].Hash()
 			//fmt.Println(curr, i)
@@ -258,7 +255,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 					//fmt.Printf("Argument eval: appending %v\n", es.trace.DeepCopy().StringForm("FullForm"))
 					traceBak.AppendEx(es.GetTrace().DeepCopy())
 				}
-				es.GetTrace() = traceBak
+				es.SetTrace(traceBak)
 			}
 		}
 
@@ -271,10 +268,7 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 
 			if !IsSameQ(es.GetTrace().GetParts()[len(es.GetTrace().GetParts())-1], toAppend, es.GetLogger()) {
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
-				es.GetTrace().GetParts() = append(
-					es.GetTrace().GetParts(),
-					toAppend,
-				)
+				es.GetTrace().AppendEx(toAppend)
 			}
 		}
 
@@ -314,9 +308,9 @@ func (this *Expression) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex
 
 			legacyEvalFn, hasLegacyEvalFn := (func(*Expression, expreduceapi.EvalStateInterface) expreduceapi.Ex)(nil), false
 			if _, inDefined := es.GetDefinedMap().Get(headStr); inDefined {
-				if es.GetDefinedMap().GetDef(headStr).legacyEvalFn != nil {
+				if es.GetDefinedMap().GetDef(headStr).LegacyEvalFn != nil {
 					hasLegacyEvalFn = true
-					legacyEvalFn = es.GetDefinedMap().GetDef(headStr).legacyEvalFn
+					legacyEvalFn = es.GetDefinedMap().GetDef(headStr).LegacyEvalFn
 				}
 			}
 			unchanged := true
@@ -448,7 +442,7 @@ func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
 		headAsSym.Name == "System`StandardForm" ||
 		headAsSym.Name == "System`OutputForm") {
 		mutatedParams := params
-		mutatedParams.form = headAsSym.Name[7:]
+		mutatedParams.Form = headAsSym.Name[7:]
 		return this.GetParts()[1].StringForm(mutatedParams)
 	}
 
@@ -512,7 +506,7 @@ func (this *Expression) DeepCopy() expreduceapi.Ex {
 
 func (this *Expression) ShallowCopy() *Expression {
 	var thiscopy = NewEmptyExpression()
-	thiscopy.GetParts() = append([]expreduceapi.Ex{}, this.GetParts()...)
+	thiscopy.Parts = append([]expreduceapi.Ex{}, this.GetParts()...)
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
 	thiscopy.evaledHash = this.evaledHash
@@ -613,4 +607,8 @@ func NewEmptyExpressionOfLength(n int) *Expression {
 
 func (this *Expression) GetParts() []expreduceapi.Ex {
 	return this.GetParts()
+}
+
+func (this *Expression) SetParts(newParts []expreduceapi.Ex) {
+	this.Parts = newParts
 }

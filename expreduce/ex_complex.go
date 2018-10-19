@@ -25,7 +25,7 @@ func (this *Complex) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 }
 
 func (this *Complex) StringForm(p expreduceapi.ToStringParams) string {
-	if p.form == "FullForm" {
+	if p.Form == "FullForm" {
 		return fmt.Sprintf("Complex[%v, %v]", this.Re, this.Im)
 	}
 	p.PreviousHead = "System`Plus"

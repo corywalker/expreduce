@@ -52,8 +52,8 @@ func (dm ThreadSafeDefinitionMap) CopyDefs() expreduceapi.DefinitionMap {
 		newDef := expreduceapi.Def{}
 		for _, dv := range v.Downvalues {
 			newDv := expreduceapi.DownValue{
-				rule:        dv.Rule.DeepCopy().(expreduceapi.ExpressionInterface),
-				specificity: dv.Specificity,
+				Rule:        dv.Rule.DeepCopy().(expreduceapi.ExpressionInterface),
+				Specificity: dv.Specificity,
 			}
 			newDef.Downvalues = append(newDef.Downvalues, newDv)
 		}

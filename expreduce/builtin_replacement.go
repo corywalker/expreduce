@@ -71,7 +71,7 @@ func replaceParts(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, p
 			}
 		}
 	}
-	part.GetParts() = part.GetParts()[:len(part.GetParts())-1]
+	part.SetParts(part.GetParts()[:len(part.GetParts())-1])
 	if !dirty {
 		return e
 	}

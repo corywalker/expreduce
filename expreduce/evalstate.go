@@ -61,13 +61,13 @@ func (this *EvalState) Load(def Definition) {
 		newDef = expreduceapi.Def{}
 	}
 
-	if def.legacyEvalFn != nil {
-		newDef.legacyEvalFn = def.legacyEvalFn
+	if def.LegacyEvalFn != nil {
+		newDef.LegacyEvalFn = def.LegacyEvalFn
 	}
 	protectedAttrs := append(def.Attributes, "Protected")
-	newDef.attributes = stringsToAttributes(protectedAttrs)
+	newDef.Attributes = stringsToAttributes(protectedAttrs)
 	if def.Default != "" {
-		newDef.defaultExpr = Interp(def.Default, this)
+		newDef.DefaultExpr = Interp(def.Default, this)
 	}
 	if def.toString != nil {
 		this.toStringFns[def.Name] = def.toString
@@ -77,7 +77,7 @@ func (this *EvalState) Load(def Definition) {
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
-	es.GetDefinedMap() = newDefinitionMap()
+	es.defined = newDefinitionMap()
 	es.toStringFns = make(map[string]expreduceapi.ToStringFnType)
 	// These are fundamental symbols that affect even the parsing of
 	// expressions. We must define them before even the bootstrap definitions.
@@ -353,7 +353,7 @@ func (this *EvalState) DefineAttrs(sym *Symbol, rhs expreduceapi.Ex) {
 		this.defined.Set(sym.Name, expreduceapi.Def{})
 	}
 	tmp := this.defined.GetDef(sym.Name)
-	tmp.attributes = attrs
+	tmp.Attributes = attrs
 	this.defined.Set(sym.Name, tmp)
 }
 
@@ -373,7 +373,7 @@ func (this *EvalState) DefineDownValues(sym *Symbol, rhs expreduceapi.Ex) {
 		if !isRule || len(rule.GetParts()) != 3 {
 			fmt.Println("Assignment to DownValues must be List of Rules.")
 		}
-		dvs = append(dvs, expreduceapi.DownValue{rule: rule})
+		dvs = append(dvs, expreduceapi.DownValue{Rule: rule})
 	}
 
 	if !this.IsDef(sym.Name) {
@@ -486,7 +486,7 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 		newDef := expreduceapi.Def{
 			Downvalues: []expreduceapi.DownValue{
 				expreduceapi.DownValue{
-					rule: NewExpression([]expreduceapi.Ex{
+					Rule: NewExpression([]expreduceapi.Ex{
 						NewSymbol("System`Rule"), heldLhs, rhs,
 					}),
 				},
@@ -532,8 +532,8 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 				tmp.Downvalues[:i],
 				append(
 					[]expreduceapi.DownValue{expreduceapi.DownValue{
-						rule:        newRule,
-						specificity: newSpecificity,
+						Rule:        newRule,
+						Specificity: newSpecificity,
 					}},
 					this.defined.GetDef(name).Downvalues[i:]...,
 				)...,
@@ -542,7 +542,7 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 			return
 		}
 	}
-	tmp.Downvalues = append(tmp.Downvalues, expreduceapi.DownValue{rule: NewExpression([]expreduceapi.Ex{NewSymbol("System`Rule"), heldLhs, rhs})})
+	tmp.Downvalues = append(tmp.Downvalues, expreduceapi.DownValue{Rule: NewExpression([]expreduceapi.Ex{NewSymbol("System`Rule"), heldLhs, rhs})})
 	this.defined.Set(name, tmp)
 }
 
@@ -612,8 +612,16 @@ func (es *EvalState) HasThrown() bool {
 	return es.thrown != nil
 }
 
+func (es *EvalState) Thrown() expreduceapi.ExpressionInterface {
+	return es.thrown
+}
+
 func (es *EvalState) GetTrace() expreduceapi.ExpressionInterface {
 	return es.trace
+}
+
+func (es *EvalState) SetTrace(newTrace expreduceapi.ExpressionInterface) {
+	es.trace = newTrace
 }
 
 func (es *EvalState) GetReapSown() expreduceapi.ExpressionInterface {

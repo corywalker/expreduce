@@ -9,7 +9,7 @@ import (
 func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStringParams) string {
 	var buffer []string
 
-	attrs := def.attributes.toStrings()
+	attrs := def.Attributes.toStrings()
 	if len(attrs) > 0 {
 		e := E(
 			S("Set"),
@@ -17,7 +17,7 @@ func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStr
 				S("Attributes"),
 				defSym,
 			),
-			def.attributes.toSymList(),
+			def.Attributes.toSymList(),
 		)
 		buffer = append(buffer, e.StringForm(params))
 	}
@@ -31,14 +31,14 @@ func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStr
 		buffer = append(buffer, e.StringForm(params))
 	}
 
-	if def.defaultExpr != nil {
+	if def.DefaultExpr != nil {
 		e := E(
 			S("Set"),
 			E(
 				S("Default"),
 				defSym,
 			),
-			def.defaultExpr,
+			def.DefaultExpr,
 		)
 		buffer = append(buffer, e.StringForm(params))
 	}

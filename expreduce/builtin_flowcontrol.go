@@ -98,7 +98,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			for i := 1; i < len(this.GetParts()); i++ {
 				toReturn = this.GetParts()[i].Eval(es)
 				if es.HasThrown() {
-					return es.thrown
+					return es.Thrown()
 				}
 				if _, isReturn := HeadAssertion(toReturn, "System`Return"); isReturn {
 					return toReturn
@@ -164,7 +164,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 						mis.defineCurrent(es)
 						res := this.GetParts()[1].DeepCopy().Eval(es)
 						if es.HasThrown() {
-							return es.thrown
+							return es.Thrown()
 						}
 						if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
 							if len(asReturn.GetParts()) < 2 {

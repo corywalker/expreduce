@@ -613,7 +613,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 					toReturn.AppendEx(expr)
 				}
 			} else {
-				toReturn.GetParts() = toReturn.GetParts()[:int64(len(toReturn.GetParts()))+n]
+				toReturn.SetParts(toReturn.GetParts()[:int64(len(toReturn.GetParts()))+n])
 			}
 
 			return toReturn

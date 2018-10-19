@@ -379,7 +379,7 @@ func (ami *assignedMatchIter) next() bool {
 		//if matches {
 		comp := ami.components[ami.assn[p.formI][p.assnI]]
 		toAddReversed := []*PDManager{}
-		mi, cont := NewMatchIter(comp, lhs.form, p.pm, ami.es)
+		mi, cont := NewMatchIter(comp, lhs.Form, p.pm, ami.es)
 		for cont {
 			matchq, submatches, done := mi.next()
 			cont = !done
@@ -444,7 +444,7 @@ func NewSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components 
 		formMatches[i] = make([]bool, len(components))
 		num_matches := 0
 		for j, part := range components {
-			matchq, _ := IsMatchQ(part, mustContain.form, EmptyPD(), es)
+			matchq, _ := IsMatchQ(part, mustContain.Form, EmptyPD(), es)
 			if matchq {
 				num_matches++
 			}

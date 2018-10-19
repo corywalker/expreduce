@@ -114,9 +114,9 @@ func TestLowLevel(t *testing.T) {
 
 	es := NewEvalState()
 
-	lhs := NewExpression([]Ex{
+	lhs := NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`Power"),
-		NewExpression([]Ex{
+		NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Plus"),
 			NewSymbol("Global`a"),
 			NewSymbol("Global`b"),
@@ -124,11 +124,11 @@ func TestLowLevel(t *testing.T) {
 		}),
 		NewInt(0),
 	})
-	rule := NewExpression([]Ex{
+	rule := NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`Rule"),
-		NewExpression([]Ex{
+		NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Power"),
-			NewExpression([]Ex{
+			NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Blank"),
 			}),
 			NewInt(0),
@@ -146,9 +146,9 @@ func TestLowLevel(t *testing.T) {
 	assert.Equal(t, "5.5", f.String(es))
 
 	// Test nested addition functionality
-	var a = NewExpression([]Ex{
+	var a = NewExpression([]expreduceapi.Ex{
 		NewSymbol("System`Plus"),
-		NewExpression([]Ex{
+		NewExpression([]expreduceapi.Ex{
 			NewSymbol("System`Plus"),
 			NewReal(big.NewFloat(80)),
 			NewReal(big.NewFloat(3)),

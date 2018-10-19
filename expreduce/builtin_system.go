@@ -198,7 +198,7 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 			es.GetDefinedMap().Set(pl.uniqueName, expreduceapi.Def{
 				Downvalues: []expreduceapi.DownValue{
 					expreduceapi.DownValue{
-						rule: NewExpression([]expreduceapi.Ex{
+						Rule: NewExpression([]expreduceapi.Ex{
 							NewSymbol("System`Rule"),
 							E(S("HoldPattern"), NewSymbol(pl.uniqueName)),
 							rhs,
@@ -283,7 +283,7 @@ func GetSystemDefinitions() (defs []Definition) {
 
 			def, isDef := es.GetDefinedMap().Get(sym.Name)
 			if isDef {
-				return def.attributes.toSymList()
+				return def.Attributes.toSymList()
 			}
 			return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 		},
@@ -557,16 +557,16 @@ func GetSystemDefinitions() (defs []Definition) {
 			// way.
 
 			// Put system in trace mode:
-			es.GetTrace() = NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			es.SetTrace(NewExpression([]expreduceapi.Ex{NewSymbol("System`List")}))
 			// Evaluate first argument in trace mode:
 			this.GetParts()[1].Eval(es)
 			if es.GetTrace() != nil && len(es.GetTrace().GetParts()) > 2 {
 				// Take system out of trace mode:
 				toReturn := es.GetTrace().DeepCopy()
-				es.GetTrace() = nil
+				es.SetTrace(nil)
 				return toReturn
 			}
-			es.GetTrace() = nil
+			es.SetTrace(nil)
 			return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
 		},
 	})
