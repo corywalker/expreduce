@@ -541,11 +541,11 @@ func (this *Expression) Swap(i, j int) {
 }
 
 func (this *Expression) AppendEx(e expreduceapi.Ex) {
-	this.AppendEx(e)
+	this.Parts = append(this.Parts, e)
 }
 
 func (this *Expression) AppendExArray(e []expreduceapi.Ex) {
-	this.AppendExArray(e)
+	this.Parts = append(this.Parts, e...)
 }
 
 func (this *Expression) NeedsEval() bool {
@@ -607,7 +607,7 @@ func NewEmptyExpressionOfLength(n int) *Expression {
 }
 
 func (this *Expression) GetParts() []expreduceapi.Ex {
-	return this.GetParts()
+	return this.Parts
 }
 
 func (this *Expression) SetParts(newParts []expreduceapi.Ex) {
