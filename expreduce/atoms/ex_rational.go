@@ -1,10 +1,11 @@
-package expreduce
+package atoms
 
 import (
 	"fmt"
 	"hash/fnv"
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -14,49 +15,6 @@ type Rational struct {
 	needsEval bool
 }
 
-func (this *Rational) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
-		return NewSymbol("System`Indeterminate")
-	}
-	if this.Den.Cmp(big.NewInt(0)) == 0 {
-		return NewSymbol("System`ComplexInfinity")
-	}
-	if this.Num.Cmp(big.NewInt(0)) == 0 {
-		return NewInteger(big.NewInt(0))
-	}
-	negNum := this.Num.Cmp(big.NewInt(0)) == -1
-	negDen := this.Den.Cmp(big.NewInt(0)) == -1
-	negateRes := negNum != negDen
-	absNum := big.NewInt(0)
-	absNum.Abs(this.Num)
-	absDen := big.NewInt(0)
-	absDen.Abs(this.Den)
-
-	gcd := big.NewInt(0)
-	gcd.GCD(nil, nil, absNum, absDen)
-	absNum.Div(absNum, gcd)
-	absDen.Div(absDen, gcd)
-
-	if absDen.Cmp(big.NewInt(1)) == 0 {
-		if !negateRes {
-			return NewInteger(absNum)
-		} else {
-			return NewInteger(absNum.Neg(absNum))
-		}
-	}
-
-	if !negateRes {
-		this.Num.Set(absNum)
-		this.Den.Set(absDen)
-		this.needsEval = false
-		return this
-	}
-	this.Num.Set(absNum.Neg(absNum))
-	this.Den.Set(absDen)
-	this.needsEval = false
-	return this
-}
-
 func (this *Rational) StringForm(params expreduceapi.ToStringParams) string {
 	if params.Form == "FullForm" {
 		return fmt.Sprintf("Rational[%d, %d]", this.Num, this.Den)
@@ -64,7 +22,7 @@ func (this *Rational) StringForm(params expreduceapi.ToStringParams) string {
 	if params.Form == "TeXForm" {
 		return fmt.Sprintf("\\frac{%d}{%d}", this.Num, this.Den)
 	}
-	if needsParens("System`Times", params.PreviousHead) {
+	if parser.NeedsParens("System`Times", params.PreviousHead) {
 		return fmt.Sprintf("(%d/%d)", this.Num, this.Den)
 	}
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)

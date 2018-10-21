@@ -1,4 +1,4 @@
-package expreduce
+package atoms
 
 import (
 	"fmt"
@@ -9,10 +9,6 @@ import (
 
 type String struct {
 	Val string
-}
-
-func (this *String) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	return this
 }
 
 func (this *String) StringForm(params expreduceapi.ToStringParams) string {

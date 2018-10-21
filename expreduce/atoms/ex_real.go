@@ -1,4 +1,4 @@
-package expreduce
+package atoms
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -15,15 +16,11 @@ type Flt struct {
 	Val *big.Float
 }
 
-func (f *Flt) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	return f
-}
-
 func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	var buffer bytes.Buffer
 	useParens := false
 	if f.Val.Cmp(big.NewFloat(0)) < 0 {
-		if needsParens("System`Times", params.PreviousHead) {
+		if parser.NeedsParens("System`Times", params.PreviousHead) {
 			useParens = true
 			if params.Form == "TeXForm" {
 				buffer.WriteString("{")

@@ -3,27 +3,9 @@ package expreduce
 import (
 	"bytes"
 
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
-	"github.com/cznic/wl"
 )
-
-func needsParens(thisHead string, PreviousHead string) bool {
-	if PreviousHead == "<TOPLEVEL>" {
-		return false
-	}
-	prevToken, prevTokenOk := headsToTokens[PreviousHead]
-	thisToken, thisTokenOk := headsToTokens[thisHead]
-	if prevTokenOk && thisTokenOk {
-		prevPrec, prevPrecOk := wl.Precedence[prevToken]
-		thisPrec, thisPrecOk := wl.Precedence[thisToken]
-		if prevPrecOk && thisPrecOk {
-			if prevPrec < thisPrec {
-				return false
-			}
-		}
-	}
-	return true
-}
 
 func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p expreduceapi.ToStringParams) (bool, string) {
 	if p.Form != "InputForm" && p.Form != "OutputForm" && p.Form != "TeXForm" {
@@ -32,7 +14,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 	if len(parts) < 2 {
 		return false, ""
 	}
-	addParens := needsParens(thisHead, p.PreviousHead)
+	addParens := parser.NeedsParens(thisHead, p.PreviousHead)
 	var buffer bytes.Buffer
 	if addParens {
 		if p.Form == "TeXForm" {
@@ -80,7 +62,7 @@ func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 		return false, ""
 	}
 	var buffer bytes.Buffer
-	addParens := needsParens(thisHead, params.PreviousHead)
+	addParens := parser.NeedsParens(thisHead, params.PreviousHead)
 	if addParens {
 		if params.Form == "TeXForm" {
 			buffer.WriteString("{\\left(")
@@ -116,13 +98,6 @@ func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 		}
 	}
 	return true, buffer.String()
-}
-
-func DefaultStringFormArgs() (*String, expreduceapi.ExpressionInterface) {
-	return NewString("Global`"), NewExpression([]expreduceapi.Ex{
-		NewSymbol("System`List"),
-		NewString("System`"),
-	})
 }
 
 func DefinitionComplexityStringFormArgs() (*String, expreduceapi.ExpressionInterface) {

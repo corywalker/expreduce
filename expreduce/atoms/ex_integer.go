@@ -1,10 +1,11 @@
-package expreduce
+package atoms
 
 import (
 	"fmt"
 	"hash/fnv"
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -14,17 +15,13 @@ type Integer struct {
 	cachedHash uint64
 }
 
-func (f *Integer) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	return f
-}
-
 /*func (f *Integer) StringForm(params ToStringParams) string {
 	return fmt.Sprintf("%d", f.Val)
 }*/
 
 func (i *Integer) StringForm(params expreduceapi.ToStringParams) string {
 	if i.Val.Cmp(big.NewInt(0)) < 0 {
-		if needsParens("System`Times", params.PreviousHead) {
+		if parser.NeedsParens("System`Times", params.PreviousHead) {
 			if params.Form == "TeXForm" {
 				return fmt.Sprintf("{(%d)}", i.Val)
 			}

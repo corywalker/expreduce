@@ -1,4 +1,4 @@
-package expreduce
+package atoms
 
 import (
 	"encoding/binary"
@@ -12,16 +12,6 @@ type Complex struct {
 	Re        expreduceapi.Ex
 	Im        expreduceapi.Ex
 	needsEval bool
-}
-
-func (this *Complex) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	this.Re = this.Re.Eval(es)
-	this.Im = this.Im.Eval(es)
-	if IsSameQ(this.Im, NewInt(0), es.GetLogger()) {
-		return this.Re
-	}
-	this.needsEval = false
-	return this
 }
 
 func (this *Complex) StringForm(p expreduceapi.ToStringParams) string {

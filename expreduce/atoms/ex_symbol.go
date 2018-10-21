@@ -1,4 +1,4 @@
-package expreduce
+package atoms
 
 import (
 	"fmt"
@@ -13,29 +13,6 @@ import (
 type Symbol struct {
 	Name       string
 	cachedHash uint64
-}
-
-func (this *Symbol) Eval(es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	//definition, isdefined := es.defined[this.Name]
-	definition, isdefined, _ := es.GetDef(this.Name, this)
-	if isdefined {
-		// We must call Eval because, at this point, the expression has broken
-		// out of the evaluation loop.
-		toReturn := definition
-		// To handle the case where we set a variable to itself.
-		if sym, isSym := definition.(*Symbol); isSym {
-			if sym.Name == this.Name {
-				return toReturn
-			}
-		}
-		toReturn = toReturn.Eval(es)
-		retVal, isReturn := tryReturnValue(toReturn, nil, es)
-		if isReturn {
-			return retVal
-		}
-		return toReturn
-	}
-	return this
 }
 
 func formatSymName(name string, params expreduceapi.ToStringParams) string {

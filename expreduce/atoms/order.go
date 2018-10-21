@@ -1,9 +1,16 @@
-package expreduce
+package atoms
 
 import "github.com/corywalker/expreduce/pkg/expreduceapi"
 
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
+
 func compareStrings(a string, b string) int64 {
-	minchars := Min(len(a), len(b))
+	minchars := min(len(a), len(b))
 	for i := 0; i < minchars; i++ {
 		if a[i] > b[i] {
 			return -1
@@ -121,7 +128,7 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 			for ai >= 0 && bi >= 0 {
 				aPart, bPart := aAsExp.GetParts()[ai], bAsExp.GetParts()[bi]
 				ai, bi = ai-1, bi-1
-				if numberQ(aPart) && numberQ(bPart) {
+				if NumberQ(aPart) && NumberQ(bPart) {
 					continue
 				}
 				o := ExOrder(aPart, bPart)
@@ -129,9 +136,9 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 					return o
 				}
 			}
-			for i := 0; i < Min(len(aAsExp.GetParts()), len(bAsExp.GetParts())); i++ {
+			for i := 0; i < min(len(aAsExp.GetParts()), len(bAsExp.GetParts())); i++ {
 				aPart, bPart := aAsExp.GetParts()[i], bAsExp.GetParts()[i]
-				if numberQ(aPart) && numberQ(bPart) {
+				if NumberQ(aPart) && NumberQ(bPart) {
 					o := ExOrder(aPart, bPart)
 					if o != 0 {
 						return o

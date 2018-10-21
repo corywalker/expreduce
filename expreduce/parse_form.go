@@ -1,6 +1,7 @@
 package expreduce
 
 import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -14,7 +15,7 @@ type parsedForm struct {
 	isOptional  bool
 	defaultExpr expreduceapi.Ex
 	hasPat      bool
-	patSym      *Symbol
+	patSym      *atoms.Symbol
 }
 
 func ParseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, int, bool) {

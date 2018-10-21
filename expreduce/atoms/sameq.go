@@ -1,4 +1,4 @@
-package expreduce
+package atoms
 
 import (
 	"math"

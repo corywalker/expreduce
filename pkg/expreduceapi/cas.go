@@ -3,8 +3,8 @@
 package expreduceapi
 
 import (
-	gologging "github.com/op/go-logging"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
+	gologging "github.com/op/go-logging"
 )
 
 type ToStringFnType (func(ExpressionInterface, ToStringParams) (bool, string))
@@ -19,7 +19,6 @@ type ToStringParams struct {
 
 // The interface that fundamental types must implement.
 type Ex interface {
-	Eval(es EvalStateInterface) Ex
 	// TODO(corywalker): Deprecate this function. All stringification should go
 	// through StringForm.
 	String(es EvalStateInterface) string
@@ -45,6 +44,8 @@ type LoggingInterface interface {
 
 type EvalStateInterface interface {
 	LoggingInterface
+
+	Eval(expr Ex) Ex
 
 	GetDefined(name string) (Def, bool)
 	GetStringFn(headStr string) (ToStringFnType, bool)
@@ -84,7 +85,6 @@ type ExpressionInterface interface {
 	SetParts(newParts []Ex)
 	ClearHashes()
 
-	EvalFunction(es EvalStateInterface, args []Ex) Ex
 	Len() int
 	Less(i, j int) bool
 	Swap(i, j int)
