@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/iterspec"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -159,7 +160,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Sum",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			return evalIterationFunc(this, es, atoms.NewInteger(big.NewInt(0)), "System`Plus")
+			return iterspec.EvalIterationFunc(this, es, atoms.NewInteger(big.NewInt(0)), "System`Plus")
 		},
 	})
 	defs = append(defs, Definition{
@@ -248,7 +249,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Product",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			return evalIterationFunc(this, es, atoms.NewInteger(big.NewInt(1)), "System`Times")
+			return iterspec.EvalIterationFunc(this, es, atoms.NewInteger(big.NewInt(1)), "System`Times")
 		},
 	})
 	defs = append(defs, Definition{Name: "Abs"})

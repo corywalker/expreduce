@@ -1,4 +1,4 @@
-package expreduce
+package iterspec
 
 import (
 	"math/big"
@@ -11,9 +11,9 @@ import (
 type iterSpec interface {
 	// Should be called before every iteration:
 	reset()
-	next()
-	cont() bool
-	getCurr() expreduceapi.Ex
+	Next()
+	Cont() bool
+	GetCurr() expreduceapi.Ex
 	getI() expreduceapi.Ex
 	getIName() string
 }
@@ -51,7 +51,7 @@ func tryIterParam(e expreduceapi.Ex) (expreduceapi.Ex, bool) {
 	return nil, false
 }
 
-func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex) (iterSpec, bool) {
+func IterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex) (iterSpec, bool) {
 	isr := &iterSpecRange{}
 	isr.es = es
 	isl := &iterSpecList{}
@@ -113,15 +113,15 @@ func (this *iterSpecRange) reset() {
 	this.curr = this.es.Eval(atoms.E(atoms.S("Plus"), this.iMin, atoms.E(atoms.S("Times"), atoms.NewInt(0), this.step)))
 }
 
-func (this *iterSpecRange) next() {
+func (this *iterSpecRange) Next() {
 	this.curr = this.es.Eval(atoms.E(atoms.S("Plus"), this.curr, this.step))
 }
 
-func (this *iterSpecRange) cont() bool {
+func (this *iterSpecRange) Cont() bool {
 	return atoms.ExOrder(this.curr, this.iMax) >= 0
 }
 
-func (this *iterSpecRange) getCurr() expreduceapi.Ex {
+func (this *iterSpecRange) GetCurr() expreduceapi.Ex {
 	return this.curr
 }
 
@@ -137,15 +137,15 @@ func (this *iterSpecList) reset() {
 	this.pos = 1
 }
 
-func (this *iterSpecList) next() {
+func (this *iterSpecList) Next() {
 	this.pos++
 }
 
-func (this *iterSpecList) cont() bool {
+func (this *iterSpecList) Cont() bool {
 	return this.pos < len(this.list.GetParts())
 }
 
-func (this *iterSpecList) getCurr() expreduceapi.Ex {
+func (this *iterSpecList) GetCurr() expreduceapi.Ex {
 	return this.list.GetParts()[this.pos]
 }
 
@@ -164,24 +164,24 @@ type multiIterSpec struct {
 	shouldCont bool
 }
 
-func multiIterSpecFromLists(es expreduceapi.EvalStateInterface, lists []expreduceapi.Ex) (mis multiIterSpec, isOk bool) {
+func MultiIterSpecFromLists(es expreduceapi.EvalStateInterface, lists []expreduceapi.Ex) (mis multiIterSpec, isOk bool) {
 	// Retrieve variables of iteration
 	mis.shouldCont = true
 	for i := range lists {
-		is, isOk := iterSpecFromList(es, lists[i])
+		is, isOk := IterSpecFromList(es, lists[i])
 		if !isOk {
 			return mis, false
 		}
 		mis.iSpecs = append(mis.iSpecs, is)
-		mis.shouldCont = mis.shouldCont && is.cont()
+		mis.shouldCont = mis.shouldCont && is.Cont()
 	}
 	return mis, true
 }
 
-func (this *multiIterSpec) next() {
+func (this *multiIterSpec) Next() {
 	for i := len(this.iSpecs) - 1; i >= 0; i-- {
-		this.iSpecs[i].next()
-		if this.iSpecs[i].cont() {
+		this.iSpecs[i].Next()
+		if this.iSpecs[i].Cont() {
 			return
 		}
 		this.iSpecs[i].reset()
@@ -189,11 +189,11 @@ func (this *multiIterSpec) next() {
 	this.shouldCont = false
 }
 
-func (this *multiIterSpec) cont() bool {
+func (this *multiIterSpec) Cont() bool {
 	return this.shouldCont
 }
 
-func (this *multiIterSpec) takeVarSnapshot(es expreduceapi.EvalStateInterface) {
+func (this *multiIterSpec) TakeVarSnapshot(es expreduceapi.EvalStateInterface) {
 	this.origDefs = make([]expreduceapi.Ex, len(this.iSpecs))
 	this.isOrigDefs = make([]bool, len(this.iSpecs))
 	for i := range this.iSpecs {
@@ -201,7 +201,7 @@ func (this *multiIterSpec) takeVarSnapshot(es expreduceapi.EvalStateInterface) {
 	}
 }
 
-func (this *multiIterSpec) restoreVarSnapshot(es expreduceapi.EvalStateInterface) {
+func (this *multiIterSpec) RestoreVarSnapshot(es expreduceapi.EvalStateInterface) {
 	for i := range this.iSpecs {
 		if this.isOrigDefs[i] {
 			es.Define(this.iSpecs[i].getI(), this.origDefs[i])
@@ -211,33 +211,33 @@ func (this *multiIterSpec) restoreVarSnapshot(es expreduceapi.EvalStateInterface
 	}
 }
 
-func (this *multiIterSpec) defineCurrent(es expreduceapi.EvalStateInterface) {
+func (this *multiIterSpec) DefineCurrent(es expreduceapi.EvalStateInterface) {
 	for i := range this.iSpecs {
-		es.Define(this.iSpecs[i].getI(), this.iSpecs[i].getCurr())
+		es.Define(this.iSpecs[i].getI(), this.iSpecs[i].GetCurr())
 	}
 }
 
-func (this *multiIterSpec) currentPDManager() *matcher.PDManager {
+func (this *multiIterSpec) CurrentPDManager() *matcher.PDManager {
 	pm := matcher.EmptyPD()
 	for i := range this.iSpecs {
-		pm.Define(this.iSpecs[i].getIName(), this.iSpecs[i].getCurr())
+		pm.Define(this.iSpecs[i].getIName(), this.iSpecs[i].GetCurr())
 	}
 	return pm
 }
 
-func evalIterationFunc(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, init expreduceapi.Ex, op string) expreduceapi.Ex {
+func EvalIterationFunc(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, init expreduceapi.Ex, op string) expreduceapi.Ex {
 	if len(this.GetParts()) >= 3 {
-		mis, isOk := multiIterSpecFromLists(es, this.GetParts()[2:])
+		mis, isOk := MultiIterSpecFromLists(es, this.GetParts()[2:])
 		if isOk {
 			// Simulate evaluation within Block[]
-			mis.takeVarSnapshot(es)
+			mis.TakeVarSnapshot(es)
 			var toReturn expreduceapi.Ex = init
-			for mis.cont() {
-				mis.defineCurrent(es)
+			for mis.Cont() {
+				mis.DefineCurrent(es)
 				toReturn = es.Eval((atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol(op), toReturn, es.Eval(this.GetParts()[1].DeepCopy())})))
-				mis.next()
+				mis.Next()
 			}
-			mis.restoreVarSnapshot(es)
+			mis.RestoreVarSnapshot(es)
 			return toReturn
 		}
 	}

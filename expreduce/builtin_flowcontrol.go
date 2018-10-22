@@ -2,6 +2,7 @@ package expreduce
 
 import (
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/iterspec"
 	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
@@ -160,12 +161,12 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		Name: "Do",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := multiIterSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiIterSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
-					mis.takeVarSnapshot(es)
-					for mis.cont() {
-						mis.defineCurrent(es)
+					mis.TakeVarSnapshot(es)
+					for mis.Cont() {
+						mis.DefineCurrent(es)
 						res := es.Eval(this.GetParts()[1].DeepCopy())
 						if es.HasThrown() {
 							return es.Thrown()
@@ -176,9 +177,9 @@ func GetFlowControlDefinitions() (defs []Definition) {
 							}
 							return asReturn.GetParts()[1]
 						}
-						mis.next()
+						mis.Next()
 					}
-					mis.restoreVarSnapshot(es)
+					mis.RestoreVarSnapshot(es)
 					return atoms.NewSymbol("System`Null")
 				}
 			}

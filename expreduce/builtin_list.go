@@ -7,6 +7,7 @@ import (
 	"sync"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/iterspec"
 	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
@@ -204,20 +205,20 @@ func GetListDefinitions() (defs []Definition) {
 		Name: "Table",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := multiIterSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiIterSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
-					mis.takeVarSnapshot(es)
+					mis.TakeVarSnapshot(es)
 					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
-					for mis.cont() {
-						mis.defineCurrent(es)
+					for mis.Cont() {
+						mis.DefineCurrent(es)
 						// TODO: use ReplacePD for this. We're only replacing
 						// symbols. Don't need a full Eval.
 						toReturn.AppendEx(es.Eval(this.GetParts()[1].DeepCopy()))
 						es.Debugf("%v\n", toReturn)
-						mis.next()
+						mis.Next()
 					}
-					mis.restoreVarSnapshot(es)
+					mis.RestoreVarSnapshot(es)
 					return toReturn
 				}
 			}
@@ -228,14 +229,14 @@ func GetListDefinitions() (defs []Definition) {
 		Name: "ParallelTable",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := multiIterSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiIterSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
 					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
-					for mis.cont() {
-						toReturn.AppendEx(matcher.ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.currentPDManager()))
+					for mis.Cont() {
+						toReturn.AppendEx(matcher.ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.CurrentPDManager()))
 						es.Debugf("%v\n", toReturn)
-						mis.next()
+						mis.Next()
 					}
 					var wg sync.WaitGroup
 					for i := 1; i < len(toReturn.GetParts()); i++ {
@@ -440,14 +441,14 @@ func GetListDefinitions() (defs []Definition) {
 			// require being passed a list and a variable of iteration. TODO
 			iterSpecList := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), atoms.NewSymbol("System`$DUMMY")})
 			iterSpecList.AppendExArray(this.GetParts()[1:])
-			is, isOk := iterSpecFromList(es, iterSpecList)
+			is, isOk := iterspec.IterSpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
 			}
 			toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
-			for is.cont() {
-				toReturn.AppendEx(is.getCurr())
-				is.next()
+			for is.Cont() {
+				toReturn.AppendEx(is.GetCurr())
+				is.Next()
 			}
 			return toReturn
 		},
