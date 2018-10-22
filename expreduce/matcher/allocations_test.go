@@ -1,4 +1,4 @@
-package expreduce
+package matcher
 
 import (
 	"fmt"

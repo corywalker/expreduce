@@ -1,4 +1,11 @@
-package expreduce
+package matcher
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
 
 type allocIterState struct {
 	currForm  int
@@ -36,14 +43,14 @@ func (ai *allocIter) next() bool {
 			// TODO: clean up this code and determine if we ever need to handle
 			// an optional form without a startI == 0 and endI == 1.
 			if ai.forms[p.currForm].isOptional {
-				for i := ai.forms[p.currForm].startI; i <= Min(ai.forms[p.currForm].endI, p.remaining); i++ {
+				for i := ai.forms[p.currForm].startI; i <= min(ai.forms[p.currForm].endI, p.remaining); i++ {
 					if p.remaining-i >= 0 {
 						ai.stack = append(ai.stack, allocIterState{
 							p.currForm + 1, p.remaining - i, i})
 					}
 				}
 			} else {
-				for i := Min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
+				for i := min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
 					if p.remaining-i >= 0 {
 						ai.stack = append(ai.stack, allocIterState{
 							p.currForm + 1, p.remaining - i, i})

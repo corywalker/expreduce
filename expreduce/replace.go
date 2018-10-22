@@ -2,6 +2,7 @@ package expreduce
 
 import (
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -22,12 +23,12 @@ func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.Expression
 		atoms.NewSymbol("System`Expreduce`end"),
 		atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`BlankNullSequence")}),
 	}))
-	pm := EmptyPD()
-	matchq, newPd := IsMatchQ(e, looseLhs, pm, es)
+	pm := matcher.EmptyPD()
+	matchq, newPd := matcher.IsMatchQ(e, looseLhs, pm, es)
 	if matchq {
 		var tmpEx expreduceapi.Ex
 		if orderless {
-			tmpEx = ReplacePD(atoms.NewExpression([]expreduceapi.Ex{
+			tmpEx = matcher.ReplacePD(atoms.NewExpression([]expreduceapi.Ex{
 				e.GetParts()[0],
 				rhs,
 				atoms.NewSymbol("System`Expreduce`end"),
@@ -35,7 +36,7 @@ func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.Expression
 
 				es, newPd)
 		} else {
-			tmpEx = ReplacePD(atoms.NewExpression([]expreduceapi.Ex{
+			tmpEx = matcher.ReplacePD(atoms.NewExpression([]expreduceapi.Ex{
 				e.GetParts()[0],
 				atoms.NewSymbol("System`Expreduce`start"),
 				rhs,
@@ -49,58 +50,11 @@ func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.Expression
 	return e
 }
 
-func ReplacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool) {
-	asSym, isSym := e.(*atoms.Symbol)
-	if isSym {
-		for k, def := range pm.patternDefined {
-			if k == asSym.Name {
-				// Shouldn't need the copy
-				return def, true
-			}
-		}
-	}
-	thisDirty := false
-	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
-	if isExpr {
-		for i := range asExpr.GetParts() {
-			possiblyNewExpr, dirty := ReplacePDInternal(asExpr.GetParts()[i], pm)
-			if dirty {
-				thisDirty = true
-				// Mark the expression as dirty and needing eval.
-				asExpr.ClearHashes()
-			}
-			asExpr.GetParts()[i] = possiblyNewExpr
-		}
-	}
-	return e, thisDirty
-}
-
-func ReplacePD(this expreduceapi.Ex, es expreduceapi.EvalStateInterface, pm *PDManager) expreduceapi.Ex {
-	if pm == nil {
-		return this
-	}
-	containsAny := false
-	for k := range pm.patternDefined {
-		if atoms.ContainsSymbol(this, k) {
-			containsAny = true
-			break
-		}
-	}
-	if !containsAny {
-		return this
-	}
-
-	// Expressions are immutable. Any time we change an expression, we must
-	// first copy it.
-	res, _ := ReplacePDInternal(this.Copy(), pm)
-	return res
-}
-
 // The goal of this function is to replace all matching expressions with the
 // RHS upon successful matches. We will NOT substitute any named patterns in
 // the RHS. We will merely make sure that the named patterns are added to pm.
 // Final named pattern substitution will occur at the last possible time.
-func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, pm *PDManager,
+func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, pm *matcher.PDManager,
 	stopAtHead string) expreduceapi.Ex {
 	asExpression, isExpression := this.(expreduceapi.ExpressionInterface)
 
@@ -114,13 +68,13 @@ func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es exp
 			return ExprReplaceAll(asExpression, r, stopAtHead, es)
 		}
 	}
-	if res, matches := IsMatchQ(this, r.GetParts()[1], pm, es); res {
-		return ReplacePD(r.GetParts()[2], es, matches)
+	if res, matches := matcher.IsMatchQ(this, r.GetParts()[1], pm, es); res {
+		return matcher.ReplacePD(r.GetParts()[2], es, matches)
 	}
 	return this
 }
 
-func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
+func tryCondWithMatches(rhs expreduceapi.Ex, matches *matcher.PDManager, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	asCond, isCond := atoms.HeadAssertion(rhs, "System`Condition")
 	if !isCond {
 		if asWith, isWith := atoms.HeadAssertion(rhs, "System`With"); isWith {
@@ -158,12 +112,12 @@ func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es expreduceapi
 }
 
 func Replace(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
-	mi, cont := NewMatchIter(this, r.GetParts()[1], EmptyPD(), es)
+	mi, cont := matcher.NewMatchIter(this, r.GetParts()[1], matcher.EmptyPD(), es)
 	for cont {
-		res, matches, done := mi.next()
+		res, matches, done := mi.Next()
 		cont = !done
 		if res {
-			replacedRhs := ReplacePD(r.GetParts()[2], es, matches)
+			replacedRhs := matcher.ReplacePD(r.GetParts()[2], es, matches)
 			toReturn, ok := tryCondWithMatches(replacedRhs, matches, es)
 			if ok {
 				return toReturn, true

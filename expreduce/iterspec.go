@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -216,10 +217,10 @@ func (this *multiIterSpec) defineCurrent(es expreduceapi.EvalStateInterface) {
 	}
 }
 
-func (this *multiIterSpec) currentPDManager() *PDManager {
-	pm := &PDManager{make(map[string]expreduceapi.Ex)}
+func (this *multiIterSpec) currentPDManager() *matcher.PDManager {
+	pm := matcher.EmptyPD()
 	for i := range this.iSpecs {
-		pm.patternDefined[this.iSpecs[i].getIName()] = this.iSpecs[i].getCurr()
+		pm.Define(this.iSpecs[i].getIName(), this.iSpecs[i].getCurr())
 	}
 	return pm
 }

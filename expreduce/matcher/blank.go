@@ -1,4 +1,4 @@
-package expreduce
+package matcher
 
 import (
 	"github.com/corywalker/expreduce/expreduce/atoms"

@@ -1,4 +1,4 @@
-package expreduce
+package matcher
 
 import (
 	"bytes"
@@ -33,6 +33,11 @@ func (this *PDManager) LazyMakeMap() {
 	if this.patternDefined == nil {
 		this.patternDefined = make(map[string]expreduceapi.Ex)
 	}
+}
+
+func (this *PDManager) Define(name string, val expreduceapi.Ex) {
+	this.LazyMakeMap()
+	this.patternDefined[name] = val
 }
 
 func (this *PDManager) Update(toAdd *PDManager) {

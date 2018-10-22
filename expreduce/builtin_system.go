@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/op/go-logging"
 )
@@ -189,7 +190,7 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 		parsedLocals[i].uniqueName = unique
 	}
 	toReturn := this.GetParts()[2]
-	pm := EmptyPD()
+	pm := matcher.EmptyPD()
 	for _, pl := range parsedLocals {
 		if pl.isSet || pl.isSetDelayed {
 			rhs := pl.setValue
@@ -210,10 +211,9 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 		} else {
 			es.GetDefinedMap().Set(pl.uniqueName, expreduceapi.Def{})
 		}
-		pm.LazyMakeMap()
-		pm.patternDefined[pl.sym.Name] = atoms.NewSymbol(pl.uniqueName)
+		pm.Define(pl.sym.Name, atoms.NewSymbol(pl.uniqueName))
 	}
-	toReturn = ReplacePD(toReturn, es, pm)
+	toReturn = matcher.ReplacePD(toReturn, es, pm)
 	return toReturn, true
 }
 

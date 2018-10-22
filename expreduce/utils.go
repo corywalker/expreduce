@@ -19,19 +19,6 @@ func ExArrayToString(exArray []expreduceapi.Ex, es expreduceapi.EvalStateInterfa
 	return buffer.String()
 }
 
-func PFArrayToString(pfArray []parsedForm, es expreduceapi.EvalStateInterface) string {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	for i, e := range pfArray {
-		buffer.WriteString(e.origForm.String(es))
-		if i != len(pfArray)-1 {
-			buffer.WriteString(", ")
-		}
-	}
-	buffer.WriteString("}")
-	return buffer.String()
-}
-
 func ExArrayDeepCopy(exArray []expreduceapi.Ex) []expreduceapi.Ex {
 	res := make([]expreduceapi.Ex, len(exArray))
 	for i, e := range exArray {

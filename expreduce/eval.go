@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
@@ -377,7 +378,7 @@ func EvalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, ar
 					arg,
 				}),
 
-				es, EmptyPD(), "System`Function")
+				es, matcher.EmptyPD(), "System`Function")
 		}
 		return toReturn
 	} else if len(this.GetParts()) == 3 {
@@ -393,7 +394,7 @@ func EvalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, ar
 				args[0],
 			}),
 
-			es, EmptyPD(), "System`Function")
+			es, matcher.EmptyPD(), "System`Function")
 		return toReturn
 	}
 	return this
@@ -403,11 +404,11 @@ func ExprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.Expres
 	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.Debugf("Rule r is: %s", r)
 
-	matchq, matches := IsMatchQ(this, r.GetParts()[1], EmptyPD(), es)
+	matchq, matches := matcher.IsMatchQ(this, r.GetParts()[1], matcher.EmptyPD(), es)
 	if matchq {
 		es.Debugf("After MatchQ, rule is: %s", r)
 		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.GetParts()[2])
-		return ReplacePD(r.GetParts()[2].DeepCopy(), es, matches)
+		return matcher.ReplacePD(r.GetParts()[2].DeepCopy(), es, matches)
 	}
 
 	thisSym, thisSymOk := this.GetParts()[0].(*atoms.Symbol)
@@ -426,7 +427,7 @@ func ExprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.Expres
 
 	maybeChanged := atoms.NewEmptyExpression()
 	for i := range this.GetParts() {
-		maybeChanged.AppendEx(ReplaceAll(this.GetParts()[i], r, es, EmptyPD(), stopAtHead))
+		maybeChanged.AppendEx(ReplaceAll(this.GetParts()[i], r, es, matcher.EmptyPD(), stopAtHead))
 	}
 	if hashEx(maybeChanged) != hashEx(this) {
 		return maybeChanged

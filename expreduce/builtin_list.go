@@ -7,8 +7,12 @@ import (
 	"sync"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
+
+const maxUint64 = ^uint64(0)
+const maxInt64 = int64(maxUint64 >> 1)
 
 func ToStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 	if params.Form == "FullForm" {
@@ -40,7 +44,7 @@ func ToStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToS
 
 func MemberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi.EvalStateInterface) bool {
 	for _, part := range components {
-		if matchq, _ := IsMatchQ(part, item, EmptyPD(), es); matchq {
+		if matchq, _ := matcher.IsMatchQ(part, item, matcher.EmptyPD(), es); matchq {
 			return true
 		}
 	}
@@ -179,7 +183,7 @@ func ThreadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionI
 }
 
 func countFunctionLevelSpec(pattern expreduceapi.Ex, e expreduceapi.Ex, partList []int64, generated *int64, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	if isMatch, _ := IsMatchQ(e, pattern, EmptyPD(), es); isMatch {
+	if isMatch, _ := matcher.IsMatchQ(e, pattern, matcher.EmptyPD(), es); isMatch {
 		*generated++
 	}
 	return e
@@ -229,7 +233,7 @@ func GetListDefinitions() (defs []Definition) {
 					// Simulate evaluation within Block[]
 					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 					for mis.cont() {
-						toReturn.AppendEx(ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.currentPDManager()))
+						toReturn.AppendEx(matcher.ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.currentPDManager()))
 						es.Debugf("%v\n", toReturn)
 						mis.next()
 					}
@@ -283,10 +287,10 @@ func GetListDefinitions() (defs []Definition) {
 				}
 
 				for i := 1; i < len(expr.GetParts()); i++ {
-					if matchq, pd := IsMatchQ(expr.GetParts()[i], pattern, EmptyPD(), es); matchq {
+					if matchq, pd := matcher.IsMatchQ(expr.GetParts()[i], pattern, matcher.EmptyPD(), es); matchq {
 						toAdd := expr.GetParts()[i]
 						if isRule {
-							toAdd = ReplacePD(rule.GetParts()[2], es, pd)
+							toAdd = matcher.ReplacePD(rule.GetParts()[2], es, pd)
 						}
 						toReturn.AppendEx(toAdd)
 					}
@@ -309,7 +313,7 @@ func GetListDefinitions() (defs []Definition) {
 				toReturn := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 				pattern := this.GetParts()[2]
 				for i := 1; i < len(expr.GetParts()); i++ {
-					if matchq, _ := IsMatchQ(expr.GetParts()[i], pattern, EmptyPD(), es); !matchq {
+					if matchq, _ := matcher.IsMatchQ(expr.GetParts()[i], pattern, matcher.EmptyPD(), es); !matchq {
 						toAdd := expr.GetParts()[i]
 						toReturn.AppendEx(toAdd)
 					}
@@ -541,7 +545,7 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Select",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			maxN := MaxInt64
+			maxN := maxInt64
 			if len(this.GetParts()) == 4 {
 				if asInt, isInt := this.GetParts()[3].(*atoms.Integer); isInt {
 					maxN = asInt.Val.Int64()

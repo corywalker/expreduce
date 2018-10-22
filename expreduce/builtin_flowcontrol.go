@@ -2,6 +2,7 @@ package expreduce
 
 import (
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -138,7 +139,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				return this
 			}
 			for i := 2; i < len(this.GetParts()); i += 2 {
-				if match, _ := IsMatchQ(this.GetParts()[1], this.GetParts()[i], EmptyPD(), es); match {
+				if match, _ := matcher.IsMatchQ(this.GetParts()[1], this.GetParts()[i], matcher.EmptyPD(), es); match {
 					return this.GetParts()[i+1]
 				}
 			}

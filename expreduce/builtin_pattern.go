@@ -4,6 +4,7 @@ import (
 	"bytes"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -30,7 +31,7 @@ func GetPatternDefinitions() (defs []Definition) {
 				return this
 			}
 
-			if res, _ := IsMatchQ(this.GetParts()[1], this.GetParts()[2], EmptyPD(), es); res {
+			if res, _ := matcher.IsMatchQ(this.GetParts()[1], this.GetParts()[2], matcher.EmptyPD(), es); res {
 				return atoms.NewSymbol("System`True")
 			} else {
 				return atoms.NewSymbol("System`False")
@@ -108,12 +109,12 @@ func GetPatternDefinitions() (defs []Definition) {
 				return this
 			}
 			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
-			mi, cont := NewMatchIter(this.GetParts()[1], rule.GetParts()[1], EmptyPD(), es)
+			mi, cont := matcher.NewMatchIter(this.GetParts()[1], rule.GetParts()[1], matcher.EmptyPD(), es)
 			for cont {
-				matchq, newPd, done := mi.next()
+				matchq, newPd, done := mi.Next()
 				cont = !done
 				if matchq {
-					res.AppendEx(ReplacePD(rule.GetParts()[2], es, newPd))
+					res.AppendEx(matcher.ReplacePD(rule.GetParts()[2], es, newPd))
 				}
 			}
 			return res

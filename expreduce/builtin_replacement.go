@@ -2,6 +2,7 @@ package expreduce
 
 import (
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -34,7 +35,7 @@ func rulesReplaceAll(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface
 	// TODO: fix the case where ReplaceAll[{x},{x->y,y->z}] returns incorrectly.
 	toReturn := e
 	for _, rule := range rules {
-		toReturn = ReplaceAll(toReturn, rule, es, EmptyPD(), "")
+		toReturn = ReplaceAll(toReturn, rule, es, matcher.EmptyPD(), "")
 	}
 	return toReturn
 }

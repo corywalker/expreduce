@@ -1,4 +1,4 @@
-package expreduce
+package matcher
 
 import (
 	"flag"
@@ -22,14 +22,14 @@ const MaxInt64 = int64(MaxUint64 >> 1)
 
 type matchIter interface {
 	// returns ismatch, pd, isdone
-	next() (bool, *PDManager, bool)
+	Next() (bool, *PDManager, bool)
 }
 
 type dummyMatchIter struct {
 	pm *PDManager
 }
 
-func (this *dummyMatchIter) next() (bool, *PDManager, bool) {
+func (this *dummyMatchIter) Next() (bool, *PDManager, bool) {
 	return true, this.pm, true
 }
 
@@ -90,7 +90,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 				// directly.
 				testSym, testIsSym := patternTest.GetParts()[2].(*atoms.Symbol)
 				if testIsSym {
-					var qFunction singleParamQType
+					var qFunction (func(expreduceapi.Ex) bool)
 					if testSym.Name == "System`NumberQ" {
 						qFunction = atoms.NumberQ
 					}
@@ -127,7 +127,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 		if len(condition.GetParts()) == 3 {
 			mi, cont := NewMatchIter(a, condition.GetParts()[1], pm, es)
 			for cont {
-				matchq, newPD, done := mi.next()
+				matchq, newPD, done := mi.Next()
 				cont = !done
 				if matchq {
 					//tmpEs := NewEvalStateNoLog(true)
@@ -351,7 +351,7 @@ func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIte
 	return ami
 }
 
-func (ami *assignedMatchIter) next() bool {
+func (ami *assignedMatchIter) Next() bool {
 	for len(ami.stack) > 0 {
 		var p assignedIterState
 		l := len(ami.stack)
@@ -385,7 +385,7 @@ func (ami *assignedMatchIter) next() bool {
 		toAddReversed := []*PDManager{}
 		mi, cont := NewMatchIter(comp, lhs.form, p.pm, ami.es)
 		for cont {
-			matchq, submatches, done := mi.next()
+			matchq, submatches, done := mi.Next()
 			cont = !done
 			if matchq {
 				// TODO: Perhaps check if submatches are different before
@@ -470,9 +470,9 @@ func NewSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components 
 	return nomi, true
 }
 
-func (this *sequenceMatchIter) next() (bool, *PDManager, bool) {
+func (this *sequenceMatchIter) Next() (bool, *PDManager, bool) {
 	for {
-		if this.iteratingAmi && this.ami.next() {
+		if this.iteratingAmi && this.ami.Next() {
 			return true, this.ami.pm, false
 		}
 		this.iteratingAmi = false
@@ -494,7 +494,7 @@ func ComponentsIsMatchQ(components []expreduceapi.Ex, lhs_components []expreduce
 
 func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 	for cont {
-		matchq, newPd, done := mi.next()
+		matchq, newPd, done := mi.Next()
 		cont = !done
 		// TODO: I could probably update my matchiters to only return if they
 		// have a match or are done.
