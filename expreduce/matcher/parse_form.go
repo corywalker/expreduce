@@ -1,8 +1,6 @@
 package matcher
 
 import (
-	"bytes"
-
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
@@ -162,17 +160,4 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 		res.patSym = patSym
 	}
 	return res
-}
-
-func PFArrayToString(pfArray []parsedForm, es expreduceapi.EvalStateInterface) string {
-	var buffer bytes.Buffer
-	buffer.WriteString("{")
-	for i, e := range pfArray {
-		buffer.WriteString(e.origForm.String(es))
-		if i != len(pfArray)-1 {
-			buffer.WriteString(", ")
-		}
-	}
-	buffer.WriteString("}")
-	return buffer.String()
 }

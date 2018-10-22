@@ -126,9 +126,3 @@ func CasAssertDescSame(t *testing.T, es expreduceapi.EvalStateInterface, out str
 	assert.True(t, succ, s)
 	return succ
 }
-
-func CasAssertDescDiff(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, es.Eval(Interp(in, es)), es.Eval(Interp(out, es)), in, false, desc)
-	assert.True(t, succ, s)
-	return succ
-}

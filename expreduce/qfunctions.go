@@ -9,7 +9,6 @@ import (
 
 type singleParamQType (func(expreduceapi.Ex) bool)
 type singleParamQLogType (func(expreduceapi.Ex, expreduceapi.LoggingInterface) bool)
-type doubleParamQLogType (func(expreduceapi.Ex, expreduceapi.Ex, expreduceapi.LoggingInterface) bool)
 type evalFnType (func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex)
 
 func singleParamQEval(fn singleParamQType) evalFnType {
@@ -30,18 +29,6 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 			return this
 		}
 		if fn(this.GetParts()[1], es.GetLogger()) {
-			return atoms.NewSymbol("System`True")
-		}
-		return atoms.NewSymbol("System`False")
-	})
-}
-
-func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
-	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-		if len(this.GetParts()) != 3 {
-			return this
-		}
-		if fn(this.GetParts()[1], this.GetParts()[2], es.GetLogger()) {
 			return atoms.NewSymbol("System`True")
 		}
 		return atoms.NewSymbol("System`False")

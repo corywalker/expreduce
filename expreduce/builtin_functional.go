@@ -19,16 +19,6 @@ func parseInteger(part expreduceapi.Ex) (value int64, isInteger bool) {
 	}
 }
 
-func parseFloat(part expreduceapi.Ex) (value float64, isFloat bool) {
-	float, isFloat := part.(*atoms.Flt)
-	if isFloat {
-		value, _ := float.Val.Float64()
-		return value, true
-	} else {
-		return 0, false
-	}
-}
-
 func parseExpression(part expreduceapi.Ex) (expression expreduceapi.ExpressionInterface, isExpression bool) {
 	expression, isExpression = part.(expreduceapi.ExpressionInterface)
 	return expression, isExpression
@@ -68,14 +58,6 @@ type levelSpec struct {
 	min        int64
 	max        int64
 	valid      bool
-}
-
-func (spec levelSpec) isLevel() (bool, bool) {
-	return !spec.isMinDepth, !spec.isMaxDepth
-}
-
-func (spec levelSpec) isDepth() (bool, bool) {
-	return spec.isMinDepth, spec.isMaxDepth
 }
 
 func (spec levelSpec) isValid() bool {

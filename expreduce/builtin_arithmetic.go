@@ -8,35 +8,6 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func ExArrayContainsFloat(a []expreduceapi.Ex) bool {
-	res := false
-	for _, e := range a {
-		_, isfloat := e.(*atoms.Flt)
-		res = res || isfloat
-	}
-	return res
-}
-
-func RationalAssertion(num expreduceapi.Ex, den expreduceapi.Ex) (r *atoms.Rational, isR bool) {
-	numInt, numIsInt := num.(*atoms.Integer)
-	denPow, denIsPow := atoms.HeadAssertion(den, "System`Power")
-	if !numIsInt || !denIsPow {
-		return nil, false
-	}
-	powInt, powIsInt := denPow.GetParts()[2].(*atoms.Integer)
-	if !powIsInt {
-		return nil, false
-	}
-	if powInt.Val.Cmp(big.NewInt(-1)) != 0 {
-		return nil, false
-	}
-	denInt, denIsInt := denPow.GetParts()[1].(*atoms.Integer)
-	if !denIsInt {
-		return nil, false
-	}
-	return atoms.NewRational(numInt.Val, denInt.Val), true
-}
-
 // Define a special NumberQ for our purposes since this logic does not support
 // complex numbers yet. TODO(corywalker): fix this.
 func numberQForTermCollection(e expreduceapi.Ex) bool {

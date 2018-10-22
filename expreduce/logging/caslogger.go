@@ -1,11 +1,10 @@
 package logging
 
 import (
-	"bytes"
-	gologging "github.com/op/go-logging"
 	"os"
-	"runtime/debug"
 	"sync"
+
+	gologging "github.com/op/go-logging"
 )
 
 var format = gologging.MustStringFormatter(
@@ -69,17 +68,6 @@ func (cl *CASLogger) IsProfiling() bool {
 // SetProfiling sets if the interpreter should be profiling.
 func (cl *CASLogger) SetProfiling(profiling bool) {
 	cl.isProfiling = profiling
-}
-
-func (cl *CASLogger) pre() string {
-	toReturn := ""
-	if cl.leveled.GetLevel("") != gologging.ERROR {
-		depth := (bytes.Count(debug.Stack(), []byte{'\n'}) - 15) / 2
-		for i := 0; i < depth; i++ {
-			toReturn += " "
-		}
-	}
-	return toReturn
 }
 
 // SetUpLogging initializes this logging state.

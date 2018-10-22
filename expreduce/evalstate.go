@@ -271,13 +271,6 @@ func NewEvalState() *EvalState {
 	return &es
 }
 
-func NewEvalStateNoLog(loadAllDefs bool) *EvalState {
-	var es EvalState
-	es.Init(loadAllDefs)
-	es.CASLogger.SetDebugState(false)
-	return &es
-}
-
 func (this *EvalState) IsDef(name string) bool {
 	_, isd := this.defined.Get(name)
 	return isd

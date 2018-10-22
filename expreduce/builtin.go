@@ -8,11 +8,6 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-type Rule struct {
-	Lhs string
-	Rhs string
-}
-
 type Definition struct {
 	// The symbol name, like "Mean", and "Total"
 	Name  string

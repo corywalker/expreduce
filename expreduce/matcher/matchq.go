@@ -487,11 +487,6 @@ func (this *sequenceMatchIter) Next() (bool, *PDManager, bool) {
 
 // HELPER FUNCTIONS
 
-func ComponentsIsMatchQ(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (bool, *PDManager) {
-	omi, cont := NewSequenceMatchIter(components, lhs_components, isOrderless, isFlat, sequenceHead, pm, es)
-	return GetMatchQ(omi, cont, pm)
-}
-
 func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 	for cont {
 		matchq, newPd, done := mi.Next()
