@@ -1,6 +1,7 @@
 package expreduce
 
 import (
+	"flag"
 	"fmt"
 	"math/big"
 	"sort"
@@ -10,6 +11,9 @@ import (
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
+
+var printevals = flag.Bool("printevals", false, "")
+var checkhashes = flag.Bool("checkhashes", false, "")
 
 func (es *EvalState) Eval(expr expreduceapi.Ex) expreduceapi.Ex {
 	if asExpression, ok := expr.(*atoms.Expression); ok {
@@ -34,7 +38,7 @@ func (es *EvalState) evalComplex(this *atoms.Complex) expreduceapi.Ex {
 	if atoms.IsSameQ(this.Im, atoms.NewInt(0), es.GetLogger()) {
 		return this.Re
 	}
-	this.needsEval = false
+	this.SetNeedsEval(false)
 	return this
 }
 
@@ -44,7 +48,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 	lastExHash := uint64(0)
 	var lastEx expreduceapi.Ex = this
 	currExHash := hashEx(this)
-	if currExHash == this.evaledHash {
+	if currExHash == this.EvaledHash {
 		return this
 	}
 	var currEx expreduceapi.Ex = this
@@ -53,7 +57,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 		lastExHash = currExHash
 		curr, isExpr := currEx.(*atoms.Expression)
 		if *checkhashes {
-			if isExpr && curr.evaledHash != 0 && currExHash != curr.evaledHash {
+			if isExpr && curr.EvaledHash != 0 && currExHash != curr.EvaledHash {
 				fmt.Printf("invalid cache: %v. Used to be %v\n", curr, lastEx)
 			}
 			lastEx = currEx
@@ -65,7 +69,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 				return retVal
 			}
 		}
-		if isExpr && currExHash == curr.evaledHash {
+		if isExpr && currExHash == curr.EvaledHash {
 			return curr
 		}
 
@@ -107,7 +111,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 			attrs = headSym.Attrs(es.GetDefinedMap())
 		}
 		if attrs.NumericFunction {
-			propagated, changed := curr.propagateConditionals()
+			propagated, changed := curr.PropagateConditionals()
 			if changed {
 				return es.Eval(propagated)
 			}
@@ -135,7 +139,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 				return es.Thrown()
 			}
 			if oldHash != curr.GetParts()[i].Hash() {
-				curr.cachedHash = 0
+				curr.CachedHash = 0
 			}
 			if es.GetTrace() != nil && !es.IsFrozen() {
 				if len(es.GetTrace().GetParts()) > 2 {
@@ -164,26 +168,26 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 		// If any of the parts are Sequence, merge them with parts
 		if headIsSym {
 			if !attrs.SequenceHold && !attrs.HoldAllComplete {
-				curr = curr.mergeSequences(es, "System`Sequence", false)
+				curr = mergeSequences(curr, es, "System`Sequence", false)
 			}
 		} else {
-			curr = curr.mergeSequences(es, "System`Sequence", false)
+			curr = mergeSequences(curr, es, "System`Sequence", false)
 		}
 		if !attrs.HoldAllComplete {
-			curr = curr.mergeSequences(es, "System`Evaluate", true)
+			curr = mergeSequences(curr, es, "System`Evaluate", true)
 		}
-		curr = curr.mergeSequences(es, "System`Unevaluated", false)
+		curr = mergeSequences(curr, es, "System`Unevaluated", false)
 		// In case curr changed
 		currEx = curr
 
 		pureFunction, isPureFunction := atoms.HeadAssertion(curr.GetParts()[0], "System`Function")
 		if headIsSym {
 			if attrs.Flat {
-				curr = curr.mergeSequences(es, headSym.Name, false)
+				curr = mergeSequences(curr, es, headSym.Name, false)
 			}
 			if attrs.Orderless {
 				sort.Sort(curr)
-				curr.cachedHash = 0
+				curr.CachedHash = 0
 			}
 			if attrs.Listable {
 				changed := false
@@ -218,7 +222,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 				}
 			}
 		} else if isPureFunction {
-			currEx = pureFunction.EvalFunction(es, curr.GetParts()[1:])
+			currEx = EvalFunction(pureFunction, es, curr.GetParts()[1:])
 		}
 		currExHash = hashEx(currEx)
 
@@ -231,8 +235,8 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 	}
 	curr, isExpr := currEx.(*atoms.Expression)
 	if isExpr {
-		curr.needsEval = false
-		curr.evaledHash = currExHash
+		curr.SetNeedsEval(false)
+		curr.EvaledHash = currExHash
 	}
 	return currEx
 }
@@ -271,12 +275,12 @@ func (es *EvalState) evalRational(this *atoms.Rational) expreduceapi.Ex {
 	if !negateRes {
 		this.Num.Set(absNum)
 		this.Den.Set(absDen)
-		this.needsEval = false
+		this.SetNeedsEval(false)
 		return this
 	}
 	this.Num.Set(absNum.Neg(absNum))
 	this.Den.Set(absDen)
-	this.needsEval = false
+	this.SetNeedsEval(false)
 	return this
 }
 
@@ -322,7 +326,7 @@ func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.E
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
-func (this *atoms.Expression) mergeSequences(es expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *atoms.Expression {
+func mergeSequences(this *atoms.Expression, es expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *atoms.Expression {
 	encounteredSeq := false
 	for _, e := range this.GetParts() {
 		if _, isseq := atoms.HeadAssertion(e, headStr); isseq {
@@ -340,7 +344,7 @@ func (this *atoms.Expression) mergeSequences(es expreduceapi.EvalStateInterface,
 	// a Sequence type. This is very similar to the flatten function. Perhaps
 	// it should be combined. This version is not recursive, and it does not
 	// accept level depths. It is a specific case of Flatten.
-	res := NewEmptyExpression()
+	res := atoms.NewEmptyExpression()
 	for _, e := range this.GetParts() {
 		seq, isseq := atoms.HeadAssertion(e, headStr)
 		if isseq {
@@ -358,7 +362,7 @@ func (this *atoms.Expression) mergeSequences(es expreduceapi.EvalStateInterface,
 	return res
 }
 
-func (this *atoms.Expression) EvalFunction(es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
+func EvalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
 	if len(this.GetParts()) == 2 {
 		toReturn := this.GetParts()[1].DeepCopy()
 		for i, arg := range args {
@@ -420,7 +424,7 @@ func ExprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.Expres
 		}
 	}
 
-	maybeChanged := NewEmptyExpression()
+	maybeChanged := atoms.NewEmptyExpression()
 	for i := range this.GetParts() {
 		maybeChanged.AppendEx(ReplaceAll(this.GetParts()[i], r, es, EmptyPD(), stopAtHead))
 	}

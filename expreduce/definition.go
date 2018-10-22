@@ -10,7 +10,7 @@ import (
 func StringForm(def *expreduceapi.Def, defSym *atoms.Symbol, params expreduceapi.ToStringParams) string {
 	var buffer []string
 
-	attrs := attrsToStrings(&def.Attributes)
+	attrs := atoms.AttrsToStrings(&def.Attributes)
 	if len(attrs) > 0 {
 		e := atoms.E(
 			atoms.S("Set"),
@@ -18,7 +18,7 @@ func StringForm(def *expreduceapi.Def, defSym *atoms.Symbol, params expreduceapi
 				atoms.S("Attributes"),
 				defSym,
 			),
-			attrsToSymList(&def.Attributes),
+			atoms.AttrsToSymList(&def.Attributes),
 		)
 		buffer = append(buffer, e.StringForm(params))
 	}

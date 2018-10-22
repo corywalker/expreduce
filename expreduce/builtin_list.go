@@ -619,10 +619,10 @@ func GetListDefinitions() (defs []Definition) {
 		Name: "Join",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) <= 1 {
-				return NewHead("System`List")
+				return atoms.NewHead("System`List")
 			}
 
-			res := NewEmptyExpression()
+			res := atoms.NewEmptyExpression()
 			for _, part := range this.GetParts()[1:] {
 				expr, isExpr := part.(expreduceapi.ExpressionInterface)
 				if !isExpr {

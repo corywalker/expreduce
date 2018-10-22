@@ -3,22 +3,18 @@ package atoms
 import (
 	"bytes"
 	"encoding/binary"
-	"flag"
 	"hash/fnv"
 	"sync/atomic"
 
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-var printevals = flag.Bool("printevals", false, "")
-var checkhashes = flag.Bool("checkhashes", false, "")
-
 type Expression struct {
 	Parts                 []expreduceapi.Ex
 	needsEval             bool
 	correctlyInstantiated bool
-	evaledHash            uint64
-	cachedHash            uint64
+	EvaledHash            uint64
+	CachedHash            uint64
 }
 
 // Deprecated in favor of headExAssertion
@@ -35,7 +31,7 @@ func HeadAssertion(ex expreduceapi.Ex, head string) (*Expression, bool) {
 	return nil, false
 }
 
-func headExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl expreduceapi.LoggingInterface) (*Expression, bool) {
+func HeadExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl expreduceapi.LoggingInterface) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		if IsSameQ(head, expr.GetParts()[0], cl) {
@@ -61,7 +57,7 @@ func OperatorAssertion(ex expreduceapi.Ex, opHead string) (*Expression, *Express
 	return nil, nil, false
 }
 
-func (this *Expression) propagateConditionals() (*Expression, bool) {
+func (this *Expression) PropagateConditionals() (*Expression, bool) {
 	foundCond := false
 	for _, e := range this.GetParts()[1:] {
 		if cond, isCond := HeadAssertion(e, "System`ConditionalExpression"); isCond {
@@ -168,8 +164,8 @@ func (this *Expression) DeepCopy() expreduceapi.Ex {
 	}
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
-	thiscopy.evaledHash = this.evaledHash
-	thiscopy.cachedHash = this.cachedHash
+	thiscopy.EvaledHash = this.EvaledHash
+	thiscopy.CachedHash = this.CachedHash
 	return thiscopy
 }
 
@@ -179,8 +175,8 @@ func ShallowCopy(thisExprInt expreduceapi.ExpressionInterface) *Expression {
 	thiscopy.Parts = append([]expreduceapi.Ex{}, this.GetParts()...)
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
-	thiscopy.evaledHash = this.evaledHash
-	thiscopy.cachedHash = this.cachedHash
+	thiscopy.EvaledHash = this.EvaledHash
+	thiscopy.CachedHash = this.CachedHash
 	return thiscopy
 }
 
@@ -191,8 +187,8 @@ func (this *Expression) Copy() expreduceapi.Ex {
 	}
 	thiscopy.needsEval = this.needsEval
 	thiscopy.correctlyInstantiated = this.correctlyInstantiated
-	thiscopy.evaledHash = this.evaledHash
-	thiscopy.cachedHash = this.cachedHash
+	thiscopy.EvaledHash = this.EvaledHash
+	thiscopy.CachedHash = this.CachedHash
 	return thiscopy
 }
 
@@ -221,9 +217,13 @@ func (this *Expression) NeedsEval() bool {
 	return this.needsEval
 }
 
+func (this *Expression) SetNeedsEval(newVal bool) {
+	this.needsEval = newVal
+}
+
 func (this *Expression) Hash() uint64 {
-	if atomic.LoadUint64(&this.cachedHash) > 0 {
-		return this.cachedHash
+	if atomic.LoadUint64(&this.CachedHash) > 0 {
+		return this.CachedHash
 	}
 	h := fnv.New64a()
 	h.Write([]byte{72, 5, 244, 86, 5, 210, 69, 30})
@@ -232,7 +232,7 @@ func (this *Expression) Hash() uint64 {
 		binary.LittleEndian.PutUint64(b, part.Hash())
 		h.Write(b)
 	}
-	atomic.StoreUint64(&this.cachedHash, h.Sum64())
+	atomic.StoreUint64(&this.CachedHash, h.Sum64())
 	return h.Sum64()
 }
 
@@ -284,6 +284,6 @@ func (this *Expression) SetParts(newParts []expreduceapi.Ex) {
 }
 
 func (this *Expression) ClearHashes() {
-	this.evaledHash = 0
-	this.cachedHash = 0
+	this.EvaledHash = 0
+	this.CachedHash = 0
 }

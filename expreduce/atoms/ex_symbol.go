@@ -12,7 +12,7 @@ import (
 // Symbols are defined by a string-based name
 type Symbol struct {
 	Name       string
-	cachedHash uint64
+	CachedHash uint64
 }
 
 func formatSymName(name string, params expreduceapi.ToStringParams) string {
@@ -96,7 +96,7 @@ func (this *Symbol) Default(dm expreduceapi.DefinitionMap) expreduceapi.Ex {
 	return def.DefaultExpr
 }
 
-func stringsToAttributes(strings []string) expreduceapi.Attributes {
+func StringsToAttributes(strings []string) expreduceapi.Attributes {
 	attrs := expreduceapi.Attributes{}
 	for _, s := range strings {
 		if s == "Orderless" {
@@ -160,7 +160,7 @@ func stringsToAttributes(strings []string) expreduceapi.Attributes {
 	return attrs
 }
 
-func attrsToStrings(this *expreduceapi.Attributes) []string {
+func AttrsToStrings(this *expreduceapi.Attributes) []string {
 	var strings []string
 	if this.Orderless {
 		strings = append(strings, "Orderless")
@@ -224,9 +224,9 @@ func attrsToStrings(this *expreduceapi.Attributes) []string {
 	return strings
 }
 
-func attrsToSymList(this *expreduceapi.Attributes) expreduceapi.ExpressionInterface {
+func AttrsToSymList(this *expreduceapi.Attributes) expreduceapi.ExpressionInterface {
 	toReturn := E(S("List"))
-	for _, s := range attrsToStrings(this) {
+	for _, s := range AttrsToStrings(this) {
 		toReturn.AppendEx(S(s))
 	}
 	return toReturn
@@ -237,13 +237,13 @@ func (this *Symbol) NeedsEval() bool {
 }
 
 func (this *Symbol) Hash() uint64 {
-	if this.cachedHash > 0 {
-		return this.cachedHash
+	if this.CachedHash > 0 {
+		return this.CachedHash
 	}
 	h := fnv.New64a()
 	h.Write([]byte{107, 10, 247, 23, 33, 221, 163, 156})
 	h.Write([]byte(this.Name))
-	this.cachedHash = h.Sum64()
+	this.CachedHash = h.Sum64()
 	return h.Sum64()
 }
 

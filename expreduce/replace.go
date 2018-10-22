@@ -81,7 +81,7 @@ func ReplacePD(this expreduceapi.Ex, es expreduceapi.EvalStateInterface, pm *PDM
 	}
 	containsAny := false
 	for k := range pm.patternDefined {
-		if ContainsSymbol(this, k) {
+		if atoms.ContainsSymbol(this, k) {
 			containsAny = true
 			break
 		}

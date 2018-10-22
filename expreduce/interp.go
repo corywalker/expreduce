@@ -64,7 +64,7 @@ func removeParens(ex expreduceapi.Ex) {
 	expr, isExpr := ex.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		for i := range expr.GetParts() {
-			parens, isParens := NewEmptyExpression(), true
+			parens, isParens := atoms.NewEmptyExpression(), true
 			for isParens {
 				parens, isParens = atoms.HeadAssertion(expr.GetParts()[i], "Internal`Parens")
 				if isParens {
@@ -482,7 +482,7 @@ func InterpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface)
 	//fmt.Println(parsed)
 
 	// Remove outer parens
-	parens, isParens := NewEmptyExpression(), true
+	parens, isParens := atoms.NewEmptyExpression(), true
 	for isParens {
 		parens, isParens = atoms.HeadAssertion(parsed, "Internal`Parens")
 		if isParens {

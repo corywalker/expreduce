@@ -12,7 +12,7 @@ func dimensions(ex expreduceapi.ExpressionInterface, level int, cl expreduceapi.
 	dims := []int64{int64(len(ex.GetParts()) - 1)}
 	nextDims := []int64{}
 	for i := 1; i < len(ex.GetParts()); i++ {
-		subHead, isSubHead := headExAssertion(ex.GetParts()[i], head, cl)
+		subHead, isSubHead := atoms.HeadExAssertion(ex.GetParts()[i], head, cl)
 		if !isSubHead {
 			return dims
 		} else {

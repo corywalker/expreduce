@@ -66,6 +66,10 @@ func (this *Rational) NeedsEval() bool {
 	return this.needsEval
 }
 
+func (this *Rational) SetNeedsEval(newVal bool) {
+	this.needsEval = newVal
+}
+
 func NewRational(n *big.Int, d *big.Int) *Rational {
 	return &Rational{n, d, true}
 }

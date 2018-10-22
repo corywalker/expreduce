@@ -139,7 +139,7 @@ func parseLevelSpec(this expreduceapi.Ex, es expreduceapi.EvalStateInterface) le
 	}
 
 	//If the head of the expression is not List, return false
-	expression, isList := headExAssertion(expression, atoms.NewSymbol("System`List"), es.GetLogger())
+	expression, isList := atoms.HeadExAssertion(expression, atoms.NewSymbol("System`List"), es.GetLogger())
 	if !isList {
 		return levelSpec{false, false, 1, 1, false}
 	}

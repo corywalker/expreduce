@@ -20,7 +20,7 @@ func distribute(e expreduceapi.ExpressionInterface, built expreduceapi.Expressio
 	}
 	if shouldDistribute {
 		for _, dPart := range partAsExpr.GetParts()[1:] {
-			builtCopy := ShallowCopy(built)
+			builtCopy := atoms.ShallowCopy(built)
 			builtCopy.AppendEx(dPart)
 			distribute(e, builtCopy, res)
 		}

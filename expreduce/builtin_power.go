@@ -87,7 +87,7 @@ func extractPower(x *big.Int, r *atoms.Rational) expreduceapi.Ex {
 		bigPower.SetUint64(power)
 		thisR := r.DeepCopy().(*atoms.Rational)
 		thisR.MulBigI(bigPower)
-		thisR.needsEval = true
+		thisR.SetNeedsEval(true)
 		toReturn.AppendEx(atoms.E(
 			atoms.S("Power"),
 			atoms.NewInteger(base),

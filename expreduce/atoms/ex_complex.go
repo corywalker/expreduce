@@ -127,3 +127,7 @@ func (this *Complex) MulC(c *Complex) {
 	this.Im = f
 	this.needsEval = true
 }
+
+func (this *Complex) SetNeedsEval(newVal bool) {
+	this.needsEval = newVal
+}

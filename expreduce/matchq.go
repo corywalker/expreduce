@@ -169,7 +169,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 
 	// Special case for the operator form of Verbatim
 	forceOrdered := false
-	verbatimOp, opExpr, isVerbatimOp := OperatorAssertion(b, "System`Verbatim")
+	verbatimOp, opExpr, isVerbatimOp := atoms.OperatorAssertion(b, "System`Verbatim")
 	if aIsExpression && isVerbatimOp {
 		if len(opExpr.GetParts()) == 2 {
 			if atoms.IsSameQ(aExpression.GetParts()[0], opExpr.GetParts()[1], es.GetLogger()) {

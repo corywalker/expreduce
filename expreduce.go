@@ -5,14 +5,16 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/corywalker/expreduce/expreduce"
-	"github.com/corywalker/expreduce/pkg/expreduceapi"
-	"gopkg.in/readline.v1"
 	"log"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"runtime/pprof"
+
+	"github.com/corywalker/expreduce/expreduce"
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+	"gopkg.in/readline.v1"
 )
 
 var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
@@ -74,7 +76,7 @@ func main() {
 
 func scriptSession(es *expreduce.EvalState, srcText string, srcPath string) {
 	exp := expreduce.EvalInterpMany(srcText, srcPath, es)
-	res := exp.Eval(es)
+	res := es.Eval(exp)
 	res = es.ProcessTopLevelResult(res, res)
 }
 
@@ -110,7 +112,7 @@ func interactiveSession(es *expreduce.EvalState) {
 		fmt.Printf("\n")
 
 		exp := expreduce.Interp(line, es)
-		res := exp.Eval(es)
+		res := es.Eval(exp)
 		res = es.ProcessTopLevelResult(exp, res)
 
 		printFormattedOutput(es, res, true, promptNum)
@@ -120,7 +122,7 @@ func interactiveSession(es *expreduce.EvalState) {
 
 func printFormattedOutput(es *expreduce.EvalState, res expreduceapi.Ex, isInteractive bool, promptNum int) {
 	isNull := false
-	asSym, isSym := res.(*expreduce.Symbol)
+	asSym, isSym := res.(*atoms.Symbol)
 	if isSym {
 		if asSym.Name == "System`Null" {
 			isNull = true
@@ -135,7 +137,7 @@ func printFormattedOutput(es *expreduce.EvalState, res expreduceapi.Ex, isIntera
 		}
 		wasSpecialForm := false
 		for _, specialForm := range specialForms {
-			asSpecialForm, isSpecialForm := expreduce.HeadAssertion(
+			asSpecialForm, isSpecialForm := atoms.HeadAssertion(
 				res, specialForm)
 			if !isSpecialForm {
 				continue

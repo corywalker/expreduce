@@ -25,12 +25,12 @@ func hashEx(e expreduceapi.Ex) uint64 {
 func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi.Ex {
 	asInt, isInt := e.(*atoms.Integer)
 	if isInt {
-		toReturn, _ := IntegerToFlt(asInt)
+		toReturn, _ := atoms.IntegerToFlt(asInt)
 		return toReturn
 	}
 	asRat, isRat := e.(*atoms.Rational)
 	if isRat {
-		toReturn, _ := RationalToFlt(asRat)
+		toReturn, _ := atoms.RationalToFlt(asRat)
 		return toReturn
 	}
 	_, isSym := e.(*atoms.Symbol)
@@ -52,7 +52,7 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 		if defined {
 			return toReturn
 		}
-		exToReturn := NewEmptyExpression()
+		exToReturn := atoms.NewEmptyExpression()
 		for _, part := range asExpr.GetParts() {
 			toAdd, defined, _ := es.GetDef(
 				"System`N",
@@ -284,7 +284,7 @@ func GetSystemDefinitions() (defs []Definition) {
 
 			def, isDef := es.GetDefinedMap().Get(sym.Name)
 			if isDef {
-				return attrsToSymList(&def.Attributes)
+				return atoms.AttrsToSymList(&def.Attributes)
 			}
 			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 		},

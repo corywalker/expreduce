@@ -68,7 +68,7 @@ func (this *EvalState) Load(def Definition) {
 		newDef.LegacyEvalFn = def.legacyEvalFn
 	}
 	protectedAttrs := append(def.Attributes, "Protected")
-	newDef.Attributes = stringsToAttributes(protectedAttrs)
+	newDef.Attributes = atoms.StringsToAttributes(protectedAttrs)
 	if def.Default != "" {
 		newDef.DefaultExpr = Interp(def.Default, this)
 	}
@@ -351,7 +351,7 @@ func (this *EvalState) DefineAttrs(sym *atoms.Symbol, rhs expreduceapi.Ex) {
 		}
 		stringAttrs = append(stringAttrs, attrSym.Name[7:])
 	}
-	attrs := stringsToAttributes(stringAttrs)
+	attrs := atoms.StringsToAttributes(stringAttrs)
 	if !this.IsDef(sym.Name) {
 		this.defined.Set(sym.Name, expreduceapi.Def{})
 	}
@@ -471,7 +471,7 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 				return
 			}
 		}
-		_, opExpr, isVerbatimOp := OperatorAssertion(lhs, "System`Verbatim")
+		_, opExpr, isVerbatimOp := atoms.OperatorAssertion(lhs, "System`Verbatim")
 		if isVerbatimOp {
 			opSym, opIsSym := opExpr.GetParts()[1].(*atoms.Symbol)
 			if opIsSym {
