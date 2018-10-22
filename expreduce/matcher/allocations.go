@@ -62,7 +62,7 @@ func (ai *allocIter) next() bool {
 	return false
 }
 
-func NewAllocIter(l int, forms []parsedForm) allocIter {
+func newAllocIter(l int, forms []parsedForm) allocIter {
 	ai := allocIter{}
 	ai.forms = forms
 	ai.alloc = make([]int, len(forms))
@@ -179,7 +179,7 @@ func (asi *assnIter) next() bool {
 	return false
 }
 
-func NewAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool) assnIter {
+func newAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool) assnIter {
 	asi := assnIter{}
 	asi.forms = forms
 	asi.assnData = make([]int, l)
@@ -189,7 +189,7 @@ func NewAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool
 	asi.taken = make([]bool, l)
 	asi.formMatches = formMatches
 
-	asi.ai = NewAllocIter(len(asi.assnData), asi.forms)
+	asi.ai = newAllocIter(len(asi.assnData), asi.forms)
 	for i := range asi.assnData {
 		asi.assnData[i] = i
 	}

@@ -5,7 +5,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func IsBlankTypeOnly(e expreduceapi.Ex) bool {
+func isBlankTypeOnly(e expreduceapi.Ex) bool {
 	asPattern, patternOk := atoms.HeadAssertion(e, "System`Pattern")
 	if patternOk {
 		_, blankOk := atoms.HeadAssertion(asPattern.GetParts()[2], "System`Blank")
@@ -24,7 +24,7 @@ func IsBlankTypeOnly(e expreduceapi.Ex) bool {
 	return false
 }
 
-func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expreduceapi.Ex, pm *PDManager, cl expreduceapi.LoggingInterface) (bool, *PDManager) {
+func isBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expreduceapi.Ex, pm *PDManager, cl expreduceapi.LoggingInterface) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
 	asPattern, patternOk := atoms.HeadAssertion(e, "System`Pattern")
@@ -60,7 +60,7 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 					toMatch, ispd := pm.patternDefined[sAsSymbol.Name]
 					if !ispd {
 						toMatch = target
-						pm.LazyMakeMap()
+						pm.lazyMakeMap()
 						pm.patternDefined[sAsSymbol.Name] = target
 					}
 					if !atoms.IsSameQ(toMatch, target, cl) {
@@ -92,14 +92,14 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 	return false, pm
 }
 
-func BlankNullSequenceToBlank(bns expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
+func blankNullSequenceToBlank(bns expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
 	if len(bns.GetParts()) < 2 {
 		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Blank")})
 	}
 	return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Blank"), bns.GetParts()[1]})
 }
 
-func BlankSequenceToBlank(bs expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
+func blankSequenceToBlank(bs expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
 	if len(bs.GetParts()) < 2 {
 		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Blank")})
 	}

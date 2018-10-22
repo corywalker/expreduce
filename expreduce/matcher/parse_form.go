@@ -18,7 +18,7 @@ type parsedForm struct {
 	patSym      *atoms.Symbol
 }
 
-func ParseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, int, bool) {
+func parseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, int, bool) {
 	min, max := -1, -1
 	if len(e.GetParts()) < 2 {
 		return nil, min, max, false
@@ -42,7 +42,7 @@ func ParseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, in
 	return e.GetParts()[1], min, max, true
 }
 
-func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl expreduceapi.LoggingInterface) (res parsedForm) {
+func parseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl expreduceapi.LoggingInterface) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	toParse := lhs_component
 	optional, isOptional := atoms.HeadAssertion(toParse, "System`Optional")
@@ -92,18 +92,18 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 			endI = 1
 			// I think the !isPatTest part might be a hack.
 			if isImpliedBs && !isPatTest {
-				endI = MaxInt
+				endI = maxInt
 			}
 			//form = optional.Parts[1]
 			defaultExpr = defaultToUse
 		}
 	} else if isBns {
-		form = BlankNullSequenceToBlank(bns)
+		form = blankNullSequenceToBlank(bns)
 		startI = 0
-		endI = MaxInt
+		endI = maxInt
 	} else if isImpliedBs {
 		form = blank
-		endI = MaxInt
+		endI = maxInt
 		if len(blank.GetParts()) >= 2 {
 			sym, isSym := blank.GetParts()[1].(*atoms.Symbol)
 			if isSym {
@@ -119,7 +119,7 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 	} else if isBlank {
 		form = blank
 	} else if isRepeated {
-		repPat, repMin, repMax, repOk := ParseRepeated(repeated)
+		repPat, repMin, repMax, repOk := parseRepeated(repeated)
 		if repOk {
 			if repMin != -1 {
 				startI = repMin
@@ -128,19 +128,19 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 				endI = repMax
 			} else {
 				// an undefined end can match to the end of the sequence.
-				endI = MaxInt
+				endI = maxInt
 			}
 			form = repPat
 		}
 	} else if isRepeatedNull {
 		if len(repeatedNull.GetParts()) == 2 {
 			startI = 0
-			endI = MaxInt
+			endI = maxInt
 			form = repeatedNull.GetParts()[1]
 		}
 	} else if isBs {
-		form = BlankSequenceToBlank(bs)
-		endI = MaxInt
+		form = blankSequenceToBlank(bs)
+		endI = maxInt
 	}
 
 	if isPatTest {

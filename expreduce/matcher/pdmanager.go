@@ -17,11 +17,11 @@ func EmptyPD() *PDManager {
 	return &PDManager{nil}
 }
 
-func CopyPD(orig *PDManager) (dest *PDManager) {
+func copyPD(orig *PDManager) (dest *PDManager) {
 	dest = EmptyPD()
 	// We do not care that this iterates in a random order.
-	if (*orig).Len() > 0 {
-		dest.LazyMakeMap()
+	if (*orig).len() > 0 {
+		dest.lazyMakeMap()
 		for k, v := range (*orig).patternDefined {
 			(*dest).patternDefined[k] = v
 		}
@@ -29,20 +29,20 @@ func CopyPD(orig *PDManager) (dest *PDManager) {
 	return
 }
 
-func (this *PDManager) LazyMakeMap() {
+func (this *PDManager) lazyMakeMap() {
 	if this.patternDefined == nil {
 		this.patternDefined = make(map[string]expreduceapi.Ex)
 	}
 }
 
 func (this *PDManager) Define(name string, val expreduceapi.Ex) {
-	this.LazyMakeMap()
+	this.lazyMakeMap()
 	this.patternDefined[name] = val
 }
 
-func (this *PDManager) Update(toAdd *PDManager) {
-	if (*toAdd).Len() > 0 {
-		this.LazyMakeMap()
+func (this *PDManager) update(toAdd *PDManager) {
+	if (*toAdd).len() > 0 {
+		this.lazyMakeMap()
 	}
 	// We do not care that this iterates in a random order.
 	for k, v := range (*toAdd).patternDefined {
@@ -50,14 +50,14 @@ func (this *PDManager) Update(toAdd *PDManager) {
 	}
 }
 
-func (this *PDManager) Len() int {
+func (this *PDManager) len() int {
 	if this.patternDefined == nil {
 		return 0
 	}
 	return len(this.patternDefined)
 }
 
-func (this *PDManager) String(es expreduceapi.EvalStateInterface) string {
+func (this *PDManager) string(es expreduceapi.EvalStateInterface) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	// We sort the keys here such that converting identical PDManagers always
@@ -101,7 +101,7 @@ func (this *PDManager) Expression() expreduceapi.Ex {
 	return res
 }
 
-func DefineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, sequenceHead string, es expreduceapi.EvalStateInterface) bool {
+func defineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, sequenceHead string, es expreduceapi.EvalStateInterface) bool {
 	var attemptDefine expreduceapi.Ex = nil
 	if lhs.hasPat {
 		sequenceHeadSym := atoms.NewSymbol(sequenceHead)
@@ -124,7 +124,7 @@ func DefineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, s
 				return false
 			}
 		}
-		pm.LazyMakeMap()
+		pm.lazyMakeMap()
 		pm.patternDefined[lhs.patSym.Name] = attemptDefine
 	}
 	return true

@@ -15,10 +15,10 @@ var freezeStateDuringPreMatch = flag.Bool(
 		"thread safety.",
 )
 
-const MaxUint = ^uint(0)
-const MaxInt = int(MaxUint >> 1)
-const MaxUint64 = ^uint64(0)
-const MaxInt64 = int64(MaxUint64 >> 1)
+const maxUint = ^uint(0)
+const maxInt = int(maxUint >> 1)
+const maxUint64 = ^uint64(0)
+const maxInt64 = int64(maxUint64 >> 1)
 
 type matchIter interface {
 	// returns ismatch, pd, isdone
@@ -198,8 +198,8 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 		headEx = complexSym
 	}
 
-	if IsBlankTypeOnly(b) {
-		ibtc, ibtcNewPDs := IsBlankTypeCapturing(b, a, headEx, pm, es.GetLogger())
+	if isBlankTypeOnly(b) {
+		ibtc, ibtcNewPDs := isBlankTypeCapturing(b, a, headEx, pm, es.GetLogger())
 		if ibtc {
 			return &dummyMatchIter{ibtcNewPDs}, true
 		}
@@ -290,7 +290,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 
 	isOrderless := attrs.Orderless && !forceOrdered
 	isFlat := attrs.Flat && !forceOrdered
-	nomi, ok := NewSequenceMatchIter(aExpression.GetParts()[startI:], bExpression.GetParts()[startI:], isOrderless, isFlat, sequenceHead, pm, es)
+	nomi, ok := newSequenceMatchIter(aExpression.GetParts()[startI:], bExpression.GetParts()[startI:], isOrderless, isFlat, sequenceHead, pm, es)
 	if !ok {
 		return nil, false
 	}
@@ -337,7 +337,7 @@ type assignedMatchIter struct {
 	stack          []assignedIterState
 }
 
-func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIter {
+func newAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIter {
 	ami := assignedMatchIter{}
 	ami.assn = assn
 	ami.components = smi.components
@@ -346,12 +346,12 @@ func NewAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIte
 	ami.sequenceHead = smi.sequenceHead
 	ami.es = smi.es
 	ami.stack = []assignedIterState{
-		{0, 0, CopyPD(ami.pm)},
+		{0, 0, copyPD(ami.pm)},
 	}
 	return ami
 }
 
-func (ami *assignedMatchIter) Next() bool {
+func (ami *assignedMatchIter) next() bool {
 	for len(ami.stack) > 0 {
 		var p assignedIterState
 		l := len(ami.stack)
@@ -370,7 +370,7 @@ func (ami *assignedMatchIter) Next() bool {
 			for i, assignedComp := range ami.assn[p.formI] {
 				seq[i] = ami.components[assignedComp]
 			}
-			patOk := DefineSequence(lhs, seq, p.pm, ami.sequenceHead, ami.es)
+			patOk := defineSequence(lhs, seq, p.pm, ami.sequenceHead, ami.es)
 			if patOk {
 				ami.stack = append(ami.stack, assignedIterState{
 					p.formI + 1, 0, p.pm,
@@ -395,11 +395,11 @@ func (ami *assignedMatchIter) Next() bool {
 		}
 		for i := len(toAddReversed) - 1; i >= 0; i-- {
 			updatedPm := p.pm
-			if toAddReversed[i] != nil && toAddReversed[i].Len() > 0 {
+			if toAddReversed[i] != nil && toAddReversed[i].len() > 0 {
 				if len(toAddReversed) > 1 {
-					updatedPm = CopyPD(p.pm)
+					updatedPm = copyPD(p.pm)
 				}
-				updatedPm.Update(toAddReversed[i])
+				updatedPm.update(toAddReversed[i])
 			}
 			ami.stack = append(ami.stack, assignedIterState{
 				p.formI, p.assnI + 1, updatedPm,
@@ -420,16 +420,16 @@ type sequenceMatchIter struct {
 	ami            assignedMatchIter
 }
 
-func NewSequenceMatchIter(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (matchIter, bool) {
+func newSequenceMatchIter(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (matchIter, bool) {
 	headDefault := (atoms.NewSymbol(sequenceHead)).Default(es.GetDefinedMap())
 	fp_components := make([]parsedForm, len(lhs_components))
 	for i, comp := range lhs_components {
-		fp_components[i] = ParseForm(comp, isFlat, sequenceHead, headDefault, es.GetLogger())
+		fp_components[i] = parseForm(comp, isFlat, sequenceHead, headDefault, es.GetLogger())
 	}
-	return NewSequenceMatchIterPreparsed(components, fp_components, isOrderless, sequenceHead, pm, es)
+	return newSequenceMatchIterPreparsed(components, fp_components, isOrderless, sequenceHead, pm, es)
 }
 
-func NewSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components []parsedForm, isOrderless bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (matchIter, bool) {
+func newSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components []parsedForm, isOrderless bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (matchIter, bool) {
 	nomi := &sequenceMatchIter{}
 	nomi.components = components
 	nomi.lhs_components = lhs_components
@@ -465,21 +465,21 @@ func NewSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components 
 		es.SetFrozen(origFrozen)
 	}
 
-	nomi.ai = NewAssnIter(len(components), lhs_components, formMatches, isOrderless)
+	nomi.ai = newAssnIter(len(components), lhs_components, formMatches, isOrderless)
 
 	return nomi, true
 }
 
 func (this *sequenceMatchIter) Next() (bool, *PDManager, bool) {
 	for {
-		if this.iteratingAmi && this.ami.Next() {
+		if this.iteratingAmi && this.ami.next() {
 			return true, this.ami.pm, false
 		}
 		this.iteratingAmi = false
 		if !this.ai.next() {
 			break
 		}
-		this.ami = NewAssignedMatchIter(this.ai.assns, this)
+		this.ami = newAssignedMatchIter(this.ai.assns, this)
 		this.iteratingAmi = true
 	}
 	return false, this.pm, true
@@ -487,7 +487,7 @@ func (this *sequenceMatchIter) Next() (bool, *PDManager, bool) {
 
 // HELPER FUNCTIONS
 
-func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
+func getMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 	for cont {
 		matchq, newPd, done := mi.Next()
 		cont = !done
@@ -503,5 +503,5 @@ func GetMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 // TODO: do not export this
 func IsMatchQ(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expreduceapi.EvalStateInterface) (bool, *PDManager) {
 	mi, cont := NewMatchIter(a, b, pm, es)
-	return GetMatchQ(mi, cont, pm)
+	return getMatchQ(mi, cont, pm)
 }

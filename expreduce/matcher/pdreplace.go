@@ -5,7 +5,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func ReplacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool) {
+func replacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool) {
 	asSym, isSym := e.(*atoms.Symbol)
 	if isSym {
 		for k, def := range pm.patternDefined {
@@ -19,7 +19,7 @@ func ReplacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool)
 	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		for i := range asExpr.GetParts() {
-			possiblyNewExpr, dirty := ReplacePDInternal(asExpr.GetParts()[i], pm)
+			possiblyNewExpr, dirty := replacePDInternal(asExpr.GetParts()[i], pm)
 			if dirty {
 				thisDirty = true
 				// Mark the expression as dirty and needing eval.
@@ -48,6 +48,6 @@ func ReplacePD(this expreduceapi.Ex, es expreduceapi.EvalStateInterface, pm *PDM
 
 	// Expressions are immutable. Any time we change an expression, we must
 	// first copy it.
-	res, _ := ReplacePDInternal(this.Copy(), pm)
+	res, _ := replacePDInternal(this.Copy(), pm)
 	return res
 }
