@@ -1,4 +1,4 @@
-package expreduce
+package parser
 
 import (
 	"fmt"

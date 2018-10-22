@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,7 +14,7 @@ func TestTesting(t *testing.T) {
 	es := NewEvalState()
 
 	CasAssertSame(t, es, " 1 ", "    1")
-	succ, s := CasTestInner(es, es.Eval(Interp(" 1. ", es)), es.Eval(Interp("1  ", es)), " 1. ", true, "")
+	succ, s := CasTestInner(es, es.Eval(parser.Interp(" 1. ", es)), es.Eval(parser.Interp("1  ", es)), " 1. ", true, "")
 	assert.False(t, succ, s)
 	CasAssertSame(t, es, "5.5", "1+1.5+3")
 	CasAssertDiff(t, es, "5.6", "1+1.5+3")

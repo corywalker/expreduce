@@ -7,7 +7,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/corywalker/expreduce/expreduce/parser"
+	"github.com/corywalker/expreduce/expreduce/parser/parens"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -20,7 +20,7 @@ func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	var buffer bytes.Buffer
 	useParens := false
 	if f.Val.Cmp(big.NewFloat(0)) < 0 {
-		if parser.NeedsParens("System`Times", params.PreviousHead) {
+		if parens.NeedsParens("System`Times", params.PreviousHead) {
 			useParens = true
 			if params.Form == "TeXForm" {
 				buffer.WriteString("{")

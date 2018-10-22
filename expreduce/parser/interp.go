@@ -1,4 +1,4 @@
-package expreduce
+package parser
 
 import (
 	"bytes"
@@ -542,15 +542,4 @@ func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expredu
 		fmt.Printf("Syntax::sntx: %v.\nWhile parsing: %v\n\n\n", err, buf.String()[:100])
 	}
 	return l
-}
-
-func EasyRun(src string, es expreduceapi.EvalStateInterface) string {
-	context, ContextPath := ActualStringFormArgs(es)
-	stringParams := expreduceapi.ToStringParams{
-		Form:        "InputForm",
-		Context:     context,
-		ContextPath: ContextPath,
-		Esi:         es,
-	}
-	return EvalInterp(src, es).StringForm(stringParams)
 }

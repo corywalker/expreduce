@@ -5,7 +5,7 @@ import (
 	"hash/fnv"
 	"math/big"
 
-	"github.com/corywalker/expreduce/expreduce/parser"
+	"github.com/corywalker/expreduce/expreduce/parser/parens"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -22,7 +22,7 @@ func (this *Rational) StringForm(params expreduceapi.ToStringParams) string {
 	if params.Form == "TeXForm" {
 		return fmt.Sprintf("\\frac{%d}{%d}", this.Num, this.Den)
 	}
-	if parser.NeedsParens("System`Times", params.PreviousHead) {
+	if parens.NeedsParens("System`Times", params.PreviousHead) {
 		return fmt.Sprintf("(%d/%d)", this.Num, this.Den)
 	}
 	return fmt.Sprintf("%d/%d", this.Num, this.Den)

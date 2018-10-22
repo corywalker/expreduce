@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +51,7 @@ func TestIncludedModules(t *testing.T) {
 			if !testSymEx.MatchString(def.Name) {
 				continue
 			}
-			EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
+			parser.EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
 			def.AnnotateWithDynamic(es)
 			td := TestDesc{
 				module: defSet.Name,
@@ -181,8 +182,8 @@ func TestLowLevel(t *testing.T) {
 	es.Eval(v)
 	assert.Equal(t, "x", v.String(es))
 
-	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
-	assert.Equal(t, "(a*b*c*d*e*f)", EasyRun("a * b * c *d *e *f", es))
+	CasAssertSame(t, es, "(a + b + c + d + e + f)", "a + b + c +d +e +f")
+	CasAssertSame(t, es, "(a*b*c*d*e*f)", "a * b * c *d *e *f")
 
 	CasAssertSame(t, es, "2", "iubjndxuier = 2")
 	_, containsTest := es.GetDefinedMap().Get("Global`iubjndxuier")
@@ -192,8 +193,8 @@ func TestLowLevel(t *testing.T) {
 	assert.False(t, containsTest)
 
 	// Test raw recursion speed
-	EvalInterp("DownValues[fib]={HoldPattern[fib[0]]->0,HoldPattern[fib[1]]->1,HoldPattern[fib[x_]]:>fib[x-1]+fib[x-2]}", es)
-	EvalInterp("fib[25]", es)
+	parser.EvalInterp("DownValues[fib]={HoldPattern[fib[0]]->0,HoldPattern[fib[1]]->1,HoldPattern[fib[x_]]:>fib[x-1]+fib[x-2]}", es)
+	parser.EvalInterp("fib[25]", es)
 }
 
 func TestDeepCopy(t *testing.T) {
@@ -266,7 +267,7 @@ func TestConcurrency(t *testing.T) {
 		wg.Add(1)
 		go func(t *testing.T, i int, es expreduceapi.EvalStateInterface) {
 			defer wg.Done()
-			EvalInterp(fmt.Sprintf("testVar := %v", i), es)
+			parser.EvalInterp(fmt.Sprintf("testVar := %v", i), es)
 		}(t, i, es1)
 	}
 	wg.Wait()

@@ -13,6 +13,7 @@ import (
 
 	"github.com/corywalker/expreduce/expreduce"
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"gopkg.in/readline.v1"
 )
@@ -55,7 +56,7 @@ func main() {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(f)
 		scriptText := buf.String()
-		expreduce.EvalInterpMany(scriptText, *initfile, es)
+		parser.EvalInterpMany(scriptText, *initfile, es)
 	}
 
 	if *scriptfile != "" {
@@ -75,7 +76,7 @@ func main() {
 }
 
 func scriptSession(es *expreduce.EvalState, srcText string, srcPath string) {
-	exp := expreduce.EvalInterpMany(srcText, srcPath, es)
+	exp := parser.EvalInterpMany(srcText, srcPath, es)
 	res := es.Eval(exp)
 	res = es.ProcessTopLevelResult(res, res)
 }
@@ -111,7 +112,7 @@ func interactiveSession(es *expreduce.EvalState) {
 		}
 		fmt.Printf("\n")
 
-		exp := expreduce.Interp(line, es)
+		exp := parser.Interp(line, es)
 		res := es.Eval(exp)
 		res = es.ProcessTopLevelResult(exp, res)
 

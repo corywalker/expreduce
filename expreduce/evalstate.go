@@ -10,6 +10,7 @@ import (
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/logging"
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
@@ -42,7 +43,7 @@ func (this *EvalState) Load(def Definition) {
 	// TODO: deprecate most of this. We should be using .m files now.
 	def.Name = this.GetStringDef("System`$Context", "") + def.Name
 	this.MarkSeen(def.Name)
-	EvalInterp("$Context = \"Private`\"", this)
+	parser.EvalInterp("$Context = \"Private`\"", this)
 
 	if len(def.Usage) > 0 {
 
@@ -70,13 +71,13 @@ func (this *EvalState) Load(def Definition) {
 	protectedAttrs := append(def.Attributes, "Protected")
 	newDef.Attributes = atoms.StringsToAttributes(protectedAttrs)
 	if def.Default != "" {
-		newDef.DefaultExpr = Interp(def.Default, this)
+		newDef.DefaultExpr = parser.Interp(def.Default, this)
 	}
 	if def.toString != nil {
 		this.toStringFns[def.Name] = def.toString
 	}
 	this.defined.Set(def.Name, newDef)
-	EvalInterp("$Context = \"System`\"", this)
+	parser.EvalInterp("$Context = \"System`\"", this)
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
@@ -238,19 +239,19 @@ func (es *EvalState) Init(loadAllDefs bool) {
 			fn := fmt.Sprintf("resources/%v.m", defSet.Name)
 			data, err := Asset(fn)
 			if err == nil {
-				EvalInterp("$Context = \"Private`\"", es)
-				EvalInterpMany(string(data), fn, es)
-				EvalInterp("$Context = \"System`\"", es)
+				parser.EvalInterp("$Context = \"Private`\"", es)
+				parser.EvalInterpMany(string(data), fn, es)
+				parser.EvalInterp("$Context = \"System`\"", es)
 			}
 		}
 		// System initialization
 		fn := "resources/init.m"
 		data := MustAsset(fn)
-		EvalInterpMany(string(data), fn, es)
+		parser.EvalInterpMany(string(data), fn, es)
 	}
-	EvalInterp("$Context = \"Global`\"", es)
-	EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
-	EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
+	parser.EvalInterp("$Context = \"Global`\"", es)
+	parser.EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
+	parser.EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
 }
 
 func NewEvalState() *EvalState {

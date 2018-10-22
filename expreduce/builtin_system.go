@@ -13,6 +13,7 @@ import (
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/matcher"
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/op/go-logging"
 )
@@ -642,7 +643,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return atoms.NewSymbol("System`$Failed")
 			}
-			return EvalInterpMany(fileData, rawPath, es)
+			return parser.EvalInterpMany(fileData, rawPath, es)
 		},
 	})
 	defs = append(defs, Definition{
@@ -687,7 +688,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return atoms.NewSymbol("System`$Failed")
 			}
-			return ReadList(fileData, rawPath, es)
+			return parser.ReadList(fileData, rawPath, es)
 		},
 	})
 	defs = append(defs, Definition{Name: "BeginPackage"})

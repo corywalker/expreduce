@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/stretchr/testify/assert"
 )
@@ -34,7 +35,14 @@ type StringTest struct {
 }
 
 func (this *StringTest) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
-	return assert.Equal(t, this.Out, EasyRun(this.In, es), td.desc)
+	context, ContextPath := ActualStringFormArgs(es)
+	stringParams := expreduceapi.ToStringParams{
+		Form:        "InputForm",
+		Context:     context,
+		ContextPath: ContextPath,
+		Esi:         es,
+	}
+	return assert.Equal(t, this.Out, parser.EvalInterp(this.In, es).StringForm(stringParams), td.desc)
 }
 
 type ExampleOnlyInstruction struct {
@@ -110,19 +118,19 @@ func CasTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 }
 
 func CasAssertSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
-	succ, s := CasTestInner(es, es.Eval(Interp(in, es)), es.Eval(Interp(out, es)), in, true, "")
+	succ, s := CasTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, true, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDiff(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
-	succ, s := CasTestInner(es, es.Eval(Interp(in, es)), es.Eval(Interp(out, es)), in, false, "")
+	succ, s := CasTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, false, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDescSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, es.Eval(Interp(in, es)), es.Eval(Interp(out, es)), in, true, desc)
+	succ, s := CasTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, true, desc)
 	assert.True(t, succ, s)
 	return succ
 }

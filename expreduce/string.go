@@ -4,7 +4,7 @@ import (
 	"bytes"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
-	"github.com/corywalker/expreduce/expreduce/parser"
+	"github.com/corywalker/expreduce/expreduce/parser/parens"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -15,7 +15,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 	if len(parts) < 2 {
 		return false, ""
 	}
-	addParens := parser.NeedsParens(thisHead, p.PreviousHead)
+	addParens := parens.NeedsParens(thisHead, p.PreviousHead)
 	var buffer bytes.Buffer
 	if addParens {
 		if p.Form == "TeXForm" {
@@ -63,7 +63,7 @@ func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 		return false, ""
 	}
 	var buffer bytes.Buffer
-	addParens := parser.NeedsParens(thisHead, params.PreviousHead)
+	addParens := parens.NeedsParens(thisHead, params.PreviousHead)
 	if addParens {
 		if params.Form == "TeXForm" {
 			buffer.WriteString("{\\left(")
