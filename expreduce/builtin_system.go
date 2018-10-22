@@ -136,9 +136,8 @@ func snagUnique(context string, prefix string, es expreduceapi.EvalStateInterfac
 			es.Define(atoms.NewSymbol("System`$ModuleNumber"), atoms.NewInteger(big.NewInt(mn+1)))
 			return toTry, true
 		}
-		mn += 1
+		mn++
 	}
-	return "", false
 }
 
 func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
@@ -369,8 +368,8 @@ func getSystemDefinitions() (defs []Definition) {
 				return res
 			}
 			for _, dv := range def.Downvalues {
-				_, isLhsExpr := dv.Rule.GetParts()[1].(expreduceapi.ExpressionInterface).GetParts()[1].(expreduceapi.ExpressionInterface)
-				if !isLhsExpr {
+				_, isLHSExpr := dv.Rule.GetParts()[1].(expreduceapi.ExpressionInterface).GetParts()[1].(expreduceapi.ExpressionInterface)
+				if !isLHSExpr {
 					continue
 				}
 				res.AppendEx(atoms.NewExpression([]expreduceapi.Ex{

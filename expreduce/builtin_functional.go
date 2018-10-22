@@ -14,9 +14,8 @@ func parseInteger(part expreduceapi.Ex) (value int64, isInteger bool) {
 	integer, isInteger := part.(*atoms.Integer)
 	if isInteger {
 		return integer.Val.Int64(), true
-	} else {
-		return 0, false
 	}
+	return 0, false
 }
 
 func parseExpression(part expreduceapi.Ex) (expression expreduceapi.ExpressionInterface, isExpression bool) {
@@ -109,9 +108,8 @@ func parseLevelSpec(this expreduceapi.Ex, es expreduceapi.EvalStateInterface) le
 	case isInteger:
 		if integer < 0 {
 			return levelSpec{false, true, 1, -integer, true}
-		} else {
-			return levelSpec{false, false, 1, integer, true}
 		}
+		return levelSpec{false, false, 1, integer, true}
 	case isInfinity:
 		return levelSpec{false, false, 1, inf, true}
 	case isNegativeInfinity:
@@ -136,9 +134,8 @@ func parseLevelSpec(this expreduceapi.Ex, es expreduceapi.EvalStateInterface) le
 		case isInteger:
 			if integer < 0 {
 				return levelSpec{true, true, -integer, -integer, true}
-			} else {
-				return levelSpec{false, false, integer, integer, true}
 			}
+			return levelSpec{false, false, integer, integer, true}
 		case isInfinity:
 			return levelSpec{false, false, inf, inf, true}
 		case isNegativeInfinity:
@@ -231,7 +228,7 @@ func expressionWalkMapBackwards(f func(expreduceapi.Ex, expreduceapi.Ex, []int64
 
 	for i, expr := range this.GetParts()[1:] {
 		newExpression := expr
-		depth := int64(0)
+		var depth int64
 
 		currentPartSpec := append(partSpec, int64(i+1))
 		level := int64(len(currentPartSpec))
@@ -366,9 +363,8 @@ func levelSpecFunction(
 		if !nonAtomic {
 			if spec.checkLevel(0) && spec.checkDepth(0) {
 				return exOrGenerated(f(dataExpr, leveledExpr, []int64{}, generated, es), generated, returnGenerated)
-			} else {
-				return exOrGenerated(leveledExpr, generated, returnGenerated)
 			}
+			return exOrGenerated(leveledExpr, generated, returnGenerated)
 		}
 
 		if spec.min == 0 && spec.max == 0 {
@@ -383,9 +379,8 @@ func levelSpecFunction(
 
 			if spec.checkLevel(0) && spec.checkDepth(0) {
 				return exOrGenerated(f(dataExpr, newExpression, []int64{}, generated, es), generated, returnGenerated)
-			} else {
-				return exOrGenerated(newExpression, generated, returnGenerated)
 			}
+			return exOrGenerated(newExpression, generated, returnGenerated)
 		}
 
 		//We now turn to the most general case, where levels can be specified as either
@@ -395,9 +390,8 @@ func levelSpecFunction(
 		//Whether to wrap the zeroth level with the function.
 		if spec.checkLevel(0) && spec.checkDepth(depth) {
 			return exOrGenerated(f(dataExpr, newExpression, []int64{}, generated, es), generated, returnGenerated)
-		} else {
-			return exOrGenerated(newExpression, generated, returnGenerated)
 		}
+		return exOrGenerated(newExpression, generated, returnGenerated)
 	}
 }
 

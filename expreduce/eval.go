@@ -191,7 +191,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 				curr.CachedHash = 0
 			}
 			if attrs.Listable {
-				changed := false
+				var changed bool
 				currEx, changed = threadExpr(curr)
 				if changed {
 					currExHash = hashEx(currEx)
@@ -268,9 +268,8 @@ func (es *EvalState) evalRational(this *atoms.Rational) expreduceapi.Ex {
 	if absDen.Cmp(big.NewInt(1)) == 0 {
 		if !negateRes {
 			return atoms.NewInteger(absNum)
-		} else {
-			return atoms.NewInteger(absNum.Neg(absNum))
 		}
+		return atoms.NewInteger(absNum.Neg(absNum))
 	}
 
 	if !negateRes {

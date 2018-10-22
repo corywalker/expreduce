@@ -64,7 +64,7 @@ func TestIncludedModules(t *testing.T) {
 					fmt.Println(test)
 				}
 				test.run(t, es, td)
-				i += 1
+				i++
 			}
 			for _, test := range def.FurtherExamples {
 				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)
@@ -72,7 +72,7 @@ func TestIncludedModules(t *testing.T) {
 					fmt.Println(test)
 				}
 				test.run(t, es, td)
-				i += 1
+				i++
 			}
 			for _, test := range def.Tests {
 				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)
@@ -80,7 +80,7 @@ func TestIncludedModules(t *testing.T) {
 					fmt.Println(test)
 				}
 				test.run(t, es, td)
-				i += 1
+				i++
 			}
 			for _, test := range def.KnownFailures {
 				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)
@@ -90,7 +90,7 @@ func TestIncludedModules(t *testing.T) {
 				if test.run(&mockT, es, td) {
 					fmt.Printf("Previously failing test is now passing: %v\n", test)
 				}
-				i += 1
+				i++
 			}
 			/*for _, test := range def.KnownDangerous {
 				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)

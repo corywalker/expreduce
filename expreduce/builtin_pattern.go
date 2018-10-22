@@ -33,9 +33,8 @@ func getPatternDefinitions() (defs []Definition) {
 
 			if res, _ := matcher.IsMatchQ(this.GetParts()[1], this.GetParts()[2], matcher.EmptyPD(), es); res {
 				return atoms.NewSymbol("System`True")
-			} else {
-				return atoms.NewSymbol("System`False")
 			}
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{

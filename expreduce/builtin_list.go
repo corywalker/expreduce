@@ -331,8 +331,8 @@ func getListDefinitions() (defs []Definition) {
 			if len(this.GetParts()) == 1 {
 				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			}
-			var firstHead expreduceapi.Ex = nil
-			var allParts expreduceapi.ExpressionInterface = nil
+			var firstHead expreduceapi.Ex
+			var allParts expreduceapi.ExpressionInterface
 			for _, part := range this.GetParts()[1:] {
 				expr, isExpr := part.(expreduceapi.ExpressionInterface)
 				if !isExpr {
@@ -348,7 +348,7 @@ func getListDefinitions() (defs []Definition) {
 			}
 			sort.Sort(allParts)
 			toReturn := atoms.NewExpression([]expreduceapi.Ex{firstHead})
-			var lastEx expreduceapi.Ex = nil
+			var lastEx expreduceapi.Ex
 			for _, part := range allParts.GetParts()[1:] {
 				if lastEx == nil || !atoms.IsSameQ(lastEx, part, es.GetLogger()) {
 					lastEx = part
@@ -365,7 +365,7 @@ func getListDefinitions() (defs []Definition) {
 			if len(this.GetParts()) == 1 {
 				return this
 			}
-			var firstHead expreduceapi.Ex = nil
+			var firstHead expreduceapi.Ex
 			exclusions := map[uint64]bool{}
 			for _, part := range this.GetParts()[1:] {
 				expr, isExpr := part.(expreduceapi.ExpressionInterface)
@@ -579,7 +579,7 @@ func getListDefinitions() (defs []Definition) {
 					if passIsSymbol {
 						if passSymbol.Name == "System`True" {
 							res.AppendEx(part)
-							added += 1
+							added++
 						}
 					}
 				}

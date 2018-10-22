@@ -32,9 +32,8 @@ func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType
 	if len(this.GetParts()) == 1 {
 		if fnType == maxFn {
 			return atoms.E(atoms.S("Times"), atoms.NewInt(-1), atoms.S("Infinity"))
-		} else {
-			return atoms.S("Infinity")
 		}
+		return atoms.S("Infinity")
 	}
 	if len(this.GetParts()) == 2 {
 		return this.GetParts()[1]
@@ -46,7 +45,7 @@ func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType
 		}
 	}
 	if fnType == maxFn {
-		i -= 1
+		i--
 		return atoms.NewExpression(append([]expreduceapi.Ex{this.GetParts()[0]}, this.GetParts()[i:]...))
 	}
 	if i == 1 {
@@ -138,9 +137,8 @@ func getComparisonDefinitions() (defs []Definition) {
 			}
 			if issame {
 				return atoms.NewSymbol("System`True")
-			} else {
-				return atoms.NewSymbol("System`False")
 			}
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{

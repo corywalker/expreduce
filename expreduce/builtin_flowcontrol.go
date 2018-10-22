@@ -22,7 +22,7 @@ func applyWithFn(e expreduceapi.ExpressionInterface, es expreduceapi.EvalStateIn
 		if !(isSet || isSetDelayed) {
 			return nil, false
 		}
-		var setEx expreduceapi.ExpressionInterface = nil
+		var setEx expreduceapi.ExpressionInterface
 		ruleHead := ""
 		if isSet {
 			setEx = set

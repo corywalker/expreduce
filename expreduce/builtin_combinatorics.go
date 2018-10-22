@@ -101,15 +101,15 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 			if !nIsInt {
 				return this
 			}
-			nMachine := int(n.Val.Int64())
+			nnumMachine := int(n.Val.Int64())
 
-			kMachine := nMachine
+			knumMachine := nnumMachine
 			if len(this.GetParts()) == 3 {
-				k, kIsInt := this.GetParts()[2].(*atoms.Integer)
-				if !kIsInt {
+				k, knumIsInt := this.GetParts()[2].(*atoms.Integer)
+				if !knumIsInt {
 					return this
 				}
-				kMachine = int(k.Val.Int64())
+				knumMachine = int(k.Val.Int64())
 			}
 
 			cmpVal := n.Val.Cmp(big.NewInt(0))
@@ -120,7 +120,7 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 			}
 
 			var parts [][]int
-			genIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
+			genIntegerPartitions(nnumMachine, knumMachine, nnumMachine, []int{}, &parts)
 
 			exParts := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			for _, partition := range parts {

@@ -24,7 +24,7 @@ func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(expred
 	})
 }
 
-// TODO: move to mathbigext.
+// NthRoot calculates the n'th root of x. TODO: move to mathbigext.
 func NthRoot(x *big.Int, n *big.Int) *big.Int {
 	if x.Cmp(big.NewInt(0)) == 0 {
 		return big.NewInt(0)

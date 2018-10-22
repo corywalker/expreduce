@@ -15,20 +15,19 @@ func dimensions(ex expreduceapi.ExpressionInterface, level int, cl expreduceapi.
 		subHead, isSubHead := atoms.HeadExAssertion(ex.GetParts()[i], head, cl)
 		if !isSubHead {
 			return dims
-		} else {
-			currDims := dimensions(subHead, level+1, cl)
-			if i != 1 {
-				if len(nextDims) > len(currDims) {
-					nextDims = nextDims[:len(currDims)-1]
-				}
-				for i := range nextDims {
-					if nextDims[i] != currDims[i] {
-						return dims
-					}
+		}
+		currDims := dimensions(subHead, level+1, cl)
+		if i != 1 {
+			if len(nextDims) > len(currDims) {
+				nextDims = nextDims[:len(currDims)-1]
+			}
+			for i := range nextDims {
+				if nextDims[i] != currDims[i] {
+					return dims
 				}
 			}
-			nextDims = currDims
 		}
+		nextDims = currDims
 	}
 	return append(dims, nextDims...)
 }

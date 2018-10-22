@@ -8,6 +8,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
+// The Definition struct provides metadata about a builtin function.
 type Definition struct {
 	// The symbol name, like "Mean", and "Total"
 	Name  string
@@ -162,6 +163,8 @@ func (def *Definition) AnnotateWithDynamic(es expreduceapi.EvalStateInterface) {
 	def.annotateWithDynamicUsage(es)
 }
 
+// NamedDefSet provides a means of grouping Definitions under a category name.
+// This is useful for generating documentation.
 type NamedDefSet struct {
 	Name string
 	Defs []Definition
