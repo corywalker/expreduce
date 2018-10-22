@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -76,7 +77,7 @@ func (this *PDManager) String(es expreduceapi.EvalStateInterface) string {
 }
 
 func (this *PDManager) Expression() expreduceapi.Ex {
-	res := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+	res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 	// We sort the keys here such that converting identical PDManagers always
 	// produces the same string.
 	keys := []string{}
@@ -86,9 +87,9 @@ func (this *PDManager) Expression() expreduceapi.Ex {
 	sort.Strings(keys)
 	for _, k := range keys {
 		v := this.patternDefined[k]
-		res.AppendEx(NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Rule"),
-			NewString(k),
+		res.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Rule"),
+			atoms.NewString(k),
 			v,
 		}))
 	}
@@ -98,22 +99,22 @@ func (this *PDManager) Expression() expreduceapi.Ex {
 func DefineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, sequenceHead string, es expreduceapi.EvalStateInterface) bool {
 	var attemptDefine expreduceapi.Ex = nil
 	if lhs.hasPat {
-		sequenceHeadSym := NewSymbol(sequenceHead)
+		sequenceHeadSym := atoms.NewSymbol(sequenceHead)
 		oneIdent := sequenceHeadSym.Attrs(es.GetDefinedMap()).OneIdentity
 		if len(sequence) == 1 && (lhs.isBlank || oneIdent || lhs.isOptional) {
 			attemptDefine = sequence[0]
 		} else if len(sequence) == 0 && lhs.isOptional && lhs.defaultExpr != nil {
 			attemptDefine = lhs.defaultExpr
 		} else if lhs.isImpliedBs {
-			attemptDefine = NewExpression(append([]expreduceapi.Ex{sequenceHeadSym}, sequence...))
+			attemptDefine = atoms.NewExpression(append([]expreduceapi.Ex{sequenceHeadSym}, sequence...))
 		} else {
-			head := NewSymbol("System`Sequence")
-			attemptDefine = NewExpression(append([]expreduceapi.Ex{head}, sequence...))
+			head := atoms.NewSymbol("System`Sequence")
+			attemptDefine = atoms.NewExpression(append([]expreduceapi.Ex{head}, sequence...))
 		}
 
 		if pm.patternDefined != nil {
 			defined, ispd := pm.patternDefined[lhs.patSym.Name]
-			if ispd && !IsSameQ(defined, attemptDefine, es.GetLogger()) {
+			if ispd && !atoms.IsSameQ(defined, attemptDefine, es.GetLogger()) {
 				es.Debugf("patterns do not match! continuing.")
 				return false
 			}

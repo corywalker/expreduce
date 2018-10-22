@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/op/go-logging"
 )
@@ -22,21 +23,21 @@ func hashEx(e expreduceapi.Ex) uint64 {
 }
 
 func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi.Ex {
-	asInt, isInt := e.(*Integer)
+	asInt, isInt := e.(*atoms.Integer)
 	if isInt {
 		toReturn, _ := IntegerToFlt(asInt)
 		return toReturn
 	}
-	asRat, isRat := e.(*Rational)
+	asRat, isRat := e.(*atoms.Rational)
 	if isRat {
 		toReturn, _ := RationalToFlt(asRat)
 		return toReturn
 	}
-	_, isSym := e.(*Symbol)
+	_, isSym := e.(*atoms.Symbol)
 	if isSym {
 		toReturn, defined, _ := es.GetDef(
 			"System`N",
-			NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), e}),
+			atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), e}),
 		)
 		if defined {
 			return toReturn
@@ -46,7 +47,7 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 	if isExpr {
 		toReturn, defined, _ := es.GetDef(
 			"System`N",
-			NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), e}),
+			atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), e}),
 		)
 		if defined {
 			return toReturn
@@ -55,7 +56,7 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 		for _, part := range asExpr.GetParts() {
 			toAdd, defined, _ := es.GetDef(
 				"System`N",
-				NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), part}),
+				atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), part}),
 			)
 			if !defined {
 				toAdd = exprToN(es, part)
@@ -68,16 +69,16 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 }
 
 func TryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string, string, bool) {
-	pathSym := NewSymbol("System`$Path")
+	pathSym := atoms.NewSymbol("System`$Path")
 	path, isDef, _ := es.GetDef("System`$Path", pathSym)
 	if !isDef {
 		return "", "", false
 	}
-	pathL, pathIsList := HeadAssertion(path, "System`List")
+	pathL, pathIsList := atoms.HeadAssertion(path, "System`List")
 	if !pathIsList {
 		return "", "", false
 	}
-	filenameString, fnIsStr := fn.(*String)
+	filenameString, fnIsStr := fn.(*atoms.String)
 	if !fnIsStr {
 		return "", "", false
 	}
@@ -94,7 +95,7 @@ func TryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string
 
 	pathsToTry := []string{}
 	for _, pathEx := range pathL.GetParts()[1:] {
-		pathString, pathIsString := pathEx.(*String)
+		pathString, pathIsString := pathEx.(*atoms.String)
 		if !pathIsString {
 			fmt.Printf("Invalid path: %v\n", pathEx)
 			continue
@@ -120,7 +121,7 @@ func snagUnique(context string, prefix string, es expreduceapi.EvalStateInterfac
 	if !mnIsDef {
 		return "", false
 	}
-	mnInteger, mnIsInt := mnExpr.(*Integer)
+	mnInteger, mnIsInt := mnExpr.(*atoms.Integer)
 	if !mnIsInt {
 		return "", false
 	}
@@ -130,7 +131,7 @@ func snagUnique(context string, prefix string, es expreduceapi.EvalStateInterfac
 	for {
 		toTry := fmt.Sprintf("%v%v%v", context, prefix, mn)
 		if !es.IsDef(toTry) {
-			es.Define(NewSymbol("System`$ModuleNumber"), NewInteger(big.NewInt(mn+1)))
+			es.Define(atoms.NewSymbol("System`$ModuleNumber"), atoms.NewInteger(big.NewInt(mn+1)))
 			return toTry, true
 		}
 		mn += 1
@@ -143,14 +144,14 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 	if len(this.GetParts()) != 3 {
 		return nil, false
 	}
-	locals, localsIsList := HeadAssertion(this.GetParts()[1], "System`List")
+	locals, localsIsList := atoms.HeadAssertion(this.GetParts()[1], "System`List")
 	if !localsIsList {
 		return nil, false
 	}
 
 	// Parse locals into a struct
 	type parsedLocal struct {
-		sym          *Symbol
+		sym          *atoms.Symbol
 		uniqueName   string
 		setValue     expreduceapi.Ex
 		isSet        bool
@@ -160,9 +161,9 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 	for _, localEx := range locals.GetParts()[1:] {
 		pl := parsedLocal{}
 		symEx := localEx
-		localSet, localIsSet := HeadAssertion(localEx, "System`Set")
+		localSet, localIsSet := atoms.HeadAssertion(localEx, "System`Set")
 		pl.isSet = localIsSet
-		localSetDelayed, localIsSetDelayed := HeadAssertion(localEx, "System`SetDelayed")
+		localSetDelayed, localIsSetDelayed := atoms.HeadAssertion(localEx, "System`SetDelayed")
 		pl.isSetDelayed = localIsSetDelayed
 		if localIsSet && len(localSet.GetParts()) == 3 {
 			symEx = localSet.GetParts()[1]
@@ -172,7 +173,7 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 			symEx = localSetDelayed.GetParts()[1]
 			pl.setValue = localSetDelayed.GetParts()[2]
 		}
-		localSym, localIsSym := symEx.(*Symbol)
+		localSym, localIsSym := symEx.(*atoms.Symbol)
 		pl.sym = localSym
 		if !localIsSym {
 			return nil, false
@@ -193,14 +194,14 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 		if pl.isSet || pl.isSetDelayed {
 			rhs := pl.setValue
 			if pl.isSet {
-				rhs = rhs.Eval(es)
+				rhs = es.Eval(rhs)
 			}
 			es.GetDefinedMap().Set(pl.uniqueName, expreduceapi.Def{
 				Downvalues: []expreduceapi.DownValue{
 					expreduceapi.DownValue{
-						Rule: NewExpression([]expreduceapi.Ex{
-							NewSymbol("System`Rule"),
-							E(S("HoldPattern"), NewSymbol(pl.uniqueName)),
+						Rule: atoms.NewExpression([]expreduceapi.Ex{
+							atoms.NewSymbol("System`Rule"),
+							atoms.E(atoms.S("HoldPattern"), atoms.NewSymbol(pl.uniqueName)),
 							rhs,
 						}),
 					},
@@ -210,7 +211,7 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 			es.GetDefinedMap().Set(pl.uniqueName, expreduceapi.Def{})
 		}
 		pm.LazyMakeMap()
-		pm.patternDefined[pl.sym.Name] = NewSymbol(pl.uniqueName)
+		pm.patternDefined[pl.sym.Name] = atoms.NewSymbol(pl.uniqueName)
 	}
 	toReturn = ReplacePD(toReturn, es, pm)
 	return toReturn, true
@@ -226,13 +227,13 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			sym, ok := this.GetParts()[1].(*Symbol)
+			sym, ok := this.GetParts()[1].(*atoms.Symbol)
 			if ok {
 				if sym.Name == "System`True" {
 					errorStr := "Invalid level. Must be one of {Debug, Info, Notice}."
-					levelSym, lsOk := this.GetParts()[2].(*Symbol)
+					levelSym, lsOk := this.GetParts()[2].(*atoms.Symbol)
 					if !lsOk {
-						return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString(errorStr)})
+						return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString(errorStr)})
 					}
 					if levelSym.Name == "System`Debug" {
 						es.DebugOn(logging.DEBUG)
@@ -241,12 +242,12 @@ func GetSystemDefinitions() (defs []Definition) {
 					} else if levelSym.Name == "System`Notice" {
 						es.DebugOn(logging.NOTICE)
 					} else {
-						return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString(errorStr)})
+						return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString(errorStr)})
 					}
-					return NewSymbol("System`Null")
+					return atoms.NewSymbol("System`Null")
 				} else if sym.Name == "System`False" {
 					es.DebugOff()
-					return NewSymbol("System`Null")
+					return atoms.NewSymbol("System`Null")
 				}
 			}
 			return this
@@ -266,7 +267,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				f.Close()
 			}
 			fmt.Println(es.GetTimeCounter().String())
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -276,7 +277,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			sym, isSym := this.GetParts()[1].(*Symbol)
+			sym, isSym := this.GetParts()[1].(*atoms.Symbol)
 			if !isSym {
 				return this
 			}
@@ -285,7 +286,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if isDef {
 				return attrsToSymList(&def.Attributes)
 			}
-			return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -295,7 +296,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			sym, isSym := this.GetParts()[1].(*Symbol)
+			sym, isSym := this.GetParts()[1].(*atoms.Symbol)
 			if !isSym {
 				return this
 			}
@@ -312,12 +313,12 @@ func GetSystemDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			for _, arg := range this.GetParts()[1:] {
 				es.Debugf("arg: %v", arg)
-				sym, isSym := arg.(*Symbol)
+				sym, isSym := arg.(*atoms.Symbol)
 				if isSym {
 					es.Clear(sym.Name)
 				}
 			}
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -330,7 +331,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return false, ""
 			}
 
-			sym, ok := this.GetParts()[1].(*Symbol)
+			sym, ok := this.GetParts()[1].(*atoms.Symbol)
 			if !ok {
 				return false, ""
 			}
@@ -357,11 +358,11 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			sym, ok := this.GetParts()[1].(*Symbol)
+			sym, ok := this.GetParts()[1].(*atoms.Symbol)
 			if !ok {
 				return this
 			}
-			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			def, isd := es.GetDefinedMap().Get(sym.Name)
 			if !isd {
 				return res
@@ -371,8 +372,8 @@ func GetSystemDefinitions() (defs []Definition) {
 				if !isLhsExpr {
 					continue
 				}
-				res.AppendEx(NewExpression([]expreduceapi.Ex{
-					NewSymbol("System`RuleDelayed"),
+				res.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
+					atoms.NewSymbol("System`RuleDelayed"),
 					dv.Rule.GetParts()[1],
 					dv.Rule.GetParts()[2],
 				}))
@@ -447,12 +448,12 @@ func GetSystemDefinitions() (defs []Definition) {
 			lhs, lhsIsExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if lhsIsExpr {
 				for i := range lhs.GetParts() {
-					lhs.GetParts()[i] = lhs.GetParts()[i].Eval(es)
+					lhs.GetParts()[i] = es.Eval(lhs.GetParts()[i])
 				}
 				es.Define(lhs, this.GetParts()[2])
 			}
 			es.Define(this.GetParts()[1], this.GetParts()[2])
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 		SimpleExamples: []TestInstruction{
 			&TestComment{"`SetDelayed` can be used to define functions:"},
@@ -514,9 +515,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 
 			start := time.Now()
-			res := this.GetParts()[1].Eval(es)
+			res := es.Eval(this.GetParts()[1])
 			elapsed := time.Since(start).Seconds()
-			return NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), NewReal(big.NewFloat(elapsed)), res})
+			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), atoms.NewReal(big.NewFloat(elapsed)), res})
 		},
 	})
 	defs = append(defs, Definition{
@@ -540,7 +541,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				fmt.Printf("%s", this.GetParts()[i].StringForm(stringParams))
 			}
 			fmt.Printf("\n")
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -557,9 +558,9 @@ func GetSystemDefinitions() (defs []Definition) {
 			// way.
 
 			// Put system in trace mode:
-			es.SetTrace(NewExpression([]expreduceapi.Ex{NewSymbol("System`List")}))
+			es.SetTrace(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")}))
 			// Evaluate first argument in trace mode:
-			this.GetParts()[1].Eval(es)
+			es.Eval(this.GetParts()[1])
 			if es.GetTrace() != nil && len(es.GetTrace().GetParts()) > 2 {
 				// Take system out of trace mode:
 				toReturn := es.GetTrace().DeepCopy()
@@ -567,7 +568,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				return toReturn
 			}
 			es.SetTrace(nil)
-			return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -639,7 +640,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			fileData, rawPath, ok := TryReadFile(this.GetParts()[1], es)
 			if !ok {
-				return NewSymbol("System`$Failed")
+				return atoms.NewSymbol("System`$Failed")
 			}
 			return EvalInterpMany(fileData, rawPath, es)
 		},
@@ -673,7 +674,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			i := big.NewInt(0)
 			i.SetUint64(hashEx(this.GetParts()[1]))
-			return NewInteger(i)
+			return atoms.NewInteger(i)
 		},
 	})
 	defs = append(defs, Definition{
@@ -684,7 +685,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			fileData, rawPath, ok := TryReadFile(this.GetParts()[1], es)
 			if !ok {
-				return NewSymbol("System`$Failed")
+				return atoms.NewSymbol("System`$Failed")
 			}
 			return ReadList(fileData, rawPath, es)
 		},
@@ -723,7 +724,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			res := this.GetParts()[1].Eval(es)
+			res := es.Eval(this.GetParts()[1])
 			if es.HasThrown() {
 				toReturn := es.Thrown().GetParts()[1]
 				es.Throw(nil)
@@ -740,10 +741,11 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			return NewExpression([]expreduceapi.Ex{
-				NewSymbol("System`Hold"),
+			return atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`Hold"),
 				maskNonConditional(this.GetParts()[1]),
 			})
+
 		},
 	})
 	defs = append(defs, Definition{
@@ -754,7 +756,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			prefix := "$"
 			if len(this.GetParts()) == 2 {
-				asStr, isStr := this.GetParts()[1].(*String)
+				asStr, isStr := this.GetParts()[1].(*atoms.String)
 				if !isStr {
 					return this
 				}
@@ -764,7 +766,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if !ok {
 				log.Fatal("Error snagging unique.")
 			}
-			return NewSymbol(unique)
+			return atoms.NewSymbol(unique)
 		},
 	})
 	defs = append(defs, Definition{
@@ -774,7 +776,7 @@ func GetSystemDefinitions() (defs []Definition) {
 				fmt.Println("Unsupported call to Sow.")
 				return this
 			}
-			res := this.GetParts()[1].Eval(es)
+			res := es.Eval(this.GetParts()[1])
 			if es.GetReapSown() != nil {
 				es.GetReapSown().AppendEx(res)
 			}
@@ -788,12 +790,12 @@ func GetSystemDefinitions() (defs []Definition) {
 				fmt.Println("Unsupported call to Reap.")
 				return this
 			}
-			es.SetReapSown(E(S("List")))
-			res := this.GetParts()[1].Eval(es)
-			res = E(S("List"), res, E(S("List"), es.GetReapSown()))
+			es.SetReapSown(atoms.E(atoms.S("List")))
+			res := es.Eval(this.GetParts()[1])
+			res = atoms.E(atoms.S("List"), res, atoms.E(atoms.S("List"), es.GetReapSown()))
 			// If I set this to nil, Int[((A + B*Cos[x])*(a + b*Sin[x])^-1), x]
 			// will not work for an unknown reason.
-			es.SetReapSown(E(S("List")))
+			es.SetReapSown(atoms.E(atoms.S("List")))
 			return res
 		},
 	})

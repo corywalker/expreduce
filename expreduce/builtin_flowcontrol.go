@@ -1,19 +1,22 @@
 package expreduce
 
-import "github.com/corywalker/expreduce/pkg/expreduceapi"
+import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func applyWithFn(e expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	if len(e.GetParts()) != 3 {
 		return nil, false
 	}
-	vars, isList := HeadAssertion(e.GetParts()[1], "System`List")
+	vars, isList := atoms.HeadAssertion(e.GetParts()[1], "System`List")
 	if !isList {
 		return nil, false
 	}
 	rules := []expreduceapi.ExpressionInterface{}
 	for _, vDef := range vars.GetParts()[1:] {
-		set, isSet := HeadAssertion(vDef, "System`Set")
-		setDelayed, isSetDelayed := HeadAssertion(vDef, "System`SetDelayed")
+		set, isSet := atoms.HeadAssertion(vDef, "System`Set")
+		setDelayed, isSetDelayed := atoms.HeadAssertion(vDef, "System`SetDelayed")
 		if !(isSet || isSetDelayed) {
 			return nil, false
 		}
@@ -29,8 +32,8 @@ func applyWithFn(e expreduceapi.ExpressionInterface, es expreduceapi.EvalStateIn
 		if len(setEx.GetParts()) != 3 {
 			return nil, false
 		}
-		rules = append(rules, NewExpression([]expreduceapi.Ex{
-			NewSymbol(ruleHead),
+		rules = append(rules, atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol(ruleHead),
 			setEx.GetParts()[1],
 			setEx.GetParts()[2],
 		}))
@@ -39,7 +42,7 @@ func applyWithFn(e expreduceapi.ExpressionInterface, es expreduceapi.EvalStateIn
 }
 
 func isBreak(e expreduceapi.Ex) bool {
-	_, isBr := HeadAssertion(e, "System`Break")
+	_, isBr := atoms.HeadAssertion(e, "System`Break")
 	return isBr
 }
 
@@ -52,12 +55,12 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.GetParts()) > 4 || len(this.GetParts()) < 3 {
 				return this
 			}
-			var falseVal expreduceapi.Ex = NewSymbol("System`Null")
+			var falseVal expreduceapi.Ex = atoms.NewSymbol("System`Null")
 			if len(this.GetParts()) == 4 {
 				falseVal = this.GetParts()[3]
 			}
 
-			var isequal string = this.GetParts()[1].IsEqual(NewSymbol("System`True"))
+			var isequal string = this.GetParts()[1].IsEqual(atoms.NewSymbol("System`True"))
 			if isequal == "EQUAL_UNK" {
 				return this
 			} else if isequal == "EQUAL_TRUE" {
@@ -66,7 +69,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				return falseVal
 			}
 
-			return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString("Unexpected equality return value.")})
+			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString("Unexpected equality return value.")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -75,20 +78,20 @@ func GetFlowControlDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			isTrue := IsSameQ(this.GetParts()[1].DeepCopy().Eval(es), NewSymbol("System`True"), es.GetLogger())
+			isTrue := atoms.IsSameQ(es.Eval(this.GetParts()[1].DeepCopy()), atoms.NewSymbol("System`True"), es.GetLogger())
 			for isTrue {
-				tmpRes := this.GetParts()[2].DeepCopy().Eval(es)
+				tmpRes := es.Eval(this.GetParts()[2].DeepCopy())
 				retVal, isReturn := tryReturnValue(tmpRes, nil, es)
 				if isReturn {
 					return retVal
 				}
 				if isBreak(tmpRes) {
-					return S("Null")
+					return atoms.S("Null")
 				}
-				isTrue = IsSameQ(this.GetParts()[1].DeepCopy().Eval(es), NewSymbol("System`True"), es.GetLogger())
+				isTrue = atoms.IsSameQ(es.Eval(this.GetParts()[1].DeepCopy()), atoms.NewSymbol("System`True"), es.GetLogger())
 			}
 
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -96,11 +99,11 @@ func GetFlowControlDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			var toReturn expreduceapi.Ex
 			for i := 1; i < len(this.GetParts()); i++ {
-				toReturn = this.GetParts()[i].Eval(es)
+				toReturn = es.Eval(this.GetParts()[i])
 				if es.HasThrown() {
 					return es.Thrown()
 				}
-				if _, isReturn := HeadAssertion(toReturn, "System`Return"); isReturn {
+				if _, isReturn := atoms.HeadAssertion(toReturn, "System`Return"); isReturn {
 					return toReturn
 				}
 			}
@@ -116,8 +119,8 @@ func GetFlowControlDefinitions() (defs []Definition) {
 				return this
 			}
 			for i := 1; i < len(this.GetParts()); i += 2 {
-				condRes := this.GetParts()[i].Eval(es)
-				resSym, resIsSym := condRes.(*Symbol)
+				condRes := es.Eval(this.GetParts()[i])
+				resSym, resIsSym := condRes.(*atoms.Symbol)
 				if !resIsSym {
 					continue
 				}
@@ -125,7 +128,7 @@ func GetFlowControlDefinitions() (defs []Definition) {
 					return this.GetParts()[i+1]
 				}
 			}
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -162,20 +165,20 @@ func GetFlowControlDefinitions() (defs []Definition) {
 					mis.takeVarSnapshot(es)
 					for mis.cont() {
 						mis.defineCurrent(es)
-						res := this.GetParts()[1].DeepCopy().Eval(es)
+						res := es.Eval(this.GetParts()[1].DeepCopy())
 						if es.HasThrown() {
 							return es.Thrown()
 						}
-						if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
+						if asReturn, isReturn := atoms.HeadAssertion(res, "System`Return"); isReturn {
 							if len(asReturn.GetParts()) < 2 {
-								return NewSymbol("System`Null")
+								return atoms.NewSymbol("System`Null")
 							}
 							return asReturn.GetParts()[1]
 						}
 						mis.next()
 					}
 					mis.restoreVarSnapshot(es)
-					return NewSymbol("System`Null")
+					return atoms.NewSymbol("System`Null")
 				}
 			}
 			return this

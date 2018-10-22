@@ -24,14 +24,14 @@ func ParseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, in
 		return nil, min, max, false
 	}
 	if len(e.GetParts()) >= 3 {
-		list, isList := HeadAssertion(e.GetParts()[2], "System`List")
+		list, isList := atoms.HeadAssertion(e.GetParts()[2], "System`List")
 		if !isList {
 			return nil, min, max, false
 		}
 		if len(list.GetParts()) != 2 {
 			return nil, min, max, false
 		}
-		i, isInt := list.GetParts()[1].(*Integer)
+		i, isInt := list.GetParts()[1].(*atoms.Integer)
 		if !isInt {
 			return nil, min, max, false
 		}
@@ -45,19 +45,19 @@ func ParseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, in
 func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl expreduceapi.LoggingInterface) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	toParse := lhs_component
-	optional, isOptional := HeadAssertion(toParse, "System`Optional")
+	optional, isOptional := atoms.HeadAssertion(toParse, "System`Optional")
 	if isOptional {
 		toParse = optional.GetParts()[1]
 	}
-	patTest, isPatTest := HeadAssertion(toParse, "System`PatternTest")
+	patTest, isPatTest := atoms.HeadAssertion(toParse, "System`PatternTest")
 	if isPatTest {
 		toParse = patTest.GetParts()[1]
 	}
-	pat, isPat := HeadAssertion(toParse, "System`Pattern")
-	var patSym *Symbol
+	pat, isPat := atoms.HeadAssertion(toParse, "System`Pattern")
+	var patSym *atoms.Symbol
 	if isPat {
 		patIsSym := false
-		patSym, patIsSym = pat.GetParts()[1].(*Symbol)
+		patSym, patIsSym = pat.GetParts()[1].(*atoms.Symbol)
 		if patIsSym {
 			toParse = pat.GetParts()[2]
 		} else {
@@ -65,11 +65,11 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 			isPat = false
 		}
 	}
-	bns, isBns := HeadAssertion(toParse, "System`BlankNullSequence")
-	bs, isBs := HeadAssertion(toParse, "System`BlankSequence")
-	blank, isBlank := HeadAssertion(toParse, "System`Blank")
-	repeated, isRepeated := HeadAssertion(toParse, "System`Repeated")
-	repeatedNull, isRepeatedNull := HeadAssertion(toParse, "System`RepeatedNull")
+	bns, isBns := atoms.HeadAssertion(toParse, "System`BlankNullSequence")
+	bs, isBs := atoms.HeadAssertion(toParse, "System`BlankSequence")
+	blank, isBlank := atoms.HeadAssertion(toParse, "System`Blank")
+	repeated, isRepeated := atoms.HeadAssertion(toParse, "System`Repeated")
+	repeatedNull, isRepeatedNull := atoms.HeadAssertion(toParse, "System`RepeatedNull")
 	isImpliedBs := isBlank && isFlat
 	// Ensure isBlank is exclusive from isImpliedBs
 	isBlank = isBlank && !isImpliedBs
@@ -105,11 +105,11 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 		form = blank
 		endI = MaxInt
 		if len(blank.GetParts()) >= 2 {
-			sym, isSym := blank.GetParts()[1].(*Symbol)
+			sym, isSym := blank.GetParts()[1].(*atoms.Symbol)
 			if isSym {
 				// If we have a pattern like k__Plus
 				if sym.Name == sequenceHead {
-					form = NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank")})
+					form = atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Blank")})
 					startI = 2
 				} else {
 					endI = 1
@@ -144,7 +144,7 @@ func ParseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 	}
 
 	if isPatTest {
-		form = NewExpression([]expreduceapi.Ex{patTest.GetParts()[0], form, patTest.GetParts()[2]})
+		form = atoms.NewExpression([]expreduceapi.Ex{patTest.GetParts()[0], form, patTest.GetParts()[2]})
 	}
 
 	res.startI = startI

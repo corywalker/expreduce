@@ -4,36 +4,37 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 func ExArrayContainsFloat(a []expreduceapi.Ex) bool {
 	res := false
 	for _, e := range a {
-		_, isfloat := e.(*Flt)
+		_, isfloat := e.(*atoms.Flt)
 		res = res || isfloat
 	}
 	return res
 }
 
-func RationalAssertion(num expreduceapi.Ex, den expreduceapi.Ex) (r *Rational, isR bool) {
-	numInt, numIsInt := num.(*Integer)
-	denPow, denIsPow := HeadAssertion(den, "System`Power")
+func RationalAssertion(num expreduceapi.Ex, den expreduceapi.Ex) (r *atoms.Rational, isR bool) {
+	numInt, numIsInt := num.(*atoms.Integer)
+	denPow, denIsPow := atoms.HeadAssertion(den, "System`Power")
 	if !numIsInt || !denIsPow {
 		return nil, false
 	}
-	powInt, powIsInt := denPow.GetParts()[2].(*Integer)
+	powInt, powIsInt := denPow.GetParts()[2].(*atoms.Integer)
 	if !powIsInt {
 		return nil, false
 	}
 	if powInt.Val.Cmp(big.NewInt(-1)) != 0 {
 		return nil, false
 	}
-	denInt, denIsInt := denPow.GetParts()[1].(*Integer)
+	denInt, denIsInt := denPow.GetParts()[1].(*atoms.Integer)
 	if !denIsInt {
 		return nil, false
 	}
-	return NewRational(numInt.Val, denInt.Val), true
+	return atoms.NewRational(numInt.Val, denInt.Val), true
 }
 
 // Define a special NumberQ for our purposes since this logic does not support
@@ -43,36 +44,40 @@ func numberQForTermCollection(e expreduceapi.Ex) bool {
 	// if ok {
 	// 	return false
 	// }
-	return numberQ(e)
+	return atoms.NumberQ(e)
 }
 
 func splitTerm(e expreduceapi.Ex) (expreduceapi.Ex, expreduceapi.Ex, bool) {
-	asSym, isSym := e.(*Symbol)
+	asSym, isSym := e.(*atoms.Symbol)
 	if isSym {
-		return NewInteger(big.NewInt(1)), NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Times"),
-			asSym,
-		}), true
+		return atoms.NewInteger(big.NewInt(1)), atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`Times"),
+				asSym,
+			}),
+
+			true
 	}
-	asTimes, isTimes := HeadAssertion(e, "System`Times")
+	asTimes, isTimes := atoms.HeadAssertion(e, "System`Times")
 	if isTimes {
 		if len(asTimes.GetParts()) < 2 {
 			return nil, nil, false
 		}
 		if numberQForTermCollection(asTimes.GetParts()[1]) {
 			if len(asTimes.GetParts()) > 2 {
-				return asTimes.GetParts()[1], NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.GetParts()[2:]...)), true
+				return asTimes.GetParts()[1], atoms.NewExpression(append([]expreduceapi.Ex{atoms.NewSymbol("System`Times")}, asTimes.GetParts()[2:]...)), true
 			}
 		} else {
-			return NewInteger(big.NewInt(1)), NewExpression(append([]expreduceapi.Ex{NewSymbol("System`Times")}, asTimes.GetParts()[1:]...)), true
+			return atoms.NewInteger(big.NewInt(1)), atoms.NewExpression(append([]expreduceapi.Ex{atoms.NewSymbol("System`Times")}, asTimes.GetParts()[1:]...)), true
 		}
 	}
 	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
-		return NewInteger(big.NewInt(1)), NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Times"),
-			asExpr,
-		}), true
+		return atoms.NewInteger(big.NewInt(1)), atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`Times"),
+				asExpr,
+			}),
+
+			true
 	}
 	return nil, nil, false
 }
@@ -84,15 +89,15 @@ func collectedToTerm(coeffs []expreduceapi.Ex, vars expreduceapi.Ex, fullPart ex
 		return fullPart
 	}
 
-	finalC, _ := computeNumericPart(FoldFnAdd, NewExpression(append([]expreduceapi.Ex{
-		NewSymbol("System`Plus")}, coeffs...)))
+	finalC, _ := atoms.ComputeNumericPart(atoms.FoldFnAdd, atoms.NewExpression(append([]expreduceapi.Ex{
+		atoms.NewSymbol("System`Plus")}, coeffs...)))
 
-	toAdd := NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
-	cAsInt, cIsInt := finalC.(*Integer)
+	toAdd := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Times")})
+	cAsInt, cIsInt := finalC.(*atoms.Integer)
 	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
 		toAdd.AppendEx(finalC)
 	}
-	vAsExpr, vIsExpr := HeadAssertion(vars, "System`Times")
+	vAsExpr, vIsExpr := atoms.HeadAssertion(vars, "System`Times")
 	if vIsExpr && len(vAsExpr.GetParts()) == 2 {
 		vars = vAsExpr.GetParts()[1]
 	}
@@ -104,7 +109,7 @@ func collectedToTerm(coeffs []expreduceapi.Ex, vars expreduceapi.Ex, fullPart ex
 }
 
 func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
-	collected := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
+	collected := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Plus")})
 	var lastVars expreduceapi.Ex
 	var lastFullPart expreduceapi.Ex
 	lastCoeffs := []expreduceapi.Ex{}
@@ -146,17 +151,17 @@ func getArithmeticDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
 			if len(this.GetParts()) == 1 {
-				return NewInteger(big.NewInt(0))
+				return atoms.NewInteger(big.NewInt(0))
 			}
 
 			res := this
-			realPart, symStart := computeNumericPart(FoldFnAdd, this)
+			realPart, symStart := atoms.ComputeNumericPart(atoms.FoldFnAdd, this)
 			if realPart != nil {
 				if symStart == -1 {
 					return realPart
 				}
-				res = NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
-				rAsInt, rIsInt := realPart.(*Integer)
+				res = atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Plus")})
+				rAsInt, rIsInt := realPart.(*atoms.Integer)
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0) {
 					res.AppendEx(realPart)
 				}
@@ -174,7 +179,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			}
 
 			// Not exactly right because of "1. + foo[1]", but close enough.
-			if _, rIsReal := realPart.(*Flt); rIsReal {
+			if _, rIsReal := realPart.(*atoms.Flt); rIsReal {
 				return exprToN(es, res)
 			}
 			return res
@@ -183,7 +188,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Sum",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			return evalIterationFunc(this, es, NewInteger(big.NewInt(0)), "System`Plus")
+			return evalIterationFunc(this, es, atoms.NewInteger(big.NewInt(0)), "System`Plus")
 		},
 	})
 	defs = append(defs, Definition{
@@ -203,28 +208,30 @@ func getArithmeticDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
 			if len(this.GetParts()) == 1 {
-				return NewInteger(big.NewInt(1))
+				return atoms.NewInteger(big.NewInt(1))
 			}
 
 			res := this
-			realPart, symStart := computeNumericPart(FoldFnMul, this)
+			realPart, symStart := atoms.ComputeNumericPart(atoms.FoldFnMul, this)
 			if realPart != nil {
 				if symStart == -1 {
 					return realPart
 				}
-				res = NewExpression([]expreduceapi.Ex{NewSymbol("System`Times")})
-				rAsInt, rIsInt := realPart.(*Integer)
+				res = atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Times")})
+				rAsInt, rIsInt := realPart.(*atoms.Integer)
 				if rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0 {
-					containsInfinity := MemberQ(this.GetParts()[symStart:], NewExpression([]expreduceapi.Ex{
-						NewSymbol("System`Alternatives"),
-						NewSymbol("System`Infinity"),
-						NewSymbol("System`ComplexInfinity"),
-						NewSymbol("System`Indeterminate"),
-					}), es)
+					containsInfinity := MemberQ(this.GetParts()[symStart:], atoms.NewExpression([]expreduceapi.Ex{
+						atoms.NewSymbol("System`Alternatives"),
+						atoms.NewSymbol("System`Infinity"),
+						atoms.NewSymbol("System`ComplexInfinity"),
+						atoms.NewSymbol("System`Indeterminate"),
+					}),
+
+						es)
 					if containsInfinity {
-						return NewSymbol("System`Indeterminate")
+						return atoms.NewSymbol("System`Indeterminate")
 					}
-					return NewInteger(big.NewInt(0))
+					return atoms.NewInteger(big.NewInt(0))
 				}
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(1)) == 0) {
 					res.AppendEx(realPart)
@@ -240,28 +247,28 @@ func getArithmeticDefinitions() (defs []Definition) {
 			// Automatically Expand negations (*-1), not (*-1.) of a Plus expression
 			// Perhaps better implemented as a rule.
 			if len(res.GetParts()) == 3 {
-				leftint, leftintok := res.GetParts()[1].(*Integer)
-				rightplus, rightplusok := HeadAssertion(res.GetParts()[2], "System`Plus")
+				leftint, leftintok := res.GetParts()[1].(*atoms.Integer)
+				rightplus, rightplusok := atoms.HeadAssertion(res.GetParts()[2], "System`Plus")
 				if leftintok && rightplusok {
 					if leftint.Val.Cmp(big.NewInt(-1)) == 0 {
-						toreturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`Plus")})
+						toreturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Plus")})
 						addends := rightplus.GetParts()[1:len(rightplus.GetParts())]
 						for i := range addends {
-							toAppend := NewExpression([]expreduceapi.Ex{
-								NewSymbol("System`Times"),
+							toAppend := atoms.NewExpression([]expreduceapi.Ex{
+								atoms.NewSymbol("System`Times"),
 								addends[i],
-								NewInteger(big.NewInt(-1)),
+								atoms.NewInteger(big.NewInt(-1)),
 							})
 
 							toreturn.AppendEx(toAppend)
 						}
-						return toreturn.Eval(es)
+						return es.Eval(toreturn)
 					}
 				}
 			}
 
 			// Not exactly right because of "1. + foo[1]", but close enough.
-			if _, rIsReal := realPart.(*Flt); rIsReal {
+			if _, rIsReal := realPart.(*atoms.Flt); rIsReal {
 				return exprToN(es, res)
 			}
 			return res
@@ -270,7 +277,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Product",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			return evalIterationFunc(this, es, NewInteger(big.NewInt(1)), "System`Times")
+			return evalIterationFunc(this, es, atoms.NewInteger(big.NewInt(1)), "System`Times")
 		},
 	})
 	defs = append(defs, Definition{Name: "Abs"})

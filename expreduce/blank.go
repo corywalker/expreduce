@@ -1,22 +1,23 @@
 package expreduce
 
 import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 func IsBlankTypeOnly(e expreduceapi.Ex) bool {
-	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
+	asPattern, patternOk := atoms.HeadAssertion(e, "System`Pattern")
 	if patternOk {
-		_, blankOk := HeadAssertion(asPattern.GetParts()[2], "System`Blank")
-		_, bsOk := HeadAssertion(asPattern.GetParts()[2], "System`BlankSequence")
-		_, bnsOk := HeadAssertion(asPattern.GetParts()[2], "System`BlankNullSequence")
+		_, blankOk := atoms.HeadAssertion(asPattern.GetParts()[2], "System`Blank")
+		_, bsOk := atoms.HeadAssertion(asPattern.GetParts()[2], "System`BlankSequence")
+		_, bnsOk := atoms.HeadAssertion(asPattern.GetParts()[2], "System`BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			return true
 		}
 	}
-	_, blankOk := HeadAssertion(e, "System`Blank")
-	_, bsOk := HeadAssertion(e, "System`BlankSequence")
-	_, bnsOk := HeadAssertion(e, "System`BlankNullSequence")
+	_, blankOk := atoms.HeadAssertion(e, "System`Blank")
+	_, bsOk := atoms.HeadAssertion(e, "System`BlankSequence")
+	_, bnsOk := atoms.HeadAssertion(e, "System`BlankNullSequence")
 	if blankOk || bsOk || bnsOk {
 		return true
 	}
@@ -26,11 +27,11 @@ func IsBlankTypeOnly(e expreduceapi.Ex) bool {
 func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expreduceapi.Ex, pm *PDManager, cl expreduceapi.LoggingInterface) (bool, *PDManager) {
 	// Similar to IsBlankType, but will capture target into es.patternDefined
 	// if there is a valid match.
-	asPattern, patternOk := HeadAssertion(e, "System`Pattern")
+	asPattern, patternOk := atoms.HeadAssertion(e, "System`Pattern")
 	if patternOk {
-		asBlank, blankOk := HeadAssertion(asPattern.GetParts()[2], "System`Blank")
-		asBS, bsOk := HeadAssertion(asPattern.GetParts()[2], "System`BlankSequence")
-		asBNS, bnsOk := HeadAssertion(asPattern.GetParts()[2], "System`BlankNullSequence")
+		asBlank, blankOk := atoms.HeadAssertion(asPattern.GetParts()[2], "System`Blank")
+		asBS, bsOk := atoms.HeadAssertion(asPattern.GetParts()[2], "System`BlankSequence")
+		asBNS, bnsOk := atoms.HeadAssertion(asPattern.GetParts()[2], "System`BlankNullSequence")
 		if blankOk || bsOk || bnsOk {
 			parts := []expreduceapi.Ex{}
 			if blankOk {
@@ -48,11 +49,11 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 			if len(parts) < 2 {
 				matchesHead = true
 			} else {
-				matchesHead = IsSameQ(head, parts[1], cl)
+				matchesHead = atoms.IsSameQ(head, parts[1], cl)
 			}
 			cl.Debugf("%v", matchesHead)
 			if matchesHead {
-				sAsSymbol, sAsSymbolOk := asPattern.GetParts()[1].(*Symbol)
+				sAsSymbol, sAsSymbolOk := asPattern.GetParts()[1].(*atoms.Symbol)
 				if sAsSymbolOk {
 					// TODO: we should handle matches with BlankSequences
 					// differently here.
@@ -62,7 +63,7 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 						pm.LazyMakeMap()
 						pm.patternDefined[sAsSymbol.Name] = target
 					}
-					if !IsSameQ(toMatch, target, cl) {
+					if !atoms.IsSameQ(toMatch, target, cl) {
 						return false, pm
 					}
 				}
@@ -71,9 +72,9 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 			return false, pm
 		}
 	}
-	asBlank, blankOk := HeadAssertion(e, "System`Blank")
-	asBS, bsOk := HeadAssertion(e, "System`BlankSequence")
-	asBNS, bnsOk := HeadAssertion(e, "System`BlankNullSequence")
+	asBlank, blankOk := atoms.HeadAssertion(e, "System`Blank")
+	asBS, bsOk := atoms.HeadAssertion(e, "System`BlankSequence")
+	asBNS, bnsOk := atoms.HeadAssertion(e, "System`BlankNullSequence")
 	if blankOk || bsOk || bnsOk {
 		parts := []expreduceapi.Ex{}
 		if blankOk {
@@ -86,21 +87,21 @@ func IsBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 		if len(parts) < 2 {
 			return true, pm
 		}
-		return IsSameQ(head, parts[1], cl), pm
+		return atoms.IsSameQ(head, parts[1], cl), pm
 	}
 	return false, pm
 }
 
 func BlankNullSequenceToBlank(bns expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
 	if len(bns.GetParts()) < 2 {
-		return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank")})
+		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Blank")})
 	}
-	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank"), bns.GetParts()[1]})
+	return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Blank"), bns.GetParts()[1]})
 }
 
 func BlankSequenceToBlank(bs expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
 	if len(bs.GetParts()) < 2 {
-		return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank")})
+		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Blank")})
 	}
-	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Blank"), bs.GetParts()[1]})
+	return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Blank"), bs.GetParts()[1]})
 }

@@ -4,6 +4,7 @@ import (
 	"math"
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -13,11 +14,11 @@ func mathFnOneParam(fn func(float64) float64) func(expreduceapi.ExpressionInterf
 			return this
 		}
 
-		flt, ok := this.GetParts()[1].(*Flt)
+		flt, ok := this.GetParts()[1].(*atoms.Flt)
 		if ok {
 			flt64, acc := flt.Val.Float64()
 			if acc == big.Exact {
-				return NewReal(big.NewFloat(fn(flt64)))
+				return atoms.NewReal(big.NewFloat(fn(flt64)))
 			}
 		}
 		return this

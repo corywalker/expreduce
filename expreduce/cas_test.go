@@ -8,6 +8,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/stretchr/testify/assert"
@@ -114,65 +115,70 @@ func TestLowLevel(t *testing.T) {
 
 	es := NewEvalState()
 
-	lhs := NewExpression([]expreduceapi.Ex{
-		NewSymbol("System`Power"),
-		NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Plus"),
-			NewSymbol("Global`a"),
-			NewSymbol("Global`b"),
-			NewSymbol("Global`c"),
+	lhs := atoms.NewExpression([]expreduceapi.Ex{
+		atoms.NewSymbol("System`Power"),
+		atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Plus"),
+			atoms.NewSymbol("Global`a"),
+			atoms.NewSymbol("Global`b"),
+			atoms.NewSymbol("Global`c"),
 		}),
-		NewInt(0),
+
+		atoms.NewInt(0),
 	})
-	rule := NewExpression([]expreduceapi.Ex{
-		NewSymbol("System`Rule"),
-		NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Power"),
-			NewExpression([]expreduceapi.Ex{
-				NewSymbol("System`Blank"),
+
+	rule := atoms.NewExpression([]expreduceapi.Ex{
+		atoms.NewSymbol("System`Rule"),
+		atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Power"),
+			atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`Blank"),
 			}),
-			NewInt(0),
+
+			atoms.NewInt(0),
 		}),
-		NewInt(99),
+
+		atoms.NewInt(99),
 	})
+
 	for numi := 0; numi < 700000; numi++ {
 		Replace(lhs, rule, es)
 	}
 
 	// Test basic float functionality
-	var f *Flt = NewReal(big.NewFloat(5.5))
+	var f *atoms.Flt = atoms.NewReal(big.NewFloat(5.5))
 	assert.Equal(t, "5.5", f.String(es))
-	f.Eval(es)
+	es.Eval(f)
 	assert.Equal(t, "5.5", f.String(es))
 
 	// Test nested addition functionality
-	var a = NewExpression([]expreduceapi.Ex{
-		NewSymbol("System`Plus"),
-		NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Plus"),
-			NewReal(big.NewFloat(80)),
-			NewReal(big.NewFloat(3)),
+	var a = atoms.NewExpression([]expreduceapi.Ex{
+		atoms.NewSymbol("System`Plus"),
+		atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Plus"),
+			atoms.NewReal(big.NewFloat(80)),
+			atoms.NewReal(big.NewFloat(3)),
 		}),
 
-		NewReal(big.NewFloat(2)),
-		NewReal(big.NewFloat(2.5)),
+		atoms.NewReal(big.NewFloat(2)),
+		atoms.NewReal(big.NewFloat(2.5)),
 	})
 
 	// Test equality checking
-	assert.Equal(t, "EQUAL_TRUE", (NewReal(big.NewFloat(99))).IsEqual(NewReal(big.NewFloat(99))))
-	assert.Equal(t, "EQUAL_FALSE", (NewReal(big.NewFloat(99))).IsEqual(NewReal(big.NewFloat(98))))
-	assert.Equal(t, "EQUAL_TRUE", (NewSymbol("System`x")).IsEqual(NewSymbol("System`x")))
-	assert.Equal(t, "EQUAL_UNK", (NewSymbol("System`x")).IsEqual(NewSymbol("System`X")))
-	assert.Equal(t, "EQUAL_UNK", (NewSymbol("System`x")).IsEqual(NewSymbol("System`y")))
+	assert.Equal(t, "EQUAL_TRUE", (atoms.NewReal(big.NewFloat(99))).IsEqual(atoms.NewReal(big.NewFloat(99))))
+	assert.Equal(t, "EQUAL_FALSE", (atoms.NewReal(big.NewFloat(99))).IsEqual(atoms.NewReal(big.NewFloat(98))))
+	assert.Equal(t, "EQUAL_TRUE", (atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`x")))
+	assert.Equal(t, "EQUAL_UNK", (atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`X")))
+	assert.Equal(t, "EQUAL_UNK", (atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`y")))
 
 	// Test evaluation
-	newa := a.Eval(es)
+	newa := es.Eval(a)
 	assert.Equal(t, "87.5", newa.String(es))
 
 	// Test basic Symbol functionality
-	var v *Symbol = NewSymbol("System`x")
+	var v *atoms.Symbol = atoms.NewSymbol("System`x")
 	assert.Equal(t, "x", v.String(es))
-	v.Eval(es)
+	es.Eval(v)
 	assert.Equal(t, "x", v.String(es))
 
 	assert.Equal(t, "(a + b + c + d + e + f)", EasyRun("a + b + c +d +e +f", es))
@@ -197,9 +203,9 @@ func TestDeepCopy(t *testing.T) {
 	es := NewEvalState()
 
 	// Test deepcopy
-	var t1 = NewSymbol("System`x")
+	var t1 = atoms.NewSymbol("System`x")
 	t2 := *t1
-	t3 := t1.DeepCopy().(*Symbol)
+	t3 := t1.DeepCopy().(*atoms.Symbol)
 	assert.Equal(t, "System`x", t1.Name)
 	assert.Equal(t, "System`x", t2.Name)
 	assert.Equal(t, "System`x", t3.Name)
@@ -209,9 +215,9 @@ func TestDeepCopy(t *testing.T) {
 	assert.Equal(t, "y", t2.Name)
 	assert.Equal(t, "z", t3.Name)
 
-	var t4 = NewReal(big.NewFloat(2))
+	var t4 = atoms.NewReal(big.NewFloat(2))
 	t5 := *t4
-	t6 := t4.DeepCopy().(*Flt)
+	t6 := t4.DeepCopy().(*atoms.Flt)
 	assert.Equal(t, "2.", t4.String(es))
 	assert.Equal(t, "2.", t5.String(es))
 	assert.Equal(t, "2.", t6.String(es))

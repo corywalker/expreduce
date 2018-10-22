@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/cznic/wl"
 )
@@ -22,7 +23,7 @@ var inequalityOps = map[string]bool{
 }
 
 func convertToInequality(expr expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
-	res := E(S("Inequality"))
+	res := atoms.E(atoms.S("Inequality"))
 	for i, e := range expr.GetParts()[1:] {
 		if i != 0 {
 			res.AppendEx(expr.GetParts()[0])
@@ -45,18 +46,18 @@ func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceap
 				if lhsHead != "System`Inequality" {
 					res = convertToInequality(lhsEx)
 				}
-				res.AppendEx(NewSymbol(op))
+				res.AppendEx(atoms.NewSymbol(op))
 				res.AppendEx(rhs)
 				return res
 			}
 		}
 	}
-	opExpr, isOp := HeadAssertion(lhs, op)
+	opExpr, isOp := atoms.HeadAssertion(lhs, op)
 	if isOp {
 		opExpr.AppendEx(rhs)
 		return opExpr
 	}
-	return NewExpression([]expreduceapi.Ex{NewSymbol(op), lhs, rhs})
+	return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol(op), lhs, rhs})
 }
 
 func removeParens(ex expreduceapi.Ex) {
@@ -65,7 +66,7 @@ func removeParens(ex expreduceapi.Ex) {
 		for i := range expr.GetParts() {
 			parens, isParens := NewEmptyExpression(), true
 			for isParens {
-				parens, isParens = HeadAssertion(expr.GetParts()[i], "Internal`Parens")
+				parens, isParens = atoms.HeadAssertion(expr.GetParts()[i], "Internal`Parens")
 				if isParens {
 					expr.GetParts()[i] = parens.GetParts()[1]
 				}
@@ -77,7 +78,7 @@ func removeParens(ex expreduceapi.Ex) {
 }
 
 func addContextAndDefine(e expreduceapi.Ex, context string, ContextPath []string, es expreduceapi.EvalStateInterface) {
-	if sym, isSym := e.(*Symbol); isSym {
+	if sym, isSym := e.(*atoms.Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
 			for _, toTry := range ContextPath {
 				if es.IsDef(toTry + sym.Name) {
@@ -99,36 +100,36 @@ func addContextAndDefine(e expreduceapi.Ex, context string, ContextPath []string
 
 func parsePattern(buf string) expreduceapi.Ex {
 	delim := "_"
-	blankType := NewSymbol("System`Blank")
+	blankType := atoms.NewSymbol("System`Blank")
 	if strings.Contains(buf, "___") {
 		delim = "___"
-		blankType = NewSymbol("System`BlankNullSequence")
+		blankType = atoms.NewSymbol("System`BlankNullSequence")
 	} else if strings.Contains(buf, "__") {
 		delim = "__"
-		blankType = NewSymbol("System`BlankSequence")
+		blankType = atoms.NewSymbol("System`BlankSequence")
 	}
 	parts := strings.Split(buf, delim)
 	if len(parts) == 1 {
-		return NewExpression([]expreduceapi.Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]expreduceapi.Ex{blankType})})
+		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})
 	}
 	if len(parts) == 2 {
 		if parts[0] == "" {
 			if parts[1] == "" {
-				return NewExpression([]expreduceapi.Ex{blankType})
+				return atoms.NewExpression([]expreduceapi.Ex{blankType})
 			} else if delim == "_" && parts[1] == "." {
-				return NewExpression([]expreduceapi.Ex{NewSymbol("System`Optional"), NewExpression([]expreduceapi.Ex{blankType})})
+				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Optional"), atoms.NewExpression([]expreduceapi.Ex{blankType})})
 			}
-			return NewExpression([]expreduceapi.Ex{blankType, NewSymbol(parts[1])})
+			return atoms.NewExpression([]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])})
 		} else {
 			if parts[1] == "" {
-				return NewExpression([]expreduceapi.Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]expreduceapi.Ex{blankType})})
+				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})
 			} else if delim == "_" && parts[1] == "." {
-				return NewExpression([]expreduceapi.Ex{NewSymbol("System`Optional"), NewExpression([]expreduceapi.Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]expreduceapi.Ex{blankType})})})
+				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Optional"), atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})})
 			}
-			return NewExpression([]expreduceapi.Ex{NewSymbol("System`Pattern"), NewSymbol(parts[0]), NewExpression([]expreduceapi.Ex{blankType, NewSymbol(parts[1])})})
+			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])})})
 		}
 	}
-	return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString("Pattern parse error.")})
+	return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString("Pattern parse error.")})
 }
 
 var unicodeRedefineMap = map[string]string{
@@ -140,9 +141,9 @@ func ParserTokenConv(tk wl.Token) expreduceapi.Ex {
 	case wl.IDENT:
 		redefined, isRedefined := unicodeRedefineMap[tk.Val]
 		if isRedefined {
-			return NewSymbol(redefined)
+			return atoms.NewSymbol(redefined)
 		}
-		return NewSymbol(tk.Val)
+		return atoms.NewSymbol(tk.Val)
 	case wl.INT:
 		base := 10
 		tmpi := big.NewInt(0)
@@ -150,16 +151,16 @@ func ParserTokenConv(tk wl.Token) expreduceapi.Ex {
 		if !ok {
 			log.Fatal("Failed in integer parsing.")
 		}
-		return NewInteger(tmpi)
+		return atoms.NewInteger(tmpi)
 	case wl.FLOAT:
 		tmpf := big.NewFloat(0)
 		_, ok := tmpf.SetString(tk.Val)
 		if !ok {
 			log.Fatal("Failed in float parsing.")
 		}
-		return NewReal(tmpf)
+		return atoms.NewReal(tmpf)
 	case wl.STRING:
-		return NewString(tk.Val)
+		return atoms.NewString(tk.Val)
 	case wl.PATTERN:
 		return parsePattern(tk.Val)
 	case wl.SLOT:
@@ -170,9 +171,9 @@ func ParserTokenConv(tk wl.Token) expreduceapi.Ex {
 				log.Fatal("Failed in integer parsing.")
 			}
 		}
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Slot"),
-			NewInteger(tmpi),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Slot"),
+			atoms.NewInteger(tmpi),
 		})
 
 	default:
@@ -264,11 +265,12 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 		return ParserTokenConv(expr.Token)
 	}
 	if head, ok := binaryOps[expr.Case]; ok {
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`" + head),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`" + head),
 			ParserExprConv(expr.Expression),
 			ParserExprConv(expr.Expression2),
 		})
+
 	}
 	if head, ok := fullyAssocOps[expr.Case]; ok {
 		return fullyAssoc(
@@ -278,10 +280,11 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 		)
 	}
 	if head, ok := unaryOps[expr.Case]; ok {
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`" + head),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`" + head),
 			ParserExprConv(expr.Expression),
 		})
+
 	}
 
 	// Special handling.
@@ -290,157 +293,174 @@ func ParserExprConv(expr *wl.Expression) expreduceapi.Ex {
 		return fullyAssoc(
 			"System`CompoundExpression",
 			ParserExprConv(expr.Expression),
-			NewSymbol("System`Null"),
+			atoms.NewSymbol("System`Null"),
 		)
 	case 123:
 		// TODO(corywalker): Fix parsing of "a + a_:5 + a". It should contain
 		// the expression Optional[a_, 5].
 		e := ParserExprConv(expr.Expression)
 		head := "System`Pattern"
-		if _, isPat := HeadAssertion(e, "System`Pattern"); isPat {
+		if _, isPat := atoms.HeadAssertion(e, "System`Pattern"); isPat {
 			head = "System`Optional"
 		}
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol(head),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol(head),
 			e,
 			ParserExprConv(expr.Expression2),
 		})
+
 	case wl.ExpressionMessageName:
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`MessageName"),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`MessageName"),
 			ParserTokenConv(expr.Token),
-			NewString(ParserTagConv(expr.Tag).(*Symbol).Name),
+			atoms.NewString(ParserTagConv(expr.Tag).(*atoms.Symbol).Name),
 		})
+
 	case 132: // a[]
-		return NewExpression([]expreduceapi.Ex{
+		return atoms.NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression),
 		})
+
 	case 133: // a[b]
-		e := NewExpression([]expreduceapi.Ex{
+		e := atoms.NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression),
 		})
+
 		e.AppendExArray(ParserExprListConv(expr.ExprList))
 		return e
 	case 17: // {}
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`List"),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`List"),
 		})
+
 	case 18: // {a}
-		e := NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`List"),
+		e := atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`List"),
 		})
+
 		e.AppendExArray(ParserExprListConv(expr.ExprList))
 		return e
 	case 14: // (a)
 		// Internal`Parens are a placeholder to prevent fullyAssoc from
 		// translating "(x==2) == (x==2)" to "x == 2 == (x == 2)"
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("Internal`Parens"),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("Internal`Parens"),
 			ParserExprConv(expr.Expression),
 		})
+
 	case 54: // a[[b]]
-		e := NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Part"),
+		e := atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Part"),
 			ParserExprConv(expr.Expression),
 		})
+
 		e.AppendExArray(ParserExprListConv(expr.ExprList))
 		return e
 	case 16:
 		e := ParserExprConv(expr.Expression)
-		if integer, isInteger := e.(*Integer); isInteger {
-			return NewInteger(integer.Val.Neg(integer.Val))
-		} else if flt, isFlt := e.(*Flt); isFlt {
-			return NewReal(flt.Val.Neg(flt.Val))
+		if integer, isInteger := e.(*atoms.Integer); isInteger {
+			return atoms.NewInteger(integer.Val.Neg(integer.Val))
+		} else if flt, isFlt := e.(*atoms.Flt); isFlt {
+			return atoms.NewReal(flt.Val.Neg(flt.Val))
 		}
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Times"),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Times"),
 			e,
-			NewInteger(big.NewInt(-1)),
+			atoms.NewInteger(big.NewInt(-1)),
 		})
+
 	case 122:
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Times"),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Times"),
 			ParserExprConv(expr.Expression),
-			NewExpression([]expreduceapi.Ex{
-				NewSymbol("System`Power"),
+			atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`Power"),
 				ParserExprConv(expr.Expression2),
-				NewInteger(big.NewInt(-1)),
+				atoms.NewInteger(big.NewInt(-1)),
 			}),
 		})
+
 	case 120:
 		return fullyAssoc(
 			"System`Plus",
 			ParserExprConv(expr.Expression),
-			NewExpression([]expreduceapi.Ex{
-				NewSymbol("System`Times"),
+			atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`Times"),
 				ParserExprConv(expr.Expression2),
-				NewInteger(big.NewInt(-1)),
+				atoms.NewInteger(big.NewInt(-1)),
 			}),
 		)
 	case 32:
-		return NewExpression([]expreduceapi.Ex{
+		return atoms.NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression2),
 			ParserExprConv(expr.Expression),
 		})
+
 	case 131:
-		return NewExpression([]expreduceapi.Ex{
+		return atoms.NewExpression([]expreduceapi.Ex{
 			ParserExprConv(expr.Expression),
 			ParserExprConv(expr.Expression2),
 		})
+
 	case 53:
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Apply"),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Apply"),
 			ParserExprConv(expr.Expression),
 			ParserExprConv(expr.Expression2),
-			E(S("List"), NewInt(1)),
+			atoms.E(atoms.S("List"), atoms.NewInt(1)),
 		})
+
 	case 35:
 		set := ParserExprConv(expr.Expression2).(expreduceapi.ExpressionInterface)
 		head := "System`TagSet"
-		if _, isDelayed := HeadAssertion(set, "System`SetDelayed"); isDelayed {
+		if _, isDelayed := atoms.HeadAssertion(set, "System`SetDelayed"); isDelayed {
 			head = "System`TagSetDelayed"
 		}
-		e := NewExpression([]expreduceapi.Ex{
-			NewSymbol(head),
+		e := atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol(head),
 			ParserExprConv(expr.Expression),
 			set.GetParts()[1],
 			set.GetParts()[2],
 		})
+
 		return e
 	case 137:
-		return NewExpression([]expreduceapi.Ex{
-			NewExpression([]expreduceapi.Ex{
-				NewSymbol("System`Derivative"),
-				NewInt(1),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`Derivative"),
+				atoms.NewInt(1),
 			}),
+
 			ParserExprConv(expr.Expression),
 		})
+
 	case 11:
-		return NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Sqrt"),
+		return atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Sqrt"),
 			ParserExprConv(expr.Expression),
 		})
+
 	case wl.ExpressionInfo:
-		return E(
-			S("Information"),
+		return atoms.E(
+			atoms.S("Information"),
 			ParserTagConv(expr.Tag),
 		)
 	case wl.ExpressionInfoShort:
-		return E(
-			S("Information"),
+		return atoms.E(
+			atoms.S("Information"),
 			ParserTagConv(expr.Tag),
-			E(S("Rule"), S("LongForm"), S("False")),
+			atoms.E(atoms.S("Rule"), atoms.S("LongForm"), atoms.S("False")),
 		)
 	case 145:
 		if expr.Token.Val == "%" {
-			return E(
-				S("Out"),
-				E(S("Plus"), S("$Line"), NewInt(-1)),
+			return atoms.E(
+				atoms.S("Out"),
+				atoms.E(atoms.S("Plus"), atoms.S("$Line"), atoms.NewInt(-1)),
 			)
 		} else if expr.Token.Val == "%%" {
-			return E(
-				S("Out"),
-				E(S("Plus"), S("$Line"), NewInt(-2)),
+			return atoms.E(
+				atoms.S("Out"),
+				atoms.E(atoms.S("Plus"), atoms.S("$Line"), atoms.NewInt(-2)),
 			)
 		}
 	}
@@ -456,7 +476,7 @@ func InterpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface)
 	}
 	expr, err := in.ParseExpression(token.NewFileSet().AddFile(fn, -1, 1e6))
 	if err != nil {
-		return NewSymbol("System`Null"), err
+		return atoms.NewSymbol("System`Null"), err
 	}
 	parsed := ParserExprConv(expr)
 	//fmt.Println(parsed)
@@ -464,7 +484,7 @@ func InterpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface)
 	// Remove outer parens
 	parens, isParens := NewEmptyExpression(), true
 	for isParens {
-		parens, isParens = HeadAssertion(parsed, "Internal`Parens")
+		parens, isParens = atoms.HeadAssertion(parsed, "Internal`Parens")
 		if isParens {
 			parsed = parens.GetParts()[1]
 		}
@@ -476,7 +496,7 @@ func InterpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface)
 	contextPathEx := es.GetListDef("System`$ContextPath")
 	ContextPath := []string{}
 	for _, pathPart := range contextPathEx.GetParts()[1:] {
-		ContextPath = append(ContextPath, pathPart.(*String).Val)
+		ContextPath = append(ContextPath, pathPart.(*atoms.String).Val)
 	}
 	addContextAndDefine(parsed, context, ContextPath, es)
 	return parsed, nil
@@ -487,21 +507,21 @@ func Interp(src string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	expr, err := InterpBuf(buf, "nofile", es)
 	if err != nil {
 		fmt.Printf("Syntax::sntx: %v.\n\n\n", err)
-		return NewSymbol("System`Null")
+		return atoms.NewSymbol("System`Null")
 	}
 	return expr
 }
 
 func EvalInterp(src string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	return Interp(src, es).Eval(es)
+	return es.Eval(Interp(src, es))
 }
 
 func EvalInterpMany(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	buf := bytes.NewBufferString(doc)
-	var lastExpr expreduceapi.Ex = NewSymbol("System`Null")
+	var lastExpr expreduceapi.Ex = atoms.NewSymbol("System`Null")
 	expr, err := InterpBuf(buf, fn, es)
 	for err == nil {
-		lastExpr = expr.Eval(es)
+		lastExpr = es.Eval(expr)
 		expr, err = InterpBuf(buf, fn, es)
 	}
 	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
@@ -512,10 +532,10 @@ func EvalInterpMany(doc string, fn string, es expreduceapi.EvalStateInterface) e
 
 func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	buf := bytes.NewBufferString(doc)
-	l := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+	l := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 	expr, err := InterpBuf(buf, fn, es)
 	for err == nil {
-		l.AppendEx(expr.Eval(es))
+		l.AppendEx(es.Eval(expr))
 		expr, err = InterpBuf(buf, fn, es)
 	}
 	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {

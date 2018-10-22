@@ -3,6 +3,7 @@ package expreduce
 import (
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/kavehmz/prime"
 )
@@ -70,7 +71,7 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 			zero := big.NewInt(0)
 			var ints [](*big.Int)
 			for i := 1; i < len(this.GetParts()); i++ {
-				asInt, isInt := this.GetParts()[i].(*Integer)
+				asInt, isInt := this.GetParts()[i].(*atoms.Integer)
 				if !isInt {
 					return this
 				}
@@ -87,13 +88,13 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 				}
 			}
 			if len(ints) == 0 {
-				return NewInteger(zero)
+				return atoms.NewInteger(zero)
 			}
 			gcd := ints[0]
 			for i := 1; i < len(ints); i++ {
 				gcd.GCD(nil, nil, gcd, ints[i])
 			}
-			return NewInteger(gcd)
+			return atoms.NewInteger(gcd)
 		},
 	})
 	defs = append(defs, Definition{Name: "LCM"})
@@ -103,17 +104,17 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			xi, xIsInt := this.GetParts()[1].(*Integer)
-			yi, yIsInt := this.GetParts()[2].(*Integer)
+			xi, xIsInt := this.GetParts()[1].(*atoms.Integer)
+			yi, yIsInt := this.GetParts()[2].(*atoms.Integer)
 			if !xIsInt || !yIsInt {
 				return this
 			}
 			if yi.Val.Cmp(big.NewInt(0)) == 0 {
-				return NewSymbol("System`Indeterminate")
+				return atoms.NewSymbol("System`Indeterminate")
 			}
 			m := big.NewInt(0)
 			m.Mod(xi.Val, yi.Val)
-			return NewInteger(m)
+			return atoms.NewInteger(m)
 		},
 	})
 	defs = append(defs, Definition{
@@ -125,11 +126,11 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 				return this
 			}
 			n := int64(0)
-			asInt, isInt := this.GetParts()[1].(*Integer)
+			asInt, isInt := this.GetParts()[1].(*atoms.Integer)
 			if isInt {
 				n = asInt.Val.Int64()
 			}
-			asFlt, isFlt := this.GetParts()[1].(*Flt)
+			asFlt, isFlt := this.GetParts()[1].(*atoms.Flt)
 			if isFlt {
 				n, _ = asFlt.Val.Int64()
 			}
@@ -137,14 +138,14 @@ func GetNumberTheoryDefinitions() (defs []Definition) {
 				return this
 			}
 			if n <= 0 {
-				return NewInteger(big.NewInt(0))
+				return atoms.NewInteger(big.NewInt(0))
 			}
 			if n == 1 {
-				return NewInteger(big.NewInt(1))
+				return atoms.NewInteger(big.NewInt(1))
 			}
 			// A very inefficient implementation
 			p := prime.Primes(uint64(n))
-			return NewInteger(big.NewInt(int64(len(p))))
+			return atoms.NewInteger(big.NewInt(int64(len(p))))
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"4", "PrimePi[7]"},

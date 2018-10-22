@@ -3,6 +3,7 @@ package expreduce
 import (
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -17,9 +18,9 @@ func singleParamQEval(fn singleParamQType) evalFnType {
 			return this
 		}
 		if fn(this.GetParts()[1]) {
-			return NewSymbol("System`True")
+			return atoms.NewSymbol("System`True")
 		}
-		return NewSymbol("System`False")
+		return atoms.NewSymbol("System`False")
 	})
 }
 
@@ -29,9 +30,9 @@ func singleParamQLogEval(fn singleParamQLogType) evalFnType {
 			return this
 		}
 		if fn(this.GetParts()[1], es.GetLogger()) {
-			return NewSymbol("System`True")
+			return atoms.NewSymbol("System`True")
 		}
-		return NewSymbol("System`False")
+		return atoms.NewSymbol("System`False")
 	})
 }
 
@@ -41,17 +42,17 @@ func doubleParamQLogEval(fn doubleParamQLogType) evalFnType {
 			return this
 		}
 		if fn(this.GetParts()[1], this.GetParts()[2], es.GetLogger()) {
-			return NewSymbol("System`True")
+			return atoms.NewSymbol("System`True")
 		}
-		return NewSymbol("System`False")
+		return atoms.NewSymbol("System`False")
 	})
 }
 
 func vectorQ(e expreduceapi.Ex) bool {
-	l, isL := HeadAssertion(e, "System`List")
+	l, isL := atoms.HeadAssertion(e, "System`List")
 	if isL {
 		for i := 1; i < len(l.GetParts()); i++ {
-			_, subIsL := HeadAssertion(l.GetParts()[i], "System`List")
+			_, subIsL := atoms.HeadAssertion(l.GetParts()[i], "System`List")
 			if subIsL {
 				return false
 			}
@@ -62,7 +63,7 @@ func vectorQ(e expreduceapi.Ex) bool {
 }
 
 func matrixQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
-	l, isL := HeadAssertion(e, "System`List")
+	l, isL := atoms.HeadAssertion(e, "System`List")
 	if isL {
 		return len(dimensions(l, 0, cl)) == 2
 	}
@@ -70,7 +71,7 @@ func matrixQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 }
 
 func symbolNameQ(e expreduceapi.Ex, name string, cl expreduceapi.LoggingInterface) bool {
-	sym, isSym := e.(*Symbol)
+	sym, isSym := e.(*atoms.Symbol)
 	if isSym {
 		return sym.Name == name
 	}
@@ -86,7 +87,7 @@ func falseQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 }
 
 func booleanQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
-	sym, isSym := e.(*Symbol)
+	sym, isSym := e.(*atoms.Symbol)
 	if isSym {
 		return sym.Name == "System`False" || sym.Name == "System`True"
 	}
@@ -94,7 +95,7 @@ func booleanQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 }
 
 func primeQ(e expreduceapi.Ex) bool {
-	asInt, ok := e.(*Integer)
+	asInt, ok := e.(*atoms.Integer)
 	if !ok {
 		return false
 	}

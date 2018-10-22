@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -40,7 +41,7 @@ type Definition struct {
 func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 	instructions := []TestInstruction{}
 	for _, tiEx := range tc.GetParts()[1:] {
-		if st, isSt := HeadAssertion(tiEx, "System`ESameTest"); isSt {
+		if st, isSt := atoms.HeadAssertion(tiEx, "System`ESameTest"); isSt {
 			if len(st.GetParts()) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
@@ -49,30 +50,30 @@ func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 				st.GetParts()[1], st.GetParts()[2]})
 			continue
 		}
-		if st, isSt := HeadAssertion(tiEx, "System`EStringTest"); isSt {
+		if st, isSt := atoms.HeadAssertion(tiEx, "System`EStringTest"); isSt {
 			if len(st.GetParts()) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
 			instructions = append(instructions, &StringTest{
-				st.GetParts()[1].(*String).Val, st.GetParts()[2].(*String).Val})
+				st.GetParts()[1].(*atoms.String).Val, st.GetParts()[2].(*atoms.String).Val})
 			continue
 		}
-		if st, isSt := HeadAssertion(tiEx, "System`EExampleOnlyInstruction"); isSt {
+		if st, isSt := atoms.HeadAssertion(tiEx, "System`EExampleOnlyInstruction"); isSt {
 			if len(st.GetParts()) != 3 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
 			instructions = append(instructions, &ExampleOnlyInstruction{
-				st.GetParts()[1].(*String).Val, st.GetParts()[2].(*String).Val})
+				st.GetParts()[1].(*atoms.String).Val, st.GetParts()[2].(*atoms.String).Val})
 			continue
 		}
-		if st, isSt := HeadAssertion(tiEx, "System`EComment"); isSt {
+		if st, isSt := atoms.HeadAssertion(tiEx, "System`EComment"); isSt {
 			if len(st.GetParts()) != 2 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
 			}
-			comStr, comIsStr := st.GetParts()[1].(*String)
+			comStr, comIsStr := st.GetParts()[1].(*atoms.String)
 			if !comIsStr {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
@@ -81,7 +82,7 @@ func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 				comStr.Val})
 			continue
 		}
-		if st, isSt := HeadAssertion(tiEx, "System`EResetState"); isSt {
+		if st, isSt := atoms.HeadAssertion(tiEx, "System`EResetState"); isSt {
 			if len(st.GetParts()) != 1 {
 				log.Fatalf("Invalid test case: %v\n", tiEx)
 				continue
@@ -89,7 +90,7 @@ func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 			instructions = append(instructions, &ResetState{})
 			continue
 		}
-		if _, isSt := HeadAssertion(tiEx, "System`List"); isSt {
+		if _, isSt := atoms.HeadAssertion(tiEx, "System`List"); isSt {
 			fmt.Printf("Ignoring unfilled test: %v\n", tiEx)
 			continue
 		}
@@ -103,7 +104,7 @@ func (def *Definition) AnnotateWithDynamicTests(es expreduceapi.EvalStateInterfa
 	if !testsDef {
 		return
 	}
-	testsList, testsIsList := HeadAssertion(tests, "System`List")
+	testsList, testsIsList := atoms.HeadAssertion(tests, "System`List")
 	if !testsIsList {
 		return
 	}
@@ -112,7 +113,7 @@ func (def *Definition) AnnotateWithDynamicTests(es expreduceapi.EvalStateInterfa
 		if !testColIsExpr {
 			continue
 		}
-		headSym, headIsSym := testColExpr.GetParts()[0].(*Symbol)
+		headSym, headIsSym := testColExpr.GetParts()[0].(*atoms.Symbol)
 		if !headIsSym {
 			continue
 		}
@@ -146,16 +147,17 @@ func (def *Definition) AnnotateWithDynamicUsage(es expreduceapi.EvalStateInterfa
 	if len(def.Usage) > 0 {
 		return
 	}
-	lhs := NewExpression([]expreduceapi.Ex{
-		NewSymbol("System`MessageName"),
-		NewSymbol("System`" + def.Name),
-		NewString("usage"),
+	lhs := atoms.NewExpression([]expreduceapi.Ex{
+		atoms.NewSymbol("System`MessageName"),
+		atoms.NewSymbol("System`" + def.Name),
+		atoms.NewString("usage"),
 	})
+
 	usage, usageIsDef, _ := es.GetDef("System`MessageName", lhs)
 	if !usageIsDef {
 		return
 	}
-	if usageStr, usageIsStr := usage.(*String); usageIsStr {
+	if usageStr, usageIsStr := usage.(*atoms.String); usageIsStr {
 		def.Usage = usageStr.Val
 	}
 }

@@ -70,7 +70,7 @@ func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) expre
 	return nil
 }
 
-func computeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int) {
+func ComputeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int) {
 	var foldedInt *Integer
 	var foldedRat *Rational
 	var foldedFlt *Flt

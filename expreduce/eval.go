@@ -6,38 +6,39 @@ import (
 	"sort"
 	"time"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 func (es *EvalState) Eval(expr expreduceapi.Ex) expreduceapi.Ex {
-	if asExpression, ok := expr.(*Expression); ok {
+	if asExpression, ok := expr.(*atoms.Expression); ok {
 		return es.evalExpression(asExpression)
 	}
-	if asComplex, ok := expr.(*Complex); ok {
+	if asComplex, ok := expr.(*atoms.Complex); ok {
 		return es.evalComplex(asComplex)
 	}
-	if asRational, ok := expr.(*Rational); ok {
+	if asRational, ok := expr.(*atoms.Rational); ok {
 		return es.evalRational(asRational)
 	}
-	if asSymbol, ok := expr.(*Symbol); ok {
+	if asSymbol, ok := expr.(*atoms.Symbol); ok {
 		return es.evalSymbol(asSymbol)
 	}
 	// Other atoms do not need any evaluation logic.
 	return expr
 }
 
-func (es *EvalState) evalComplex(this *Complex) expreduceapi.Ex {
-	this.Re = this.Re.Eval(es)
-	this.Im = this.Im.Eval(es)
-	if IsSameQ(this.Im, NewInt(0), es.GetLogger()) {
+func (es *EvalState) evalComplex(this *atoms.Complex) expreduceapi.Ex {
+	this.Re = es.Eval(this.Re)
+	this.Im = es.Eval(this.Im)
+	if atoms.IsSameQ(this.Im, atoms.NewInt(0), es.GetLogger()) {
 		return this.Re
 	}
 	this.needsEval = false
 	return this
 }
 
-func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
+func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 	var origEx expreduceapi.Ex = this
 
 	lastExHash := uint64(0)
@@ -50,7 +51,7 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 	insideDefinition := false
 	for currExHash != lastExHash {
 		lastExHash = currExHash
-		curr, isExpr := currEx.(*Expression)
+		curr, isExpr := currEx.(*atoms.Expression)
 		if *checkhashes {
 			if isExpr && curr.evaledHash != 0 && currExHash != curr.evaledHash {
 				fmt.Printf("invalid cache: %v. Used to be %v\n", curr, lastEx)
@@ -73,11 +74,11 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 		}
 		// Transition to the right Eval() if this is no longer an Expression
 		if !isExpr {
-			toReturn := currEx.Eval(es)
+			toReturn := es.Eval(currEx)
 			// Handle tracing
 			if es.GetTrace() != nil && !es.IsFrozen() {
-				toAppend := NewExpression([]expreduceapi.Ex{
-					NewSymbol("System`HoldForm"),
+				toAppend := atoms.NewExpression([]expreduceapi.Ex{
+					atoms.NewSymbol("System`HoldForm"),
 					toReturn.DeepCopy(),
 				})
 
@@ -97,10 +98,10 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 		}
 
 		// Start by evaluating each argument
-		headSym, headIsSym := &Symbol{}, false
+		headSym, headIsSym := &atoms.Symbol{}, false
 		attrs := expreduceapi.Attributes{}
 		if len(curr.GetParts()) > 0 {
-			headSym, headIsSym = curr.GetParts()[0].(*Symbol)
+			headSym, headIsSym = curr.GetParts()[0].(*atoms.Symbol)
 		}
 		if headIsSym {
 			attrs = headSym.Attrs(es.GetDefinedMap())
@@ -108,7 +109,7 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 		if attrs.NumericFunction {
 			propagated, changed := curr.propagateConditionals()
 			if changed {
-				return propagated.Eval(es)
+				return es.Eval(propagated)
 			}
 		}
 		for i := range curr.GetParts() {
@@ -125,11 +126,11 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 			// Handle tracing
 			traceBak := es.GetTrace()
 			if es.GetTrace() != nil && !es.IsFrozen() {
-				es.SetTrace(NewExpression([]expreduceapi.Ex{NewSymbol("System`List")}))
+				es.SetTrace(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")}))
 			}
 			oldHash := curr.GetParts()[i].Hash()
 			//fmt.Println(curr, i)
-			curr.GetParts()[i] = curr.GetParts()[i].Eval(es)
+			curr.GetParts()[i] = es.Eval(curr.GetParts()[i])
 			if es.HasThrown() {
 				return es.Thrown()
 			}
@@ -149,12 +150,12 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 
 		// Handle tracing
 		if es.GetTrace() != nil && !es.IsFrozen() {
-			toAppend := NewExpression([]expreduceapi.Ex{
-				NewSymbol("System`HoldForm"),
+			toAppend := atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`HoldForm"),
 				currEx.DeepCopy(),
 			})
 
-			if !IsSameQ(es.GetTrace().GetParts()[len(es.GetTrace().GetParts())-1], toAppend, es.GetLogger()) {
+			if !atoms.IsSameQ(es.GetTrace().GetParts()[len(es.GetTrace().GetParts())-1], toAppend, es.GetLogger()) {
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
 				es.GetTrace().AppendEx(toAppend)
 			}
@@ -175,7 +176,7 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 		// In case curr changed
 		currEx = curr
 
-		pureFunction, isPureFunction := HeadAssertion(curr.GetParts()[0], "System`Function")
+		pureFunction, isPureFunction := atoms.HeadAssertion(curr.GetParts()[0], "System`Function")
 		if headIsSym {
 			if attrs.Flat {
 				curr = curr.mergeSequences(es, headSym.Name, false)
@@ -205,7 +206,7 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 			if hasLegacyEvalFn {
 				currEx = legacyEvalFn(curr, es)
 				// TODO: I could potentially have the legacyevalfn return this.
-				unchanged = IsSameQ(currEx, curr, es.GetLogger())
+				unchanged = atoms.IsSameQ(currEx, curr, es.GetLogger())
 			}
 			if unchanged {
 				theRes, isDefined, def := es.GetDef(headStr, curr)
@@ -228,7 +229,7 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 			es.GetTimeCounter().AddTime(timecounter.CounterGroupHeadEvalTime, currHeadStr, elapsed)
 		}
 	}
-	curr, isExpr := currEx.(*Expression)
+	curr, isExpr := currEx.(*atoms.Expression)
 	if isExpr {
 		curr.needsEval = false
 		curr.evaledHash = currExHash
@@ -236,15 +237,15 @@ func (es *EvalState) Eval(this *Expression) expreduceapi.Ex {
 	return currEx
 }
 
-func (es *EvalState) evalRational(this *Rational) expreduceapi.Ex {
+func (es *EvalState) evalRational(this *atoms.Rational) expreduceapi.Ex {
 	if this.Num.Cmp(big.NewInt(0)) == 0 && this.Den.Cmp(big.NewInt(0)) == 0 {
-		return NewSymbol("System`Indeterminate")
+		return atoms.NewSymbol("System`Indeterminate")
 	}
 	if this.Den.Cmp(big.NewInt(0)) == 0 {
-		return NewSymbol("System`ComplexInfinity")
+		return atoms.NewSymbol("System`ComplexInfinity")
 	}
 	if this.Num.Cmp(big.NewInt(0)) == 0 {
-		return NewInteger(big.NewInt(0))
+		return atoms.NewInteger(big.NewInt(0))
 	}
 	negNum := this.Num.Cmp(big.NewInt(0)) == -1
 	negDen := this.Den.Cmp(big.NewInt(0)) == -1
@@ -261,9 +262,9 @@ func (es *EvalState) evalRational(this *Rational) expreduceapi.Ex {
 
 	if absDen.Cmp(big.NewInt(1)) == 0 {
 		if !negateRes {
-			return NewInteger(absNum)
+			return atoms.NewInteger(absNum)
 		} else {
-			return NewInteger(absNum.Neg(absNum))
+			return atoms.NewInteger(absNum.Neg(absNum))
 		}
 	}
 
@@ -279,7 +280,7 @@ func (es *EvalState) evalRational(this *Rational) expreduceapi.Ex {
 	return this
 }
 
-func (es *EvalState) evalSymbol(this *Symbol) expreduceapi.Ex {
+func (es *EvalState) evalSymbol(this *atoms.Symbol) expreduceapi.Ex {
 	//definition, isdefined := es.defined[this.Name]
 	definition, isdefined, _ := es.GetDef(this.Name, this)
 	if isdefined {
@@ -287,12 +288,12 @@ func (es *EvalState) evalSymbol(this *Symbol) expreduceapi.Ex {
 		// out of the evaluation loop.
 		toReturn := definition
 		// To handle the case where we set a variable to itself.
-		if sym, isSym := definition.(*Symbol); isSym {
+		if sym, isSym := definition.(*atoms.Symbol); isSym {
 			if sym.Name == this.Name {
 				return toReturn
 			}
 		}
-		toReturn = toReturn.Eval(es)
+		toReturn = es.Eval(toReturn)
 		retVal, isReturn := tryReturnValue(toReturn, nil, es)
 		if isReturn {
 			return retVal
@@ -307,24 +308,24 @@ func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.E
 		if origEx != nil {
 			fmt.Println(origEx)
 		}
-		return NewSymbol("System`$Aborted"), true
+		return atoms.NewSymbol("System`$Aborted"), true
 	}
-	asReturn, isReturn := HeadAssertion(e, "System`Return")
+	asReturn, isReturn := atoms.HeadAssertion(e, "System`Return")
 	if !isReturn {
 		return nil, false
 	}
 	if len(asReturn.GetParts()) >= 2 {
 		return asReturn.GetParts()[1], true
 	}
-	return NewSymbol("System`Null"), true
+	return atoms.NewSymbol("System`Null"), true
 }
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
-func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *Expression {
+func (this *atoms.Expression) mergeSequences(es expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *atoms.Expression {
 	encounteredSeq := false
 	for _, e := range this.GetParts() {
-		if _, isseq := HeadAssertion(e, headStr); isseq {
+		if _, isseq := atoms.HeadAssertion(e, headStr); isseq {
 			encounteredSeq = true
 			break
 		}
@@ -341,11 +342,11 @@ func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headS
 	// accept level depths. It is a specific case of Flatten.
 	res := NewEmptyExpression()
 	for _, e := range this.GetParts() {
-		seq, isseq := HeadAssertion(e, headStr)
+		seq, isseq := atoms.HeadAssertion(e, headStr)
 		if isseq {
 			for _, seqPart := range seq.GetParts()[1:] {
 				if shouldEval {
-					res.AppendEx(seqPart.Eval(es))
+					res.AppendEx(es.Eval(seqPart))
 				} else {
 					res.AppendEx(seqPart)
 				}
@@ -357,16 +358,16 @@ func (this *Expression) mergeSequences(es expreduceapi.EvalStateInterface, headS
 	return res
 }
 
-func (this *Expression) EvalFunction(es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
+func (this *atoms.Expression) EvalFunction(es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
 	if len(this.GetParts()) == 2 {
 		toReturn := this.GetParts()[1].DeepCopy()
 		for i, arg := range args {
 			toReturn = ReplaceAll(toReturn,
-				NewExpression([]expreduceapi.Ex{
-					NewSymbol("System`Rule"),
-					NewExpression([]expreduceapi.Ex{
-						NewSymbol("System`Slot"),
-						NewInteger(big.NewInt(int64(i + 1))),
+				atoms.NewExpression([]expreduceapi.Ex{
+					atoms.NewSymbol("System`Rule"),
+					atoms.NewExpression([]expreduceapi.Ex{
+						atoms.NewSymbol("System`Slot"),
+						atoms.NewInteger(big.NewInt(int64(i + 1))),
 					}),
 
 					arg,
@@ -376,14 +377,14 @@ func (this *Expression) EvalFunction(es expreduceapi.EvalStateInterface, args []
 		}
 		return toReturn
 	} else if len(this.GetParts()) == 3 {
-		repSym, ok := this.GetParts()[1].(*Symbol)
+		repSym, ok := this.GetParts()[1].(*atoms.Symbol)
 		if !ok {
 			return this
 		}
 		toReturn := this.GetParts()[2].DeepCopy()
 		toReturn = ReplaceAll(toReturn,
-			NewExpression([]expreduceapi.Ex{
-				NewSymbol("System`Rule"),
+			atoms.NewExpression([]expreduceapi.Ex{
+				atoms.NewSymbol("System`Rule"),
 				repSym,
 				args[0],
 			}),
@@ -405,10 +406,10 @@ func ExprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.Expres
 		return ReplacePD(r.GetParts()[2].DeepCopy(), es, matches)
 	}
 
-	thisSym, thisSymOk := this.GetParts()[0].(*Symbol)
-	lhsExpr, lhsExprOk := r.GetParts()[1].(*Expression)
+	thisSym, thisSymOk := this.GetParts()[0].(*atoms.Symbol)
+	lhsExpr, lhsExprOk := r.GetParts()[1].(*atoms.Expression)
 	if lhsExprOk {
-		otherSym, otherSymOk := lhsExpr.GetParts()[0].(*Symbol)
+		otherSym, otherSymOk := lhsExpr.GetParts()[0].(*atoms.Symbol)
 		if thisSymOk && otherSymOk {
 			if thisSym.Name == otherSym.Name {
 				attrs := thisSym.Attrs(es.GetDefinedMap())

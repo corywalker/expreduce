@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"strings"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -16,7 +17,7 @@ func GetStringDefinitions() (defs []Definition) {
 				return this
 			}
 
-			formAsSymbol, formIsSymbol := this.GetParts()[2].(*Symbol)
+			formAsSymbol, formIsSymbol := this.GetParts()[2].(*atoms.Symbol)
 			if !formIsSymbol {
 				return this
 			}
@@ -34,7 +35,7 @@ func GetStringDefinitions() (defs []Definition) {
 				PreviousHead: "<TOPLEVEL>",
 				Esi:          es,
 			}
-			return NewString(this.GetParts()[1].StringForm(stringParams))
+			return atoms.NewString(this.GetParts()[1].StringForm(stringParams))
 		},
 	})
 	defs = append(defs, Definition{
@@ -45,13 +46,13 @@ func GetStringDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			toReturn := ""
 			for _, e := range this.GetParts()[1:] {
-				asStr, isStr := e.(*String)
+				asStr, isStr := e.(*atoms.String)
 				if !isStr {
 					return this
 				}
 				toReturn += asStr.Val
 			}
-			return NewString(toReturn)
+			return atoms.NewString(toReturn)
 		},
 	})
 	defs = append(defs, Definition{
@@ -64,11 +65,11 @@ func GetStringDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			asStr, isStr := this.GetParts()[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
 			if !isStr {
 				return this
 			}
-			return NewInt(int64(len(asStr.Val)))
+			return atoms.NewInt(int64(len(asStr.Val)))
 		},
 	})
 	defs = append(defs, Definition{
@@ -77,16 +78,16 @@ func GetStringDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			asStr, isStr := this.GetParts()[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
 			if !isStr {
 				return this
 			}
-			asList, isList := HeadAssertion(this.GetParts()[2], "System`List")
+			asList, isList := atoms.HeadAssertion(this.GetParts()[2], "System`List")
 			if !isList || len(asList.GetParts()) != 3 {
 				return this
 			}
-			sInt, sIsInt := asList.GetParts()[1].(*Integer)
-			eInt, eIsInt := asList.GetParts()[2].(*Integer)
+			sInt, sIsInt := asList.GetParts()[1].(*atoms.Integer)
+			eInt, eIsInt := asList.GetParts()[2].(*atoms.Integer)
 			if !sIsInt || !eIsInt {
 				return this
 			}
@@ -96,9 +97,9 @@ func GetStringDefinitions() (defs []Definition) {
 				return this
 			}
 			if e < s {
-				return NewString("")
+				return atoms.NewString("")
 			}
-			return NewString(asStr.Val[s : e+1])
+			return atoms.NewString(asStr.Val[s : e+1])
 		},
 	})
 	defs = append(defs, Definition{
@@ -107,20 +108,20 @@ func GetStringDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			asStr, isStr := this.GetParts()[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
 			if !isStr {
 				return this
 			}
-			asRule, isRule := HeadAssertion(this.GetParts()[2], "System`Rule")
+			asRule, isRule := atoms.HeadAssertion(this.GetParts()[2], "System`Rule")
 			if !isRule || len(asRule.GetParts()) != 3 {
 				return this
 			}
-			bStr, bIsStr := asRule.GetParts()[1].(*String)
-			aStr, aIsStr := asRule.GetParts()[2].(*String)
+			bStr, bIsStr := asRule.GetParts()[1].(*atoms.String)
+			aStr, aIsStr := asRule.GetParts()[2].(*atoms.String)
 			if !bIsStr || !aIsStr {
 				return this
 			}
-			return NewString(strings.Replace(asStr.Val, bStr.Val, aStr.Val, -1))
+			return atoms.NewString(strings.Replace(asStr.Val, bStr.Val, aStr.Val, -1))
 		},
 	})
 	defs = append(defs, Definition{
@@ -129,20 +130,20 @@ func GetStringDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			asStr, isStr := this.GetParts()[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
 			if !isStr {
 				return this
 			}
-			formatAsStr, formatIsStr := this.GetParts()[2].(*String)
+			formatAsStr, formatIsStr := this.GetParts()[2].(*atoms.String)
 			if !formatIsStr {
 				return this
 			}
 			format := strings.ToLower(formatAsStr.Val)
 			if format == "base64" {
 				encoded := base64.StdEncoding.EncodeToString([]byte(asStr.Val))
-				return NewString(encoded + "\n")
+				return atoms.NewString(encoded + "\n")
 			}
-			return NewSymbol("System`$Failed")
+			return atoms.NewSymbol("System`$Failed")
 		},
 	})
 	return

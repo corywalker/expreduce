@@ -3,6 +3,7 @@ package expreduce
 import (
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -24,7 +25,7 @@ func flattenExpr(src expreduceapi.ExpressionInterface, dst expreduceapi.Expressi
 	for i := 1; i < len(src.GetParts()); i++ {
 		expr, isExpr := src.GetParts()[i].(expreduceapi.ExpressionInterface)
 		if continueFlatten && isExpr {
-			if IsSameQ(src.GetParts()[0], expr.GetParts()[0], cl) {
+			if atoms.IsSameQ(src.GetParts()[0], expr.GetParts()[0], cl) {
 				flattenExpr(expr, dst, level-1, cl)
 				continue
 			}
@@ -52,29 +53,29 @@ func GetExpressionDefinitions() (defs []Definition) {
 				return this
 			}
 
-			_, IsFlt := this.GetParts()[1].(*Flt)
+			_, IsFlt := this.GetParts()[1].(*atoms.Flt)
 			if IsFlt {
-				return NewSymbol("System`Real")
+				return atoms.NewSymbol("System`Real")
 			}
-			_, IsInteger := this.GetParts()[1].(*Integer)
+			_, IsInteger := this.GetParts()[1].(*atoms.Integer)
 			if IsInteger {
-				return NewSymbol("System`Integer")
+				return atoms.NewSymbol("System`Integer")
 			}
-			_, IsString := this.GetParts()[1].(*String)
+			_, IsString := this.GetParts()[1].(*atoms.String)
 			if IsString {
-				return NewSymbol("System`String")
+				return atoms.NewSymbol("System`String")
 			}
-			_, IsSymbol := this.GetParts()[1].(*Symbol)
+			_, IsSymbol := this.GetParts()[1].(*atoms.Symbol)
 			if IsSymbol {
-				return NewSymbol("System`Symbol")
+				return atoms.NewSymbol("System`Symbol")
 			}
-			_, IsRational := this.GetParts()[1].(*Rational)
+			_, IsRational := this.GetParts()[1].(*atoms.Rational)
 			if IsRational {
-				return NewSymbol("System`Rational")
+				return atoms.NewSymbol("System`Rational")
 			}
-			_, IsComplex := this.GetParts()[1].(*Complex)
+			_, IsComplex := this.GetParts()[1].(*atoms.Complex)
 			if IsComplex {
-				return NewSymbol("System`Complex")
+				return atoms.NewSymbol("System`Complex")
 			}
 			asExpr, IsExpression := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if IsExpression {
@@ -89,7 +90,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			return NewInteger(big.NewInt(int64(CalcDepth(this.GetParts()[1]))))
+			return atoms.NewInteger(big.NewInt(int64(CalcDepth(this.GetParts()[1]))))
 		},
 	})
 	defs = append(defs, Definition{
@@ -101,9 +102,9 @@ func GetExpressionDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				return NewInteger(big.NewInt(int64(len(expr.GetParts()) - 1)))
+				return atoms.NewInteger(big.NewInt(int64(len(expr.GetParts()) - 1)))
 			}
-			return NewInteger(big.NewInt(0))
+			return atoms.NewInteger(big.NewInt(0))
 		},
 	})
 	defs = append(defs, Definition{
@@ -135,7 +136,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			}
 			level := int64(999999999999)
 			if len(this.GetParts()) > 2 {
-				asInt, isInt := this.GetParts()[2].(*Integer)
+				asInt, isInt := this.GetParts()[2].(*atoms.Integer)
 				if !isInt {
 					return this
 				}
@@ -145,7 +146,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this
 			}
-			dst := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+			dst := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 			flattenExpr(expr, dst, level, es.GetLogger())
 			return dst
 		},
@@ -156,7 +157,7 @@ func GetExpressionDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			return NewInt(leafCount(this.GetParts()[1]))
+			return atoms.NewInt(leafCount(this.GetParts()[1]))
 		},
 	})
 	defs = append(defs, Definition{

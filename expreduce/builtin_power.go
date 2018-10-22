@@ -3,6 +3,7 @@ package expreduce
 import (
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/corywalker/mathbigext"
 )
@@ -13,10 +14,10 @@ func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(expred
 			return this
 		}
 
-		flt, ok := this.GetParts()[1].(*Flt)
+		flt, ok := this.GetParts()[1].(*atoms.Flt)
 		if ok {
 			if !onlyPos || flt.Val.Cmp(big.NewFloat(0)) == 1 {
-				return NewReal(fn(flt.Val))
+				return atoms.NewReal(fn(flt.Val))
 			}
 		}
 		return this
@@ -59,7 +60,7 @@ func NthRoot(x *big.Int, n *big.Int) *big.Int {
 	}
 }
 
-func extractPower(x *big.Int, r *Rational) expreduceapi.Ex {
+func extractPower(x *big.Int, r *atoms.Rational) expreduceapi.Ex {
 	talliedFactors := primeFactorsTallied(x)
 	hasPowerAtLeastTwo := false
 	for _, tf := range talliedFactors {
@@ -80,16 +81,16 @@ func extractPower(x *big.Int, r *Rational) expreduceapi.Ex {
 			base.Mul(base, tf.factor)
 		}
 	}
-	toReturn := E(S("Times"))
+	toReturn := atoms.E(atoms.S("Times"))
 	for power, base := range bases {
 		bigPower := big.NewInt(0)
 		bigPower.SetUint64(power)
-		thisR := r.DeepCopy().(*Rational)
+		thisR := r.DeepCopy().(*atoms.Rational)
 		thisR.MulBigI(bigPower)
 		thisR.needsEval = true
-		toReturn.AppendEx(E(
-			S("Power"),
-			NewInteger(base),
+		toReturn.AppendEx(atoms.E(
+			atoms.S("Power"),
+			atoms.NewInteger(base),
 			thisR,
 		))
 	}
@@ -127,12 +128,12 @@ func GetPowerDefinitions() (defs []Definition) {
 				return this
 			}
 
-			baseInt, baseIsInt := this.GetParts()[1].(*Integer)
-			powerInt, powerIsInt := this.GetParts()[2].(*Integer)
-			baseFlt, baseIsFlt := this.GetParts()[1].(*Flt)
-			powerFlt, powerIsFlt := this.GetParts()[2].(*Flt)
+			baseInt, baseIsInt := this.GetParts()[1].(*atoms.Integer)
+			powerInt, powerIsInt := this.GetParts()[2].(*atoms.Integer)
+			baseFlt, baseIsFlt := this.GetParts()[1].(*atoms.Flt)
+			powerFlt, powerIsFlt := this.GetParts()[2].(*atoms.Flt)
 			//baseRat, baseIsRat := this.Parts[1].(*Rational)
-			powerRat, powerIsRat := this.GetParts()[2].(*Rational)
+			powerRat, powerIsRat := this.GetParts()[2].(*atoms.Rational)
 			// Anything raised to the 1st power is itself
 			if powerIsFlt {
 				if powerFlt.Val.Cmp(big.NewFloat(1)) == 0 {
@@ -158,9 +159,9 @@ func GetPowerDefinitions() (defs []Definition) {
 			}
 			if powerPositivity == 0 && (baseIsInt || baseIsFlt) {
 				if basePositivity == 0 {
-					return NewSymbol("System`Indeterminate")
+					return atoms.NewSymbol("System`Indeterminate")
 				}
-				return NewInteger(big.NewInt(1))
+				return atoms.NewInteger(big.NewInt(1))
 			}
 			if powerPositivity == 1 && basePositivity == 0 {
 				return this.GetParts()[1]
@@ -168,10 +169,10 @@ func GetPowerDefinitions() (defs []Definition) {
 			if basePositivity == -1 && powerIsFlt {
 				if powerFlt.Val.Cmp(big.NewFloat(-1)) == 0 {
 					if baseIsInt {
-						return NewReal(mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val))
+						return atoms.NewReal(mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val))
 					}
 					if baseIsFlt {
-						return NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
+						return atoms.NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
 					}
 				}
 				// TODO(corywalker): Optimize this logic. There should be no
@@ -181,45 +182,53 @@ func GetPowerDefinitions() (defs []Definition) {
 				// coeff := ((a^2)^(b/2))
 
 				// Precompute shared values.
-				coeff := E(
-					S("Power"),
-					E(
-						S("Power"),
-						baseFlt.DeepCopy(),
-						NewInt(2),
-					),
-					E(
-						S("Times"),
-						powerFlt.DeepCopy(),
-						NewRational(big.NewInt(1), big.NewInt(2)),
-					),
-				).Eval(es).(*Flt)
+				coeff :=
+
+					es.Eval(atoms.E(
+						atoms.S("Power"),
+						atoms.E(
+							atoms.S("Power"),
+							baseFlt.DeepCopy(),
+							atoms.NewInt(2),
+						),
+						atoms.E(
+							atoms.S("Times"),
+							powerFlt.DeepCopy(),
+							atoms.NewRational(big.NewInt(1), big.NewInt(2)),
+						),
+					)).(*atoms.Flt)
 				// inner := b Arg[a]
-				inner := E(
-					S("Times"),
-					powerFlt.DeepCopy(),
-					E(
-						S("Arg"),
-						baseFlt.DeepCopy(),
-					),
-				).Eval(es).(*Flt)
-				re := E(
-					S("Times"),
-					coeff.DeepCopy(),
-					E(
-						S("Cos"),
-						inner.DeepCopy(),
-					),
-				).Eval(es).(*Flt)
-				im := E(
-					S("Times"),
-					coeff.DeepCopy(),
-					E(
-						S("Sin"),
-						inner.DeepCopy(),
-					),
-				).Eval(es).(*Flt)
-				return NewComplex(re, im)
+				inner :=
+
+					es.Eval(atoms.E(
+						atoms.S("Times"),
+						powerFlt.DeepCopy(),
+						atoms.E(
+							atoms.S("Arg"),
+							baseFlt.DeepCopy(),
+						),
+					)).(*atoms.Flt)
+				re :=
+
+					es.Eval(atoms.E(
+						atoms.S("Times"),
+						coeff.DeepCopy(),
+						atoms.E(
+							atoms.S("Cos"),
+							inner.DeepCopy(),
+						),
+					)).(*atoms.Flt)
+				im :=
+
+					es.Eval(atoms.E(
+						atoms.S("Times"),
+						coeff.DeepCopy(),
+						atoms.E(
+							atoms.S("Sin"),
+							inner.DeepCopy(),
+						),
+					)).(*atoms.Flt)
+				return atoms.NewComplex(re, im)
 			}
 
 			//es.Debugf("Power eval. baseIsInt=%v, powerIsInt=%v", baseIsInt, powerIsInt)
@@ -230,33 +239,33 @@ func GetPowerDefinitions() (defs []Definition) {
 				if cmpres == 1 {
 					res := big.NewInt(0)
 					res.Exp(baseInt.Val, powerInt.Val, nil)
-					return NewInteger(res)
+					return atoms.NewInteger(res)
 				} else if cmpres == -1 {
 					newbase := big.NewInt(0)
 					absPower := big.NewInt(0)
 					absPower.Abs(powerInt.Val)
 					newbase.Exp(baseInt.Val, absPower, nil)
 					if newbase.Cmp(big.NewInt(1)) == 0 {
-						return NewInteger(big.NewInt(1))
+						return atoms.NewInteger(big.NewInt(1))
 					}
 					if newbase.Cmp(big.NewInt(-1)) == 0 {
-						return NewInteger(big.NewInt(-1))
+						return atoms.NewInteger(big.NewInt(-1))
 					}
 					//return NewExpression([]Ex{&Symbol{"System`Power"}, &Integer{newbase}, &Integer{big.NewInt(-1)}})
-					return NewExpression([]expreduceapi.Ex{NewSymbol("System`Rational"), NewInteger(big.NewInt(1)), NewInteger(newbase)})
+					return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Rational"), atoms.NewInteger(big.NewInt(1)), atoms.NewInteger(newbase)})
 				} else {
-					return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString("Unexpected zero power in Power evaluation.")})
+					return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString("Unexpected zero power in Power evaluation.")})
 				}
 			}
 
 			if baseIsFlt && powerIsInt {
-				return NewReal(mathbigext.Pow(baseFlt.Val, big.NewFloat(0).SetInt(powerInt.Val)))
+				return atoms.NewReal(mathbigext.Pow(baseFlt.Val, big.NewFloat(0).SetInt(powerInt.Val)))
 			}
 			if baseIsInt && powerIsFlt {
-				return NewReal(mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val))
+				return atoms.NewReal(mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val))
 			}
 			if baseIsFlt && powerIsFlt {
-				return NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
+				return atoms.NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
 			}
 			if baseIsInt && powerIsRat {
 				x := baseInt.Val
@@ -270,9 +279,9 @@ func GetPowerDefinitions() (defs []Definition) {
 					root := NthRoot(x, n)
 					if root != nil {
 						if m.Cmp(big.NewInt(1)) == 0 {
-							return NewInteger(root)
+							return atoms.NewInteger(root)
 						}
-						return E(S("Power"), NewInteger(root), NewInteger(m))
+						return atoms.E(atoms.S("Power"), atoms.NewInteger(root), atoms.NewInteger(m))
 					}
 					powerExtracted := extractPower(x, powerRat)
 					if powerExtracted != nil {
@@ -287,16 +296,16 @@ func GetPowerDefinitions() (defs []Definition) {
 						if xPositivity == -1 {
 							radicand.Neg(radicand)
 						}
-						var coeff expreduceapi.Ex = NewInteger(extracted)
+						var coeff expreduceapi.Ex = atoms.NewInteger(extracted)
 						if mPositivity == -1 {
-							coeff = NewRational(big.NewInt(1), extracted)
+							coeff = atoms.NewRational(big.NewInt(1), extracted)
 						}
-						return E(
-							S("Times"),
+						return atoms.E(
+							atoms.S("Times"),
 							coeff,
-							E(
-								S("Power"),
-								NewInteger(radicand),
+							atoms.E(
+								atoms.S("Power"),
+								atoms.NewInteger(radicand),
 								powerRat,
 							),
 						)

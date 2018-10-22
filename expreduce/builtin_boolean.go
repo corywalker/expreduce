@@ -1,6 +1,9 @@
 package expreduce
 
-import "github.com/corywalker/expreduce/pkg/expreduceapi"
+import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
@@ -9,19 +12,19 @@ func GetBooleanDefinitions() (defs []Definition) {
 			return ToStringInfix(this.GetParts()[1:], " && ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`And")})
+			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`And")})
 			for i := 1; i < len(this.GetParts()); i++ {
-				this.GetParts()[i] = this.GetParts()[i].Eval(es)
+				this.GetParts()[i] = es.Eval(this.GetParts()[i])
 				if booleanQ(this.GetParts()[i], es.GetLogger()) {
 					if falseQ(this.GetParts()[i], es.GetLogger()) {
-						return NewSymbol("System`False")
+						return atoms.NewSymbol("System`False")
 					}
 				} else {
 					res.AppendEx(this.GetParts()[i])
 				}
 			}
 			if len(res.GetParts()) == 1 {
-				return NewSymbol("System`True")
+				return atoms.NewSymbol("System`True")
 			}
 			if len(res.GetParts()) == 2 {
 				return res.GetParts()[1]
@@ -35,19 +38,19 @@ func GetBooleanDefinitions() (defs []Definition) {
 			return ToStringInfix(this.GetParts()[1:], " || ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`Or")})
+			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Or")})
 			for i := 1; i < len(this.GetParts()); i++ {
-				this.GetParts()[i] = this.GetParts()[i].Eval(es)
+				this.GetParts()[i] = es.Eval(this.GetParts()[i])
 				if booleanQ(this.GetParts()[i], es.GetLogger()) {
 					if trueQ(this.GetParts()[i], es.GetLogger()) {
-						return NewSymbol("System`True")
+						return atoms.NewSymbol("System`True")
 					}
 				} else {
 					res.AppendEx(this.GetParts()[i])
 				}
 			}
 			if len(res.GetParts()) == 1 {
-				return NewSymbol("System`False")
+				return atoms.NewSymbol("System`False")
 			}
 			if len(res.GetParts()) == 2 {
 				return res.GetParts()[1]
@@ -62,10 +65,10 @@ func GetBooleanDefinitions() (defs []Definition) {
 				return this
 			}
 			if trueQ(this.GetParts()[1], es.GetLogger()) {
-				return NewSymbol("System`False")
+				return atoms.NewSymbol("System`False")
 			}
 			if falseQ(this.GetParts()[1], es.GetLogger()) {
-				return NewSymbol("System`True")
+				return atoms.NewSymbol("System`True")
 			}
 			return this
 		},

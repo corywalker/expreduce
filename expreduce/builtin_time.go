@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"time"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -15,7 +16,7 @@ func GetTimeDefinitions() (defs []Definition) {
 				return this
 			}
 
-			return NewInteger(big.NewInt(time.Now().UTC().Unix()))
+			return atoms.NewInteger(big.NewInt(time.Now().UTC().Unix()))
 		},
 	})
 	defs = append(defs, Definition{
@@ -24,8 +25,8 @@ func GetTimeDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			nInt, nIsInt := this.GetParts()[1].(*Integer)
-			nFlt, nIsFlt := this.GetParts()[1].(*Flt)
+			nInt, nIsInt := this.GetParts()[1].(*atoms.Integer)
+			nFlt, nIsFlt := this.GetParts()[1].(*atoms.Flt)
 			if !nIsInt && !nIsFlt {
 				return this
 			}
@@ -38,7 +39,7 @@ func GetTimeDefinitions() (defs []Definition) {
 				duration = time.Duration(asFlt * 1000000000)
 			}
 			time.Sleep(duration)
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	return

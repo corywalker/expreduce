@@ -3,6 +3,7 @@ package expreduce
 import (
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -31,7 +32,7 @@ func permListContains(permList [][]expreduceapi.Ex, perm []expreduceapi.Ex, cl e
 		}
 		same := true
 		for i := range perm {
-			if !IsSameQ(perm[i], permInList[i], cl) {
+			if !atoms.IsSameQ(perm[i], permInList[i], cl) {
 				same = false
 				//break
 			}
@@ -96,7 +97,7 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 				return this
 			}
 
-			n, nIsInt := this.GetParts()[1].(*Integer)
+			n, nIsInt := this.GetParts()[1].(*atoms.Integer)
 			if !nIsInt {
 				return this
 			}
@@ -104,7 +105,7 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 
 			kMachine := nMachine
 			if len(this.GetParts()) == 3 {
-				k, kIsInt := this.GetParts()[2].(*Integer)
+				k, kIsInt := this.GetParts()[2].(*atoms.Integer)
 				if !kIsInt {
 					return this
 				}
@@ -113,19 +114,19 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 
 			cmpVal := n.Val.Cmp(big.NewInt(0))
 			if cmpVal == -1 {
-				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			} else if cmpVal == 0 {
-				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})})
+				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})})
 			}
 
 			var parts [][]int
 			genIntegerPartitions(nMachine, kMachine, nMachine, []int{}, &parts)
 
-			exParts := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			exParts := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			for _, partition := range parts {
-				toAppend := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+				toAppend := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 				for _, integer := range partition {
-					toAppend.AppendEx(NewInteger(big.NewInt(int64(integer))))
+					toAppend.AppendEx(atoms.NewInteger(big.NewInt(int64(integer))))
 				}
 				exParts.AppendEx(toAppend)
 			}
@@ -147,9 +148,9 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 
 			perms := genPermutations(list.GetParts()[1:], es.GetLogger())
 
-			exPerms := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			exPerms := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			for _, perm := range perms {
-				toAppend := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+				toAppend := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 				for _, ex := range perm {
 					toAppend.AppendEx(ex)
 				}
@@ -168,12 +169,12 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			asInt, isInt := this.GetParts()[1].(*Integer)
+			asInt, isInt := this.GetParts()[1].(*atoms.Integer)
 			if isInt {
 				if asInt.Val.Cmp(big.NewInt(0)) == -1 {
-					return NewSymbol("System`ComplexInfinity")
+					return atoms.NewSymbol("System`ComplexInfinity")
 				}
-				return NewInteger(factorial(asInt.Val))
+				return atoms.NewInteger(factorial(asInt.Val))
 			}
 			return this
 		},

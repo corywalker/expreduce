@@ -1,41 +1,48 @@
 package expreduce
 
-import "github.com/corywalker/expreduce/pkg/expreduceapi"
+import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 // This function assumes e and lhs have the same head and that the head is Flat.
 func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.ExpressionInterface, rhs expreduceapi.Ex, orderless bool, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	looseLhs := NewExpression([]expreduceapi.Ex{})
+	looseLhs := atoms.NewExpression([]expreduceapi.Ex{})
 	looseLhs.AppendEx(lhs.GetParts()[0])
 	if !orderless {
-		looseLhs.AppendEx(NewExpression([]expreduceapi.Ex{
-			NewSymbol("System`Pattern"),
-			NewSymbol("System`Expreduce`start"),
-			NewExpression([]expreduceapi.Ex{NewSymbol("System`BlankNullSequence")}),
+		looseLhs.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Pattern"),
+			atoms.NewSymbol("System`Expreduce`start"),
+			atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`BlankNullSequence")}),
 		}))
 	}
 	looseLhs.AppendExArray(lhs.GetParts()[1:])
-	looseLhs.AppendEx(NewExpression([]expreduceapi.Ex{
-		NewSymbol("System`Pattern"),
-		NewSymbol("System`Expreduce`end"),
-		NewExpression([]expreduceapi.Ex{NewSymbol("System`BlankNullSequence")}),
+	looseLhs.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
+		atoms.NewSymbol("System`Pattern"),
+		atoms.NewSymbol("System`Expreduce`end"),
+		atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`BlankNullSequence")}),
 	}))
 	pm := EmptyPD()
 	matchq, newPd := IsMatchQ(e, looseLhs, pm, es)
 	if matchq {
 		var tmpEx expreduceapi.Ex
 		if orderless {
-			tmpEx = ReplacePD(NewExpression([]expreduceapi.Ex{
+			tmpEx = ReplacePD(atoms.NewExpression([]expreduceapi.Ex{
 				e.GetParts()[0],
 				rhs,
-				NewSymbol("System`Expreduce`end"),
-			}), es, newPd)
+				atoms.NewSymbol("System`Expreduce`end"),
+			}),
+
+				es, newPd)
 		} else {
-			tmpEx = ReplacePD(NewExpression([]expreduceapi.Ex{
+			tmpEx = ReplacePD(atoms.NewExpression([]expreduceapi.Ex{
 				e.GetParts()[0],
-				NewSymbol("System`Expreduce`start"),
+				atoms.NewSymbol("System`Expreduce`start"),
 				rhs,
-				NewSymbol("System`Expreduce`end"),
-			}), es, newPd)
+				atoms.NewSymbol("System`Expreduce`end"),
+			}),
+
+				es, newPd)
 		}
 		return tmpEx
 	}
@@ -43,7 +50,7 @@ func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.Expression
 }
 
 func ReplacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool) {
-	asSym, isSym := e.(*Symbol)
+	asSym, isSym := e.(*atoms.Symbol)
 	if isSym {
 		for k, def := range pm.patternDefined {
 			if k == asSym.Name {
@@ -98,7 +105,7 @@ func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es exp
 	asExpression, isExpression := this.(expreduceapi.ExpressionInterface)
 
 	if isExpression {
-		_, isRestrictedHead := HeadAssertion(this, stopAtHead)
+		_, isRestrictedHead := atoms.HeadAssertion(this, stopAtHead)
 		if isRestrictedHead {
 			return this
 		} else {
@@ -114,32 +121,32 @@ func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es exp
 }
 
 func tryCondWithMatches(rhs expreduceapi.Ex, matches *PDManager, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
-	asCond, isCond := HeadAssertion(rhs, "System`Condition")
+	asCond, isCond := atoms.HeadAssertion(rhs, "System`Condition")
 	if !isCond {
-		if asWith, isWith := HeadAssertion(rhs, "System`With"); isWith {
+		if asWith, isWith := atoms.HeadAssertion(rhs, "System`With"); isWith {
 			if len(asWith.GetParts()) == 3 {
-				if _, hasCond := HeadAssertion(asWith.GetParts()[2], "System`Condition"); hasCond {
+				if _, hasCond := atoms.HeadAssertion(asWith.GetParts()[2], "System`Condition"); hasCond {
 					appliedWith, ok := applyWithFn(asWith, es)
 					if ok {
-						asCond, isCond = HeadAssertion(appliedWith, "System`Condition")
+						asCond, isCond = atoms.HeadAssertion(appliedWith, "System`Condition")
 					}
 				}
 			}
 		}
-		if asMod, isMod := HeadAssertion(rhs, "System`Module"); isMod {
+		if asMod, isMod := atoms.HeadAssertion(rhs, "System`Module"); isMod {
 			if len(asMod.GetParts()) == 3 {
-				if _, hasCond := HeadAssertion(asMod.GetParts()[2], "System`Condition"); hasCond {
+				if _, hasCond := atoms.HeadAssertion(asMod.GetParts()[2], "System`Condition"); hasCond {
 					appliedMod, ok := applyModuleFn(asMod, es)
 					if ok {
-						asCond, isCond = HeadAssertion(appliedMod, "System`Condition")
+						asCond, isCond = atoms.HeadAssertion(appliedMod, "System`Condition")
 					}
 				}
 			}
 		}
 	}
 	if isCond {
-		condRes := asCond.GetParts()[2].Eval(es)
-		condResSymbol, condResIsSymbol := condRes.(*Symbol)
+		condRes := es.Eval(asCond.GetParts()[2])
+		condResSymbol, condResIsSymbol := condRes.(*atoms.Symbol)
 		if condResIsSymbol {
 			if condResSymbol.Name == "System`True" {
 				return tryCondWithMatches(asCond.GetParts()[1], matches, es)

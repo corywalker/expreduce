@@ -3,6 +3,7 @@ package expreduce
 import (
 	"sort"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -16,13 +17,13 @@ const (
 func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	// Flatten nested lists into arguments.
 	origHead := this.GetParts()[0]
-	this.GetParts()[0] = S("List")
-	dst := E(S("List"))
+	this.GetParts()[0] = atoms.S("List")
+	dst := atoms.E(atoms.S("List"))
 	flattenExpr(this, dst, 999999999, es.GetLogger())
 	// Previously I always set the pointer but it led to an endless
 	// eval loop. I think evaluation might use the pointer to make a
 	// "same" comparison.
-	if !IsSameQ(this, dst, es.GetLogger()) {
+	if !atoms.IsSameQ(this, dst, es.GetLogger()) {
 		this = dst
 		sort.Sort(this)
 	}
@@ -30,9 +31,9 @@ func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType
 
 	if len(this.GetParts()) == 1 {
 		if fnType == MaxFn {
-			return E(S("Times"), NewInt(-1), S("Infinity"))
+			return atoms.E(atoms.S("Times"), atoms.NewInt(-1), atoms.S("Infinity"))
 		} else {
-			return S("Infinity")
+			return atoms.S("Infinity")
 		}
 	}
 	if len(this.GetParts()) == 2 {
@@ -40,22 +41,22 @@ func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType
 	}
 	var i int
 	for i = 1; i < len(this.GetParts()); i++ {
-		if !numberQ(this.GetParts()[i]) {
+		if !atoms.NumberQ(this.GetParts()[i]) {
 			break
 		}
 	}
 	if fnType == MaxFn {
 		i -= 1
-		return NewExpression(append([]expreduceapi.Ex{this.GetParts()[0]}, this.GetParts()[i:]...))
+		return atoms.NewExpression(append([]expreduceapi.Ex{this.GetParts()[0]}, this.GetParts()[i:]...))
 	}
 	if i == 1 {
 		return this
 	}
-	return NewExpression(append(this.GetParts()[:2], this.GetParts()[i:]...))
+	return atoms.NewExpression(append(this.GetParts()[:2], this.GetParts()[i:]...))
 }
 
 func getCompSign(e expreduceapi.Ex) int {
-	sym, isSym := e.(*Symbol)
+	sym, isSym := e.(*atoms.Symbol)
 	if !isSym {
 		return -2
 	}
@@ -94,9 +95,9 @@ func getComparisonDefinitions() (defs []Definition) {
 				isequal = isequal && (equalstr == "EQUAL_TRUE")
 			}
 			if isequal {
-				return NewSymbol("System`True")
+				return atoms.NewSymbol("System`True")
 			}
-			return NewSymbol("System`False")
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -113,12 +114,12 @@ func getComparisonDefinitions() (defs []Definition) {
 			if isequal == "EQUAL_UNK" {
 				return this
 			} else if isequal == "EQUAL_TRUE" {
-				return NewSymbol("System`False")
+				return atoms.NewSymbol("System`False")
 			} else if isequal == "EQUAL_FALSE" {
-				return NewSymbol("System`True")
+				return atoms.NewSymbol("System`True")
 			}
 
-			return NewExpression([]expreduceapi.Ex{NewSymbol("System`Error"), NewString("Unexpected equality return value.")})
+			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString("Unexpected equality return value.")})
 		},
 	})
 	defs = append(defs, Definition{
@@ -133,12 +134,12 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			issame := true
 			for i := 2; i < len(this.GetParts()); i++ {
-				issame = issame && IsSameQ(this.GetParts()[1], this.GetParts()[i], es.GetLogger())
+				issame = issame && atoms.IsSameQ(this.GetParts()[1], this.GetParts()[i], es.GetLogger())
 			}
 			if issame {
-				return NewSymbol("System`True")
+				return atoms.NewSymbol("System`True")
 			} else {
-				return NewSymbol("System`False")
+				return atoms.NewSymbol("System`False")
 			}
 		},
 	})
@@ -154,12 +155,12 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			for i := 1; i < len(this.GetParts()); i++ {
 				for j := i + 1; j < len(this.GetParts()); j++ {
-					if IsSameQ(this.GetParts()[i], this.GetParts()[j], es.GetLogger()) {
-						return NewSymbol("System`False")
+					if atoms.IsSameQ(this.GetParts()[i], this.GetParts()[j], es.GetLogger()) {
+						return atoms.NewSymbol("System`False")
 					}
 				}
 			}
-			return NewSymbol("System`True")
+			return atoms.NewSymbol("System`True")
 		},
 	})
 	defs = append(defs, Definition{
@@ -171,14 +172,14 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			_, IsExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if IsExpr {
-				return NewSymbol("System`False")
+				return atoms.NewSymbol("System`False")
 			}
-			return NewSymbol("System`True")
+			return atoms.NewSymbol("System`True")
 		},
 	})
 	defs = append(defs, Definition{
 		Name:         "NumberQ",
-		legacyEvalFn: singleParamQEval(numberQ),
+		legacyEvalFn: singleParamQEval(atoms.NumberQ),
 	})
 	defs = append(defs, Definition{
 		Name: "NumericQ",
@@ -193,18 +194,18 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			a := NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), this.GetParts()[1]}).Eval(es)
-			b := NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), this.GetParts()[2]}).Eval(es)
+			a := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[1]}))
+			b := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[2]}))
 
-			if !numberQ(a) || !numberQ(b) {
+			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
 				return this
 			}
 
 			// Less
-			if ExOrder(a, b) == 1 {
-				return NewSymbol("System`True")
+			if atoms.ExOrder(a, b) == 1 {
+				return atoms.NewSymbol("System`True")
 			}
-			return NewSymbol("System`False")
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -217,17 +218,17 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			a := NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), this.GetParts()[1]}).Eval(es)
-			b := NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), this.GetParts()[2]}).Eval(es)
+			a := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[1]}))
+			b := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[2]}))
 
-			if !numberQ(a) || !numberQ(b) {
+			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
 				return this
 			}
 			// Greater
-			if ExOrder(a, b) == -1 {
-				return NewSymbol("System`True")
+			if atoms.ExOrder(a, b) == -1 {
+				return atoms.NewSymbol("System`True")
 			}
-			return NewSymbol("System`False")
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -240,21 +241,21 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			a := NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), this.GetParts()[1]}).Eval(es)
-			b := NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), this.GetParts()[2]}).Eval(es)
+			a := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[1]}))
+			b := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[2]}))
 
-			if !numberQ(a) || !numberQ(b) {
+			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
 				return this
 			}
 			// Less
-			if ExOrder(a, b) == 1 {
-				return NewSymbol("System`True")
+			if atoms.ExOrder(a, b) == 1 {
+				return atoms.NewSymbol("System`True")
 			}
 			// Equal
-			if ExOrder(a, b) == 0 {
-				return NewSymbol("System`True")
+			if atoms.ExOrder(a, b) == 0 {
+				return atoms.NewSymbol("System`True")
 			}
-			return NewSymbol("System`False")
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -267,21 +268,21 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 
-			a := NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), this.GetParts()[1]}).Eval(es)
-			b := NewExpression([]expreduceapi.Ex{NewSymbol("System`N"), this.GetParts()[2]}).Eval(es)
+			a := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[1]}))
+			b := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[2]}))
 
-			if !numberQ(a) || !numberQ(b) {
+			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
 				return this
 			}
 			// Greater
-			if ExOrder(a, b) == -1 {
-				return NewSymbol("System`True")
+			if atoms.ExOrder(a, b) == -1 {
+				return atoms.NewSymbol("System`True")
 			}
 			// Equal
-			if ExOrder(a, b) == 0 {
-				return NewSymbol("System`True")
+			if atoms.ExOrder(a, b) == 0 {
+				return atoms.NewSymbol("System`True")
 			}
-			return NewSymbol("System`False")
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -312,7 +313,7 @@ func getComparisonDefinitions() (defs []Definition) {
 				return this
 			}
 			if len(this.GetParts()) == 2 {
-				return S("True")
+				return atoms.S("True")
 			}
 			if len(this.GetParts())%2 != 0 {
 				return this
@@ -328,8 +329,8 @@ func getComparisonDefinitions() (defs []Definition) {
 						return this
 					}
 					if thisSign == -firstSign {
-						firstIneq := E(S("Inequality"))
-						secondIneq := E(S("Inequality"))
+						firstIneq := atoms.E(atoms.S("Inequality"))
+						secondIneq := atoms.E(atoms.S("Inequality"))
 						for j := 1; j < len(this.GetParts()); j++ {
 							if j < i {
 								firstIneq.AppendEx(this.GetParts()[j])
@@ -338,11 +339,11 @@ func getComparisonDefinitions() (defs []Definition) {
 								secondIneq.AppendEx(this.GetParts()[j])
 							}
 						}
-						return E(S("And"), firstIneq, secondIneq)
+						return atoms.E(atoms.S("And"), firstIneq, secondIneq)
 					}
 				}
 			}
-			res := E(S("Inequality"))
+			res := atoms.E(atoms.S("Inequality"))
 			for i := 0; i < (len(this.GetParts())-1)/2; i++ {
 				lhs := this.GetParts()[2*i+1]
 				if len(res.GetParts()) > 1 {
@@ -351,13 +352,13 @@ func getComparisonDefinitions() (defs []Definition) {
 				op := this.GetParts()[2*i+2]
 				rhs := this.GetParts()[2*i+3]
 				for rhsI := 2*i + 3; rhsI < len(this.GetParts()); rhsI += 2 {
-					if falseQ(E(op, lhs, this.GetParts()[rhsI]).Eval(es), es.GetLogger()) {
-						return S("False")
+					if falseQ(es.Eval(atoms.E(op, lhs, this.GetParts()[rhsI])), es.GetLogger()) {
+						return atoms.S("False")
 					}
 				}
-				evalRes := E(op, lhs, rhs).Eval(es)
+				evalRes := es.Eval(atoms.E(op, lhs, rhs))
 				if !trueQ(evalRes, es.GetLogger()) {
-					if !IsSameQ(res.GetParts()[len(res.GetParts())-1], lhs, es.GetLogger()) {
+					if !atoms.IsSameQ(res.GetParts()[len(res.GetParts())-1], lhs, es.GetLogger()) {
 						res.AppendEx(lhs)
 					}
 					res.AppendEx(op)
@@ -365,10 +366,10 @@ func getComparisonDefinitions() (defs []Definition) {
 				}
 			}
 			if len(res.GetParts()) == 1 {
-				return S("True")
+				return atoms.S("True")
 			}
 			if len(res.GetParts()) == 4 {
-				return E(res.GetParts()[2], res.GetParts()[1], res.GetParts()[3])
+				return atoms.E(res.GetParts()[2], res.GetParts()[1], res.GetParts()[3])
 			}
 			return res
 		},

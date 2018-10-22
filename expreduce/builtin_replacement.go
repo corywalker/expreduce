@@ -1,23 +1,26 @@
 package expreduce
 
-import "github.com/corywalker/expreduce/pkg/expreduceapi"
+import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func getValidRules(ruleArg expreduceapi.Ex) (rules []expreduceapi.ExpressionInterface) {
-	rulesRule, ok := HeadAssertion(ruleArg, "System`Rule")
+	rulesRule, ok := atoms.HeadAssertion(ruleArg, "System`Rule")
 	if !ok {
-		rulesRule, ok = HeadAssertion(ruleArg, "System`RuleDelayed")
+		rulesRule, ok = atoms.HeadAssertion(ruleArg, "System`RuleDelayed")
 	}
 	if ok {
 		return []expreduceapi.ExpressionInterface{rulesRule}
 	}
 
 	// Also handle a list of Rules
-	asList, isList := HeadAssertion(ruleArg, "System`List")
+	asList, isList := atoms.HeadAssertion(ruleArg, "System`List")
 	if isList {
 		for i := 1; i < len(asList.GetParts()); i++ {
-			rulesRule, ok := HeadAssertion(asList.GetParts()[i], "System`Rule")
+			rulesRule, ok := atoms.HeadAssertion(asList.GetParts()[i], "System`Rule")
 			if !ok {
-				rulesRule, ok = HeadAssertion(asList.GetParts()[i], "System`RuleDelayed")
+				rulesRule, ok = atoms.HeadAssertion(asList.GetParts()[i], "System`RuleDelayed")
 			}
 			if ok {
 				rules = append(rules, rulesRule)
@@ -51,11 +54,11 @@ func replaceParts(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, p
 	if !isExpr {
 		return e
 	}
-	res := E(expr.GetParts()[0])
-	part.AppendEx(NewInt(0))
+	res := atoms.E(expr.GetParts()[0])
+	part.AppendEx(atoms.NewInt(0))
 	dirty := false
 	for i, p := range expr.GetParts()[1:] {
-		part.GetParts()[len(part.GetParts())-1] = NewInt(int64(i + 1))
+		part.GetParts()[len(part.GetParts())-1] = atoms.NewInt(int64(i + 1))
 		repVal, replaced := rulesReplace(part, rules, es)
 		if !replaced && len(part.GetParts()) == 2 {
 			repVal, replaced = rulesReplace(part.GetParts()[1], rules, es)
@@ -136,14 +139,17 @@ func getReplacementDefinitions() (defs []Definition) {
 			oldEx := this.GetParts()[1]
 			es.Infof("In ReplaceRepeated. Initial expr: %v", oldEx)
 			for !isSame {
-				newEx := (NewExpression([]expreduceapi.Ex{
-					NewSymbol("System`ReplaceAll"),
-					oldEx,
-					this.GetParts()[2],
-				})).Eval(es)
+				newEx :=
+
+					es.Eval((atoms.NewExpression([]expreduceapi.Ex{
+						atoms.NewSymbol("System`ReplaceAll"),
+						oldEx,
+						this.GetParts()[2],
+					})))
+
 				es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
-				if IsSameQ(oldEx, newEx, es.GetLogger()) {
+				if atoms.IsSameQ(oldEx, newEx, es.GetLogger()) {
 					isSame = true
 				}
 				oldEx = newEx
@@ -183,19 +189,19 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			rules, isList := HeadAssertion(this.GetParts()[2], "System`List")
+			rules, isList := atoms.HeadAssertion(this.GetParts()[2], "System`List")
 			if !isList {
 				return this
 			}
 			exprRules := [](expreduceapi.ExpressionInterface){}
 			for _, rulesPart := range rules.GetParts()[1:] {
-				rule, isRule := HeadAssertion(rulesPart, "System`Rule")
+				rule, isRule := atoms.HeadAssertion(rulesPart, "System`Rule")
 				if !isRule {
 					return this
 				}
 				exprRules = append(exprRules, rule)
 			}
-			return replaceParts(this.GetParts()[1], exprRules, E(S("List")), es)
+			return replaceParts(this.GetParts()[1], exprRules, atoms.E(atoms.S("List")), es)
 		},
 	})
 	return

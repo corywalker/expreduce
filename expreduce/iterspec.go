@@ -3,6 +3,7 @@ package expreduce
 import (
 	"math/big"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -34,16 +35,16 @@ type iterSpecList struct {
 }
 
 func tryIterParam(e expreduceapi.Ex) (expreduceapi.Ex, bool) {
-	if _, isInt := e.(*Integer); isInt {
+	if _, isInt := e.(*atoms.Integer); isInt {
 		return e, true
 	}
-	if _, isReal := e.(*Flt); isReal {
+	if _, isReal := e.(*atoms.Flt); isReal {
 		return e, true
 	}
-	if _, isRat := e.(*Rational); isRat {
+	if _, isRat := e.(*atoms.Rational); isRat {
 		return e, true
 	}
-	if _, isComp := e.(*Complex); isComp {
+	if _, isComp := e.(*atoms.Complex); isComp {
 		return e, true
 	}
 	return nil, false
@@ -55,11 +56,11 @@ func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 	isl := &iterSpecList{}
 
 	listEx = evalIterSpecCandidate(es, listEx)
-	list, isList := HeadAssertion(listEx, "System`List")
+	list, isList := atoms.HeadAssertion(listEx, "System`List")
 	if isList {
 		iOk, iMinOk, iMaxOk, stepOk := false, false, false, false
 		if len(list.GetParts()) > 2 {
-			iAsSymbol, iIsSymbol := list.GetParts()[1].(*Symbol)
+			iAsSymbol, iIsSymbol := list.GetParts()[1].(*atoms.Symbol)
 			if iIsSymbol {
 				iOk = true
 				isr.i, isl.i = iAsSymbol, iAsSymbol
@@ -67,7 +68,7 @@ func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 			}
 			iAsExpression, iIsExpression := list.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if iIsExpression {
-				headAsSymbol, headIsSymbol := iAsExpression.GetParts()[0].(*Symbol)
+				headAsSymbol, headIsSymbol := iAsExpression.GetParts()[0].(*atoms.Symbol)
 				if headIsSymbol {
 					iOk = true
 					isr.i, isl.i = iAsExpression, iAsExpression
@@ -76,13 +77,13 @@ func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 			}
 		}
 		if len(list.GetParts()) == 3 {
-			isr.iMin, iMinOk = NewInteger(big.NewInt(1)), true
+			isr.iMin, iMinOk = atoms.NewInteger(big.NewInt(1)), true
 			isr.iMax, iMaxOk = tryIterParam(list.GetParts()[2])
-			isr.step, stepOk = NewInteger(big.NewInt(1)), true
+			isr.step, stepOk = atoms.NewInteger(big.NewInt(1)), true
 		} else if len(list.GetParts()) == 4 {
 			isr.iMin, iMinOk = tryIterParam(list.GetParts()[2])
 			isr.iMax, iMaxOk = tryIterParam(list.GetParts()[3])
-			isr.step, stepOk = NewInteger(big.NewInt(1)), true
+			isr.step, stepOk = atoms.NewInteger(big.NewInt(1)), true
 		} else if len(list.GetParts()) == 5 {
 			isr.iMin, iMinOk = tryIterParam(list.GetParts()[2])
 			isr.iMax, iMaxOk = tryIterParam(list.GetParts()[3])
@@ -96,7 +97,7 @@ func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 		// Conversion to iterSpecRange failed. Try iterSpecList.
 		iterListOk := false
 		if len(list.GetParts()) == 3 {
-			isl.list, iterListOk = HeadAssertion(list.GetParts()[2], "System`List")
+			isl.list, iterListOk = atoms.HeadAssertion(list.GetParts()[2], "System`List")
 		}
 		if iOk && iterListOk {
 			isl.reset()
@@ -108,15 +109,15 @@ func iterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 
 func (this *iterSpecRange) reset() {
 	//this.curr = this.iMin
-	this.curr = E(S("Plus"), this.iMin, E(S("Times"), NewInt(0), this.step)).Eval(this.es)
+	this.curr = this.es.Eval(atoms.E(atoms.S("Plus"), this.iMin, atoms.E(atoms.S("Times"), atoms.NewInt(0), this.step)))
 }
 
 func (this *iterSpecRange) next() {
-	this.curr = E(S("Plus"), this.curr, this.step).Eval(this.es)
+	this.curr = this.es.Eval(atoms.E(atoms.S("Plus"), this.curr, this.step))
 }
 
 func (this *iterSpecRange) cont() bool {
-	return ExOrder(this.curr, this.iMax) >= 0
+	return atoms.ExOrder(this.curr, this.iMax) >= 0
 }
 
 func (this *iterSpecRange) getCurr() expreduceapi.Ex {
@@ -232,7 +233,7 @@ func evalIterationFunc(this expreduceapi.ExpressionInterface, es expreduceapi.Ev
 			var toReturn expreduceapi.Ex = init
 			for mis.cont() {
 				mis.defineCurrent(es)
-				toReturn = (NewExpression([]expreduceapi.Ex{NewSymbol(op), toReturn, this.GetParts()[1].DeepCopy().Eval(es)})).Eval(es)
+				toReturn = es.Eval((atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol(op), toReturn, es.Eval(this.GetParts()[1].DeepCopy())})))
 				mis.next()
 			}
 			mis.restoreVarSnapshot(es)
@@ -245,15 +246,15 @@ func evalIterationFunc(this expreduceapi.ExpressionInterface, es expreduceapi.Ev
 func evalIterSpecCandidate(es expreduceapi.EvalStateInterface, cand expreduceapi.Ex) expreduceapi.Ex {
 	// Special handling for Lists, which might have variables of iteration in
 	// them.
-	list, isList := HeadAssertion(cand, "System`List")
+	list, isList := atoms.HeadAssertion(cand, "System`List")
 	if isList {
-		toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+		toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 		for i := 1; i < len(list.GetParts()); i++ {
 			toAdd := list.GetParts()[i].DeepCopy()
 			// Do not evaluate the variable of iteration. Even if "n" is
 			// defined already, we just want it to be "n".
 			if i != 1 {
-				toAdd = toAdd.Eval(es)
+				toAdd = es.Eval(toAdd)
 			}
 			toReturn.AppendEx(toAdd)
 		}
@@ -261,5 +262,5 @@ func evalIterSpecCandidate(es expreduceapi.EvalStateInterface, cand expreduceapi
 	}
 	// We should attempt to evaluate all non-Lists, since we expect them to not
 	// have any variables of iteration in them.
-	return cand.Eval(es)
+	return es.Eval(cand)
 }

@@ -1,6 +1,9 @@
 package expreduce
 
-import "github.com/corywalker/expreduce/pkg/expreduceapi"
+import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func distribute(e expreduceapi.ExpressionInterface, built expreduceapi.ExpressionInterface, res expreduceapi.ExpressionInterface) {
 	i := len(built.GetParts())
@@ -48,8 +51,8 @@ func GetManipDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this.GetParts()[1]
 			}
-			res := NewExpression([]expreduceapi.Ex{this.GetParts()[2]})
-			firstBuilt := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+			res := atoms.NewExpression([]expreduceapi.Ex{this.GetParts()[2]})
+			firstBuilt := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 			distribute(expr, firstBuilt, res)
 			return res
 		},

@@ -67,7 +67,7 @@ func (this *Complex) Hash() uint64 {
 }
 
 func (this *Complex) addReal(e expreduceapi.Ex) {
-	a, _ := computeNumericPart(FoldFnAdd, E(S("Dummy"), this.Re, e))
+	a, _ := ComputeNumericPart(FoldFnAdd, E(S("Dummy"), this.Re, e))
 	this.Re = a
 	this.needsEval = true
 }
@@ -85,16 +85,16 @@ func (this *Complex) AddR(r *Rational) {
 }
 
 func (this *Complex) AddC(c *Complex) {
-	a, _ := computeNumericPart(FoldFnAdd, E(S("Dummy"), this.Re, c.Re))
-	b, _ := computeNumericPart(FoldFnAdd, E(S("Dummy"), this.Im, c.Im))
+	a, _ := ComputeNumericPart(FoldFnAdd, E(S("Dummy"), this.Re, c.Re))
+	b, _ := ComputeNumericPart(FoldFnAdd, E(S("Dummy"), this.Im, c.Im))
 	this.Re = a
 	this.Im = b
 	this.needsEval = true
 }
 
 func (this *Complex) mulReal(e expreduceapi.Ex) {
-	a, _ := computeNumericPart(FoldFnMul, E(S("Dummy"), this.Re, e))
-	b, _ := computeNumericPart(FoldFnMul, E(S("Dummy"), this.Im, e))
+	a, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), this.Re, e))
+	b, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), this.Im, e))
 	this.Re = a
 	this.Im = b
 	this.needsEval = true
@@ -117,12 +117,12 @@ func (this *Complex) MulC(c *Complex) {
 	// This is ugly. Need to refactor.
 	// Perhaps create "Calculator" utility??
 	// TODO(corywalker) Remove the definition that this implements in code.
-	a, _ := computeNumericPart(FoldFnMul, E(S("Dummy"), this.Re, c.Re))
-	b, _ := computeNumericPart(FoldFnMul, E(S("Dummy"), NewInt(-1), this.Im, c.Im))
-	cc, _ := computeNumericPart(FoldFnMul, E(S("Dummy"), this.Re, c.Im))
-	d, _ := computeNumericPart(FoldFnMul, E(S("Dummy"), this.Im, c.Re))
-	e, _ := computeNumericPart(FoldFnAdd, E(S("Dummy"), a, b))
-	f, _ := computeNumericPart(FoldFnAdd, E(S("Dummy"), cc, d))
+	a, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), this.Re, c.Re))
+	b, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), NewInt(-1), this.Im, c.Im))
+	cc, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), this.Re, c.Im))
+	d, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), this.Im, c.Re))
+	e, _ := ComputeNumericPart(FoldFnAdd, E(S("Dummy"), a, b))
+	f, _ := ComputeNumericPart(FoldFnAdd, E(S("Dummy"), cc, d))
 	this.Re = e
 	this.Im = f
 	this.needsEval = true

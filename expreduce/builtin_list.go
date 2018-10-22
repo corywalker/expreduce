@@ -6,6 +6,7 @@ import (
 	"sort"
 	"sync"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -48,14 +49,14 @@ func MemberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi
 
 func ValidatePadParams(this expreduceapi.ExpressionInterface) (list expreduceapi.ExpressionInterface, n int64, x expreduceapi.Ex, valid bool) {
 	valid = false
-	x = NewInteger(big.NewInt(0))
+	x = atoms.NewInteger(big.NewInt(0))
 	if len(this.GetParts()) == 4 {
 		x = this.GetParts()[3]
 	} else if len(this.GetParts()) != 3 {
 		return
 	}
 
-	nInt, nIsInt := this.GetParts()[2].(*Integer)
+	nInt, nIsInt := this.GetParts()[2].(*atoms.Integer)
 	if !nIsInt {
 		return
 	}
@@ -71,7 +72,7 @@ func ValidatePadParams(this expreduceapi.ExpressionInterface) (list expreduceapi
 }
 
 func validateIndex(i expreduceapi.Ex, l int) (int64, bool) {
-	iInt, iIsInt := i.(*Integer)
+	iInt, iIsInt := i.(*atoms.Integer)
 	if !iIsInt {
 		return 0, false
 	}
@@ -96,7 +97,7 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 	}
 
 	// Singular selection
-	if _, iIsInt := indices[currDim].(*Integer); iIsInt {
+	if _, iIsInt := indices[currDim].(*atoms.Integer); iIsInt {
 		indexVal, indexOk := validateIndex(indices[currDim], len(expr.GetParts()))
 		if !indexOk {
 			return nil, false
@@ -106,13 +107,13 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 
 	// Range selections
 	rangeMin, rangeMax, rangeOk := int64(0), int64(0), false
-	if iSpan, iIsSpan := HeadAssertion(indices[currDim], "System`Span"); iIsSpan {
+	if iSpan, iIsSpan := atoms.HeadAssertion(indices[currDim], "System`Span"); iIsSpan {
 		if len(iSpan.GetParts()) != 3 {
 			return nil, false
 		}
 		start, startOk := validateIndex(iSpan.GetParts()[1], len(expr.GetParts())+1)
 		end, endOk := validateIndex(iSpan.GetParts()[2], len(expr.GetParts()))
-		if endSym, endIsSym := iSpan.GetParts()[2].(*Symbol); endIsSym {
+		if endSym, endIsSym := iSpan.GetParts()[2].(*atoms.Symbol); endIsSym {
 			if endSym.Name == "System`All" {
 				end, endOk = int64(len(expr.GetParts())-1), true
 			}
@@ -122,14 +123,14 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 		}
 		rangeMin, rangeMax, rangeOk = start, end, true
 	}
-	iSym, iIsSym := indices[currDim].(*Symbol)
+	iSym, iIsSym := indices[currDim].(*atoms.Symbol)
 	if iIsSym {
 		if iSym.Name == "System`All" {
 			rangeMin, rangeMax, rangeOk = 1, int64(len(expr.GetParts())-1), true
 		}
 	}
 	if rangeOk {
-		toReturn := E(expr.GetParts()[0])
+		toReturn := atoms.E(expr.GetParts()[0])
 		for i := rangeMin; i <= rangeMax; i++ {
 			applied, appOk := applyIndex(expr.GetParts()[i], indices, currDim+1)
 			if !appOk {
@@ -145,7 +146,7 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 func ThreadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionInterface, bool) {
 	lengths := []int{}
 	for i := 1; i < len(expr.GetParts()); i++ {
-		list, isList := HeadAssertion(expr.GetParts()[i], "System`List")
+		list, isList := atoms.HeadAssertion(expr.GetParts()[i], "System`List")
 		if isList {
 			lengths = append(lengths, len(list.GetParts())-1)
 		}
@@ -161,11 +162,11 @@ func ThreadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionI
 		return expr, false
 	}
 	listLen := lengths[0]
-	toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+	toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 	for listI := 0; listI < listLen; listI++ {
-		thisExpr := NewExpression([]expreduceapi.Ex{expr.GetParts()[0].DeepCopy()})
+		thisExpr := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0].DeepCopy()})
 		for i := 1; i < len(expr.GetParts()); i++ {
-			list, isList := HeadAssertion(expr.GetParts()[i], "System`List")
+			list, isList := atoms.HeadAssertion(expr.GetParts()[i], "System`List")
 			if isList {
 				thisExpr.AppendEx(list.GetParts()[listI+1])
 			} else {
@@ -203,12 +204,12 @@ func GetListDefinitions() (defs []Definition) {
 				if isOk {
 					// Simulate evaluation within Block[]
 					mis.takeVarSnapshot(es)
-					toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 					for mis.cont() {
 						mis.defineCurrent(es)
 						// TODO: use ReplacePD for this. We're only replacing
 						// symbols. Don't need a full Eval.
-						toReturn.AppendEx(this.GetParts()[1].DeepCopy().Eval(es))
+						toReturn.AppendEx(es.Eval(this.GetParts()[1].DeepCopy()))
 						es.Debugf("%v\n", toReturn)
 						mis.next()
 					}
@@ -226,7 +227,7 @@ func GetListDefinitions() (defs []Definition) {
 				mis, isOk := multiIterSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
-					toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 					for mis.cont() {
 						toReturn.AppendEx(ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.currentPDManager()))
 						es.Debugf("%v\n", toReturn)
@@ -237,7 +238,7 @@ func GetListDefinitions() (defs []Definition) {
 						wg.Add(1)
 						go func(idx int) {
 							defer wg.Done()
-							toReturn.GetParts()[idx] = toReturn.GetParts()[idx].Eval(es)
+							toReturn.GetParts()[idx] = es.Eval(toReturn.GetParts()[idx])
 						}(i)
 					}
 					wg.Wait()
@@ -256,10 +257,10 @@ func GetListDefinitions() (defs []Definition) {
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
 				if MemberQ(expr.GetParts()[1:], this.GetParts()[2], es) {
-					return NewSymbol("System`True")
+					return atoms.NewSymbol("System`True")
 				}
 			}
-			return NewSymbol("System`False")
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
@@ -271,9 +272,9 @@ func GetListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+				toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 				pattern := this.GetParts()[2]
-				rule, isRule := HeadAssertion(this.GetParts()[2], "System`Rule")
+				rule, isRule := atoms.HeadAssertion(this.GetParts()[2], "System`Rule")
 				if isRule {
 					if len(rule.GetParts()) != 3 {
 						return toReturn
@@ -305,7 +306,7 @@ func GetListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				toReturn := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+				toReturn := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 				pattern := this.GetParts()[2]
 				for i := 1; i < len(expr.GetParts()); i++ {
 					if matchq, _ := IsMatchQ(expr.GetParts()[i], pattern, EmptyPD(), es); !matchq {
@@ -323,7 +324,7 @@ func GetListDefinitions() (defs []Definition) {
 		Name: "Union",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) == 1 {
-				return NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			}
 			var firstHead expreduceapi.Ex = nil
 			var allParts expreduceapi.ExpressionInterface = nil
@@ -334,17 +335,17 @@ func GetListDefinitions() (defs []Definition) {
 				}
 				if firstHead == nil {
 					firstHead = expr.GetParts()[0]
-					allParts = NewExpression([]expreduceapi.Ex{firstHead})
-				} else if !IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
+					allParts = atoms.NewExpression([]expreduceapi.Ex{firstHead})
+				} else if !atoms.IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
 					return this
 				}
 				allParts.AppendExArray(expr.GetParts()[1:])
 			}
 			sort.Sort(allParts)
-			toReturn := NewExpression([]expreduceapi.Ex{firstHead})
+			toReturn := atoms.NewExpression([]expreduceapi.Ex{firstHead})
 			var lastEx expreduceapi.Ex = nil
 			for _, part := range allParts.GetParts()[1:] {
-				if lastEx == nil || !IsSameQ(lastEx, part, es.GetLogger()) {
+				if lastEx == nil || !atoms.IsSameQ(lastEx, part, es.GetLogger()) {
 					lastEx = part
 					toReturn.AppendEx(part)
 				}
@@ -369,14 +370,14 @@ func GetListDefinitions() (defs []Definition) {
 				if firstHead == nil {
 					firstHead = expr.GetParts()[0]
 					continue
-				} else if !IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
+				} else if !atoms.IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
 					return this
 				}
 				for _, excludedPart := range expr.GetParts()[1:] {
 					exclusions[hashEx(excludedPart)] = true
 				}
 			}
-			toReturn := NewExpression([]expreduceapi.Ex{firstHead})
+			toReturn := atoms.NewExpression([]expreduceapi.Ex{firstHead})
 			added := map[uint64]bool{}
 			for _, part := range this.GetParts()[1].(expreduceapi.ExpressionInterface).GetParts()[1:] {
 				hash := hashEx(part)
@@ -398,7 +399,7 @@ func GetListDefinitions() (defs []Definition) {
 			if !valid {
 				return this
 			}
-			toReturn := NewExpression([]expreduceapi.Ex{list.GetParts()[0]})
+			toReturn := atoms.NewExpression([]expreduceapi.Ex{list.GetParts()[0]})
 			for i := int64(0); i < n; i++ {
 				if i >= int64(len(list.GetParts())-1) {
 					toReturn.AppendEx(x)
@@ -416,7 +417,7 @@ func GetListDefinitions() (defs []Definition) {
 			if !valid {
 				return this
 			}
-			toReturn := NewExpression([]expreduceapi.Ex{list.GetParts()[0]})
+			toReturn := atoms.NewExpression([]expreduceapi.Ex{list.GetParts()[0]})
 			for i := int64(0); i < n; i++ {
 				if i < n-int64(len(list.GetParts()))+1 {
 					toReturn.AppendEx(x)
@@ -433,13 +434,13 @@ func GetListDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// I should probably refactor the IterSpec system so that it does not
 			// require being passed a list and a variable of iteration. TODO
-			iterSpecList := NewExpression([]expreduceapi.Ex{NewSymbol("System`List"), NewSymbol("System`$DUMMY")})
+			iterSpecList := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), atoms.NewSymbol("System`$DUMMY")})
 			iterSpecList.AppendExArray(this.GetParts()[1:])
 			is, isOk := iterSpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
 			}
-			toReturn := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			for is.cont() {
 				toReturn.AppendEx(is.getCurr())
 				is.next()
@@ -486,7 +487,7 @@ func GetListDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this
 			}
-			res := NewExpression(append([]expreduceapi.Ex{}, expr.GetParts()...))
+			res := atoms.NewExpression(append([]expreduceapi.Ex{}, expr.GetParts()...))
 			res.AppendEx(this.GetParts()[2])
 			return res
 		},
@@ -504,7 +505,7 @@ func GetListDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this
 			}
-			res := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+			res := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 			res.AppendEx(this.GetParts()[2])
 			res.AppendExArray(expr.GetParts()[1:])
 			return res
@@ -522,7 +523,7 @@ func GetListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				toReturn := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+				toReturn := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 				seen := map[uint64]bool{}
 				for _, orig := range expr.GetParts()[1:] {
 					hash := hashEx(orig)
@@ -542,7 +543,7 @@ func GetListDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			maxN := MaxInt64
 			if len(this.GetParts()) == 4 {
-				if asInt, isInt := this.GetParts()[3].(*Integer); isInt {
+				if asInt, isInt := this.GetParts()[3].(*atoms.Integer); isInt {
 					maxN = asInt.Val.Int64()
 					if maxN < 0 {
 						return this
@@ -556,17 +557,20 @@ func GetListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				res := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+				res := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 				added := int64(0)
 				for _, part := range expr.GetParts()[1:] {
 					if added >= maxN {
 						break
 					}
-					pass := (NewExpression([]expreduceapi.Ex{
-						this.GetParts()[2],
-						part,
-					})).Eval(es)
-					passSymbol, passIsSymbol := pass.(*Symbol)
+					pass :=
+
+						es.Eval((atoms.NewExpression([]expreduceapi.Ex{
+							this.GetParts()[2],
+							part,
+						})))
+
+					passSymbol, passIsSymbol := pass.(*atoms.Symbol)
 					if passIsSymbol {
 						if passSymbol.Name == "System`True" {
 							res.AppendEx(part)
@@ -591,21 +595,24 @@ func GetListDefinitions() (defs []Definition) {
 				return this
 			}
 			for _, part := range expr.GetParts()[1:] {
-				res := (NewExpression([]expreduceapi.Ex{
-					this.GetParts()[1],
-					part,
-				})).Eval(es)
+				res :=
+
+					es.Eval((atoms.NewExpression([]expreduceapi.Ex{
+						this.GetParts()[1],
+						part,
+					})))
+
 				if es.HasThrown() {
 					return es.Thrown()
 				}
-				if asReturn, isReturn := HeadAssertion(res, "System`Return"); isReturn {
+				if asReturn, isReturn := atoms.HeadAssertion(res, "System`Return"); isReturn {
 					if len(asReturn.GetParts()) < 2 {
-						return NewSymbol("System`Null")
+						return atoms.NewSymbol("System`Null")
 					}
 					return asReturn.GetParts()[1]
 				}
 			}
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -624,7 +631,7 @@ func GetListDefinitions() (defs []Definition) {
 				if len(res.GetParts()) == 0 {
 					res.AppendExArray(expr.GetParts())
 				} else {
-					if !IsSameQ(expr.GetParts()[0], res.GetParts()[0], es.GetLogger()) {
+					if !atoms.IsSameQ(expr.GetParts()[0], res.GetParts()[0], es.GetLogger()) {
 						return this
 					}
 					res.AppendExArray(expr.GetParts()[1:])
@@ -658,7 +665,7 @@ func GetListDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this
 			}
-			res := NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+			res := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
 			for i := len(expr.GetParts()) - 1; i > 0; i-- {
 				res.AppendEx(expr.GetParts()[i])
 			}

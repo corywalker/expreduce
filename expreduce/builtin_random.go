@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"math/rand"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -18,7 +19,7 @@ func GetRandomDefinitions() (defs []Definition) {
 				return this
 			}
 
-			return NewReal(big.NewFloat(rand.Float64()))
+			return atoms.NewReal(big.NewFloat(rand.Float64()))
 		},
 	})
 	defs = append(defs, Definition{
@@ -31,10 +32,10 @@ func GetRandomDefinitions() (defs []Definition) {
 				return this
 			}
 
-			asInt, isInt := this.GetParts()[1].(*Integer)
+			asInt, isInt := this.GetParts()[1].(*atoms.Integer)
 			if isInt {
 				rand.Seed(asInt.Val.Int64())
-				return NewSymbol("System`Null")
+				return atoms.NewSymbol("System`Null")
 			}
 
 			return this

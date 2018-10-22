@@ -3,18 +3,19 @@ package expreduce
 import (
 	"strings"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStringParams) string {
+func StringForm(def *expreduceapi.Def, defSym *atoms.Symbol, params expreduceapi.ToStringParams) string {
 	var buffer []string
 
 	attrs := attrsToStrings(&def.Attributes)
 	if len(attrs) > 0 {
-		e := E(
-			S("Set"),
-			E(
-				S("Attributes"),
+		e := atoms.E(
+			atoms.S("Set"),
+			atoms.E(
+				atoms.S("Attributes"),
 				defSym,
 			),
 			attrsToSymList(&def.Attributes),
@@ -23,8 +24,8 @@ func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStr
 	}
 
 	for _, dv := range def.Downvalues {
-		e := E(
-			S("SetDelayed"),
+		e := atoms.E(
+			atoms.S("SetDelayed"),
 			dv.Rule.GetParts()[1].(expreduceapi.ExpressionInterface).GetParts()[1],
 			dv.Rule.GetParts()[2],
 		)
@@ -32,10 +33,10 @@ func StringForm(def *expreduceapi.Def, defSym *Symbol, params expreduceapi.ToStr
 	}
 
 	if def.DefaultExpr != nil {
-		e := E(
-			S("Set"),
-			E(
-				S("Default"),
+		e := atoms.E(
+			atoms.S("Set"),
+			atoms.E(
+				atoms.S("Default"),
 				defSym,
 			),
 			def.DefaultExpr,

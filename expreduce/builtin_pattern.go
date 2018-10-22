@@ -3,6 +3,7 @@ package expreduce
 import (
 	"bytes"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -30,9 +31,9 @@ func GetPatternDefinitions() (defs []Definition) {
 			}
 
 			if res, _ := IsMatchQ(this.GetParts()[1], this.GetParts()[2], EmptyPD(), es); res {
-				return NewSymbol("System`True")
+				return atoms.NewSymbol("System`True")
 			} else {
-				return NewSymbol("System`False")
+				return atoms.NewSymbol("System`False")
 			}
 		},
 	})
@@ -46,9 +47,9 @@ func GetPatternDefinitions() (defs []Definition) {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			_, blankOk := HeadAssertion(this.GetParts()[2], "System`Blank")
-			_, bsOk := HeadAssertion(this.GetParts()[2], "System`BlankSequence")
-			_, bnsOk := HeadAssertion(this.GetParts()[2], "System`BlankNullSequence")
+			_, blankOk := atoms.HeadAssertion(this.GetParts()[2], "System`Blank")
+			_, bsOk := atoms.HeadAssertion(this.GetParts()[2], "System`BlankSequence")
+			_, bnsOk := atoms.HeadAssertion(this.GetParts()[2], "System`BlankNullSequence")
 			if blankOk || bsOk || bnsOk {
 				buffer.WriteString(this.GetParts()[1].StringForm(params))
 				buffer.WriteString(this.GetParts()[2].StringForm(params))
@@ -102,11 +103,11 @@ func GetPatternDefinitions() (defs []Definition) {
 				return this
 			}
 
-			rule, isRule := HeadAssertion(this.GetParts()[2], "System`Rule")
+			rule, isRule := atoms.HeadAssertion(this.GetParts()[2], "System`Rule")
 			if !isRule {
 				return this
 			}
-			res := NewExpression([]expreduceapi.Ex{NewSymbol("System`List")})
+			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 			mi, cont := NewMatchIter(this.GetParts()[1], rule.GetParts()[1], EmptyPD(), es)
 			for cont {
 				matchq, newPd, done := mi.next()

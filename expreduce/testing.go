@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"testing"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/stretchr/testify/assert"
 )
@@ -66,19 +67,19 @@ type SameTestEx struct {
 }
 
 func (this *SameTestEx) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
-	succ, s := CasTestInner(es, this.In.Eval(es), this.Out.Eval(es), this.In.String(es), true, td.desc)
+	succ, s := CasTestInner(es, es.Eval(this.In), es.Eval(this.Out), this.In.String(es), true, td.desc)
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, outTree expreduceapi.Ex, inStr string, test bool, desc string) (succ bool, s string) {
-	theTestTree := NewExpression([]expreduceapi.Ex{
-		NewSymbol("System`SameQ"),
-		NewExpression([]expreduceapi.Ex{NewSymbol("System`Hold"), inTree}),
-		NewExpression([]expreduceapi.Ex{NewSymbol("System`Hold"), outTree}),
+	theTestTree := atoms.NewExpression([]expreduceapi.Ex{
+		atoms.NewSymbol("System`SameQ"),
+		atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Hold"), inTree}),
+		atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Hold"), outTree}),
 	})
 
-	theTest := theTestTree.Eval(es)
+	theTest := es.Eval(theTestTree)
 
 	context, ContextPath := DefinitionComplexityStringFormArgs()
 	var buffer bytes.Buffer
@@ -98,7 +99,7 @@ func CasTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 		buffer.WriteString(desc)
 	}
 
-	resSym, resIsSym := theTest.(*Symbol)
+	resSym, resIsSym := theTest.(*atoms.Symbol)
 	if !resIsSym {
 		return false, buffer.String()
 	}
@@ -109,25 +110,25 @@ func CasTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 }
 
 func CasAssertSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
-	succ, s := CasTestInner(es, Interp(in, es).Eval(es), Interp(out, es).Eval(es), in, true, "")
+	succ, s := CasTestInner(es, es.Eval(Interp(in, es)), es.Eval(Interp(out, es)), in, true, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDiff(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
-	succ, s := CasTestInner(es, Interp(in, es).Eval(es), Interp(out, es).Eval(es), in, false, "")
+	succ, s := CasTestInner(es, es.Eval(Interp(in, es)), es.Eval(Interp(out, es)), in, false, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDescSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, Interp(in, es).Eval(es), Interp(out, es).Eval(es), in, true, desc)
+	succ, s := CasTestInner(es, es.Eval(Interp(in, es)), es.Eval(Interp(out, es)), in, true, desc)
 	assert.True(t, succ, s)
 	return succ
 }
 
 func CasAssertDescDiff(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, Interp(in, es).Eval(es), Interp(out, es).Eval(es), in, false, desc)
+	succ, s := CasTestInner(es, es.Eval(Interp(in, es)), es.Eval(Interp(out, es)), in, false, desc)
 	assert.True(t, succ, s)
 	return succ
 }

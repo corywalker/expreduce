@@ -1,6 +1,9 @@
 package expreduce
 
-import "github.com/corywalker/expreduce/pkg/expreduceapi"
+import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
@@ -9,10 +12,10 @@ func getAtomsDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			nAsInt, nIsInt := this.GetParts()[1].(*Integer)
-			dAsInt, dIsInt := this.GetParts()[2].(*Integer)
+			nAsInt, nIsInt := this.GetParts()[1].(*atoms.Integer)
+			dAsInt, dIsInt := this.GetParts()[2].(*atoms.Integer)
 			if nIsInt && dIsInt {
-				return NewRational(nAsInt.Val, dAsInt.Val).Eval(es)
+				return es.Eval(atoms.NewRational(nAsInt.Val, dAsInt.Val))
 			}
 			return this
 		},
@@ -25,18 +28,18 @@ func getAtomsDefinitions() (defs []Definition) {
 			}
 			validComplexType := func(e expreduceapi.Ex) bool {
 				switch e.(type) {
-				case *Integer:
+				case *atoms.Integer:
 					return true
-				case *Flt:
+				case *atoms.Flt:
 					return true
-				case *Rational:
+				case *atoms.Rational:
 					return true
 				default:
 					return false
 				}
 			}
 			if validComplexType(this.GetParts()[1]) && validComplexType(this.GetParts()[2]) {
-				return NewComplex(this.GetParts()[1], this.GetParts()[2]).Eval(es)
+				return es.Eval(atoms.NewComplex(this.GetParts()[1], this.GetParts()[2]))
 			}
 			return this
 		},

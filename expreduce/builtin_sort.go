@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"sort"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -32,8 +33,8 @@ func GetSortDefinitions() (defs []Definition) {
 				return this
 			}
 
-			toreturn := ExOrder(this.GetParts()[1], this.GetParts()[2])
-			return NewInteger(big.NewInt(toreturn))
+			toreturn := atoms.ExOrder(this.GetParts()[1], this.GetParts()[2])
+			return atoms.NewInteger(big.NewInt(toreturn))
 		},
 	})
 	return
