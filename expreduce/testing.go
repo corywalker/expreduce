@@ -35,14 +35,7 @@ type StringTest struct {
 }
 
 func (this *StringTest) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
-	context, ContextPath := ActualStringFormArgs(es)
-	stringParams := expreduceapi.ToStringParams{
-		Form:        "InputForm",
-		Context:     context,
-		ContextPath: ContextPath,
-		Esi:         es,
-	}
-	return assert.Equal(t, this.Out, parser.EvalInterp(this.In, es).StringForm(stringParams), td.desc)
+	return assert.Equal(t, this.Out, EasyRun(this.In, es), td.desc)
 }
 
 type ExampleOnlyInstruction struct {
