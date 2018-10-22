@@ -39,15 +39,15 @@ func (es *EvalState) GetStringFn(headStr string) (expreduceapi.ToStringFnType, b
 	return fn, ok
 }
 
-func (this *EvalState) load(def Definition) {
-	// TODO: deprecate most of this. We should be using .m files now.
-	def.Name = this.GetStringDef("System`$Context", "") + def.Name
-	this.MarkSeen(def.Name)
-	parser.EvalInterp("$Context = \"Private`\"", this)
+func (es *EvalState) load(def Definition) {
+	// TODO: deprecate most of es. We should be using .m files now.
+	def.Name = es.GetStringDef("System`$Context", "") + def.Name
+	es.MarkSeen(def.Name)
+	parser.EvalInterp("$Context = \"Private`\"", es)
 
 	if len(def.Usage) > 0 {
 
-		this.Eval((atoms.NewExpression([]expreduceapi.Ex{
+		es.Eval((atoms.NewExpression([]expreduceapi.Ex{
 			atoms.NewSymbol("System`SetDelayed"),
 			atoms.NewExpression([]expreduceapi.Ex{
 				atoms.NewSymbol("System`MessageName"),
@@ -60,7 +60,7 @@ func (this *EvalState) load(def Definition) {
 
 	}
 
-	newDef, foundDef := this.defined.Get(def.Name)
+	newDef, foundDef := es.defined.Get(def.Name)
 	if !foundDef {
 		newDef = expreduceapi.Def{}
 	}
@@ -71,13 +71,13 @@ func (this *EvalState) load(def Definition) {
 	protectedAttrs := append(def.Attributes, "Protected")
 	newDef.Attributes = atoms.StringsToAttributes(protectedAttrs)
 	if def.Default != "" {
-		newDef.DefaultExpr = parser.Interp(def.Default, this)
+		newDef.DefaultExpr = parser.Interp(def.Default, es)
 	}
 	if def.toString != nil {
-		this.toStringFns[def.Name] = def.toString
+		es.toStringFns[def.Name] = def.toString
 	}
-	this.defined.Set(def.Name, newDef)
-	parser.EvalInterp("$Context = \"System`\"", this)
+	es.defined.Set(def.Name, newDef)
+	parser.EvalInterp("$Context = \"System`\"", es)
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
@@ -272,20 +272,20 @@ func NewEvalState() *EvalState {
 	return &es
 }
 
-func (this *EvalState) IsDef(name string) bool {
-	_, isd := this.defined.Get(name)
+func (es *EvalState) IsDef(name string) bool {
+	_, isd := es.defined.Get(name)
 	return isd
 }
 
-func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, bool, expreduceapi.ExpressionInterface) {
-	if !this.IsDef(name) {
+func (es *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, bool, expreduceapi.ExpressionInterface) {
+	if !es.IsDef(name) {
 		return nil, false, nil
 	}
 	// Special case for checking simple variable definitions like "a = 5".
 	// TODO: Perhaps split out single var values into the Definition to avoid
 	// iterating over every one.
 	if _, lhsIsSym := lhs.(*atoms.Symbol); lhsIsSym {
-		for _, def := range this.defined.GetDef(name).Downvalues {
+		for _, def := range es.defined.GetDef(name).Downvalues {
 			if hp, hpDef := atoms.HeadAssertion(def.Rule.GetParts()[1], "System`HoldPattern"); hpDef {
 				if len(hp.GetParts()) == 2 {
 					if _, symDef := hp.GetParts()[1].(*atoms.Symbol); symDef {
@@ -296,24 +296,24 @@ func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex
 		}
 		return nil, false, nil
 	}
-	this.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
-	for i := range this.defined.GetDef(name).Downvalues {
-		def := this.defined.GetDef(name).Downvalues[i].Rule
+	es.Debugf("Inside GetDef(\"%s\",%s)", name, lhs)
+	for i := range es.defined.GetDef(name).Downvalues {
+		def := es.defined.GetDef(name).Downvalues[i].Rule
 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
-		if this.IsProfiling() {
-			defStr = def.String(this)
-			lhsDefStr = lhs.String(this) + defStr
+		if es.IsProfiling() {
+			defStr = def.String(es)
+			lhsDefStr = lhs.String(es) + defStr
 			started = time.Now().UnixNano()
 		}
 
-		res, replaced := replace(lhs, def, this)
+		res, replaced := replace(lhs, def, es)
 
-		if this.IsProfiling() {
+		if es.IsProfiling() {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
-			this.timeCounter.AddTime(timecounter.CounterGroupDefTime, defStr, elapsed)
-			this.timeCounter.AddTime(timecounter.CounterGroupLHSDefTime, lhsDefStr, elapsed)
+			es.timeCounter.AddTime(timecounter.CounterGroupDefTime, defStr, elapsed)
+			es.timeCounter.AddTime(timecounter.CounterGroupLHSDefTime, lhsDefStr, elapsed)
 		}
 
 		if replaced {
@@ -323,13 +323,13 @@ func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex
 	return nil, false, nil
 }
 
-func (this *EvalState) GetSymDef(name string) (expreduceapi.Ex, bool) {
+func (es *EvalState) GetSymDef(name string) (expreduceapi.Ex, bool) {
 	sym := atoms.NewSymbol(name)
-	symDef, isDef, _ := this.GetDef(name, sym)
+	symDef, isDef, _ := es.GetDef(name, sym)
 	return symDef, isDef
 }
 
-func (this *EvalState) DefineAttrs(sym *atoms.Symbol, rhs expreduceapi.Ex) {
+func (es *EvalState) defineAttrs(sym *atoms.Symbol, rhs expreduceapi.Ex) {
 	attrsList, attrsIsList := atoms.HeadAssertion(rhs, "System`List")
 	if !attrsIsList {
 		return
@@ -346,15 +346,15 @@ func (this *EvalState) DefineAttrs(sym *atoms.Symbol, rhs expreduceapi.Ex) {
 		stringAttrs = append(stringAttrs, attrSym.Name[7:])
 	}
 	attrs := atoms.StringsToAttributes(stringAttrs)
-	if !this.IsDef(sym.Name) {
-		this.defined.Set(sym.Name, expreduceapi.Def{})
+	if !es.IsDef(sym.Name) {
+		es.defined.Set(sym.Name, expreduceapi.Def{})
 	}
-	tmp := this.defined.GetDef(sym.Name)
+	tmp := es.defined.GetDef(sym.Name)
 	tmp.Attributes = attrs
-	this.defined.Set(sym.Name, tmp)
+	es.defined.Set(sym.Name, tmp)
 }
 
-func (this *EvalState) defineDownValues(sym *atoms.Symbol, rhs expreduceapi.Ex) {
+func (es *EvalState) defineDownValues(sym *atoms.Symbol, rhs expreduceapi.Ex) {
 	dvList, isList := atoms.HeadAssertion(rhs, "System`List")
 	if !isList {
 		fmt.Println("Assignment to DownValues must be List of Rules.")
@@ -373,20 +373,20 @@ func (this *EvalState) defineDownValues(sym *atoms.Symbol, rhs expreduceapi.Ex) 
 		dvs = append(dvs, expreduceapi.DownValue{Rule: rule})
 	}
 
-	if !this.IsDef(sym.Name) {
-		this.defined.Set(sym.Name, expreduceapi.Def{})
+	if !es.IsDef(sym.Name) {
+		es.defined.Set(sym.Name, expreduceapi.Def{})
 	}
-	tmp := this.defined.GetDef(sym.Name)
+	tmp := es.defined.GetDef(sym.Name)
 	tmp.Downvalues = dvs
-	this.defined.Set(sym.Name, tmp)
+	es.defined.Set(sym.Name, tmp)
 }
 
-func (this *EvalState) MarkSeen(name string) {
-	if !this.IsDef(name) {
+func (es *EvalState) MarkSeen(name string) {
+	if !es.IsDef(name) {
 		newDef := expreduceapi.Def{
 			Downvalues: []expreduceapi.DownValue{},
 		}
-		this.defined.Set(name, newDef)
+		es.defined.Set(name, newDef)
 	}
 }
 
@@ -427,8 +427,8 @@ func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *
 	return specificity
 }
 
-func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
-	if this.IsFrozen() {
+func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
+	if es.IsFrozen() {
 		return
 	}
 	// This function used to require a name as a parameter. Centralize the logic
@@ -451,7 +451,7 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 				if !modifiedIsSym {
 					return
 				}
-				this.DefineAttrs(modifiedSym, rhs)
+				es.defineAttrs(modifiedSym, rhs)
 				return
 			} else if name == "System`DownValues" {
 				if len(lhsF.GetParts()) != 2 {
@@ -461,7 +461,7 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 				if !modifiedIsSym {
 					return
 				}
-				this.defineDownValues(modifiedSym, rhs)
+				es.defineDownValues(modifiedSym, rhs)
 				return
 			}
 		}
@@ -477,9 +477,9 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 		log.Fatalf("Trying to define an invalid lhs: %v", lhs)
 	}
 
-	this.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
+	es.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
 	heldLhs := atoms.E(atoms.S("HoldPattern"), lhs)
-	if !this.IsDef(name) {
+	if !es.IsDef(name) {
 		newDef := expreduceapi.Def{
 			Downvalues: []expreduceapi.DownValue{
 				expreduceapi.DownValue{
@@ -489,38 +489,38 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 				},
 			},
 		}
-		this.defined.Set(name, newDef)
+		es.defined.Set(name, newDef)
 		return
 	}
 
 	// Overwrite identical rules.
-	for _, dv := range this.defined.GetDef(name).Downvalues {
+	for _, dv := range es.defined.GetDef(name).Downvalues {
 		existingRule := dv.Rule
 		existingLhs := existingRule.GetParts()[1]
-		if atoms.IsSameQ(existingLhs, heldLhs, &this.CASLogger) {
-			this.defined.LockKey(name)
+		if atoms.IsSameQ(existingLhs, heldLhs, &es.CASLogger) {
+			es.defined.LockKey(name)
 			existingRhsCond := maskNonConditional(existingRule.GetParts()[2])
 			newRhsCond := maskNonConditional(rhs)
-			if atoms.IsSameQ(existingRhsCond, newRhsCond, &this.CASLogger) {
+			if atoms.IsSameQ(existingRhsCond, newRhsCond, &es.CASLogger) {
 				dv.Rule.GetParts()[2] = rhs
-				this.defined.UnlockKey(name)
+				es.defined.UnlockKey(name)
 				return
 			}
-			this.defined.UnlockKey(name)
+			es.defined.UnlockKey(name)
 		}
 	}
 
 	// Insert into definitions for name. Maintain order of decreasing
 	// complexity.
-	var tmp = this.defined.GetDef(name)
-	newSpecificity := ruleSpecificity(heldLhs, rhs, name, this)
-	for i, dv := range this.defined.GetDef(name).Downvalues {
+	var tmp = es.defined.GetDef(name)
+	newSpecificity := ruleSpecificity(heldLhs, rhs, name, es)
+	for i, dv := range es.defined.GetDef(name).Downvalues {
 		if dv.Specificity == 0 {
 			dv.Specificity = ruleSpecificity(
 				dv.Rule.GetParts()[1],
 				dv.Rule.GetParts()[2],
 				name,
-				this,
+				es,
 			)
 		}
 		if dv.Specificity < newSpecificity {
@@ -532,56 +532,56 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 						Rule:        newRule,
 						Specificity: newSpecificity,
 					}},
-					this.defined.GetDef(name).Downvalues[i:]...,
+					es.defined.GetDef(name).Downvalues[i:]...,
 				)...,
 			)
-			this.defined.Set(name, tmp)
+			es.defined.Set(name, tmp)
 			return
 		}
 	}
 	tmp.Downvalues = append(tmp.Downvalues, expreduceapi.DownValue{Rule: atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLhs, rhs})})
-	this.defined.Set(name, tmp)
+	es.defined.Set(name, tmp)
 }
 
-func (this *EvalState) ClearAll() {
-	this.Init(!this.NoInit)
+func (es *EvalState) ClearAll() {
+	es.Init(!es.NoInit)
 }
 
-func (this *EvalState) Clear(name string) {
-	_, ok := this.defined.Get(name)
+func (es *EvalState) Clear(name string) {
+	_, ok := es.defined.Get(name)
 	if ok {
-		this.defined.Set(name, expreduceapi.Def{})
-		//delete(this.defined, name)
+		es.defined.Set(name, expreduceapi.Def{})
+		//delete(es.defined, name)
 	}
 }
 
-func (this *EvalState) GetDefinedSnapshot() expreduceapi.DefinitionMap {
-	return this.defined.CopyDefs()
+func (es *EvalState) GetDefinedSnapshot() expreduceapi.DefinitionMap {
+	return es.defined.CopyDefs()
 }
 
-func (this *EvalState) GetDefinedMap() expreduceapi.DefinitionMap {
-	return this.defined
+func (es *EvalState) GetDefinedMap() expreduceapi.DefinitionMap {
+	return es.defined
 }
 
-func (this *EvalState) IsFrozen() bool {
-	return this.freeze
+func (es *EvalState) IsFrozen() bool {
+	return es.freeze
 }
 
-func (this *EvalState) SetFrozen(frozen bool) {
-	this.freeze = frozen
+func (es *EvalState) SetFrozen(frozen bool) {
+	es.freeze = frozen
 }
 
-func (this *EvalState) IsInterrupted() bool {
-	return this.interrupted
+func (es *EvalState) IsInterrupted() bool {
+	return es.interrupted
 }
 
-func (this *EvalState) GetLogger() expreduceapi.LoggingInterface {
-	return &this.CASLogger
+func (es *EvalState) GetLogger() expreduceapi.LoggingInterface {
+	return &es.CASLogger
 }
 
-func (this *EvalState) GetStringDef(name string, defaultVal string) string {
+func (es *EvalState) GetStringDef(name string, defaultVal string) string {
 	nameSym := atoms.NewSymbol(name)
-	def, isDef, _ := this.GetDef(name, nameSym)
+	def, isDef, _ := es.GetDef(name, nameSym)
 	if !isDef {
 		return defaultVal
 	}
@@ -592,9 +592,9 @@ func (this *EvalState) GetStringDef(name string, defaultVal string) string {
 	return defString.Val
 }
 
-func (this *EvalState) GetListDef(name string) expreduceapi.ExpressionInterface {
+func (es *EvalState) GetListDef(name string) expreduceapi.ExpressionInterface {
 	nameSym := atoms.NewSymbol(name)
-	def, isDef, _ := this.GetDef(name, nameSym)
+	def, isDef, _ := es.GetDef(name, nameSym)
 	if !isDef {
 		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 	}

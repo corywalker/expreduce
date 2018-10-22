@@ -25,8 +25,8 @@ type SameTest struct {
 	In  string
 }
 
-func (this *SameTest) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
-	return casAssertDescSame(t, es, this.Out, this.In, td.desc)
+func (test *SameTest) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+	return casAssertDescSame(t, es, test.Out, test.In, td.desc)
 }
 
 type StringTest struct {
@@ -34,8 +34,8 @@ type StringTest struct {
 	In  string
 }
 
-func (this *StringTest) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
-	return assert.Equal(t, this.Out, EasyRun(this.In, es), td.desc)
+func (test *StringTest) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+	return assert.Equal(t, test.Out, EasyRun(test.In, es), td.desc)
 }
 
 type ExampleOnlyInstruction struct {
@@ -43,13 +43,13 @@ type ExampleOnlyInstruction struct {
 	In  string
 }
 
-func (this *ExampleOnlyInstruction) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *ExampleOnlyInstruction) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
 	return true
 }
 
 type ResetState struct{}
 
-func (this *ResetState) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *ResetState) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
 	es.ClearAll()
 	return true
 }
@@ -58,7 +58,7 @@ type TestComment struct {
 	Comment string
 }
 
-func (this *TestComment) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *TestComment) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
 	return true
 }
 
@@ -67,8 +67,8 @@ type SameTestEx struct {
 	In  expreduceapi.Ex
 }
 
-func (this *SameTestEx) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
-	succ, s := casTestInner(es, es.Eval(this.In), es.Eval(this.Out), this.In.String(es), true, td.desc)
+func (test *SameTestEx) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+	succ, s := casTestInner(es, es.Eval(test.In), es.Eval(test.Out), test.In.String(es), true, td.desc)
 	assert.True(t, succ, s)
 	return succ
 }

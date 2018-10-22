@@ -16,6 +16,7 @@ import (
 var printevals = flag.Bool("printevals", false, "")
 var checkhashes = flag.Bool("checkhashes", false, "")
 
+// Eval evaluates an expression and returns the resulting expression.
 func (es *EvalState) Eval(expr expreduceapi.Ex) expreduceapi.Ex {
 	if asExpression, ok := expr.(*atoms.Expression); ok {
 		return es.evalExpression(asExpression)

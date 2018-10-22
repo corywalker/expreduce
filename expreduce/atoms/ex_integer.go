@@ -31,41 +31,41 @@ func (i *Integer) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("%d", i.Val)
 }
 
-func (this *Integer) String(esi expreduceapi.EvalStateInterface) string {
+func (thisInt *Integer) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := defaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
+	return thisInt.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
-func (this *Integer) IsEqual(other expreduceapi.Ex) string {
+func (thisInt *Integer) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Integer)
 	if !ok {
 		otherFlt, ok := other.(*Flt)
 		if ok {
-			thisAsFlt := big.NewFloat(0)
-			thisAsFlt.SetInt(this.Val)
-			if thisAsFlt.Cmp(otherFlt.Val) == 0 {
+			thisIntAsFlt := big.NewFloat(0)
+			thisIntAsFlt.SetInt(thisInt.Val)
+			if thisIntAsFlt.Cmp(otherFlt.Val) == 0 {
 				return "EQUAL_TRUE"
 			}
 		}
 		return "EQUAL_UNK"
 	}
-	if this.Val.Cmp(otherConv.Val) != 0 {
+	if thisInt.Val.Cmp(otherConv.Val) != 0 {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
 }
 
-func (this *Integer) DeepCopy() expreduceapi.Ex {
+func (thisInt *Integer) DeepCopy() expreduceapi.Ex {
 	tmp := big.NewInt(0)
-	tmp.Set(this.Val)
-	return &Integer{Val: tmp, cachedHash: this.cachedHash}
+	tmp.Set(thisInt.Val)
+	return &Integer{Val: tmp, cachedHash: thisInt.cachedHash}
 }
 
-func (this *Integer) Copy() expreduceapi.Ex {
-	return this
+func (thisInt *Integer) Copy() expreduceapi.Ex {
+	return thisInt
 }
 
-func (this *Integer) NeedsEval() bool {
+func (thisInt *Integer) NeedsEval() bool {
 	return false
 }
 
@@ -77,30 +77,30 @@ func NewInt(i int64) *Integer {
 	return NewInteger(big.NewInt(i))
 }
 
-func (this *Integer) Hash() uint64 {
-	if this.cachedHash > 0 {
-		return this.cachedHash
+func (thisInt *Integer) Hash() uint64 {
+	if thisInt.cachedHash > 0 {
+		return thisInt.cachedHash
 	}
 	h := fnv.New64a()
 	h.Write([]byte{242, 99, 84, 113, 102, 46, 118, 94})
-	bytes, _ := this.Val.MarshalText()
+	bytes, _ := thisInt.Val.MarshalText()
 	h.Write(bytes)
-	this.cachedHash = h.Sum64()
+	thisInt.cachedHash = h.Sum64()
 	return h.Sum64()
 }
 
-func (this *Integer) asBigFloat() *big.Float {
+func (thisInt *Integer) asBigFloat() *big.Float {
 	newfloat := big.NewFloat(0)
-	newfloat.SetInt(this.Val)
+	newfloat.SetInt(thisInt.Val)
 	return newfloat
 }
 
-func (this *Integer) addI(i *Integer) {
-	this.Val.Add(this.Val, i.Val)
-	this.cachedHash = 0
+func (thisInt *Integer) addI(i *Integer) {
+	thisInt.Val.Add(thisInt.Val, i.Val)
+	thisInt.cachedHash = 0
 }
 
-func (this *Integer) mulI(i *Integer) {
-	this.Val.Mul(this.Val, i.Val)
-	this.cachedHash = 0
+func (thisInt *Integer) mulI(i *Integer) {
+	thisInt.Val.Mul(thisInt.Val, i.Val)
+	thisInt.cachedHash = 0
 }

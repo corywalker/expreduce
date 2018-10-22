@@ -25,7 +25,7 @@ func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(expred
 }
 
 // NthRoot calculates the n'th root of x. TODO: move to mathbigext.
-func NthRoot(x *big.Int, n *big.Int) *big.Int {
+func nthRoot(x *big.Int, n *big.Int) *big.Int {
 	if x.Cmp(big.NewInt(0)) == 0 {
 		return big.NewInt(0)
 	}
@@ -276,7 +276,7 @@ func getPowerDefinitions() (defs []Definition) {
 				mPositivity := m.Cmp(big.NewInt(0))
 				if xPositivity >= 0 &&
 					nPositivity == 1 {
-					root := NthRoot(x, n)
+					root := nthRoot(x, n)
 					if root != nil {
 						if m.Cmp(big.NewInt(1)) == 0 {
 							return atoms.NewInteger(root)

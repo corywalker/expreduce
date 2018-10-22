@@ -122,36 +122,35 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 				}
 			}
 			return 0
-		} else {
-			ai := len(aAsExp.GetParts()) - 1
-			bi := len(bAsExp.GetParts()) - 1
-			for ai >= 0 && bi >= 0 {
-				aPart, bPart := aAsExp.GetParts()[ai], bAsExp.GetParts()[bi]
-				ai, bi = ai-1, bi-1
-				if NumberQ(aPart) && NumberQ(bPart) {
-					continue
-				}
+		}
+		ai := len(aAsExp.GetParts()) - 1
+		bi := len(bAsExp.GetParts()) - 1
+		for ai >= 0 && bi >= 0 {
+			aPart, bPart := aAsExp.GetParts()[ai], bAsExp.GetParts()[bi]
+			ai, bi = ai-1, bi-1
+			if NumberQ(aPart) && NumberQ(bPart) {
+				continue
+			}
+			o := ExOrder(aPart, bPart)
+			if o != 0 {
+				return o
+			}
+		}
+		for i := 0; i < min(len(aAsExp.GetParts()), len(bAsExp.GetParts())); i++ {
+			aPart, bPart := aAsExp.GetParts()[i], bAsExp.GetParts()[i]
+			if NumberQ(aPart) && NumberQ(bPart) {
 				o := ExOrder(aPart, bPart)
 				if o != 0 {
 					return o
 				}
 			}
-			for i := 0; i < min(len(aAsExp.GetParts()), len(bAsExp.GetParts())); i++ {
-				aPart, bPart := aAsExp.GetParts()[i], bAsExp.GetParts()[i]
-				if NumberQ(aPart) && NumberQ(bPart) {
-					o := ExOrder(aPart, bPart)
-					if o != 0 {
-						return o
-					}
-				}
-			}
-			if len(aAsExp.GetParts()) < len(bAsExp.GetParts()) {
-				return 1
-			} else if len(aAsExp.GetParts()) > len(bAsExp.GetParts()) {
-				return -1
-			} else {
-				return 0
-			}
+		}
+		if len(aAsExp.GetParts()) < len(bAsExp.GetParts()) {
+			return 1
+		} else if len(aAsExp.GetParts()) > len(bAsExp.GetParts()) {
+			return -1
+		} else {
+			return 0
 		}
 	}
 

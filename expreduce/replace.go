@@ -8,23 +8,23 @@ import (
 
 // This function assumes e and lhs have the same head and that the head is Flat.
 func flatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.ExpressionInterface, rhs expreduceapi.Ex, orderless bool, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	looseLhs := atoms.NewExpression([]expreduceapi.Ex{})
-	looseLhs.AppendEx(lhs.GetParts()[0])
+	looseLHS := atoms.NewExpression([]expreduceapi.Ex{})
+	looseLHS.AppendEx(lhs.GetParts()[0])
 	if !orderless {
-		looseLhs.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
+		looseLHS.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
 			atoms.NewSymbol("System`Pattern"),
 			atoms.NewSymbol("System`Expreduce`start"),
 			atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`BlankNullSequence")}),
 		}))
 	}
-	looseLhs.AppendExArray(lhs.GetParts()[1:])
-	looseLhs.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
+	looseLHS.AppendExArray(lhs.GetParts()[1:])
+	looseLHS.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
 		atoms.NewSymbol("System`Pattern"),
 		atoms.NewSymbol("System`Expreduce`end"),
 		atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`BlankNullSequence")}),
 	}))
 	pm := matcher.EmptyPD()
-	matchq, newPd := matcher.IsMatchQ(e, looseLhs, pm, es)
+	matchq, newPd := matcher.IsMatchQ(e, looseLHS, pm, es)
 	if matchq {
 		var tmpEx expreduceapi.Ex
 		if orderless {
@@ -62,11 +62,10 @@ func replaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es exp
 		_, isRestrictedHead := atoms.HeadAssertion(this, stopAtHead)
 		if isRestrictedHead {
 			return this
-		} else {
-			// Continue recursion
-			es.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
-			return exprReplaceAll(asExpression, r, stopAtHead, es)
 		}
+		// Continue recursion
+		es.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
+		return exprReplaceAll(asExpression, r, stopAtHead, es)
 	}
 	if res, matches := matcher.IsMatchQ(this, r.GetParts()[1], pm, es); res {
 		return matcher.ReplacePD(r.GetParts()[2], es, matches)
@@ -117,8 +116,8 @@ func replace(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expred
 		res, matches, done := mi.Next()
 		cont = !done
 		if res {
-			replacedRhs := matcher.ReplacePD(r.GetParts()[2], es, matches)
-			toReturn, ok := tryCondWithMatches(replacedRhs, matches, es)
+			replacedRHS := matcher.ReplacePD(r.GetParts()[2], es, matches)
+			toReturn, ok := tryCondWithMatches(replacedRHS, matches, es)
 			if ok {
 				return toReturn, true
 			}

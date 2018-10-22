@@ -34,7 +34,7 @@ type Definition struct {
 	Default    string
 }
 
-func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
+func toTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 	instructions := []TestInstruction{}
 	for _, tiEx := range tc.GetParts()[1:] {
 		if st, isSt := atoms.HeadAssertion(tiEx, "System`ESameTest"); isSt {
@@ -116,23 +116,23 @@ func (def *Definition) annotateWithDynamicTests(es expreduceapi.EvalStateInterfa
 		if headSym.Name == "System`ESimpleExamples" {
 			def.SimpleExamples = append(
 				def.SimpleExamples,
-				ToTestInstructions(testColExpr)...)
+				toTestInstructions(testColExpr)...)
 		} else if headSym.Name == "System`EFurtherExamples" {
 			def.FurtherExamples = append(
 				def.FurtherExamples,
-				ToTestInstructions(testColExpr)...)
+				toTestInstructions(testColExpr)...)
 		} else if headSym.Name == "System`ETests" {
 			def.Tests = append(
 				def.Tests,
-				ToTestInstructions(testColExpr)...)
+				toTestInstructions(testColExpr)...)
 		} else if headSym.Name == "System`EKnownFailures" {
 			def.KnownFailures = append(
 				def.KnownFailures,
-				ToTestInstructions(testColExpr)...)
+				toTestInstructions(testColExpr)...)
 		} else if headSym.Name == "System`EKnownDangerous" {
 			def.KnownDangerous = append(
 				def.KnownDangerous,
-				ToTestInstructions(testColExpr)...)
+				toTestInstructions(testColExpr)...)
 		} else {
 			log.Fatalf("Invalid test collection: %v\n", testColExpr)
 		}
@@ -158,7 +158,7 @@ func (def *Definition) annotateWithDynamicUsage(es expreduceapi.EvalStateInterfa
 	}
 }
 
-func (def *Definition) AnnotateWithDynamic(es expreduceapi.EvalStateInterface) {
+func (def *Definition) annotateWithDynamic(es expreduceapi.EvalStateInterface) {
 	def.annotateWithDynamicTests(es)
 	def.annotateWithDynamicUsage(es)
 }
@@ -170,6 +170,8 @@ type NamedDefSet struct {
 	Defs []Definition
 }
 
+// GetAllDefinitions returns a list of all builtin functions with metadata. The
+// function returns a list organized by category.
 func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"combinatorics", getCombinatoricsDefinitions()})
 	defs = append(defs, NamedDefSet{"calculus", getCalculusDefinitions()})

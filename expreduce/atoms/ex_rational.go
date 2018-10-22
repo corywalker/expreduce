@@ -15,109 +15,109 @@ type Rational struct {
 	needsEval bool
 }
 
-func (this *Rational) StringForm(params expreduceapi.ToStringParams) string {
+func (thisRational *Rational) StringForm(params expreduceapi.ToStringParams) string {
 	if params.Form == "FullForm" {
-		return fmt.Sprintf("Rational[%d, %d]", this.Num, this.Den)
+		return fmt.Sprintf("Rational[%d, %d]", thisRational.Num, thisRational.Den)
 	}
 	if params.Form == "TeXForm" {
-		return fmt.Sprintf("\\frac{%d}{%d}", this.Num, this.Den)
+		return fmt.Sprintf("\\frac{%d}{%d}", thisRational.Num, thisRational.Den)
 	}
 	if parens.NeedsParens("System`Times", params.PreviousHead) {
-		return fmt.Sprintf("(%d/%d)", this.Num, this.Den)
+		return fmt.Sprintf("(%d/%d)", thisRational.Num, thisRational.Den)
 	}
-	return fmt.Sprintf("%d/%d", this.Num, this.Den)
+	return fmt.Sprintf("%d/%d", thisRational.Num, thisRational.Den)
 }
 
-func (this *Rational) String(esi expreduceapi.EvalStateInterface) string {
+func (thisRational *Rational) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := defaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
+	return thisRational.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
-func (this *Rational) IsEqual(other expreduceapi.Ex) string {
+func (thisRational *Rational) IsEqual(other expreduceapi.Ex) string {
 	otherConv, otherIsRational := other.(*Rational)
 	if !otherIsRational {
 		return "EQUAL_FALSE"
 	}
 	// Assume rational already simplified
-	if (this.Num.Cmp(otherConv.Num) != 0) || (this.Den.Cmp(otherConv.Den) != 0) {
+	if (thisRational.Num.Cmp(otherConv.Num) != 0) || (thisRational.Den.Cmp(otherConv.Den) != 0) {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
 }
 
-func (this *Rational) DeepCopy() expreduceapi.Ex {
+func (thisRational *Rational) DeepCopy() expreduceapi.Ex {
 	tmpn := big.NewInt(0)
-	tmpn.Set(this.Num)
+	tmpn.Set(thisRational.Num)
 	tmpd := big.NewInt(0)
-	tmpd.Set(this.Den)
-	return &Rational{tmpn, tmpd, this.needsEval}
+	tmpd.Set(thisRational.Den)
+	return &Rational{tmpn, tmpd, thisRational.needsEval}
 }
 
-func (this *Rational) Copy() expreduceapi.Ex {
-	return this.DeepCopy()
+func (thisRational *Rational) Copy() expreduceapi.Ex {
+	return thisRational.DeepCopy()
 }
 
-func (this *Rational) asBigRat() *big.Rat {
+func (thisRational *Rational) asBigRat() *big.Rat {
 	res := big.NewRat(1, 1)
-	return res.SetFrac(this.Num, this.Den)
+	return res.SetFrac(thisRational.Num, thisRational.Den)
 }
 
-func (this *Rational) NeedsEval() bool {
-	return this.needsEval
+func (thisRational *Rational) NeedsEval() bool {
+	return thisRational.needsEval
 }
 
-func (this *Rational) SetNeedsEval(newVal bool) {
-	this.needsEval = newVal
+func (thisRational *Rational) SetNeedsEval(newVal bool) {
+	thisRational.needsEval = newVal
 }
 
 func NewRational(n *big.Int, d *big.Int) *Rational {
 	return &Rational{n, d, true}
 }
 
-func (this *Rational) Hash() uint64 {
+func (thisRational *Rational) Hash() uint64 {
 	h := fnv.New64a()
 	h.Write([]byte{90, 82, 214, 51, 52, 7, 7, 33})
-	nBytes, _ := this.Num.MarshalText()
+	nBytes, _ := thisRational.Num.MarshalText()
 	h.Write(nBytes)
-	dBytes, _ := this.Den.MarshalText()
+	dBytes, _ := thisRational.Den.MarshalText()
 	h.Write(dBytes)
 	return h.Sum64()
 }
 
-func (this *Rational) asBigFloat() *big.Float {
+func (thisRational *Rational) asBigFloat() *big.Float {
 	num := big.NewFloat(0)
 	den := big.NewFloat(0)
 	newquo := big.NewFloat(0)
-	num.SetInt(this.Num)
-	den.SetInt(this.Den)
+	num.SetInt(thisRational.Num)
+	den.SetInt(thisRational.Den)
 	newquo.Quo(num, den)
 	return newquo
 }
 
-func (this *Rational) addI(i *Integer) {
+func (thisRational *Rational) addI(i *Integer) {
 	tmp := big.NewInt(0)
-	tmp.Mul(i.Val, this.Den)
-	this.Num.Add(this.Num, tmp)
+	tmp.Mul(i.Val, thisRational.Den)
+	thisRational.Num.Add(thisRational.Num, tmp)
 }
 
-func (this *Rational) addR(r *Rational) {
+func (thisRational *Rational) addR(otherR *Rational) {
 	tmp := big.NewInt(0)
 	// lastrNum/lastrDen + theratNum/theratDen // Together
-	tmp.Mul(this.Den, r.Num)
-	this.Den.Mul(this.Den, r.Den)
-	this.Num.Mul(this.Num, r.Den)
-	this.Num.Add(this.Num, tmp)
+	tmp.Mul(thisRational.Den, otherR.Num)
+	thisRational.Den.Mul(thisRational.Den, otherR.Den)
+	thisRational.Num.Mul(thisRational.Num, otherR.Den)
+	thisRational.Num.Add(thisRational.Num, tmp)
 }
 
-func (this *Rational) mulI(i *Integer) {
-	this.Num.Mul(this.Num, i.Val)
+func (thisRational *Rational) mulI(i *Integer) {
+	thisRational.Num.Mul(thisRational.Num, i.Val)
 }
 
-func (this *Rational) MulBigI(i *big.Int) {
-	this.Num.Mul(this.Num, i)
+func (thisRational *Rational) MulBigI(i *big.Int) {
+	thisRational.Num.Mul(thisRational.Num, i)
 }
 
-func (this *Rational) mulR(r *Rational) {
-	this.Num.Mul(this.Num, r.Num)
-	this.Den.Mul(this.Den, r.Den)
+func (thisRational *Rational) mulR(otherR *Rational) {
+	thisRational.Num.Mul(thisRational.Num, otherR.Num)
+	thisRational.Den.Mul(thisRational.Den, otherR.Den)
 }

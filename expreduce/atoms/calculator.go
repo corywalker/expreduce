@@ -5,7 +5,9 @@ import "github.com/corywalker/expreduce/pkg/expreduceapi"
 type foldFn int
 
 const (
+	// FoldFnAdd designates that values should be added.
 	FoldFnAdd foldFn = iota
+	// FoldFnMul designates that values should be multiplied.
 	FoldFnMul
 )
 

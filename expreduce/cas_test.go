@@ -52,7 +52,7 @@ func TestIncludedModules(t *testing.T) {
 				continue
 			}
 			parser.EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
-			def.AnnotateWithDynamic(es)
+			def.annotateWithDynamic(es)
 			td := testDesc{
 				module: defSet.Name,
 				def:    def,
