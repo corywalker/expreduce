@@ -23,9 +23,9 @@ func (this *Complex) StringForm(p expreduceapi.ToStringParams) string {
 }
 
 func (this *Complex) String(esi expreduceapi.EvalStateInterface) string {
-	context, ContextPath := DefaultStringFormArgs()
+	context, contextPath := defaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{
-		Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
+		Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
 func (this *Complex) IsEqual(other expreduceapi.Ex) string {
@@ -72,19 +72,19 @@ func (this *Complex) addReal(e expreduceapi.Ex) {
 	this.needsEval = true
 }
 
-func (this *Complex) AddI(i *Integer) {
+func (this *Complex) addI(i *Integer) {
 	this.addReal(i)
 }
 
-func (this *Complex) AddF(f *Flt) {
+func (this *Complex) addF(f *Flt) {
 	this.addReal(f)
 }
 
-func (this *Complex) AddR(r *Rational) {
+func (this *Complex) addR(r *Rational) {
 	this.addReal(r)
 }
 
-func (this *Complex) AddC(c *Complex) {
+func (this *Complex) addC(c *Complex) {
 	a, _ := ComputeNumericPart(FoldFnAdd, E(S("Dummy"), this.Re, c.Re))
 	b, _ := ComputeNumericPart(FoldFnAdd, E(S("Dummy"), this.Im, c.Im))
 	this.Re = a
@@ -100,19 +100,19 @@ func (this *Complex) mulReal(e expreduceapi.Ex) {
 	this.needsEval = true
 }
 
-func (this *Complex) MulI(i *Integer) {
+func (this *Complex) mulI(i *Integer) {
 	this.mulReal(i)
 }
 
-func (this *Complex) MulF(f *Flt) {
+func (this *Complex) mulF(f *Flt) {
 	this.mulReal(f)
 }
 
-func (this *Complex) MulR(r *Rational) {
+func (this *Complex) mulR(r *Rational) {
 	this.mulReal(r)
 }
 
-func (this *Complex) MulC(c *Complex) {
+func (this *Complex) mulC(c *Complex) {
 	// HoldPattern[Complex[x_, y_]*Complex[u_, v_]*rest___] -> Complex[x*u + (y*v)*(-1), x*v + y*u]*rest)
 	// This is ugly. Need to refactor.
 	// Perhaps create "Calculator" utility??

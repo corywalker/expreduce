@@ -42,8 +42,8 @@ func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 }
 
 func (this *Flt) String(esi expreduceapi.EvalStateInterface) string {
-	context, ContextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
+	context, contextPath := defaultStringFormArgs()
+	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
 func (this *Flt) IsEqual(other expreduceapi.Ex) string {
@@ -85,7 +85,7 @@ func IntegerToFlt(i *Integer) (*Flt, bool) {
 
 func RationalToFlt(r *Rational) (*Flt, bool) {
 	newfloat := big.NewFloat(0)
-	newfloat.SetRat(r.AsBigRat())
+	newfloat.SetRat(r.asBigRat())
 	return NewReal(newfloat), true
 }
 
@@ -101,27 +101,27 @@ func (this *Flt) Hash() uint64 {
 	return h.Sum64()
 }
 
-func (this *Flt) AddI(i *Integer) {
-	this.Val.Add(this.Val, i.AsBigFloat())
+func (this *Flt) addI(i *Integer) {
+	this.Val.Add(this.Val, i.asBigFloat())
 }
 
-func (this *Flt) AddR(r *Rational) {
-	this.Val.Add(this.Val, r.AsBigFloat())
+func (this *Flt) addR(r *Rational) {
+	this.Val.Add(this.Val, r.asBigFloat())
 }
 
-func (this *Flt) AddF(f *Flt) {
+func (this *Flt) addF(f *Flt) {
 	this.Val.Add(this.Val, f.Val)
 }
 
-func (this *Flt) MulI(i *Integer) {
-	this.Val.Mul(this.Val, i.AsBigFloat())
+func (this *Flt) mulI(i *Integer) {
+	this.Val.Mul(this.Val, i.asBigFloat())
 }
 
-func (this *Flt) MulR(r *Rational) {
-	this.Val.Mul(this.Val, r.AsBigFloat())
+func (this *Flt) mulR(r *Rational) {
+	this.Val.Mul(this.Val, r.asBigFloat())
 }
 
-func (this *Flt) MulF(f *Flt) {
+func (this *Flt) mulF(f *Flt) {
 	this.Val.Mul(this.Val, f.Val)
 }
 

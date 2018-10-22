@@ -130,9 +130,9 @@ func (this *Expression) StringForm(params expreduceapi.ToStringParams) string {
 }
 
 func (this *Expression) String(esi expreduceapi.EvalStateInterface) string {
-	context, ContextPath := DefaultStringFormArgs()
+	context, contextPath := defaultStringFormArgs()
 	return this.StringForm(expreduceapi.ToStringParams{
-		Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
+		Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
 func (this *Expression) IsEqual(otherEx expreduceapi.Ex) string {
@@ -181,7 +181,7 @@ func ShallowCopy(thisExprInt expreduceapi.ExpressionInterface) *Expression {
 }
 
 func (this *Expression) Copy() expreduceapi.Ex {
-	var thiscopy = NewEmptyExpressionOfLength(len(this.GetParts()))
+	var thiscopy = newEmptyExpressionOfLength(len(this.GetParts()))
 	for i := range this.GetParts() {
 		thiscopy.GetParts()[i] = this.GetParts()[i].Copy()
 	}
@@ -267,7 +267,7 @@ func NewEmptyExpression() *Expression {
 	}
 }
 
-func NewEmptyExpressionOfLength(n int) *Expression {
+func newEmptyExpressionOfLength(n int) *Expression {
 	return &Expression{
 		Parts:                 make([]expreduceapi.Ex, n),
 		needsEval:             true,

@@ -12,7 +12,7 @@ import (
 // Integer numbers represented by big.Int
 type Integer struct {
 	Val        *big.Int
-	CachedHash uint64
+	cachedHash uint64
 }
 
 /*func (f *Integer) StringForm(params ToStringParams) string {
@@ -32,8 +32,8 @@ func (i *Integer) StringForm(params expreduceapi.ToStringParams) string {
 }
 
 func (this *Integer) String(esi expreduceapi.EvalStateInterface) string {
-	context, ContextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
+	context, contextPath := defaultStringFormArgs()
+	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
 func (this *Integer) IsEqual(other expreduceapi.Ex) string {
@@ -58,7 +58,7 @@ func (this *Integer) IsEqual(other expreduceapi.Ex) string {
 func (this *Integer) DeepCopy() expreduceapi.Ex {
 	tmp := big.NewInt(0)
 	tmp.Set(this.Val)
-	return &Integer{Val: tmp, CachedHash: this.CachedHash}
+	return &Integer{Val: tmp, cachedHash: this.cachedHash}
 }
 
 func (this *Integer) Copy() expreduceapi.Ex {
@@ -78,29 +78,29 @@ func NewInt(i int64) *Integer {
 }
 
 func (this *Integer) Hash() uint64 {
-	if this.CachedHash > 0 {
-		return this.CachedHash
+	if this.cachedHash > 0 {
+		return this.cachedHash
 	}
 	h := fnv.New64a()
 	h.Write([]byte{242, 99, 84, 113, 102, 46, 118, 94})
 	bytes, _ := this.Val.MarshalText()
 	h.Write(bytes)
-	this.CachedHash = h.Sum64()
+	this.cachedHash = h.Sum64()
 	return h.Sum64()
 }
 
-func (this *Integer) AsBigFloat() *big.Float {
+func (this *Integer) asBigFloat() *big.Float {
 	newfloat := big.NewFloat(0)
 	newfloat.SetInt(this.Val)
 	return newfloat
 }
 
-func (this *Integer) AddI(i *Integer) {
+func (this *Integer) addI(i *Integer) {
 	this.Val.Add(this.Val, i.Val)
-	this.CachedHash = 0
+	this.cachedHash = 0
 }
 
-func (this *Integer) MulI(i *Integer) {
+func (this *Integer) mulI(i *Integer) {
 	this.Val.Mul(this.Val, i.Val)
-	this.CachedHash = 0
+	this.cachedHash = 0
 }

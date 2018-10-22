@@ -12,7 +12,7 @@ import (
 // Symbols are defined by a string-based name
 type Symbol struct {
 	Name       string
-	CachedHash uint64
+	cachedHash uint64
 }
 
 func formatSymName(name string, params expreduceapi.ToStringParams) string {
@@ -50,8 +50,8 @@ func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 }
 
 func (this *Symbol) String(esi expreduceapi.EvalStateInterface) string {
-	context, ContextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
+	context, contextPath := defaultStringFormArgs()
+	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
 func (this *Symbol) IsEqual(other expreduceapi.Ex) string {
@@ -237,13 +237,13 @@ func (this *Symbol) NeedsEval() bool {
 }
 
 func (this *Symbol) Hash() uint64 {
-	if this.CachedHash > 0 {
-		return this.CachedHash
+	if this.cachedHash > 0 {
+		return this.cachedHash
 	}
 	h := fnv.New64a()
 	h.Write([]byte{107, 10, 247, 23, 33, 221, 163, 156})
 	h.Write([]byte(this.Name))
-	this.CachedHash = h.Sum64()
+	this.cachedHash = h.Sum64()
 	return h.Sum64()
 }
 

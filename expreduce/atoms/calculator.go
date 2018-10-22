@@ -2,35 +2,35 @@ package atoms
 
 import "github.com/corywalker/expreduce/pkg/expreduceapi"
 
-type FoldFn int
+type foldFn int
 
 const (
-	FoldFnAdd FoldFn = iota
+	FoldFnAdd foldFn = iota
 	FoldFnMul
 )
 
-func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) expreduceapi.Ex {
+func typedRealPart(fn foldFn, i *Integer, r *Rational, f *Flt, c *Complex) expreduceapi.Ex {
 	if c != nil {
 		toReturn := c
 		if f != nil {
 			if fn == FoldFnAdd {
-				toReturn.AddF(f)
+				toReturn.addF(f)
 			} else if fn == FoldFnMul {
-				toReturn.MulF(f)
+				toReturn.mulF(f)
 			}
 		}
 		if r != nil {
 			if fn == FoldFnAdd {
-				toReturn.AddR(r)
+				toReturn.addR(r)
 			} else if fn == FoldFnMul {
-				toReturn.MulR(r)
+				toReturn.mulR(r)
 			}
 		}
 		if i != nil {
 			if fn == FoldFnAdd {
-				toReturn.AddI(i)
+				toReturn.addI(i)
 			} else if fn == FoldFnMul {
-				toReturn.MulI(i)
+				toReturn.mulI(i)
 			}
 		}
 		return toReturn
@@ -39,16 +39,16 @@ func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) expre
 		toReturn := f
 		if r != nil {
 			if fn == FoldFnAdd {
-				toReturn.AddR(r)
+				toReturn.addR(r)
 			} else if fn == FoldFnMul {
-				toReturn.MulR(r)
+				toReturn.mulR(r)
 			}
 		}
 		if i != nil {
 			if fn == FoldFnAdd {
-				toReturn.AddI(i)
+				toReturn.addI(i)
 			} else if fn == FoldFnMul {
-				toReturn.MulI(i)
+				toReturn.mulI(i)
 			}
 		}
 		return toReturn
@@ -57,9 +57,9 @@ func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) expre
 		toReturn := r
 		if i != nil {
 			if fn == FoldFnAdd {
-				toReturn.AddI(i)
+				toReturn.addI(i)
 			} else if fn == FoldFnMul {
-				toReturn.MulI(i)
+				toReturn.mulI(i)
 			}
 		}
 		return toReturn
@@ -70,7 +70,7 @@ func typedRealPart(fn FoldFn, i *Integer, r *Rational, f *Flt, c *Complex) expre
 	return nil
 }
 
-func ComputeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int) {
+func ComputeNumericPart(fn foldFn, e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int) {
 	var foldedInt *Integer
 	var foldedRat *Rational
 	var foldedFlt *Flt
@@ -88,9 +88,9 @@ func ComputeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduc
 				continue
 			}
 			if fn == FoldFnAdd {
-				foldedInt.AddI(asInt)
+				foldedInt.addI(asInt)
 			} else if fn == FoldFnMul {
-				foldedInt.MulI(asInt)
+				foldedInt.mulI(asInt)
 			}
 			continue
 		}
@@ -101,9 +101,9 @@ func ComputeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduc
 				continue
 			}
 			if fn == FoldFnAdd {
-				foldedRat.AddR(asRat)
+				foldedRat.addR(asRat)
 			} else if fn == FoldFnMul {
-				foldedRat.MulR(asRat)
+				foldedRat.mulR(asRat)
 			}
 			continue
 		}
@@ -114,9 +114,9 @@ func ComputeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduc
 				continue
 			}
 			if fn == FoldFnAdd {
-				foldedFlt.AddF(asFlt)
+				foldedFlt.addF(asFlt)
 			} else if fn == FoldFnMul {
-				foldedFlt.MulF(asFlt)
+				foldedFlt.mulF(asFlt)
 			}
 			continue
 		}
@@ -127,9 +127,9 @@ func ComputeNumericPart(fn FoldFn, e expreduceapi.ExpressionInterface) (expreduc
 				continue
 			}
 			if fn == FoldFnAdd {
-				foldedComp.AddC(asComp)
+				foldedComp.addC(asComp)
 			} else if fn == FoldFnMul {
-				foldedComp.MulC(asComp)
+				foldedComp.mulC(asComp)
 			}
 			continue
 		}

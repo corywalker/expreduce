@@ -29,8 +29,8 @@ func (this *Rational) StringForm(params expreduceapi.ToStringParams) string {
 }
 
 func (this *Rational) String(esi expreduceapi.EvalStateInterface) string {
-	context, ContextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
+	context, contextPath := defaultStringFormArgs()
+	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
 func (this *Rational) IsEqual(other expreduceapi.Ex) string {
@@ -57,7 +57,7 @@ func (this *Rational) Copy() expreduceapi.Ex {
 	return this.DeepCopy()
 }
 
-func (this *Rational) AsBigRat() *big.Rat {
+func (this *Rational) asBigRat() *big.Rat {
 	res := big.NewRat(1, 1)
 	return res.SetFrac(this.Num, this.Den)
 }
@@ -84,7 +84,7 @@ func (this *Rational) Hash() uint64 {
 	return h.Sum64()
 }
 
-func (this *Rational) AsBigFloat() *big.Float {
+func (this *Rational) asBigFloat() *big.Float {
 	num := big.NewFloat(0)
 	den := big.NewFloat(0)
 	newquo := big.NewFloat(0)
@@ -94,13 +94,13 @@ func (this *Rational) AsBigFloat() *big.Float {
 	return newquo
 }
 
-func (this *Rational) AddI(i *Integer) {
+func (this *Rational) addI(i *Integer) {
 	tmp := big.NewInt(0)
 	tmp.Mul(i.Val, this.Den)
 	this.Num.Add(this.Num, tmp)
 }
 
-func (this *Rational) AddR(r *Rational) {
+func (this *Rational) addR(r *Rational) {
 	tmp := big.NewInt(0)
 	// lastrNum/lastrDen + theratNum/theratDen // Together
 	tmp.Mul(this.Den, r.Num)
@@ -109,7 +109,7 @@ func (this *Rational) AddR(r *Rational) {
 	this.Num.Add(this.Num, tmp)
 }
 
-func (this *Rational) MulI(i *Integer) {
+func (this *Rational) mulI(i *Integer) {
 	this.Num.Mul(this.Num, i.Val)
 }
 
@@ -117,7 +117,7 @@ func (this *Rational) MulBigI(i *big.Int) {
 	this.Num.Mul(this.Num, i)
 }
 
-func (this *Rational) MulR(r *Rational) {
+func (this *Rational) mulR(r *Rational) {
 	this.Num.Mul(this.Num, r.Num)
 	this.Den.Mul(this.Den, r.Den)
 }

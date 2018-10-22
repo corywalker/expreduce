@@ -16,23 +16,23 @@ type timeCounter struct {
 	counts countMap
 }
 
-func (tc *timeCounter) Init() {
+func (tc *timeCounter) init() {
 	tc.times = make(timeMap)
 	tc.counts = make(countMap)
 }
 
-func (tc *timeCounter) AddTime(key string, elapsed float64) {
+func (tc *timeCounter) addTime(key string, elapsed float64) {
 	tc.times[key] += elapsed
 	tc.counts[key]++
 }
 
-func (tc *timeCounter) Update(other *timeCounter) {
+func (tc *timeCounter) update(other *timeCounter) {
 	for k, v := range other.times {
-		tc.AddTime(k, v)
+		tc.addTime(k, v)
 	}
 }
 
-func (tc *timeCounter) TruncatedString(numToPrint int) string {
+func (tc *timeCounter) truncatedString(numToPrint int) string {
 	var buffer bytes.Buffer
 	n := map[float64][]string{}
 	var a []float64
@@ -57,8 +57,8 @@ func (tc *timeCounter) TruncatedString(numToPrint int) string {
 	return buffer.String()
 }
 
-func (tc *timeCounter) String() string {
-	return tc.TruncatedString(25)
+func (tc *timeCounter) string() string {
+	return tc.truncatedString(25)
 }
 
 // Group
@@ -86,40 +86,40 @@ type Group struct {
 
 // Init initializes the Group with empty maps.
 func (tcg *Group) Init() {
-	tcg.defTimeCounter.Init()
-	tcg.lhsDefTimeCounter.Init()
-	tcg.evalTimeCounter.Init()
-	tcg.headEvalTimeCounter.Init()
+	tcg.defTimeCounter.init()
+	tcg.lhsDefTimeCounter.init()
+	tcg.evalTimeCounter.init()
+	tcg.headEvalTimeCounter.init()
 }
 
 // AddTime adds a floating-point time to a particular timeCounter, selected with
 // a counterGroupType.
 func (tcg *Group) AddTime(counter counterGroupType, key string, elapsed float64) {
 	if counter == CounterGroupDefTime {
-		tcg.defTimeCounter.AddTime(key, elapsed)
+		tcg.defTimeCounter.addTime(key, elapsed)
 	} else if counter == CounterGroupLHSDefTime {
-		tcg.lhsDefTimeCounter.AddTime(key, elapsed)
+		tcg.lhsDefTimeCounter.addTime(key, elapsed)
 	} else if counter == CounterGroupEvalTime {
-		tcg.evalTimeCounter.AddTime(key, elapsed)
+		tcg.evalTimeCounter.addTime(key, elapsed)
 	} else if counter == CounterGroupHeadEvalTime {
-		tcg.headEvalTimeCounter.AddTime(key, elapsed)
+		tcg.headEvalTimeCounter.addTime(key, elapsed)
 	}
 }
 
 // Update adds another Group to this one.
 func (tcg *Group) Update(other *Group) {
-	tcg.defTimeCounter.Update(&other.defTimeCounter)
-	tcg.lhsDefTimeCounter.Update(&other.lhsDefTimeCounter)
-	tcg.evalTimeCounter.Update(&other.evalTimeCounter)
-	tcg.headEvalTimeCounter.Update(&other.headEvalTimeCounter)
+	tcg.defTimeCounter.update(&other.defTimeCounter)
+	tcg.lhsDefTimeCounter.update(&other.lhsDefTimeCounter)
+	tcg.evalTimeCounter.update(&other.evalTimeCounter)
+	tcg.headEvalTimeCounter.update(&other.headEvalTimeCounter)
 }
 
 // Prints the counter group as a formatted string.
 func (tcg *Group) String() string {
 	var buffer bytes.Buffer
-	buffer.WriteString(tcg.defTimeCounter.String() + "\n")
-	buffer.WriteString(tcg.lhsDefTimeCounter.String() + "\n")
-	buffer.WriteString(tcg.evalTimeCounter.String() + "\n")
-	buffer.WriteString(tcg.headEvalTimeCounter.String() + "\n")
+	buffer.WriteString(tcg.defTimeCounter.string() + "\n")
+	buffer.WriteString(tcg.lhsDefTimeCounter.string() + "\n")
+	buffer.WriteString(tcg.evalTimeCounter.string() + "\n")
+	buffer.WriteString(tcg.headEvalTimeCounter.string() + "\n")
 	return buffer.String()
 }

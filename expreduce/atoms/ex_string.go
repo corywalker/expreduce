@@ -21,8 +21,8 @@ func (this *String) StringForm(params expreduceapi.ToStringParams) string {
 }
 
 func (this *String) String(esi expreduceapi.EvalStateInterface) string {
-	context, ContextPath := DefaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: esi})
+	context, contextPath := defaultStringFormArgs()
+	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
 func (this *String) IsEqual(other expreduceapi.Ex) string {
