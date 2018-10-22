@@ -7,7 +7,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func StringForm(def *expreduceapi.Def, defSym *atoms.Symbol, params expreduceapi.ToStringParams) string {
+func stringForm(def *expreduceapi.Def, defSym *atoms.Symbol, params expreduceapi.ToStringParams) string {
 	var buffer []string
 
 	attrs := atoms.AttrsToStrings(&def.Attributes)

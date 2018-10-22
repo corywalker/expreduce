@@ -60,7 +60,7 @@ func primeFactorsTallied(n *big.Int) (factorTallies []factorTally) {
 	return
 }
 
-func GetNumberTheoryDefinitions() (defs []Definition) {
+func getNumberTheoryDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:         "PrimeQ",
 		legacyEvalFn: singleParamQEval(primeQ),

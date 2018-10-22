@@ -192,7 +192,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 			}
 			if attrs.Listable {
 				changed := false
-				currEx, changed = ThreadExpr(curr)
+				currEx, changed = threadExpr(curr)
 				if changed {
 					currExHash = hashEx(currEx)
 					continue
@@ -223,7 +223,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 				}
 			}
 		} else if isPureFunction {
-			currEx = EvalFunction(pureFunction, es, curr.GetParts()[1:])
+			currEx = evalFunction(pureFunction, es, curr.GetParts()[1:])
 		}
 		currExHash = hashEx(currEx)
 
@@ -363,11 +363,11 @@ func mergeSequences(this *atoms.Expression, es expreduceapi.EvalStateInterface, 
 	return res
 }
 
-func EvalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
+func evalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
 	if len(this.GetParts()) == 2 {
 		toReturn := this.GetParts()[1].DeepCopy()
 		for i, arg := range args {
-			toReturn = ReplaceAll(toReturn,
+			toReturn = replaceAll(toReturn,
 				atoms.NewExpression([]expreduceapi.Ex{
 					atoms.NewSymbol("System`Rule"),
 					atoms.NewExpression([]expreduceapi.Ex{
@@ -387,7 +387,7 @@ func EvalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, ar
 			return this
 		}
 		toReturn := this.GetParts()[2].DeepCopy()
-		toReturn = ReplaceAll(toReturn,
+		toReturn = replaceAll(toReturn,
 			atoms.NewExpression([]expreduceapi.Ex{
 				atoms.NewSymbol("System`Rule"),
 				repSym,
@@ -400,7 +400,7 @@ func EvalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, ar
 	return this
 }
 
-func ExprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.ExpressionInterface, stopAtHead string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func exprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.ExpressionInterface, stopAtHead string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
 	es.Debugf("Rule r is: %s", r)
 
@@ -419,7 +419,7 @@ func ExprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.Expres
 			if thisSym.Name == otherSym.Name {
 				attrs := thisSym.Attrs(es.GetDefinedMap())
 				if attrs.Flat {
-					return FlatReplace(this, lhsExpr, r.GetParts()[2], attrs.Orderless, es)
+					return flatReplace(this, lhsExpr, r.GetParts()[2], attrs.Orderless, es)
 				}
 			}
 		}
@@ -427,7 +427,7 @@ func ExprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.Expres
 
 	maybeChanged := atoms.NewEmptyExpression()
 	for i := range this.GetParts() {
-		maybeChanged.AppendEx(ReplaceAll(this.GetParts()[i], r, es, matcher.EmptyPD(), stopAtHead))
+		maybeChanged.AppendEx(replaceAll(this.GetParts()[i], r, es, matcher.EmptyPD(), stopAtHead))
 	}
 	if hashEx(maybeChanged) != hashEx(this) {
 		return maybeChanged

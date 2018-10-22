@@ -70,7 +70,7 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 	return e.DeepCopy()
 }
 
-func TryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string, string, bool) {
+func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string, string, bool) {
 	pathSym := atoms.NewSymbol("System`$Path")
 	path, isDef, _ := es.GetDef("System`$Path", pathSym)
 	if !isDef {
@@ -218,11 +218,11 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 	return toReturn, true
 }
 
-func GetSystemDefinitions() (defs []Definition) {
+func getSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceSetLogging",
 		Details:           "Logging output prints to the console. There can be a lot of logging output, especially for more complicated pattern matches. Valid levels are `Debug`, `Info`, `Notice`, `Warning`, `Error`, and `Critical`.",
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
 				return this
@@ -257,7 +257,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceDefinitionTimes",
 		Details:           "For timing information to record, debug mode must be enabled through `ExpreduceSetLogging`.",
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if *mymemprofile != "" {
 				f, err := os.Create(*mymemprofile)
@@ -345,11 +345,11 @@ func GetSystemDefinitions() (defs []Definition) {
 			}
 			stringParams := params
 			stringParams.Context, stringParams.ContextPath =
-				DefinitionComplexityStringFormArgs()
+				definitionComplexityStringFormArgs()
 			stringParams.PreviousHead = "<TOPLEVEL>"
 			// To prevent things like "Definition[In]" from exploding:
 			stringParams.Esi = nil
-			return true, StringForm(&def, sym, stringParams)
+			return true, stringForm(&def, sym, stringParams)
 		},
 	})
 	defs = append(defs, Definition{
@@ -390,7 +390,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.GetParts()[1:], " = ", "System`Set", false, "", "", params)
+			return toStringInfixAdvanced(this.GetParts()[1:], " = ", "System`Set", false, "", "", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
@@ -438,7 +438,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.GetParts()[1:], " := ", "System`SetDelayed", false, "", "", params)
+			return toStringInfixAdvanced(this.GetParts()[1:], " := ", "System`SetDelayed", false, "", "", params)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
@@ -530,11 +530,11 @@ func GetSystemDefinitions() (defs []Definition) {
 				return this
 			}
 
-			context, ContextPath := ActualStringFormArgs(es)
+			context, contextPath := actualStringFormArgs(es)
 			stringParams := expreduceapi.ToStringParams{
 				Form:         "OutputForm",
 				Context:      context,
-				ContextPath:  ContextPath,
+				ContextPath:  contextPath,
 				PreviousHead: "<TOPLEVEL>",
 				Esi:          es,
 			}
@@ -587,50 +587,50 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceFlatFn",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Attributes:        []string{"Flat"},
 	})
 	defs = append(defs, Definition{
 		Name:              "ExpreduceOrderlessFn",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Attributes:        []string{"Orderless"},
 	})
 	defs = append(defs, Definition{
 		Name:              "ExpreduceOneIdentityFn",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Attributes:        []string{"OneIdentity"},
 	})
 	defs = append(defs, Definition{
 		Name:              "ExpreduceFlatFn2",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Attributes:        []string{"Flat"},
 	})
 	defs = append(defs, Definition{
 		Name:              "ExpreduceFlOrFn",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Attributes:        []string{"Flat", "Orderless"},
 	})
 	defs = append(defs, Definition{
 		Name:              "ExpreduceFlOiFn",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Attributes:        []string{"Flat", "OneIdentity"},
 	})
 	defs = append(defs, Definition{
 		Name:              "ExpreduceFlOrOiFn",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Attributes:        []string{"Flat", "Orderless", "OneIdentity"},
 	})
 	defs = append(defs, Definition{
 		Name:              "ExpreduceLikePlus",
 		Default:           "0",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Attributes:        []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
 	})
 	defs = append(defs, Definition{
@@ -639,7 +639,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			fileData, rawPath, ok := TryReadFile(this.GetParts()[1], es)
+			fileData, rawPath, ok := tryReadFile(this.GetParts()[1], es)
 			if !ok {
 				return atoms.NewSymbol("System`$Failed")
 			}
@@ -663,7 +663,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ESameTest",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		Bootstrap:         true,
 		Attributes:        []string{"HoldAll", "SequenceHold"},
 	})
@@ -684,7 +684,7 @@ func GetSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			fileData, rawPath, ok := TryReadFile(this.GetParts()[1], es)
+			fileData, rawPath, ok := tryReadFile(this.GetParts()[1], es)
 			if !ok {
 				return atoms.NewSymbol("System`$Failed")
 			}
@@ -737,7 +737,7 @@ func GetSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceMaskNonConditional",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 2 {
 				return this

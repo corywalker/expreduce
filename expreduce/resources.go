@@ -1323,7 +1323,7 @@ func Asset(name string) ([]byte, error) {
 
 // MustAsset is like Asset but panics when Asset would return an error.
 // It simplifies safe initialization of global variables.
-func MustAsset(name string) []byte {
+func mustAsset(name string) []byte {
 	a, err := Asset(name)
 	if err != nil {
 		panic("asset: Asset(" + name + "): " + err.Error())
@@ -1432,13 +1432,13 @@ var _bindata = map[string]func() (*asset, error){
 // AssetDir("data/img") would return []string{"a.png", "b.png"}
 // AssetDir("foo.txt") and AssetDir("notexist") would return an error
 // AssetDir("") will return []string{"data"}.
-func AssetDir(name string) ([]string, error) {
+func assetDir(name string) ([]string, error) {
 	node := _bintree
 	if len(name) != 0 {
 		cannonicalName := strings.Replace(name, "\\", "/", -1)
 		pathList := strings.Split(cannonicalName, "/")
 		for _, p := range pathList {
-			node = node.Children[p]
+			node = node.children[p]
 			if node == nil {
 				return nil, fmt.Errorf("Asset %s not found", name)
 			}
@@ -1447,8 +1447,8 @@ func AssetDir(name string) ([]string, error) {
 	if node.Func != nil {
 		return nil, fmt.Errorf("Asset %s not found", name)
 	}
-	rv := make([]string, 0, len(node.Children))
-	for childName := range node.Children {
+	rv := make([]string, 0, len(node.children))
+	for childName := range node.children {
 		rv = append(rv, childName)
 	}
 	return rv, nil
@@ -1456,7 +1456,7 @@ func AssetDir(name string) ([]string, error) {
 
 type bintree struct {
 	Func     func() (*asset, error)
-	Children map[string]*bintree
+	children map[string]*bintree
 }
 
 var _bintree = &bintree{nil, map[string]*bintree{
@@ -1526,7 +1526,7 @@ var _bintree = &bintree{nil, map[string]*bintree{
 }}
 
 // RestoreAsset restores an asset under the given directory
-func RestoreAsset(dir, name string) error {
+func restoreAsset(dir, name string) error {
 	data, err := Asset(name)
 	if err != nil {
 		return err
@@ -1551,15 +1551,15 @@ func RestoreAsset(dir, name string) error {
 }
 
 // RestoreAssets restores an asset under the given directory recursively
-func RestoreAssets(dir, name string) error {
-	children, err := AssetDir(name)
+func restoreAssets(dir, name string) error {
+	children, err := assetDir(name)
 	// File
 	if err != nil {
-		return RestoreAsset(dir, name)
+		return restoreAsset(dir, name)
 	}
 	// Dir
 	for _, child := range children {
-		err = RestoreAssets(dir, filepath.Join(name, child))
+		err = restoreAssets(dir, filepath.Join(name, child))
 		if err != nil {
 			return err
 		}

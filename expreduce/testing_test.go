@@ -13,11 +13,11 @@ func TestTesting(t *testing.T) {
 
 	es := NewEvalState()
 
-	CasAssertSame(t, es, " 1 ", "    1")
-	succ, s := CasTestInner(es, es.Eval(parser.Interp(" 1. ", es)), es.Eval(parser.Interp("1  ", es)), " 1. ", true, "")
+	casAssertSame(t, es, " 1 ", "    1")
+	succ, s := casTestInner(es, es.Eval(parser.Interp(" 1. ", es)), es.Eval(parser.Interp("1  ", es)), " 1. ", true, "")
 	assert.False(t, succ, s)
-	CasAssertSame(t, es, "5.5", "1+1.5+3")
-	CasAssertDiff(t, es, "5.6", "1+1.5+3")
-	CasAssertSame(t, es, "9", "If[True, 9, 10]")
-	CasAssertDiff(t, es, " 1. ", "    1")
+	casAssertSame(t, es, "5.5", "1+1.5+3")
+	casAssertDiff(t, es, "5.6", "1+1.5+3")
+	casAssertSame(t, es, "9", "If[True, 9, 10]")
+	casAssertDiff(t, es, " 1. ", "    1")
 }

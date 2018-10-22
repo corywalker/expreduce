@@ -97,7 +97,7 @@ func extractPower(x *big.Int, r *atoms.Rational) expreduceapi.Ex {
 	return toReturn
 }
 
-func RadSimp(radicand *big.Int, index *big.Int) (*big.Int, *big.Int) {
+func radSimp(radicand *big.Int, index *big.Int) (*big.Int, *big.Int) {
 	i := big.NewInt(2)
 	pow := big.NewInt(0)
 	mod := big.NewInt(0)
@@ -116,12 +116,12 @@ func RadSimp(radicand *big.Int, index *big.Int) (*big.Int, *big.Int) {
 	return nil, nil
 }
 
-func GetPowerDefinitions() (defs []Definition) {
+func getPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Power",
 		Default: "1",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfixAdvanced(this.GetParts()[1:], "^", "System`Power", false, "", "", params)
+			return toStringInfixAdvanced(this.GetParts()[1:], "^", "System`Power", false, "", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
@@ -291,7 +291,7 @@ func GetPowerDefinitions() (defs []Definition) {
 				if nPositivity == 1 {
 					absX := big.NewInt(0)
 					absX.Abs(x)
-					extracted, radicand := RadSimp(absX, n)
+					extracted, radicand := radSimp(absX, n)
 					if extracted != nil {
 						if xPositivity == -1 {
 							radicand.Neg(radicand)
@@ -347,7 +347,7 @@ func GetPowerDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "PSimplify",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 	})
 	defs = append(defs, Definition{Name: "FactorSquareFree"})
 	defs = append(defs, Definition{

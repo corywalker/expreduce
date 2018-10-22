@@ -39,7 +39,7 @@ func (es *EvalState) GetStringFn(headStr string) (expreduceapi.ToStringFnType, b
 	return fn, ok
 }
 
-func (this *EvalState) Load(def Definition) {
+func (this *EvalState) load(def Definition) {
 	// TODO: deprecate most of this. We should be using .m files now.
 	def.Name = this.GetStringDef("System`$Context", "") + def.Name
 	this.MarkSeen(def.Name)
@@ -225,7 +225,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
 				if def.Bootstrap {
-					es.Load(def)
+					es.load(def)
 				}
 			}
 		}
@@ -233,7 +233,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		for _, defSet := range GetAllDefinitions() {
 			for _, def := range defSet.Defs {
 				if !def.Bootstrap {
-					es.Load(def)
+					es.load(def)
 				}
 			}
 			fn := fmt.Sprintf("resources/%v.m", defSet.Name)
@@ -246,7 +246,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		}
 		// System initialization
 		fn := "resources/init.m"
-		data := MustAsset(fn)
+		data := mustAsset(fn)
 		parser.EvalInterpMany(string(data), fn, es)
 	}
 	parser.EvalInterp("$Context = \"Global`\"", es)
@@ -308,7 +308,7 @@ func (this *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex
 			started = time.Now().UnixNano()
 		}
 
-		res, replaced := Replace(lhs, def, this)
+		res, replaced := replace(lhs, def, this)
 
 		if this.IsProfiling() {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
@@ -354,7 +354,7 @@ func (this *EvalState) DefineAttrs(sym *atoms.Symbol, rhs expreduceapi.Ex) {
 	this.defined.Set(sym.Name, tmp)
 }
 
-func (this *EvalState) DefineDownValues(sym *atoms.Symbol, rhs expreduceapi.Ex) {
+func (this *EvalState) defineDownValues(sym *atoms.Symbol, rhs expreduceapi.Ex) {
 	dvList, isList := atoms.HeadAssertion(rhs, "System`List")
 	if !isList {
 		fmt.Println("Assignment to DownValues must be List of Rules.")
@@ -408,11 +408,11 @@ func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *
 	// to attempt f[x_Integer] before we attempt f[x_]. If LHSs map to the same
 	// "complexity" score, order then matters. TODO: Create better measure of
 	// complexity (or specificity)
-	context, ContextPath := DefinitionComplexityStringFormArgs()
+	context, contextPath := definitionComplexityStringFormArgs()
 	stringParams := expreduceapi.ToStringParams{
 		Form:        "InputForm",
 		Context:     context,
-		ContextPath: ContextPath,
+		ContextPath: contextPath,
 		// No need for the EvalState reference. Used for string expansion for
 		// Definition[], which should not be in an actual definition.
 		Esi: es,
@@ -434,34 +434,34 @@ func (this *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	// This function used to require a name as a parameter. Centralize the logic
 	// here.
 	name := ""
-	LhsSym, ok := lhs.(*atoms.Symbol)
+	lhsSym, ok := lhs.(*atoms.Symbol)
 	if ok {
-		name = LhsSym.Name
+		name = lhsSym.Name
 	}
-	LhsF, ok := lhs.(expreduceapi.ExpressionInterface)
+	lhsF, ok := lhs.(expreduceapi.ExpressionInterface)
 	if ok {
-		headAsSym, headIsSym := LhsF.GetParts()[0].(*atoms.Symbol)
+		headAsSym, headIsSym := lhsF.GetParts()[0].(*atoms.Symbol)
 		if headIsSym {
 			name = headAsSym.Name
 			if name == "System`Attributes" {
-				if len(LhsF.GetParts()) != 2 {
+				if len(lhsF.GetParts()) != 2 {
 					return
 				}
-				modifiedSym, modifiedIsSym := LhsF.GetParts()[1].(*atoms.Symbol)
+				modifiedSym, modifiedIsSym := lhsF.GetParts()[1].(*atoms.Symbol)
 				if !modifiedIsSym {
 					return
 				}
 				this.DefineAttrs(modifiedSym, rhs)
 				return
 			} else if name == "System`DownValues" {
-				if len(LhsF.GetParts()) != 2 {
+				if len(lhsF.GetParts()) != 2 {
 					return
 				}
-				modifiedSym, modifiedIsSym := LhsF.GetParts()[1].(*atoms.Symbol)
+				modifiedSym, modifiedIsSym := lhsF.GetParts()[1].(*atoms.Symbol)
 				if !modifiedIsSym {
 					return
 				}
-				this.DefineDownValues(modifiedSym, rhs)
+				this.defineDownValues(modifiedSym, rhs)
 				return
 			}
 		}

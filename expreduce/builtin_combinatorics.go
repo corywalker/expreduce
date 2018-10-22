@@ -19,7 +19,7 @@ func genIntegerPartitions(n int, k int, startAt int, prefix []int, parts *[][]in
 			*parts = append(*parts, make([]int, len(prefix)))
 			copy((*parts)[len(*parts)-1], prefix)
 		} else {
-			genIntegerPartitions(n-i, k, Min(i, n-i), prefix, parts)
+			genIntegerPartitions(n-i, k, min(i, n-i), prefix, parts)
 		}
 	}
 }

@@ -31,7 +31,7 @@ func distribute(e expreduceapi.ExpressionInterface, built expreduceapi.Expressio
 	return
 }
 
-func GetManipDefinitions() (defs []Definition) {
+func getManipDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Together"})
 	defs = append(defs, Definition{Name: "Numerator"})
 	defs = append(defs, Definition{Name: "Denominator"})

@@ -5,11 +5,11 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func GetBooleanDefinitions() (defs []Definition) {
+func getBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "And",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfix(this.GetParts()[1:], " && ", "", params)
+			return toStringInfix(this.GetParts()[1:], " && ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`And")})
@@ -35,7 +35,7 @@ func GetBooleanDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Or",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfix(this.GetParts()[1:], " || ", "", params)
+			return toStringInfix(this.GetParts()[1:], " || ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Or")})

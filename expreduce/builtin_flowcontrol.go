@@ -48,7 +48,7 @@ func isBreak(e expreduceapi.Ex) bool {
 	return isBr
 }
 
-func GetFlowControlDefinitions() (defs []Definition) {
+func getFlowControlDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "If",
 		// WARNING: Watch out for putting rules here. It can interfere with how

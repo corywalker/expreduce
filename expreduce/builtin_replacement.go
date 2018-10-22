@@ -35,14 +35,14 @@ func rulesReplaceAll(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface
 	// TODO: fix the case where ReplaceAll[{x},{x->y,y->z}] returns incorrectly.
 	toReturn := e
 	for _, rule := range rules {
-		toReturn = ReplaceAll(toReturn, rule, es, matcher.EmptyPD(), "")
+		toReturn = replaceAll(toReturn, rule, es, matcher.EmptyPD(), "")
 	}
 	return toReturn
 }
 
 func rulesReplace(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	for _, rule := range rules {
-		res, replaced := Replace(e, rule, es)
+		res, replaced := replace(e, rule, es)
 		if replaced {
 			return res, true
 		}
@@ -89,7 +89,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.GetParts()[1:], " /. ", "", true, "", "", params)
+			return toStringInfixAdvanced(this.GetParts()[1:], " /. ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
@@ -115,7 +115,7 @@ func getReplacementDefinitions() (defs []Definition) {
 				return this
 			}
 			for _, rule := range rules {
-				toReturn, replaced := Replace(this.GetParts()[1], rule, es)
+				toReturn, replaced := replace(this.GetParts()[1], rule, es)
 				if replaced {
 					return toReturn
 				}
@@ -129,7 +129,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return ToStringInfixAdvanced(this.GetParts()[1:], " //. ", "", true, "", "", params)
+			return toStringInfixAdvanced(this.GetParts()[1:], " //. ", "", true, "", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
@@ -168,7 +168,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if params.Form == "TeXForm" {
 				delim = "\\to "
 			}
-			return ToStringInfixAdvanced(this.GetParts()[1:], delim, "System`Rule", false, "", "", params)
+			return toStringInfixAdvanced(this.GetParts()[1:], delim, "System`Rule", false, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{
@@ -181,7 +181,7 @@ func getReplacementDefinitions() (defs []Definition) {
 			if params.Form == "TeXForm" {
 				delim = ":\\to "
 			}
-			return ToStringInfixAdvanced(this.GetParts()[1:], delim, "System`RuleDelayed", false, "", "", params)
+			return toStringInfixAdvanced(this.GetParts()[1:], delim, "System`RuleDelayed", false, "", "", params)
 		},
 	})
 	defs = append(defs, Definition{

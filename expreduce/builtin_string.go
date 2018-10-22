@@ -8,7 +8,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func GetStringDefinitions() (defs []Definition) {
+func getStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ToString",
 		// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
@@ -27,11 +27,11 @@ func GetStringDefinitions() (defs []Definition) {
 				return this
 			}
 
-			context, ContextPath := ActualStringFormArgs(es)
+			context, contextPath := actualStringFormArgs(es)
 			stringParams := expreduceapi.ToStringParams{
 				Form:         formAsSymbol.Name[7:],
 				Context:      context,
-				ContextPath:  ContextPath,
+				ContextPath:  contextPath,
 				PreviousHead: "<TOPLEVEL>",
 				Esi:          es,
 			}
@@ -41,7 +41,7 @@ func GetStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "StringJoin",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfix(this.GetParts()[1:], " <> ", "", params)
+			return toStringInfix(this.GetParts()[1:], " <> ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			toReturn := ""
@@ -57,7 +57,7 @@ func GetStringDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:     "Infix",
-		toString: ToStringInfixFn,
+		toString: toStringInfixFn,
 	})
 	defs = append(defs, Definition{
 		Name: "StringLength",

@@ -6,11 +6,11 @@ import (
 )
 
 func EasyRun(in string, es expreduceapi.EvalStateInterface) string {
-	context, ContextPath := ActualStringFormArgs(es)
+	context, contextPath := actualStringFormArgs(es)
 	stringParams := expreduceapi.ToStringParams{
 		Form:        "InputForm",
 		Context:     context,
-		ContextPath: ContextPath,
+		ContextPath: contextPath,
 		Esi:         es,
 	}
 	return parser.EvalInterp(in, es).StringForm(stringParams)

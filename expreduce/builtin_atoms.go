@@ -51,12 +51,12 @@ func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "Im",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 	})
 	defs = append(defs, Definition{
 		Name:              "Re",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 	})
 	return
 }

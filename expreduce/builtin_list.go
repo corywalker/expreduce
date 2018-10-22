@@ -15,7 +15,7 @@ import (
 const maxUint64 = ^uint64(0)
 const maxInt64 = int64(maxUint64 >> 1)
 
-func ToStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+func toStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 	if params.Form == "FullForm" {
 		return false, ""
 	}
@@ -43,7 +43,7 @@ func ToStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToS
 	return true, buffer.String()
 }
 
-func MemberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi.EvalStateInterface) bool {
+func memberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi.EvalStateInterface) bool {
 	for _, part := range components {
 		if matchq, _ := matcher.IsMatchQ(part, item, matcher.EmptyPD(), es); matchq {
 			return true
@@ -52,7 +52,7 @@ func MemberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi
 	return false
 }
 
-func ValidatePadParams(this expreduceapi.ExpressionInterface) (list expreduceapi.ExpressionInterface, n int64, x expreduceapi.Ex, valid bool) {
+func validatePadParams(this expreduceapi.ExpressionInterface) (list expreduceapi.ExpressionInterface, n int64, x expreduceapi.Ex, valid bool) {
 	valid = false
 	x = atoms.NewInteger(big.NewInt(0))
 	if len(this.GetParts()) == 4 {
@@ -148,7 +148,7 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 	return nil, false
 }
 
-func ThreadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionInterface, bool) {
+func threadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionInterface, bool) {
 	lengths := []int{}
 	for i := 1; i < len(expr.GetParts()); i++ {
 		list, isList := atoms.HeadAssertion(expr.GetParts()[i], "System`List")
@@ -190,10 +190,10 @@ func countFunctionLevelSpec(pattern expreduceapi.Ex, e expreduceapi.Ex, partList
 	return e
 }
 
-func GetListDefinitions() (defs []Definition) {
+func getListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:     "List",
-		toString: ToStringList,
+		toString: toStringList,
 	})
 	defs = append(defs, Definition{
 		Name: "Total",
@@ -261,7 +261,7 @@ func GetListDefinitions() (defs []Definition) {
 			}
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				if MemberQ(expr.GetParts()[1:], this.GetParts()[2], es) {
+				if memberQ(expr.GetParts()[1:], this.GetParts()[2], es) {
 					return atoms.NewSymbol("System`True")
 				}
 			}
@@ -400,7 +400,7 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "PadRight",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			list, n, x, valid := ValidatePadParams(this)
+			list, n, x, valid := validatePadParams(this)
 			if !valid {
 				return this
 			}
@@ -418,7 +418,7 @@ func GetListDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "PadLeft",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			list, n, x, valid := ValidatePadParams(this)
+			list, n, x, valid := validatePadParams(this)
 			if !valid {
 				return this
 			}
@@ -478,7 +478,7 @@ func GetListDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this.GetParts()[1]
 			}
-			newExpr, _ := ThreadExpr(expr)
+			newExpr, _ := threadExpr(expr)
 			return newExpr
 		},
 	})

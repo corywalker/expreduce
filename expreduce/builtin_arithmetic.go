@@ -118,7 +118,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 		Name:    "Plus",
 		Default: "0",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringInfix(this.GetParts()[1:], " + ", "System`Plus", params)
+			return toStringInfix(this.GetParts()[1:], " + ", "System`Plus", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
@@ -171,7 +171,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 			if params.Form == "TeXForm" {
 				delim = " "
 			}
-			ok, res := ToStringInfix(this.GetParts()[1:], delim, "System`Times", params)
+			ok, res := toStringInfix(this.GetParts()[1:], delim, "System`Times", params)
 			if ok && strings.HasPrefix(res, "(-1)"+delim) {
 				return ok, "-" + res[5:]
 			}
@@ -192,7 +192,7 @@ func getArithmeticDefinitions() (defs []Definition) {
 				res = atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Times")})
 				rAsInt, rIsInt := realPart.(*atoms.Integer)
 				if rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0 {
-					containsInfinity := MemberQ(this.GetParts()[symStart:], atoms.NewExpression([]expreduceapi.Ex{
+					containsInfinity := memberQ(this.GetParts()[symStart:], atoms.NewExpression([]expreduceapi.Ex{
 						atoms.NewSymbol("System`Alternatives"),
 						atoms.NewSymbol("System`Infinity"),
 						atoms.NewSymbol("System`ComplexInfinity"),

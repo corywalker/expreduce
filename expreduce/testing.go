@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type TestDesc struct {
+type testDesc struct {
 	module string
 	def    Definition
 	desc   string
 }
 
 type TestInstruction interface {
-	Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool
+	run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool
 }
 
 type SameTest struct {
@@ -25,8 +25,8 @@ type SameTest struct {
 	In  string
 }
 
-func (this *SameTest) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
-	return CasAssertDescSame(t, es, this.Out, this.In, td.desc)
+func (this *SameTest) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+	return casAssertDescSame(t, es, this.Out, this.In, td.desc)
 }
 
 type StringTest struct {
@@ -34,7 +34,7 @@ type StringTest struct {
 	In  string
 }
 
-func (this *StringTest) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
+func (this *StringTest) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
 	return assert.Equal(t, this.Out, EasyRun(this.In, es), td.desc)
 }
 
@@ -43,13 +43,13 @@ type ExampleOnlyInstruction struct {
 	In  string
 }
 
-func (this *ExampleOnlyInstruction) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
+func (this *ExampleOnlyInstruction) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
 	return true
 }
 
 type ResetState struct{}
 
-func (this *ResetState) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
+func (this *ResetState) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
 	es.ClearAll()
 	return true
 }
@@ -58,7 +58,7 @@ type TestComment struct {
 	Comment string
 }
 
-func (this *TestComment) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
+func (this *TestComment) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
 	return true
 }
 
@@ -67,13 +67,13 @@ type SameTestEx struct {
 	In  expreduceapi.Ex
 }
 
-func (this *SameTestEx) Run(t *testing.T, es expreduceapi.EvalStateInterface, td TestDesc) bool {
-	succ, s := CasTestInner(es, es.Eval(this.In), es.Eval(this.Out), this.In.String(es), true, td.desc)
+func (this *SameTestEx) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+	succ, s := casTestInner(es, es.Eval(this.In), es.Eval(this.Out), this.In.String(es), true, td.desc)
 	assert.True(t, succ, s)
 	return succ
 }
 
-func CasTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, outTree expreduceapi.Ex, inStr string, test bool, desc string) (succ bool, s string) {
+func casTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, outTree expreduceapi.Ex, inStr string, test bool, desc string) (succ bool, s string) {
 	theTestTree := atoms.NewExpression([]expreduceapi.Ex{
 		atoms.NewSymbol("System`SameQ"),
 		atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Hold"), inTree}),
@@ -82,16 +82,16 @@ func CasTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 
 	theTest := es.Eval(theTestTree)
 
-	context, ContextPath := DefinitionComplexityStringFormArgs()
+	context, contextPath := definitionComplexityStringFormArgs()
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(inTree.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: es}))
+	buffer.WriteString(inTree.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: es}))
 	if test {
 		buffer.WriteString(") != (")
 	} else {
 		buffer.WriteString(") == (")
 	}
-	buffer.WriteString(outTree.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: ContextPath, Esi: es}))
+	buffer.WriteString(outTree.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: es}))
 	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
 	buffer.WriteString(inStr)
@@ -110,20 +110,20 @@ func CasTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 	return resSym.Name == "System`False", buffer.String()
 }
 
-func CasAssertSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
-	succ, s := CasTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, true, "")
+func casAssertSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
+	succ, s := casTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, true, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
-func CasAssertDiff(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
-	succ, s := CasTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, false, "")
+func casAssertDiff(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
+	succ, s := casTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, false, "")
 	assert.True(t, succ, s)
 	return succ
 }
 
-func CasAssertDescSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string, desc string) bool {
-	succ, s := CasTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, true, desc)
+func casAssertDescSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string, desc string) bool {
+	succ, s := casTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, true, desc)
 	assert.True(t, succ, s)
 	return succ
 }

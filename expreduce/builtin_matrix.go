@@ -61,7 +61,7 @@ func calcIJ(i, j, innerDim int64, a, b expreduceapi.ExpressionInterface) expredu
 	return toReturn
 }
 
-func GetMatrixDefinitions() (defs []Definition) {
+func getMatrixDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Inverse",
 		Details: "The row-reduce method has not been added yet, but the shortcuts to finding the inverses of matrices up to 3x3 have been added.",

@@ -7,7 +7,7 @@ import (
 )
 
 // This function assumes e and lhs have the same head and that the head is Flat.
-func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.ExpressionInterface, rhs expreduceapi.Ex, orderless bool, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func flatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.ExpressionInterface, rhs expreduceapi.Ex, orderless bool, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	looseLhs := atoms.NewExpression([]expreduceapi.Ex{})
 	looseLhs.AppendEx(lhs.GetParts()[0])
 	if !orderless {
@@ -54,7 +54,7 @@ func FlatReplace(e expreduceapi.ExpressionInterface, lhs expreduceapi.Expression
 // RHS upon successful matches. We will NOT substitute any named patterns in
 // the RHS. We will merely make sure that the named patterns are added to pm.
 // Final named pattern substitution will occur at the last possible time.
-func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, pm *matcher.PDManager,
+func replaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, pm *matcher.PDManager,
 	stopAtHead string) expreduceapi.Ex {
 	asExpression, isExpression := this.(expreduceapi.ExpressionInterface)
 
@@ -65,7 +65,7 @@ func ReplaceAll(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es exp
 		} else {
 			// Continue recursion
 			es.Debugf("ReplaceAll(%v, %v, es, %v)", this, r, pm)
-			return ExprReplaceAll(asExpression, r, stopAtHead, es)
+			return exprReplaceAll(asExpression, r, stopAtHead, es)
 		}
 	}
 	if res, matches := matcher.IsMatchQ(this, r.GetParts()[1], pm, es); res {
@@ -111,7 +111,7 @@ func tryCondWithMatches(rhs expreduceapi.Ex, matches *matcher.PDManager, es expr
 	return rhs, true
 }
 
-func Replace(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
+func replace(this expreduceapi.Ex, r expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
 	mi, cont := matcher.NewMatchIter(this, r.GetParts()[1], matcher.EmptyPD(), es)
 	for cont {
 		res, matches, done := mi.Next()

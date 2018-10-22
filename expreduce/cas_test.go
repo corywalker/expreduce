@@ -53,7 +53,7 @@ func TestIncludedModules(t *testing.T) {
 			}
 			parser.EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
 			def.AnnotateWithDynamic(es)
-			td := TestDesc{
+			td := testDesc{
 				module: defSet.Name,
 				def:    def,
 			}
@@ -63,7 +63,7 @@ func TestIncludedModules(t *testing.T) {
 				if *verbosetest {
 					fmt.Println(test)
 				}
-				test.Run(t, es, td)
+				test.run(t, es, td)
 				i += 1
 			}
 			for _, test := range def.FurtherExamples {
@@ -71,7 +71,7 @@ func TestIncludedModules(t *testing.T) {
 				if *verbosetest {
 					fmt.Println(test)
 				}
-				test.Run(t, es, td)
+				test.run(t, es, td)
 				i += 1
 			}
 			for _, test := range def.Tests {
@@ -79,7 +79,7 @@ func TestIncludedModules(t *testing.T) {
 				if *verbosetest {
 					fmt.Println(test)
 				}
-				test.Run(t, es, td)
+				test.run(t, es, td)
 				i += 1
 			}
 			for _, test := range def.KnownFailures {
@@ -87,7 +87,7 @@ func TestIncludedModules(t *testing.T) {
 				if *verbosetest {
 					fmt.Println(test)
 				}
-				if test.Run(&mockT, es, td) {
+				if test.run(&mockT, es, td) {
 					fmt.Printf("Previously failing test is now passing: %v\n", test)
 				}
 				i += 1
@@ -95,7 +95,7 @@ func TestIncludedModules(t *testing.T) {
 			/*for _, test := range def.KnownDangerous {
 				td.desc = fmt.Sprintf("%s.%s #%d", defSet.Name, def.Name, i)
 				fmt.Printf("Running %v\n", test)
-				test.Run(t, es, td)
+				test.run(t, es, td)
 				i += 1
 			}*/
 			numTests += i
@@ -143,7 +143,7 @@ func TestLowLevel(t *testing.T) {
 	})
 
 	for numi := 0; numi < 700000; numi++ {
-		Replace(lhs, rule, es)
+		replace(lhs, rule, es)
 	}
 
 	// Test basic float functionality
@@ -182,10 +182,10 @@ func TestLowLevel(t *testing.T) {
 	es.Eval(v)
 	assert.Equal(t, "x", v.String(es))
 
-	CasAssertSame(t, es, "(a + b + c + d + e + f)", "a + b + c +d +e +f")
-	CasAssertSame(t, es, "(a*b*c*d*e*f)", "a * b * c *d *e *f")
+	casAssertSame(t, es, "(a + b + c + d + e + f)", "a + b + c +d +e +f")
+	casAssertSame(t, es, "(a*b*c*d*e*f)", "a * b * c *d *e *f")
 
-	CasAssertSame(t, es, "2", "iubjndxuier = 2")
+	casAssertSame(t, es, "2", "iubjndxuier = 2")
 	_, containsTest := es.GetDefinedMap().Get("Global`iubjndxuier")
 	assert.True(t, containsTest)
 	es.ClearAll()
@@ -236,8 +236,8 @@ func TestConcurrency(t *testing.T) {
 	es1 := NewEvalState()
 	es2 := NewEvalState()
 
-	CasAssertSame(t, es1, "3", "1+2")
-	CasAssertSame(t, es2, "3", "1+2")
+	casAssertSame(t, es1, "3", "1+2")
+	casAssertSame(t, es2, "3", "1+2")
 
 	var wg sync.WaitGroup
 
@@ -247,7 +247,7 @@ func TestConcurrency(t *testing.T) {
 		go func(t *testing.T) {
 			defer wg.Done()
 			esTest := NewEvalState()
-			CasAssertSame(t, esTest, "3", "1+2")
+			casAssertSame(t, esTest, "3", "1+2")
 		}(t)
 	}
 	wg.Wait()
@@ -257,7 +257,7 @@ func TestConcurrency(t *testing.T) {
 		wg.Add(1)
 		go func(t *testing.T, es expreduceapi.EvalStateInterface) {
 			defer wg.Done()
-			CasAssertSame(t, es, "2x", "D[x^2, x]")
+			casAssertSame(t, es, "2x", "D[x^2, x]")
 		}(t, es1)
 	}
 	wg.Wait()

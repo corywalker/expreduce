@@ -1,13 +1,13 @@
 package expreduce
 
-func Max(x, y int) int {
+func max(x, y int) int {
 	if x > y {
 		return x
 	}
 	return y
 }
 
-func Min(x, y int) int {
+func min(x, y int) int {
 	if x < y {
 		return x
 	}

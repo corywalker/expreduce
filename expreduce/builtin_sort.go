@@ -8,7 +8,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func GetSortDefinitions() (defs []Definition) {
+func getSortDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Sort",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {

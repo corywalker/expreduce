@@ -16,7 +16,7 @@ type Definition struct {
 	// SetDelayed, we define it first.
 	Bootstrap         bool
 	OmitDocumentation bool
-	ExpreduceSpecific bool
+	expreduceSpecific bool
 	Details           string
 
 	// Map symbol to Eval() function
@@ -94,7 +94,7 @@ func ToTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 	return instructions
 }
 
-func (def *Definition) AnnotateWithDynamicTests(es expreduceapi.EvalStateInterface) {
+func (def *Definition) annotateWithDynamicTests(es expreduceapi.EvalStateInterface) {
 	tests, testsDef := es.GetSymDef("Tests`" + def.Name)
 	if !testsDef {
 		return
@@ -138,7 +138,7 @@ func (def *Definition) AnnotateWithDynamicTests(es expreduceapi.EvalStateInterfa
 	}
 }
 
-func (def *Definition) AnnotateWithDynamicUsage(es expreduceapi.EvalStateInterface) {
+func (def *Definition) annotateWithDynamicUsage(es expreduceapi.EvalStateInterface) {
 	if len(def.Usage) > 0 {
 		return
 	}
@@ -158,8 +158,8 @@ func (def *Definition) AnnotateWithDynamicUsage(es expreduceapi.EvalStateInterfa
 }
 
 func (def *Definition) AnnotateWithDynamic(es expreduceapi.EvalStateInterface) {
-	def.AnnotateWithDynamicTests(es)
-	def.AnnotateWithDynamicUsage(es)
+	def.annotateWithDynamicTests(es)
+	def.annotateWithDynamicUsage(es)
 }
 
 type NamedDefSet struct {
@@ -173,30 +173,30 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"comparison", getComparisonDefinitions()})
 	defs = append(defs, NamedDefSet{"atoms", getAtomsDefinitions()})
 	defs = append(defs, NamedDefSet{"functional", getFunctionalDefinitions()})
-	defs = append(defs, NamedDefSet{"expression", GetExpressionDefinitions()})
-	defs = append(defs, NamedDefSet{"equationdata", GetEquationDataDefinitions()})
-	defs = append(defs, NamedDefSet{"solve", GetSolveDefinitions()})
-	defs = append(defs, NamedDefSet{"flowcontrol", GetFlowControlDefinitions()})
-	defs = append(defs, NamedDefSet{"list", GetListDefinitions()})
-	defs = append(defs, NamedDefSet{"matrix", GetMatrixDefinitions()})
+	defs = append(defs, NamedDefSet{"expression", getExpressionDefinitions()})
+	defs = append(defs, NamedDefSet{"equationdata", getEquationDataDefinitions()})
+	defs = append(defs, NamedDefSet{"solve", getSolveDefinitions()})
+	defs = append(defs, NamedDefSet{"flowcontrol", getFlowControlDefinitions()})
+	defs = append(defs, NamedDefSet{"list", getListDefinitions()})
+	defs = append(defs, NamedDefSet{"matrix", getMatrixDefinitions()})
 	defs = append(defs, NamedDefSet{"arithmetic", getArithmeticDefinitions()})
 	defs = append(defs, NamedDefSet{"specialsyms", getSpecialSymsDefinitions()})
-	defs = append(defs, NamedDefSet{"power", GetPowerDefinitions()})
-	defs = append(defs, NamedDefSet{"random", GetRandomDefinitions()})
+	defs = append(defs, NamedDefSet{"power", getPowerDefinitions()})
+	defs = append(defs, NamedDefSet{"random", getRandomDefinitions()})
 	defs = append(defs, NamedDefSet{"replacement", getReplacementDefinitions()})
-	defs = append(defs, NamedDefSet{"sort", GetSortDefinitions()})
-	defs = append(defs, NamedDefSet{"system", GetSystemDefinitions()})
-	defs = append(defs, NamedDefSet{"trig", GetTrigDefinitions()})
-	defs = append(defs, NamedDefSet{"plot", GetPlotDefinitions()})
-	defs = append(defs, NamedDefSet{"string", GetStringDefinitions()})
-	defs = append(defs, NamedDefSet{"time", GetTimeDefinitions()})
-	defs = append(defs, NamedDefSet{"pattern", GetPatternDefinitions()})
-	defs = append(defs, NamedDefSet{"boolean", GetBooleanDefinitions()})
-	defs = append(defs, NamedDefSet{"simplify", GetSimplifyDefinitions()})
-	defs = append(defs, NamedDefSet{"numbertheory", GetNumberTheoryDefinitions()})
-	defs = append(defs, NamedDefSet{"stats", GetStatsDefinitions()})
-	defs = append(defs, NamedDefSet{"manip", GetManipDefinitions()})
-	defs = append(defs, NamedDefSet{"rubi", GetRubiDefinitions()})
+	defs = append(defs, NamedDefSet{"sort", getSortDefinitions()})
+	defs = append(defs, NamedDefSet{"system", getSystemDefinitions()})
+	defs = append(defs, NamedDefSet{"trig", getTrigDefinitions()})
+	defs = append(defs, NamedDefSet{"plot", getPlotDefinitions()})
+	defs = append(defs, NamedDefSet{"string", getStringDefinitions()})
+	defs = append(defs, NamedDefSet{"time", getTimeDefinitions()})
+	defs = append(defs, NamedDefSet{"pattern", getPatternDefinitions()})
+	defs = append(defs, NamedDefSet{"boolean", getBooleanDefinitions()})
+	defs = append(defs, NamedDefSet{"simplify", getSimplifyDefinitions()})
+	defs = append(defs, NamedDefSet{"numbertheory", getNumberTheoryDefinitions()})
+	defs = append(defs, NamedDefSet{"stats", getStatsDefinitions()})
+	defs = append(defs, NamedDefSet{"manip", getManipDefinitions()})
+	defs = append(defs, NamedDefSet{"rubi", getRubiDefinitions()})
 
 	// Check for duplicate definitions
 	definedNames := make(map[string]bool)

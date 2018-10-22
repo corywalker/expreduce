@@ -8,7 +8,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func GetTimeDefinitions() (defs []Definition) {
+func getTimeDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "UnixTime",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {

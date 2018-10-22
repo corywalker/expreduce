@@ -8,7 +8,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p expreduceapi.ToStringParams) (bool, string) {
+func toStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p expreduceapi.ToStringParams) (bool, string) {
 	if p.Form != "InputForm" && p.Form != "OutputForm" && p.Form != "TeXForm" {
 		return false, ""
 	}
@@ -42,7 +42,7 @@ func ToStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 	return true, buffer.String()
 }
 
-func ToStringInfixFn(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
+func toStringInfixFn(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
 	if len(this.GetParts()) != 3 {
 		return false, ""
 	}
@@ -51,11 +51,11 @@ func ToStringInfixFn(this expreduceapi.ExpressionInterface, p expreduceapi.ToStr
 	if !isExpr || !delimIsStr {
 		return false, ""
 	}
-	return ToStringInfix(expr.GetParts()[1:], delim.Val, "", p)
+	return toStringInfix(expr.GetParts()[1:], delim.Val, "", p)
 }
 
 // TODO(corywalker): Remove start, end. No users of these values.
-func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params expreduceapi.ToStringParams) (bool, string) {
+func toStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params expreduceapi.ToStringParams) (bool, string) {
 	if params.Form != "InputForm" && params.Form != "OutputForm" && params.Form != "TeXForm" {
 		return false, ""
 	}
@@ -101,7 +101,7 @@ func ToStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 	return true, buffer.String()
 }
 
-func DefinitionComplexityStringFormArgs() (*atoms.String, expreduceapi.ExpressionInterface) {
+func definitionComplexityStringFormArgs() (*atoms.String, expreduceapi.ExpressionInterface) {
 	// This was created because the "Private`" names in the blanks were
 	// indicating greater complexity than they deserved.
 	return atoms.NewString("Global`"), atoms.NewExpression([]expreduceapi.Ex{
@@ -112,7 +112,7 @@ func DefinitionComplexityStringFormArgs() (*atoms.String, expreduceapi.Expressio
 
 }
 
-func ActualStringFormArgs(es expreduceapi.EvalStateInterface) (*atoms.String, expreduceapi.ExpressionInterface) {
+func actualStringFormArgs(es expreduceapi.EvalStateInterface) (*atoms.String, expreduceapi.ExpressionInterface) {
 	return atoms.NewString(es.GetStringDef("System`$Context", "Global`")), es.GetListDef("System`$ContextPath")
 }
 

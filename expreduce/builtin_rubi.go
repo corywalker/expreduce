@@ -1,9 +1,9 @@
 package expreduce
 
-func GetRubiDefinitions() (defs []Definition) {
+func getRubiDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "LoadRubi",
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 	})
 	return
 }

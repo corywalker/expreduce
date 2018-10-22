@@ -8,7 +8,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func ToStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi.ToStringParams) (bool, string) {
+func toStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi.ToStringParams) (bool, string) {
 	if params.Form == "FullForm" {
 		return false, ""
 	}
@@ -23,7 +23,7 @@ func ToStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi
 	return false, ""
 }
 
-func GetPatternDefinitions() (defs []Definition) {
+func getPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "MatchQ",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
@@ -67,19 +67,19 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Blank",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringBlankType("_", this.GetParts(), params)
+			return toStringBlankType("_", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankSequence",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringBlankType("__", this.GetParts(), params)
+			return toStringBlankType("__", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankNullSequence",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return ToStringBlankType("___", this.GetParts(), params)
+			return toStringBlankType("___", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{

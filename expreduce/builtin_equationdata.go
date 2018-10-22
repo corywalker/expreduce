@@ -1,5 +1,5 @@
 package expreduce
 
-func GetEquationDataDefinitions() (defs []Definition) {
+func getEquationDataDefinitions() (defs []Definition) {
 	return
 }

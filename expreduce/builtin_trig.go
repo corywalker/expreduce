@@ -25,7 +25,7 @@ func mathFnOneParam(fn func(float64) float64) func(expreduceapi.ExpressionInterf
 	})
 }
 
-func GetTrigDefinitions() (defs []Definition) {
+func getTrigDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:         "Sin",
 		legacyEvalFn: mathFnOneParam(math.Sin),

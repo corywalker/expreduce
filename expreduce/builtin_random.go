@@ -8,7 +8,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func GetRandomDefinitions() (defs []Definition) {
+func getRandomDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "RandomReal",
 		Details: "`SeedRandom[UnixTime[]]` is called automatically upon " +
