@@ -49,7 +49,7 @@ func isBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 			if len(parts) < 2 {
 				matchesHead = true
 			} else {
-				matchesHead = atoms.IsSameQ(head, parts[1], cl)
+				matchesHead = atoms.IsSameQ(head, parts[1])
 			}
 			cl.Debugf("%v", matchesHead)
 			if matchesHead {
@@ -63,7 +63,7 @@ func isBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 						pm.lazyMakeMap()
 						pm.patternDefined[sAsSymbol.Name] = target
 					}
-					if !atoms.IsSameQ(toMatch, target, cl) {
+					if !atoms.IsSameQ(toMatch, target) {
 						return false, pm
 					}
 				}
@@ -87,7 +87,7 @@ func isBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 		if len(parts) < 2 {
 			return true, pm
 		}
-		return atoms.IsSameQ(head, parts[1], cl), pm
+		return atoms.IsSameQ(head, parts[1]), pm
 	}
 	return false, pm
 }

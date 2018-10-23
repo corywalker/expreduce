@@ -150,7 +150,7 @@ func getReplacementDefinitions() (defs []Definition) {
 
 				es.Infof("In ReplaceRepeated. New expr: %v", newEx)
 
-				if atoms.IsSameQ(oldEx, newEx, es.GetLogger()) {
+				if atoms.IsSameQ(oldEx, newEx) {
 					isSame = true
 				}
 				oldEx = newEx

@@ -23,7 +23,7 @@ func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType
 	// Previously I always set the pointer but it led to an endless
 	// eval loop. I think evaluation might use the pointer to make a
 	// "same" comparison.
-	if !atoms.IsSameQ(this, dst, es.GetLogger()) {
+	if !atoms.IsSameQ(this, dst) {
 		this = dst
 		sort.Sort(this)
 	}
@@ -133,7 +133,7 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			issame := true
 			for i := 2; i < len(this.GetParts()); i++ {
-				issame = issame && atoms.IsSameQ(this.GetParts()[1], this.GetParts()[i], es.GetLogger())
+				issame = issame && atoms.IsSameQ(this.GetParts()[1], this.GetParts()[i])
 			}
 			if issame {
 				return atoms.NewSymbol("System`True")
@@ -153,7 +153,7 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			for i := 1; i < len(this.GetParts()); i++ {
 				for j := i + 1; j < len(this.GetParts()); j++ {
-					if atoms.IsSameQ(this.GetParts()[i], this.GetParts()[j], es.GetLogger()) {
+					if atoms.IsSameQ(this.GetParts()[i], this.GetParts()[j]) {
 						return atoms.NewSymbol("System`False")
 					}
 				}
@@ -356,7 +356,7 @@ func getComparisonDefinitions() (defs []Definition) {
 				}
 				evalRes := es.Eval(atoms.E(op, lhs, rhs))
 				if !trueQ(evalRes, es.GetLogger()) {
-					if !atoms.IsSameQ(res.GetParts()[len(res.GetParts())-1], lhs, es.GetLogger()) {
+					if !atoms.IsSameQ(res.GetParts()[len(res.GetParts())-1], lhs) {
 						res.AppendEx(lhs)
 					}
 					res.AppendEx(op)

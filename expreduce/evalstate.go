@@ -499,11 +499,11 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	for _, dv := range es.defined.GetDef(name).Downvalues {
 		existingRule := dv.Rule
 		existingLHS := existingRule.GetParts()[1]
-		if atoms.IsSameQ(existingLHS, heldLHS, &es.CASLogger) {
+		if atoms.IsSameQ(existingLHS, heldLHS) {
 			es.defined.LockKey(name)
 			existingRHSCond := maskNonConditional(existingRule.GetParts()[2])
 			newRHSCond := maskNonConditional(rhs)
-			if atoms.IsSameQ(existingRHSCond, newRHSCond, &es.CASLogger) {
+			if atoms.IsSameQ(existingRHSCond, newRHSCond) {
 				dv.Rule.GetParts()[2] = rhs
 				es.defined.UnlockKey(name)
 				return

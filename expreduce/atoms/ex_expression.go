@@ -35,7 +35,7 @@ func HeadAssertion(ex expreduceapi.Ex, head string) (*Expression, bool) {
 func HeadExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl expreduceapi.LoggingInterface) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
-		if IsSameQ(head, expr.GetParts()[0], cl) {
+		if IsSameQ(head, expr.GetParts()[0]) {
 			return expr, true
 		}
 	}

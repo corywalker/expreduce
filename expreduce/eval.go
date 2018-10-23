@@ -37,7 +37,7 @@ func (es *EvalState) Eval(expr expreduceapi.Ex) expreduceapi.Ex {
 func (es *EvalState) evalComplex(this *atoms.Complex) expreduceapi.Ex {
 	this.Re = es.Eval(this.Re)
 	this.Im = es.Eval(this.Im)
-	if atoms.IsSameQ(this.Im, atoms.NewInt(0), es.GetLogger()) {
+	if atoms.IsSameQ(this.Im, atoms.NewInt(0)) {
 		return this.Re
 	}
 	this.SetNeedsEval(false)
@@ -161,7 +161,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 				currEx.DeepCopy(),
 			})
 
-			if !atoms.IsSameQ(es.GetTrace().GetParts()[len(es.GetTrace().GetParts())-1], toAppend, es.GetLogger()) {
+			if !atoms.IsSameQ(es.GetTrace().GetParts()[len(es.GetTrace().GetParts())-1], toAppend) {
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
 				es.GetTrace().AppendEx(toAppend)
 			}
@@ -212,7 +212,7 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 			if hasLegacyEvalFn {
 				currEx = legacyEvalFn(curr, es)
 				// TODO: I could potentially have the legacyevalfn return this.
-				unchanged = atoms.IsSameQ(currEx, curr, es.GetLogger())
+				unchanged = atoms.IsSameQ(currEx, curr)
 			}
 			if unchanged {
 				theRes, isDefined, def := es.GetDef(headStr, curr)

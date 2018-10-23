@@ -80,7 +80,7 @@ func getFlowControlDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			isTrue := atoms.IsSameQ(es.Eval(this.GetParts()[1].DeepCopy()), atoms.NewSymbol("System`True"), es.GetLogger())
+			isTrue := atoms.IsSameQ(es.Eval(this.GetParts()[1].DeepCopy()), atoms.NewSymbol("System`True"))
 			for isTrue {
 				tmpRes := es.Eval(this.GetParts()[2].DeepCopy())
 				retVal, isReturn := tryReturnValue(tmpRes, nil, es)
@@ -90,7 +90,7 @@ func getFlowControlDefinitions() (defs []Definition) {
 				if isBreak(tmpRes) {
 					return atoms.S("Null")
 				}
-				isTrue = atoms.IsSameQ(es.Eval(this.GetParts()[1].DeepCopy()), atoms.NewSymbol("System`True"), es.GetLogger())
+				isTrue = atoms.IsSameQ(es.Eval(this.GetParts()[1].DeepCopy()), atoms.NewSymbol("System`True"))
 			}
 
 			return atoms.NewSymbol("System`Null")

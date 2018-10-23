@@ -341,7 +341,7 @@ func getListDefinitions() (defs []Definition) {
 				if firstHead == nil {
 					firstHead = expr.GetParts()[0]
 					allParts = atoms.NewExpression([]expreduceapi.Ex{firstHead})
-				} else if !atoms.IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
+				} else if !atoms.IsSameQ(firstHead, expr.GetParts()[0]) {
 					return this
 				}
 				allParts.AppendExArray(expr.GetParts()[1:])
@@ -350,7 +350,7 @@ func getListDefinitions() (defs []Definition) {
 			toReturn := atoms.NewExpression([]expreduceapi.Ex{firstHead})
 			var lastEx expreduceapi.Ex
 			for _, part := range allParts.GetParts()[1:] {
-				if lastEx == nil || !atoms.IsSameQ(lastEx, part, es.GetLogger()) {
+				if lastEx == nil || !atoms.IsSameQ(lastEx, part) {
 					lastEx = part
 					toReturn.AppendEx(part)
 				}
@@ -375,7 +375,7 @@ func getListDefinitions() (defs []Definition) {
 				if firstHead == nil {
 					firstHead = expr.GetParts()[0]
 					continue
-				} else if !atoms.IsSameQ(firstHead, expr.GetParts()[0], es.GetLogger()) {
+				} else if !atoms.IsSameQ(firstHead, expr.GetParts()[0]) {
 					return this
 				}
 				for _, excludedPart := range expr.GetParts()[1:] {
@@ -636,7 +636,7 @@ func getListDefinitions() (defs []Definition) {
 				if len(res.GetParts()) == 0 {
 					res.AppendExArray(expr.GetParts())
 				} else {
-					if !atoms.IsSameQ(expr.GetParts()[0], res.GetParts()[0], es.GetLogger()) {
+					if !atoms.IsSameQ(expr.GetParts()[0], res.GetParts()[0]) {
 						return this
 					}
 					res.AppendExArray(expr.GetParts()[1:])

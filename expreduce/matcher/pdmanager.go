@@ -119,7 +119,7 @@ func defineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, s
 
 		if pm.patternDefined != nil {
 			defined, ispd := pm.patternDefined[lhs.patSym.Name]
-			if ispd && !atoms.IsSameQ(defined, attemptDefine, es.GetLogger()) {
+			if ispd && !atoms.IsSameQ(defined, attemptDefine) {
 				es.Debugf("patterns do not match! continuing.")
 				return false
 			}

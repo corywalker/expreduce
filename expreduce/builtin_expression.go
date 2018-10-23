@@ -25,7 +25,7 @@ func flattenExpr(src expreduceapi.ExpressionInterface, dst expreduceapi.Expressi
 	for i := 1; i < len(src.GetParts()); i++ {
 		expr, isExpr := src.GetParts()[i].(expreduceapi.ExpressionInterface)
 		if continueFlatten && isExpr {
-			if atoms.IsSameQ(src.GetParts()[0], expr.GetParts()[0], cl) {
+			if atoms.IsSameQ(src.GetParts()[0], expr.GetParts()[0]) {
 				flattenExpr(expr, dst, level-1, cl)
 				continue
 			}

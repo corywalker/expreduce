@@ -610,7 +610,7 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 			currVal := this.GetParts()[2]
 			nextVal := es.Eval(atoms.E(this.GetParts()[1], currVal))
-			for !atoms.IsSameQ(currVal, nextVal, es.GetLogger()) {
+			for !atoms.IsSameQ(currVal, nextVal) {
 				currVal = nextVal
 				nextVal = es.Eval(atoms.E(this.GetParts()[1], currVal))
 			}

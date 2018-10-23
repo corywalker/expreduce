@@ -171,7 +171,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	verbatimOp, opExpr, isVerbatimOp := atoms.OperatorAssertion(b, "System`Verbatim")
 	if aIsExpression && isVerbatimOp {
 		if len(opExpr.GetParts()) == 2 {
-			if atoms.IsSameQ(aExpression.GetParts()[0], opExpr.GetParts()[1], es.GetLogger()) {
+			if atoms.IsSameQ(aExpression.GetParts()[0], opExpr.GetParts()[1]) {
 				b = atoms.NewExpression(append([]expreduceapi.Ex{opExpr.GetParts()[1]}, verbatimOp.GetParts()[1:]...))
 				bExpression, bIsExpression = b.(expreduceapi.ExpressionInterface)
 				forceOrdered = true
@@ -265,7 +265,7 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 
 	if !assumingHead {
 		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational || aIsComplex {
-			if atoms.IsSameQ(a, b, es.GetLogger()) {
+			if atoms.IsSameQ(a, b) {
 				return &dummyMatchIter{nil}, true
 			}
 			return nil, false

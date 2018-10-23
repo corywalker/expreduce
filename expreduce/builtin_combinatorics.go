@@ -32,7 +32,7 @@ func permListContains(permList [][]expreduceapi.Ex, perm []expreduceapi.Ex, cl e
 		}
 		same := true
 		for i := range perm {
-			if !atoms.IsSameQ(perm[i], permInList[i], cl) {
+			if !atoms.IsSameQ(perm[i], permInList[i]) {
 				same = false
 				//break
 			}
