@@ -120,14 +120,13 @@ func parsePattern(buf string) expreduceapi.Ex {
 				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Optional"), atoms.NewExpression([]expreduceapi.Ex{blankType})})
 			}
 			return atoms.NewExpression([]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])})
-		} else {
-			if parts[1] == "" {
-				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})
-			} else if delim == "_" && parts[1] == "." {
-				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Optional"), atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})})
-			}
-			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])})})
 		}
+		if parts[1] == "" {
+			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})
+		} else if delim == "_" && parts[1] == "." {
+			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Optional"), atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})})
+		}
+		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])})})
 	}
 	return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString("Pattern parse error.")})
 }

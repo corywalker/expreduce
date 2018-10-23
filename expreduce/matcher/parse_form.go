@@ -42,9 +42,9 @@ func parseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, in
 	return e.GetParts()[1], min, max, true
 }
 
-func parseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl expreduceapi.LoggingInterface) (res parsedForm) {
+func parseForm(lhsComponent expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl expreduceapi.LoggingInterface) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
-	toParse := lhs_component
+	toParse := lhsComponent
 	optional, isOptional := atoms.HeadAssertion(toParse, "System`Optional")
 	if isOptional {
 		toParse = optional.GetParts()[1]
@@ -56,7 +56,7 @@ func parseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 	pat, isPat := atoms.HeadAssertion(toParse, "System`Pattern")
 	var patSym *atoms.Symbol
 	if isPat {
-		patIsSym := false
+		var patIsSym bool
 		patSym, patIsSym = pat.GetParts()[1].(*atoms.Symbol)
 		if patIsSym {
 			toParse = pat.GetParts()[2]
@@ -151,7 +151,7 @@ func parseForm(lhs_component expreduceapi.Ex, isFlat bool, sequenceHead string, 
 	res.endI = endI
 	res.form = form
 	res.defaultExpr = defaultExpr
-	res.origForm = lhs_component
+	res.origForm = lhsComponent
 	res.isImpliedBs = isImpliedBs
 	res.isOptional = isOptional
 	res.isBlank = isBlank

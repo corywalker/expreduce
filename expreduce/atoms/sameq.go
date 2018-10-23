@@ -32,12 +32,10 @@ func IsSameQ(a expreduceapi.Ex, b expreduceapi.Ex, cl expreduceapi.LoggingInterf
 
 			if math.IsInf(aVal, 0) || math.IsInf(bVal, 0) {
 				return a.IsEqual(b) == "EQUAL_TRUE"
-			} else {
-				return almostEqual(aVal, bVal)
 			}
-		} else {
-			return a.IsEqual(b) == "EQUAL_TRUE"
+			return almostEqual(aVal, bVal)
 		}
+		return a.IsEqual(b) == "EQUAL_TRUE"
 	} else if aIsExpression && bIsExpression {
 		return a.Hash() == b.Hash()
 	}

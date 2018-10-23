@@ -161,7 +161,7 @@ func getFlowControlDefinitions() (defs []Definition) {
 		Name: "Do",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := iterspec.MultiIterSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
 					mis.TakeVarSnapshot(es)

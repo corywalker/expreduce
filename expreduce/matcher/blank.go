@@ -45,7 +45,7 @@ func isBlankTypeCapturing(e expreduceapi.Ex, target expreduceapi.Ex, head expred
 			//return true, pm
 			//}
 			cl.Debugf("%v %v", parts, len(parts))
-			matchesHead := false
+			var matchesHead bool
 			if len(parts) < 2 {
 				matchesHead = true
 			} else {

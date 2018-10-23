@@ -205,7 +205,7 @@ func getListDefinitions() (defs []Definition) {
 		Name: "Table",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := iterspec.MultiIterSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
 					mis.TakeVarSnapshot(es)
@@ -229,7 +229,7 @@ func getListDefinitions() (defs []Definition) {
 		Name: "ParallelTable",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := iterspec.MultiIterSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
 					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
@@ -441,7 +441,7 @@ func getListDefinitions() (defs []Definition) {
 			// require being passed a list and a variable of iteration. TODO
 			iterSpecList := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), atoms.NewSymbol("System`$DUMMY")})
 			iterSpecList.AppendExArray(this.GetParts()[1:])
-			is, isOk := iterspec.IterSpecFromList(es, iterSpecList)
+			is, isOk := iterspec.SpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
 			}

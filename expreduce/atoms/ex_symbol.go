@@ -9,7 +9,8 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-// Symbols are defined by a string-based name
+// Symbol represents a symbol in Expreduce. Symbols are defined by a
+// string-based name.
 type Symbol struct {
 	Name       string
 	cachedHash uint64
@@ -33,63 +34,63 @@ func formatSymName(name string, params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("%v", name)
 }
 
-func (this *Symbol) StringForm(params expreduceapi.ToStringParams) string {
-	if len(this.Name) == 0 {
+func (sym *Symbol) StringForm(params expreduceapi.ToStringParams) string {
+	if len(sym.Name) == 0 {
 		return "<EMPTYSYM>"
 	}
-	if strings.HasPrefix(this.Name, params.Context.GetValue()) {
-		return formatSymName(this.Name[len(params.Context.GetValue()):], params)
+	if strings.HasPrefix(sym.Name, params.Context.GetValue()) {
+		return formatSymName(sym.Name[len(params.Context.GetValue()):], params)
 	}
 	for _, pathPart := range params.ContextPath.GetParts()[1:] {
 		path := pathPart.(*String).Val
-		if strings.HasPrefix(this.Name, path) {
-			return formatSymName(this.Name[len(path):], params)
+		if strings.HasPrefix(sym.Name, path) {
+			return formatSymName(sym.Name[len(path):], params)
 		}
 	}
-	return formatSymName(this.Name, params)
+	return formatSymName(sym.Name, params)
 }
 
-func (this *Symbol) String(esi expreduceapi.EvalStateInterface) string {
+func (sym *Symbol) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := defaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
+	return sym.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
-func (this *Symbol) IsEqual(other expreduceapi.Ex) string {
+func (sym *Symbol) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Symbol)
 	if !ok {
 		return "EQUAL_UNK"
 	}
-	if this.Name == "System`False" && otherConv.Name == "System`True" {
+	if sym.Name == "System`False" && otherConv.Name == "System`True" {
 		return "EQUAL_FALSE"
 	}
-	if this.Name == "System`True" && otherConv.Name == "System`False" {
+	if sym.Name == "System`True" && otherConv.Name == "System`False" {
 		return "EQUAL_FALSE"
 	}
-	if this.Name != otherConv.Name {
+	if sym.Name != otherConv.Name {
 		return "EQUAL_UNK"
 	}
 	return "EQUAL_TRUE"
 }
 
-func (this *Symbol) DeepCopy() expreduceapi.Ex {
-	thiscopy := *this
-	return &thiscopy
+func (sym *Symbol) DeepCopy() expreduceapi.Ex {
+	symcopy := *sym
+	return &symcopy
 }
 
-func (this *Symbol) Copy() expreduceapi.Ex {
-	return this
+func (sym *Symbol) Copy() expreduceapi.Ex {
+	return sym
 }
 
-func (this *Symbol) Attrs(dm expreduceapi.DefinitionMap) expreduceapi.Attributes {
-	def, isDef := dm.Get(this.Name)
+func (sym *Symbol) Attrs(dm expreduceapi.DefinitionMap) expreduceapi.Attributes {
+	def, isDef := dm.Get(sym.Name)
 	if !isDef {
 		return expreduceapi.Attributes{}
 	}
 	return def.Attributes
 }
 
-func (this *Symbol) Default(dm expreduceapi.DefinitionMap) expreduceapi.Ex {
-	def, isDef := dm.Get(this.Name)
+func (sym *Symbol) Default(dm expreduceapi.DefinitionMap) expreduceapi.Ex {
+	def, isDef := dm.Get(sym.Name)
 	if !isDef {
 		return nil
 	}
@@ -160,63 +161,63 @@ func StringsToAttributes(strings []string) expreduceapi.Attributes {
 	return attrs
 }
 
-func AttrsToStrings(this *expreduceapi.Attributes) []string {
+func AttrsToStrings(sym *expreduceapi.Attributes) []string {
 	var strings []string
-	if this.Orderless {
+	if sym.Orderless {
 		strings = append(strings, "Orderless")
 	}
-	if this.Flat {
+	if sym.Flat {
 		strings = append(strings, "Flat")
 	}
-	if this.OneIdentity {
+	if sym.OneIdentity {
 		strings = append(strings, "OneIdentity")
 	}
-	if this.Listable {
+	if sym.Listable {
 		strings = append(strings, "Listable")
 	}
-	if this.Constant {
+	if sym.Constant {
 		strings = append(strings, "Constant")
 	}
-	if this.NumericFunction {
+	if sym.NumericFunction {
 		strings = append(strings, "NumericFunction")
 	}
-	if this.Protected {
+	if sym.Protected {
 		strings = append(strings, "Protected")
 	}
-	if this.Locked {
+	if sym.Locked {
 		strings = append(strings, "Locked")
 	}
-	if this.ReadProtected {
+	if sym.ReadProtected {
 		strings = append(strings, "ReadProtected")
 	}
-	if this.HoldFirst {
+	if sym.HoldFirst {
 		strings = append(strings, "HoldFirst")
 	}
-	if this.HoldRest {
+	if sym.HoldRest {
 		strings = append(strings, "HoldRest")
 	}
-	if this.HoldAll {
+	if sym.HoldAll {
 		strings = append(strings, "HoldAll")
 	}
-	if this.HoldAllComplete {
+	if sym.HoldAllComplete {
 		strings = append(strings, "HoldAllComplete")
 	}
-	if this.NHoldFirst {
+	if sym.NHoldFirst {
 		strings = append(strings, "NHoldFirst")
 	}
-	if this.NHoldRest {
+	if sym.NHoldRest {
 		strings = append(strings, "NHoldRest")
 	}
-	if this.NHoldAll {
+	if sym.NHoldAll {
 		strings = append(strings, "NHoldAll")
 	}
-	if this.SequenceHold {
+	if sym.SequenceHold {
 		strings = append(strings, "SequenceHold")
 	}
-	if this.Temporary {
+	if sym.Temporary {
 		strings = append(strings, "Temporary")
 	}
-	if this.Stub {
+	if sym.Stub {
 		strings = append(strings, "Stub")
 	}
 
@@ -224,26 +225,26 @@ func AttrsToStrings(this *expreduceapi.Attributes) []string {
 	return strings
 }
 
-func AttrsToSymList(this *expreduceapi.Attributes) expreduceapi.ExpressionInterface {
+func AttrsToSymList(sym *expreduceapi.Attributes) expreduceapi.ExpressionInterface {
 	toReturn := E(S("List"))
-	for _, s := range AttrsToStrings(this) {
+	for _, s := range AttrsToStrings(sym) {
 		toReturn.AppendEx(S(s))
 	}
 	return toReturn
 }
 
-func (this *Symbol) NeedsEval() bool {
+func (sym *Symbol) NeedsEval() bool {
 	return false
 }
 
-func (this *Symbol) Hash() uint64 {
-	if this.cachedHash > 0 {
-		return this.cachedHash
+func (sym *Symbol) Hash() uint64 {
+	if sym.cachedHash > 0 {
+		return sym.cachedHash
 	}
 	h := fnv.New64a()
 	h.Write([]byte{107, 10, 247, 23, 33, 221, 163, 156})
-	h.Write([]byte(this.Name))
-	this.cachedHash = h.Sum64()
+	h.Write([]byte(sym.Name))
+	sym.cachedHash = h.Sum64()
 	return h.Sum64()
 }
 

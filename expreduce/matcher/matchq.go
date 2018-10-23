@@ -20,7 +20,7 @@ const maxInt = int(maxUint >> 1)
 const maxUint64 = ^uint64(0)
 const maxInt64 = int64(maxUint64 >> 1)
 
-type matchIter interface {
+type MatchIter interface {
 	// returns ismatch, pd, isdone
 	Next() (bool, *PDManager, bool)
 }
@@ -29,8 +29,8 @@ type dummyMatchIter struct {
 	pm *PDManager
 }
 
-func (this *dummyMatchIter) Next() (bool, *PDManager, bool) {
-	return true, this.pm, true
+func (dmi *dummyMatchIter) Next() (bool, *PDManager, bool) {
+	return true, dmi.pm, true
 }
 
 var realSym = atoms.NewSymbol("System`Real")
@@ -40,7 +40,7 @@ var symSym = atoms.NewSymbol("System`Symbol")
 var ratSym = atoms.NewSymbol("System`Rational")
 var complexSym = atoms.NewSymbol("System`Complex")
 
-func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expreduceapi.EvalStateInterface) (matchIter, bool) {
+func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expreduceapi.EvalStateInterface) (MatchIter, bool) {
 	patternHead := ""
 	patExpr, patIsExpr := b.(expreduceapi.ExpressionInterface)
 	if patIsExpr {
@@ -97,9 +97,8 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 					if qFunction != nil {
 						if qFunction(a) {
 							return &dummyMatchIter{newPD}, true
-						} else {
-							return nil, false
 						}
+						return nil, false
 					}
 				}
 				// I used to create a NewEvalState here, but I have evidence
@@ -329,19 +328,19 @@ type assignedMatchIter struct {
 	assn [][]int
 
 	// Inherited from sequenceMatchIter
-	components     []expreduceapi.Ex
-	lhs_components []parsedForm
-	pm             *PDManager
-	sequenceHead   string
-	es             expreduceapi.EvalStateInterface
-	stack          []assignedIterState
+	components    []expreduceapi.Ex
+	lhsComponents []parsedForm
+	pm            *PDManager
+	sequenceHead  string
+	es            expreduceapi.EvalStateInterface
+	stack         []assignedIterState
 }
 
 func newAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIter {
 	ami := assignedMatchIter{}
 	ami.assn = assn
 	ami.components = smi.components
-	ami.lhs_components = smi.lhs_components
+	ami.lhsComponents = smi.lhsComponents
 	ami.pm = smi.pm
 	ami.sequenceHead = smi.sequenceHead
 	ami.es = smi.es
@@ -362,7 +361,7 @@ func (ami *assignedMatchIter) next() bool {
 			ami.pm = p.pm
 			return true
 		}
-		lhs := ami.lhs_components[p.formI]
+		lhs := ami.lhsComponents[p.formI]
 		if p.assnI >= len(ami.assn[p.formI]) {
 			// Reached end of form. Attempt to define the sequence and continue
 			// on success.
@@ -410,29 +409,29 @@ func (ami *assignedMatchIter) next() bool {
 }
 
 type sequenceMatchIter struct {
-	components     []expreduceapi.Ex
-	lhs_components []parsedForm
-	pm             *PDManager
-	sequenceHead   string
-	es             expreduceapi.EvalStateInterface
-	ai             assnIter
-	iteratingAmi   bool
-	ami            assignedMatchIter
+	components    []expreduceapi.Ex
+	lhsComponents []parsedForm
+	pm            *PDManager
+	sequenceHead  string
+	es            expreduceapi.EvalStateInterface
+	ai            assnIter
+	iteratingAmi  bool
+	ami           assignedMatchIter
 }
 
-func newSequenceMatchIter(components []expreduceapi.Ex, lhs_components []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (matchIter, bool) {
+func newSequenceMatchIter(components []expreduceapi.Ex, lhsComponents []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (MatchIter, bool) {
 	headDefault := (atoms.NewSymbol(sequenceHead)).Default(es.GetDefinedMap())
-	fp_components := make([]parsedForm, len(lhs_components))
-	for i, comp := range lhs_components {
-		fp_components[i] = parseForm(comp, isFlat, sequenceHead, headDefault, es.GetLogger())
+	fpComponents := make([]parsedForm, len(lhsComponents))
+	for i, comp := range lhsComponents {
+		fpComponents[i] = parseForm(comp, isFlat, sequenceHead, headDefault, es.GetLogger())
 	}
-	return newSequenceMatchIterPreparsed(components, fp_components, isOrderless, sequenceHead, pm, es)
+	return newSequenceMatchIterPreparsed(components, fpComponents, isOrderless, sequenceHead, pm, es)
 }
 
-func newSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components []parsedForm, isOrderless bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (matchIter, bool) {
+func newSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhsComponents []parsedForm, isOrderless bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (MatchIter, bool) {
 	nomi := &sequenceMatchIter{}
 	nomi.components = components
-	nomi.lhs_components = lhs_components
+	nomi.lhsComponents = lhsComponents
 	nomi.pm = pm
 	nomi.sequenceHead = sequenceHead
 	nomi.es = es
@@ -441,20 +440,20 @@ func newSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components 
 	if *freezeStateDuringPreMatch {
 		es.SetFrozen(true)
 	}
-	formMatches := make([][]bool, len(lhs_components))
-	for i, mustContain := range lhs_components {
+	formMatches := make([][]bool, len(lhsComponents))
+	for i, mustContain := range lhsComponents {
 		// Right now I have this strange definition of "form". It's basically where I convert blank sequences to blanks at the bottom level. What if I did this at all levels and perhaps did something with patterns?
 		// TODO: prevent the checks here from modifying state so I can use the "rm" function.
 		formMatches[i] = make([]bool, len(components))
-		num_matches := 0
+		numMatches := 0
 		for j, part := range components {
 			matchq, _ := IsMatchQ(part, mustContain.form, EmptyPD(), es)
 			if matchq {
-				num_matches++
+				numMatches++
 			}
 			formMatches[i][j] = matchq
 		}
-		if num_matches < mustContain.startI {
+		if numMatches < mustContain.startI {
 			if *freezeStateDuringPreMatch {
 				es.SetFrozen(origFrozen)
 			}
@@ -465,29 +464,29 @@ func newSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhs_components 
 		es.SetFrozen(origFrozen)
 	}
 
-	nomi.ai = newAssnIter(len(components), lhs_components, formMatches, isOrderless)
+	nomi.ai = newAssnIter(len(components), lhsComponents, formMatches, isOrderless)
 
 	return nomi, true
 }
 
-func (this *sequenceMatchIter) Next() (bool, *PDManager, bool) {
+func (smi *sequenceMatchIter) Next() (bool, *PDManager, bool) {
 	for {
-		if this.iteratingAmi && this.ami.next() {
-			return true, this.ami.pm, false
+		if smi.iteratingAmi && smi.ami.next() {
+			return true, smi.ami.pm, false
 		}
-		this.iteratingAmi = false
-		if !this.ai.next() {
+		smi.iteratingAmi = false
+		if !smi.ai.next() {
 			break
 		}
-		this.ami = newAssignedMatchIter(this.ai.assns, this)
-		this.iteratingAmi = true
+		smi.ami = newAssignedMatchIter(smi.ai.assns, smi)
+		smi.iteratingAmi = true
 	}
-	return false, this.pm, true
+	return false, smi.pm, true
 }
 
 // HELPER FUNCTIONS
 
-func getMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
+func getMatchQ(mi MatchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 	for cont {
 		matchq, newPd, done := mi.Next()
 		cont = !done
@@ -500,7 +499,9 @@ func getMatchQ(mi matchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 	return false, pm
 }
 
-// TODO: do not export this
+// IsMatchQ returns if an Ex `a` matches a pattern Ex `b`. If the expression
+// matches the pattern and if the pattern has any named patterns, those matching
+// values will be added to `pm`.
 func IsMatchQ(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expreduceapi.EvalStateInterface) (bool, *PDManager) {
 	mi, cont := NewMatchIter(a, b, pm, es)
 	return getMatchQ(mi, cont, pm)

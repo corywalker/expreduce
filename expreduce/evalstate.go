@@ -15,6 +15,8 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
+// EvalState keeps track of the state of the Expreduce interpreter. It contains
+// all definitions and any evaluation bits.
 type EvalState struct {
 	// Embedded type for logging
 	logging.CASLogger
@@ -478,13 +480,13 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	}
 
 	es.Debugf("Inside es.Define(\"%s\",%s,%s)", name, lhs, rhs)
-	heldLhs := atoms.E(atoms.S("HoldPattern"), lhs)
+	heldLHS := atoms.E(atoms.S("HoldPattern"), lhs)
 	if !es.IsDef(name) {
 		newDef := expreduceapi.Def{
 			Downvalues: []expreduceapi.DownValue{
 				expreduceapi.DownValue{
 					Rule: atoms.NewExpression([]expreduceapi.Ex{
-						atoms.NewSymbol("System`Rule"), heldLhs, rhs,
+						atoms.NewSymbol("System`Rule"), heldLHS, rhs,
 					}),
 				},
 			},
@@ -496,12 +498,12 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	// Overwrite identical rules.
 	for _, dv := range es.defined.GetDef(name).Downvalues {
 		existingRule := dv.Rule
-		existingLhs := existingRule.GetParts()[1]
-		if atoms.IsSameQ(existingLhs, heldLhs, &es.CASLogger) {
+		existingLHS := existingRule.GetParts()[1]
+		if atoms.IsSameQ(existingLHS, heldLHS, &es.CASLogger) {
 			es.defined.LockKey(name)
-			existingRhsCond := maskNonConditional(existingRule.GetParts()[2])
-			newRhsCond := maskNonConditional(rhs)
-			if atoms.IsSameQ(existingRhsCond, newRhsCond, &es.CASLogger) {
+			existingRHSCond := maskNonConditional(existingRule.GetParts()[2])
+			newRHSCond := maskNonConditional(rhs)
+			if atoms.IsSameQ(existingRHSCond, newRHSCond, &es.CASLogger) {
 				dv.Rule.GetParts()[2] = rhs
 				es.defined.UnlockKey(name)
 				return
@@ -513,7 +515,7 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	// Insert into definitions for name. Maintain order of decreasing
 	// complexity.
 	var tmp = es.defined.GetDef(name)
-	newSpecificity := ruleSpecificity(heldLhs, rhs, name, es)
+	newSpecificity := ruleSpecificity(heldLHS, rhs, name, es)
 	for i, dv := range es.defined.GetDef(name).Downvalues {
 		if dv.Specificity == 0 {
 			dv.Specificity = ruleSpecificity(
@@ -524,7 +526,7 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 			)
 		}
 		if dv.Specificity < newSpecificity {
-			newRule := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLhs, rhs})
+			newRule := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLHS, rhs})
 			tmp.Downvalues = append(
 				tmp.Downvalues[:i],
 				append(
@@ -539,7 +541,7 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 			return
 		}
 	}
-	tmp.Downvalues = append(tmp.Downvalues, expreduceapi.DownValue{Rule: atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLhs, rhs})})
+	tmp.Downvalues = append(tmp.Downvalues, expreduceapi.DownValue{Rule: atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLHS, rhs})})
 	es.defined.Set(name, tmp)
 }
 

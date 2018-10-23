@@ -29,46 +29,46 @@ func copyPD(orig *PDManager) (dest *PDManager) {
 	return
 }
 
-func (this *PDManager) lazyMakeMap() {
-	if this.patternDefined == nil {
-		this.patternDefined = make(map[string]expreduceapi.Ex)
+func (pm *PDManager) lazyMakeMap() {
+	if pm.patternDefined == nil {
+		pm.patternDefined = make(map[string]expreduceapi.Ex)
 	}
 }
 
-func (this *PDManager) Define(name string, val expreduceapi.Ex) {
-	this.lazyMakeMap()
-	this.patternDefined[name] = val
+func (pm *PDManager) Define(name string, val expreduceapi.Ex) {
+	pm.lazyMakeMap()
+	pm.patternDefined[name] = val
 }
 
-func (this *PDManager) update(toAdd *PDManager) {
+func (pm *PDManager) update(toAdd *PDManager) {
 	if (*toAdd).len() > 0 {
-		this.lazyMakeMap()
+		pm.lazyMakeMap()
 	}
 	// We do not care that this iterates in a random order.
 	for k, v := range (*toAdd).patternDefined {
-		(*this).patternDefined[k] = v
+		(*pm).patternDefined[k] = v
 	}
 }
 
-func (this *PDManager) len() int {
-	if this.patternDefined == nil {
+func (pm *PDManager) len() int {
+	if pm.patternDefined == nil {
 		return 0
 	}
-	return len(this.patternDefined)
+	return len(pm.patternDefined)
 }
 
-func (this *PDManager) string(es expreduceapi.EvalStateInterface) string {
+func (pm *PDManager) string(es expreduceapi.EvalStateInterface) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")
 	// We sort the keys here such that converting identical PDManagers always
 	// produces the same string.
 	keys := []string{}
-	for k := range this.patternDefined {
+	for k := range pm.patternDefined {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		v := this.patternDefined[k]
+		v := pm.patternDefined[k]
 		buffer.WriteString(k)
 		buffer.WriteString("_: ")
 		buffer.WriteString(v.String(es))
@@ -81,17 +81,17 @@ func (this *PDManager) string(es expreduceapi.EvalStateInterface) string {
 	return buffer.String()
 }
 
-func (this *PDManager) Expression() expreduceapi.Ex {
+func (pm *PDManager) Expression() expreduceapi.Ex {
 	res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 	// We sort the keys here such that converting identical PDManagers always
 	// produces the same string.
 	keys := []string{}
-	for k := range this.patternDefined {
+	for k := range pm.patternDefined {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		v := this.patternDefined[k]
+		v := pm.patternDefined[k]
 		res.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
 			atoms.NewSymbol("System`Rule"),
 			atoms.NewString(k),
@@ -102,7 +102,7 @@ func (this *PDManager) Expression() expreduceapi.Ex {
 }
 
 func defineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, sequenceHead string, es expreduceapi.EvalStateInterface) bool {
-	var attemptDefine expreduceapi.Ex = nil
+	var attemptDefine expreduceapi.Ex
 	if lhs.hasPat {
 		sequenceHeadSym := atoms.NewSymbol(sequenceHead)
 		oneIdent := sequenceHeadSym.Attrs(es.GetDefinedMap()).OneIdentity

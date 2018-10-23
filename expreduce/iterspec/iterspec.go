@@ -8,7 +8,7 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-type iterSpec interface {
+type IterSpec interface {
 	// Should be called before every iteration:
 	reset()
 	Next()
@@ -51,7 +51,7 @@ func tryIterParam(e expreduceapi.Ex) (expreduceapi.Ex, bool) {
 	return nil, false
 }
 
-func IterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex) (iterSpec, bool) {
+func SpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex) (IterSpec, bool) {
 	isr := &iterSpecRange{}
 	isr.es = es
 	isl := &iterSpecList{}
@@ -108,67 +108,67 @@ func IterSpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex
 	return isr, false
 }
 
-func (this *iterSpecRange) reset() {
-	//this.curr = this.iMin
-	this.curr = this.es.Eval(atoms.E(atoms.S("Plus"), this.iMin, atoms.E(atoms.S("Times"), atoms.NewInt(0), this.step)))
+func (isr *iterSpecRange) reset() {
+	//isr.curr = isr.iMin
+	isr.curr = isr.es.Eval(atoms.E(atoms.S("Plus"), isr.iMin, atoms.E(atoms.S("Times"), atoms.NewInt(0), isr.step)))
 }
 
-func (this *iterSpecRange) Next() {
-	this.curr = this.es.Eval(atoms.E(atoms.S("Plus"), this.curr, this.step))
+func (isr *iterSpecRange) Next() {
+	isr.curr = isr.es.Eval(atoms.E(atoms.S("Plus"), isr.curr, isr.step))
 }
 
-func (this *iterSpecRange) Cont() bool {
-	return atoms.ExOrder(this.curr, this.iMax) >= 0
+func (isr *iterSpecRange) Cont() bool {
+	return atoms.ExOrder(isr.curr, isr.iMax) >= 0
 }
 
-func (this *iterSpecRange) GetCurr() expreduceapi.Ex {
-	return this.curr
+func (isr *iterSpecRange) GetCurr() expreduceapi.Ex {
+	return isr.curr
 }
 
-func (this *iterSpecRange) getI() expreduceapi.Ex {
-	return this.i
+func (isr *iterSpecRange) getI() expreduceapi.Ex {
+	return isr.i
 }
 
-func (this *iterSpecRange) getIName() string {
-	return this.iName
+func (isr *iterSpecRange) getIName() string {
+	return isr.iName
 }
 
-func (this *iterSpecList) reset() {
-	this.pos = 1
+func (isl *iterSpecList) reset() {
+	isl.pos = 1
 }
 
-func (this *iterSpecList) Next() {
-	this.pos++
+func (isl *iterSpecList) Next() {
+	isl.pos++
 }
 
-func (this *iterSpecList) Cont() bool {
-	return this.pos < len(this.list.GetParts())
+func (isl *iterSpecList) Cont() bool {
+	return isl.pos < len(isl.list.GetParts())
 }
 
-func (this *iterSpecList) GetCurr() expreduceapi.Ex {
-	return this.list.GetParts()[this.pos]
+func (isl *iterSpecList) GetCurr() expreduceapi.Ex {
+	return isl.list.GetParts()[isl.pos]
 }
 
-func (this *iterSpecList) getI() expreduceapi.Ex {
-	return this.i
+func (isl *iterSpecList) getI() expreduceapi.Ex {
+	return isl.i
 }
 
-func (this *iterSpecList) getIName() string {
-	return this.iName
+func (isl *iterSpecList) getIName() string {
+	return isl.iName
 }
 
-type multiIterSpec struct {
-	iSpecs     []iterSpec
+type MultiIterSpec struct {
+	iSpecs     []IterSpec
 	origDefs   []expreduceapi.Ex
 	isOrigDefs []bool
 	shouldCont bool
 }
 
-func MultiIterSpecFromLists(es expreduceapi.EvalStateInterface, lists []expreduceapi.Ex) (mis multiIterSpec, isOk bool) {
+func MultiSpecFromLists(es expreduceapi.EvalStateInterface, lists []expreduceapi.Ex) (mis MultiIterSpec, isOk bool) {
 	// Retrieve variables of iteration
 	mis.shouldCont = true
 	for i := range lists {
-		is, isOk := IterSpecFromList(es, lists[i])
+		is, isOk := SpecFromList(es, lists[i])
 		if !isOk {
 			return mis, false
 		}
@@ -178,70 +178,70 @@ func MultiIterSpecFromLists(es expreduceapi.EvalStateInterface, lists []expreduc
 	return mis, true
 }
 
-func (this *multiIterSpec) Next() {
-	for i := len(this.iSpecs) - 1; i >= 0; i-- {
-		this.iSpecs[i].Next()
-		if this.iSpecs[i].Cont() {
+func (mis *MultiIterSpec) Next() {
+	for i := len(mis.iSpecs) - 1; i >= 0; i-- {
+		mis.iSpecs[i].Next()
+		if mis.iSpecs[i].Cont() {
 			return
 		}
-		this.iSpecs[i].reset()
+		mis.iSpecs[i].reset()
 	}
-	this.shouldCont = false
+	mis.shouldCont = false
 }
 
-func (this *multiIterSpec) Cont() bool {
-	return this.shouldCont
+func (mis *MultiIterSpec) Cont() bool {
+	return mis.shouldCont
 }
 
-func (this *multiIterSpec) TakeVarSnapshot(es expreduceapi.EvalStateInterface) {
-	this.origDefs = make([]expreduceapi.Ex, len(this.iSpecs))
-	this.isOrigDefs = make([]bool, len(this.iSpecs))
-	for i := range this.iSpecs {
-		this.origDefs[i], this.isOrigDefs[i], _ = es.GetDef(this.iSpecs[i].getIName(), this.iSpecs[i].getI())
+func (mis *MultiIterSpec) TakeVarSnapshot(es expreduceapi.EvalStateInterface) {
+	mis.origDefs = make([]expreduceapi.Ex, len(mis.iSpecs))
+	mis.isOrigDefs = make([]bool, len(mis.iSpecs))
+	for i := range mis.iSpecs {
+		mis.origDefs[i], mis.isOrigDefs[i], _ = es.GetDef(mis.iSpecs[i].getIName(), mis.iSpecs[i].getI())
 	}
 }
 
-func (this *multiIterSpec) RestoreVarSnapshot(es expreduceapi.EvalStateInterface) {
-	for i := range this.iSpecs {
-		if this.isOrigDefs[i] {
-			es.Define(this.iSpecs[i].getI(), this.origDefs[i])
+func (mis *MultiIterSpec) RestoreVarSnapshot(es expreduceapi.EvalStateInterface) {
+	for i := range mis.iSpecs {
+		if mis.isOrigDefs[i] {
+			es.Define(mis.iSpecs[i].getI(), mis.origDefs[i])
 		} else {
-			es.Clear(this.iSpecs[i].getIName())
+			es.Clear(mis.iSpecs[i].getIName())
 		}
 	}
 }
 
-func (this *multiIterSpec) DefineCurrent(es expreduceapi.EvalStateInterface) {
-	for i := range this.iSpecs {
-		es.Define(this.iSpecs[i].getI(), this.iSpecs[i].GetCurr())
+func (mis *MultiIterSpec) DefineCurrent(es expreduceapi.EvalStateInterface) {
+	for i := range mis.iSpecs {
+		es.Define(mis.iSpecs[i].getI(), mis.iSpecs[i].GetCurr())
 	}
 }
 
-func (this *multiIterSpec) CurrentPDManager() *matcher.PDManager {
+func (mis *MultiIterSpec) CurrentPDManager() *matcher.PDManager {
 	pm := matcher.EmptyPD()
-	for i := range this.iSpecs {
-		pm.Define(this.iSpecs[i].getIName(), this.iSpecs[i].GetCurr())
+	for i := range mis.iSpecs {
+		pm.Define(mis.iSpecs[i].getIName(), mis.iSpecs[i].GetCurr())
 	}
 	return pm
 }
 
-func EvalIterationFunc(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, init expreduceapi.Ex, op string) expreduceapi.Ex {
-	if len(this.GetParts()) >= 3 {
-		mis, isOk := MultiIterSpecFromLists(es, this.GetParts()[2:])
+func EvalIterationFunc(expr expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, init expreduceapi.Ex, op string) expreduceapi.Ex {
+	if len(expr.GetParts()) >= 3 {
+		mis, isOk := MultiSpecFromLists(es, expr.GetParts()[2:])
 		if isOk {
 			// Simulate evaluation within Block[]
 			mis.TakeVarSnapshot(es)
 			var toReturn expreduceapi.Ex = init
 			for mis.Cont() {
 				mis.DefineCurrent(es)
-				toReturn = es.Eval((atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol(op), toReturn, es.Eval(this.GetParts()[1].DeepCopy())})))
+				toReturn = es.Eval((atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol(op), toReturn, es.Eval(expr.GetParts()[1].DeepCopy())})))
 				mis.Next()
 			}
 			mis.RestoreVarSnapshot(es)
 			return toReturn
 		}
 	}
-	return this
+	return expr
 }
 
 func evalIterSpecCandidate(es expreduceapi.EvalStateInterface, cand expreduceapi.Ex) expreduceapi.Ex {

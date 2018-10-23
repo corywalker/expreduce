@@ -11,15 +11,16 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-// Floating point numbers represented by big.Float
+// Flt represents a floating point number in Expreduce. The values are
+// represented by big.Float internally.
 type Flt struct {
 	Val *big.Float
 }
 
-func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
+func (flt *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	var buffer bytes.Buffer
 	useParens := false
-	if f.Val.Cmp(big.NewFloat(0)) < 0 {
+	if flt.Val.Cmp(big.NewFloat(0)) < 0 {
 		if parens.NeedsParens("System`Times", params.PreviousHead) {
 			useParens = true
 			if params.Form == "TeXForm" {
@@ -28,7 +29,7 @@ func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 			buffer.WriteString("(")
 		}
 	}
-	buffer.WriteString(fmt.Sprintf("%.6g", f.Val))
+	buffer.WriteString(fmt.Sprintf("%.6g", flt.Val))
 	if bytes.IndexRune(buffer.Bytes(), '.') == -1 {
 		buffer.WriteString(".")
 	}
@@ -41,40 +42,40 @@ func (f *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	return buffer.String()
 }
 
-func (this *Flt) String(esi expreduceapi.EvalStateInterface) string {
+func (flt *Flt) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := defaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
+	return flt.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
-func (this *Flt) IsEqual(other expreduceapi.Ex) string {
+func (flt *Flt) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Flt)
 	if !ok {
 		otherInteger, ok := other.(*Integer)
 		if ok {
 			otherAsFlt := big.NewFloat(0)
 			otherAsFlt.SetInt(otherInteger.Val)
-			if otherAsFlt.Cmp(this.Val) == 0 {
+			if otherAsFlt.Cmp(flt.Val) == 0 {
 				return "EQUAL_TRUE"
 			}
 		}
 		return "EQUAL_UNK"
 	}
-	thisStr := fmt.Sprintf("%.14g", this.Val)
+	fltStr := fmt.Sprintf("%.14g", flt.Val)
 	otherStr := fmt.Sprintf("%.14g", otherConv.Val)
-	if strings.Compare(thisStr, otherStr) != 0 {
+	if strings.Compare(fltStr, otherStr) != 0 {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
 }
 
-func (this *Flt) DeepCopy() expreduceapi.Ex {
+func (flt *Flt) DeepCopy() expreduceapi.Ex {
 	tmp := big.NewFloat(0)
-	tmp.Copy(this.Val)
+	tmp.Copy(flt.Val)
 	return NewReal(tmp)
 }
 
-func (this *Flt) Copy() expreduceapi.Ex {
-	return this.DeepCopy()
+func (flt *Flt) Copy() expreduceapi.Ex {
+	return flt.DeepCopy()
 }
 
 func IntegerToFlt(i *Integer) (*Flt, bool) {
@@ -89,40 +90,40 @@ func RationalToFlt(r *Rational) (*Flt, bool) {
 	return NewReal(newfloat), true
 }
 
-func (this *Flt) NeedsEval() bool {
+func (flt *Flt) NeedsEval() bool {
 	return false
 }
 
-func (this *Flt) Hash() uint64 {
+func (flt *Flt) Hash() uint64 {
 	h := fnv.New64a()
 	h.Write([]byte{195, 244, 76, 249, 227, 115, 88, 251})
-	bytes, _ := this.Val.MarshalText()
+	bytes, _ := flt.Val.MarshalText()
 	h.Write(bytes)
 	return h.Sum64()
 }
 
-func (this *Flt) addI(i *Integer) {
-	this.Val.Add(this.Val, i.asBigFloat())
+func (flt *Flt) addI(i *Integer) {
+	flt.Val.Add(flt.Val, i.asBigFloat())
 }
 
-func (this *Flt) addR(r *Rational) {
-	this.Val.Add(this.Val, r.asBigFloat())
+func (flt *Flt) addR(r *Rational) {
+	flt.Val.Add(flt.Val, r.asBigFloat())
 }
 
-func (this *Flt) addF(f *Flt) {
-	this.Val.Add(this.Val, f.Val)
+func (flt *Flt) addF(f *Flt) {
+	flt.Val.Add(flt.Val, f.Val)
 }
 
-func (this *Flt) mulI(i *Integer) {
-	this.Val.Mul(this.Val, i.asBigFloat())
+func (flt *Flt) mulI(i *Integer) {
+	flt.Val.Mul(flt.Val, i.asBigFloat())
 }
 
-func (this *Flt) mulR(r *Rational) {
-	this.Val.Mul(this.Val, r.asBigFloat())
+func (flt *Flt) mulR(r *Rational) {
+	flt.Val.Mul(flt.Val, r.asBigFloat())
 }
 
-func (this *Flt) mulF(f *Flt) {
-	this.Val.Mul(this.Val, f.Val)
+func (flt *Flt) mulF(f *Flt) {
+	flt.Val.Mul(flt.Val, f.Val)
 }
 
 func NewReal(v *big.Float) *Flt {

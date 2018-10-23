@@ -11,52 +11,52 @@ type String struct {
 	Val string
 }
 
-func (this *String) StringForm(params expreduceapi.ToStringParams) string {
+func (str *String) StringForm(params expreduceapi.ToStringParams) string {
 	if params.Form == "OutputForm" ||
 		params.Form == "TraditionalForm" ||
 		params.Form == "StandardForm" {
-		return fmt.Sprintf("%v", this.Val)
+		return fmt.Sprintf("%v", str.Val)
 	}
-	return fmt.Sprintf("\"%v\"", this.Val)
+	return fmt.Sprintf("\"%v\"", str.Val)
 }
 
-func (this *String) String(esi expreduceapi.EvalStateInterface) string {
+func (str *String) String(esi expreduceapi.EvalStateInterface) string {
 	context, contextPath := defaultStringFormArgs()
-	return this.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
+	return str.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
 }
 
-func (this *String) IsEqual(other expreduceapi.Ex) string {
+func (str *String) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*String)
 	if !ok {
 		return "EQUAL_FALSE"
 	}
-	if this.Val != otherConv.Val {
+	if str.Val != otherConv.Val {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
 }
 
-func (this *String) DeepCopy() expreduceapi.Ex {
-	thiscopy := *this
-	return &thiscopy
+func (str *String) DeepCopy() expreduceapi.Ex {
+	strcopy := *str
+	return &strcopy
 }
 
-func (this *String) Copy() expreduceapi.Ex {
-	return this.DeepCopy()
+func (str *String) Copy() expreduceapi.Ex {
+	return str.DeepCopy()
 }
 
-func (this *String) NeedsEval() bool {
+func (str *String) NeedsEval() bool {
 	return false
 }
 
-func (this *String) GetValue() string {
-	return this.Val
+func (str *String) GetValue() string {
+	return str.Val
 }
 
-func (this *String) Hash() uint64 {
+func (str *String) Hash() uint64 {
 	h := fnv.New64a()
 	h.Write([]byte{102, 206, 57, 172, 207, 100, 198, 133})
-	h.Write([]byte(this.Val))
+	h.Write([]byte(str.Val))
 	return h.Sum64()
 }
 

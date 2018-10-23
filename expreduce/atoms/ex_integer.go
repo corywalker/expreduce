@@ -19,16 +19,16 @@ type Integer struct {
 	return fmt.Sprintf("%d", f.Val)
 }*/
 
-func (i *Integer) StringForm(params expreduceapi.ToStringParams) string {
-	if i.Val.Cmp(big.NewInt(0)) < 0 {
+func (thisInt *Integer) StringForm(params expreduceapi.ToStringParams) string {
+	if thisInt.Val.Cmp(big.NewInt(0)) < 0 {
 		if parens.NeedsParens("System`Times", params.PreviousHead) {
 			if params.Form == "TeXForm" {
-				return fmt.Sprintf("{(%d)}", i.Val)
+				return fmt.Sprintf("{(%d)}", thisInt.Val)
 			}
-			return fmt.Sprintf("(%d)", i.Val)
+			return fmt.Sprintf("(%d)", thisInt.Val)
 		}
 	}
-	return fmt.Sprintf("%d", i.Val)
+	return fmt.Sprintf("%d", thisInt.Val)
 }
 
 func (thisInt *Integer) String(esi expreduceapi.EvalStateInterface) string {

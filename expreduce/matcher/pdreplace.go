@@ -31,23 +31,26 @@ func replacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool)
 	return e, thisDirty
 }
 
-func ReplacePD(this expreduceapi.Ex, es expreduceapi.EvalStateInterface, pm *PDManager) expreduceapi.Ex {
+// ReplacePD takes an expression and replaces any defined symbols in the
+// PDManager with the defined values. It is a form of subsitution common in
+// function evaluation and replacement.
+func ReplacePD(expr expreduceapi.Ex, es expreduceapi.EvalStateInterface, pm *PDManager) expreduceapi.Ex {
 	if pm == nil {
-		return this
+		return expr
 	}
 	containsAny := false
 	for k := range pm.patternDefined {
-		if atoms.ContainsSymbol(this, k) {
+		if atoms.ContainsSymbol(expr, k) {
 			containsAny = true
 			break
 		}
 	}
 	if !containsAny {
-		return this
+		return expr
 	}
 
 	// Expressions are immutable. Any time we change an expression, we must
 	// first copy it.
-	res, _ := replacePDInternal(this.Copy(), pm)
+	res, _ := replacePDInternal(expr.Copy(), pm)
 	return res
 }

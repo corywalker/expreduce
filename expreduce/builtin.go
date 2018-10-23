@@ -158,7 +158,10 @@ func (def *Definition) annotateWithDynamicUsage(es expreduceapi.EvalStateInterfa
 	}
 }
 
-func (def *Definition) annotateWithDynamic(es expreduceapi.EvalStateInterface) {
+// AnnotateWithDynamic annotates a Definition with anything else that might have
+// been defined dynamically, perhaps through the initialization of the builtin
+// function through builtin Expreduce code. Helpful in generating documentation.
+func (def *Definition) AnnotateWithDynamic(es expreduceapi.EvalStateInterface) {
 	def.annotateWithDynamicTests(es)
 	def.annotateWithDynamicUsage(es)
 }
