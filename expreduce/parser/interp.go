@@ -13,6 +13,13 @@ import (
 	"github.com/cznic/wl"
 )
 
+type evalStateForParser interface {
+	IsDef(string) bool
+	MarkSeen(string)
+	GetStringDef(name string, defaultVal string) string
+	GetListDef(name string) expreduceapi.ExpressionInterface
+}
+
 var inequalityOps = map[string]bool{
 	"System`Equal":        true,
 	"System`Unequal":      true,
@@ -77,23 +84,23 @@ func removeParens(ex expreduceapi.Ex) {
 	return
 }
 
-func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string, es expreduceapi.EvalStateInterface) {
+func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string, esfp evalStateForParser) {
 	if sym, isSym := e.(*atoms.Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
 			for _, toTry := range contextPath {
-				if es.IsDef(toTry + sym.Name) {
+				if esfp.IsDef(toTry + sym.Name) {
 					sym.Name = toTry + sym.Name
 					return
 				}
 			}
 			sym.Name = context + sym.Name
 		}
-		es.MarkSeen(sym.Name)
+		esfp.MarkSeen(sym.Name)
 	}
 	expr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		for _, part := range expr.GetParts() {
-			addContextAndDefine(part, context, contextPath, es)
+			addContextAndDefine(part, context, contextPath, esfp)
 		}
 	}
 }
@@ -467,7 +474,7 @@ func parserExprConv(expr *wl.Expression) expreduceapi.Ex {
 	return nil
 }
 
-func interpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, error) {
+func InterpBuf(buf *bytes.Buffer, fn string, esfp evalStateForParser) (expreduceapi.Ex, error) {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
 	in, err := wl.NewInput(buf, true)
 	if err != nil {
@@ -491,54 +498,22 @@ func interpBuf(buf *bytes.Buffer, fn string, es expreduceapi.EvalStateInterface)
 	// Remove inner parens
 	removeParens(parsed)
 
-	context := es.GetStringDef("System`$Context", "")
-	contextPathEx := es.GetListDef("System`$ContextPath")
+	context := esfp.GetStringDef("System`$Context", "")
+	contextPathEx := esfp.GetListDef("System`$ContextPath")
 	contextPath := []string{}
 	for _, pathPart := range contextPathEx.GetParts()[1:] {
 		contextPath = append(contextPath, pathPart.(*atoms.String).Val)
 	}
-	addContextAndDefine(parsed, context, contextPath, es)
+	addContextAndDefine(parsed, context, contextPath, esfp)
 	return parsed, nil
 }
 
-func Interp(src string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func Interp(src string, esfp evalStateForParser) expreduceapi.Ex {
 	buf := bytes.NewBufferString(src)
-	expr, err := interpBuf(buf, "nofile", es)
+	expr, err := InterpBuf(buf, "nofile", esfp)
 	if err != nil {
 		fmt.Printf("Syntax::sntx: %v.\n\n\n", err)
 		return atoms.NewSymbol("System`Null")
 	}
 	return expr
-}
-
-func EvalInterp(src string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	return es.Eval(Interp(src, es))
-}
-
-func EvalInterpMany(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	buf := bytes.NewBufferString(doc)
-	var lastExpr expreduceapi.Ex = atoms.NewSymbol("System`Null")
-	expr, err := interpBuf(buf, fn, es)
-	for err == nil {
-		lastExpr = es.Eval(expr)
-		expr, err = interpBuf(buf, fn, es)
-	}
-	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
-		fmt.Printf("Syntax::sntx: %v.\nWhile parsing: %v\n\n\n", err, buf.String()[:100])
-	}
-	return lastExpr
-}
-
-func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	buf := bytes.NewBufferString(doc)
-	l := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
-	expr, err := interpBuf(buf, fn, es)
-	for err == nil {
-		l.AppendEx(es.Eval(expr))
-		expr, err = interpBuf(buf, fn, es)
-	}
-	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
-		fmt.Printf("Syntax::sntx: %v.\nWhile parsing: %v\n\n\n", err, buf.String()[:100])
-	}
-	return l
 }

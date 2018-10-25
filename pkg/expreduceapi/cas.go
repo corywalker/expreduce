@@ -17,7 +17,7 @@ type ToStringParams struct {
 	Esi EvalStateInterface
 }
 
-// The interface that fundamental types must implement.
+// Ex is the interface that fundamental types must implement.
 type Ex interface {
 	// TODO(corywalker): Deprecate this function. All stringification should go
 	// through StringForm.

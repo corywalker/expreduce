@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
-	"github.com/corywalker/expreduce/expreduce/parser"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/stretchr/testify/assert"
@@ -51,7 +50,7 @@ func TestIncludedModules(t *testing.T) {
 			if !testSymEx.MatchString(def.Name) {
 				continue
 			}
-			parser.EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
+			EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
 			def.AnnotateWithDynamic(es)
 			td := testDesc{
 				module: defSet.Name,
@@ -193,8 +192,8 @@ func TestLowLevel(t *testing.T) {
 	assert.False(t, containsTest)
 
 	// Test raw recursion speed
-	parser.EvalInterp("DownValues[fib]={HoldPattern[fib[0]]->0,HoldPattern[fib[1]]->1,HoldPattern[fib[x_]]:>fib[x-1]+fib[x-2]}", es)
-	parser.EvalInterp("fib[25]", es)
+	EvalInterp("DownValues[fib]={HoldPattern[fib[0]]->0,HoldPattern[fib[1]]->1,HoldPattern[fib[x_]]:>fib[x-1]+fib[x-2]}", es)
+	EvalInterp("fib[25]", es)
 }
 
 func TestDeepCopy(t *testing.T) {
@@ -267,7 +266,7 @@ func TestConcurrency(t *testing.T) {
 		wg.Add(1)
 		go func(t *testing.T, i int, es expreduceapi.EvalStateInterface) {
 			defer wg.Done()
-			parser.EvalInterp(fmt.Sprintf("testVar := %v", i), es)
+			EvalInterp(fmt.Sprintf("testVar := %v", i), es)
 		}(t, i, es1)
 	}
 	wg.Wait()

@@ -45,7 +45,7 @@ func (es *EvalState) load(def Definition) {
 	// TODO: deprecate most of es. We should be using .m files now.
 	def.Name = es.GetStringDef("System`$Context", "") + def.Name
 	es.MarkSeen(def.Name)
-	parser.EvalInterp("$Context = \"Private`\"", es)
+	EvalInterp("$Context = \"Private`\"", es)
 
 	if len(def.Usage) > 0 {
 
@@ -79,7 +79,7 @@ func (es *EvalState) load(def Definition) {
 		es.toStringFns[def.Name] = def.toString
 	}
 	es.defined.Set(def.Name, newDef)
-	parser.EvalInterp("$Context = \"System`\"", es)
+	EvalInterp("$Context = \"System`\"", es)
 }
 
 func (es *EvalState) Init(loadAllDefs bool) {
@@ -241,19 +241,19 @@ func (es *EvalState) Init(loadAllDefs bool) {
 			fn := fmt.Sprintf("resources/%v.m", defSet.Name)
 			data, err := Asset(fn)
 			if err == nil {
-				parser.EvalInterp("$Context = \"Private`\"", es)
-				parser.EvalInterpMany(string(data), fn, es)
-				parser.EvalInterp("$Context = \"System`\"", es)
+				EvalInterp("$Context = \"Private`\"", es)
+				EvalInterpMany(string(data), fn, es)
+				EvalInterp("$Context = \"System`\"", es)
 			}
 		}
 		// System initialization
 		fn := "resources/init.m"
 		data := mustAsset(fn)
-		parser.EvalInterpMany(string(data), fn, es)
+		EvalInterpMany(string(data), fn, es)
 	}
-	parser.EvalInterp("$Context = \"Global`\"", es)
-	parser.EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
-	parser.EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
+	EvalInterp("$Context = \"Global`\"", es)
+	EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
+	EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
 }
 
 func NewEvalState() *EvalState {
