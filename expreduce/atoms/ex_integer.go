@@ -31,11 +31,6 @@ func (thisInt *Integer) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("%d", thisInt.Val)
 }
 
-func (thisInt *Integer) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := defaultStringFormArgs()
-	return thisInt.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
-}
-
 func (thisInt *Integer) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Integer)
 	if !ok {

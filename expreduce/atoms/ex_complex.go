@@ -22,12 +22,6 @@ func (cmplx *Complex) StringForm(p expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("(%v + %v*I)", cmplx.Re.StringForm(p), cmplx.Im.StringForm(p))
 }
 
-func (cmplx *Complex) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := defaultStringFormArgs()
-	return cmplx.StringForm(expreduceapi.ToStringParams{
-		Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
-}
-
 func (cmplx *Complex) IsEqual(other expreduceapi.Ex) string {
 	otherConv, otherIsComplex := other.(*Complex)
 	if !otherIsComplex {

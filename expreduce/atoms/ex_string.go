@@ -20,11 +20,6 @@ func (str *String) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("\"%v\"", str.Val)
 }
 
-func (str *String) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := defaultStringFormArgs()
-	return str.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
-}
-
 func (str *String) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*String)
 	if !ok {

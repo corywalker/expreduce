@@ -130,12 +130,6 @@ func (thisExpr *Expression) StringForm(params expreduceapi.ToStringParams) strin
 	return buffer.String()
 }
 
-func (thisExpr *Expression) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := defaultStringFormArgs()
-	return thisExpr.StringForm(expreduceapi.ToStringParams{
-		Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
-}
-
 func (thisExpr *Expression) IsEqual(otherEx expreduceapi.Ex) string {
 	other, ok := otherEx.(*Expression)
 	if !ok {

@@ -28,11 +28,6 @@ func (thisRational *Rational) StringForm(params expreduceapi.ToStringParams) str
 	return fmt.Sprintf("%d/%d", thisRational.Num, thisRational.Den)
 }
 
-func (thisRational *Rational) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := defaultStringFormArgs()
-	return thisRational.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
-}
-
 func (thisRational *Rational) IsEqual(other expreduceapi.Ex) string {
 	otherConv, otherIsRational := other.(*Rational)
 	if !otherIsRational {

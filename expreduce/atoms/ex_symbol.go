@@ -50,11 +50,6 @@ func (sym *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 	return formatSymName(sym.Name, params)
 }
 
-func (sym *Symbol) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := defaultStringFormArgs()
-	return sym.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
-}
-
 func (sym *Symbol) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Symbol)
 	if !ok {

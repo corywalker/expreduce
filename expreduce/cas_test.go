@@ -114,6 +114,7 @@ func TestLowLevel(t *testing.T) {
 	fmt.Println("Testing low-level structs")
 
 	es := NewEvalState()
+	stringParams := ActualStringFormArgsFull("InputForm", es)
 
 	lhs := atoms.NewExpression([]expreduceapi.Ex{
 		atoms.NewSymbol("System`Power"),
@@ -147,9 +148,9 @@ func TestLowLevel(t *testing.T) {
 
 	// Test basic float functionality
 	var f *atoms.Flt = atoms.NewReal(big.NewFloat(5.5))
-	assert.Equal(t, "5.5", f.String(es))
+	assert.Equal(t, "5.5", f.StringForm(stringParams))
 	es.Eval(f)
-	assert.Equal(t, "5.5", f.String(es))
+	assert.Equal(t, "5.5", f.StringForm(stringParams))
 
 	// Test nested addition functionality
 	var a = atoms.NewExpression([]expreduceapi.Ex{
@@ -173,14 +174,13 @@ func TestLowLevel(t *testing.T) {
 
 	// Test evaluation
 	newa := es.Eval(a)
-	stringParams := ActualStringFormArgsFull("InputForm", es)
 	assert.Equal(t, "87.5", newa.StringForm(stringParams))
 
 	// Test basic Symbol functionality
 	var v *atoms.Symbol = atoms.NewSymbol("System`x")
-	assert.Equal(t, "x", v.String(es))
+	assert.Equal(t, "x", v.StringForm(stringParams))
 	es.Eval(v)
-	assert.Equal(t, "x", v.String(es))
+	assert.Equal(t, "x", v.StringForm(stringParams))
 
 	casAssertSame(t, es, "(a + b + c + d + e + f)", "a + b + c +d +e +f")
 	casAssertSame(t, es, "(a*b*c*d*e*f)", "a * b * c *d *e *f")
@@ -202,6 +202,7 @@ func TestDeepCopy(t *testing.T) {
 
 	// So that we can print the values. Not very necessary.
 	es := NewEvalState()
+	stringParams := ActualStringFormArgsFull("InputForm", es)
 
 	// Test deepcopy
 	var t1 = atoms.NewSymbol("System`x")
@@ -219,14 +220,14 @@ func TestDeepCopy(t *testing.T) {
 	var t4 = atoms.NewReal(big.NewFloat(2))
 	t5 := *t4
 	t6 := t4.DeepCopy().(*atoms.Flt)
-	assert.Equal(t, "2.", t4.String(es))
-	assert.Equal(t, "2.", t5.String(es))
-	assert.Equal(t, "2.", t6.String(es))
+	assert.Equal(t, "2.", t4.StringForm(stringParams))
+	assert.Equal(t, "2.", t5.StringForm(stringParams))
+	assert.Equal(t, "2.", t6.StringForm(stringParams))
 	t5.Val.Add(t5.Val, big.NewFloat(2))
 	t6.Val.Add(t6.Val, big.NewFloat(3))
-	assert.Equal(t, "4.", t4.String(es)) // Because we used the wrong copy method
-	assert.Equal(t, "4.", t5.String(es))
-	assert.Equal(t, "5.", t6.String(es))
+	assert.Equal(t, "4.", t4.StringForm(stringParams)) // Because we used the wrong copy method
+	assert.Equal(t, "4.", t5.StringForm(stringParams))
+	assert.Equal(t, "5.", t6.StringForm(stringParams))
 }
 
 func TestConcurrency(t *testing.T) {

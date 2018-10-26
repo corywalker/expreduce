@@ -42,11 +42,6 @@ func (flt *Flt) StringForm(params expreduceapi.ToStringParams) string {
 	return buffer.String()
 }
 
-func (flt *Flt) String(esi expreduceapi.EvalStateInterface) string {
-	context, contextPath := defaultStringFormArgs()
-	return flt.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: esi})
-}
-
 func (flt *Flt) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Flt)
 	if !ok {
