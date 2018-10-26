@@ -7,14 +7,19 @@ import (
 	gologging "github.com/op/go-logging"
 )
 
+type evalStateForStringer interface {
+	GetStringFn(headStr string) (ToStringFnType, bool)
+	// Used by Definition[]
+	GetDefined(name string) (Def, bool)
+}
+
 type ToStringFnType (func(ExpressionInterface, ToStringParams) (bool, string))
 type ToStringParams struct {
 	Form         string
 	Context      StringInterface
 	ContextPath  ExpressionInterface
 	PreviousHead string
-	// Used by Definition[]
-	Esi EvalStateInterface
+	Esi          evalStateForStringer
 }
 
 // Ex is the interface that fundamental types must implement.
