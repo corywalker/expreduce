@@ -173,7 +173,8 @@ func TestLowLevel(t *testing.T) {
 
 	// Test evaluation
 	newa := es.Eval(a)
-	assert.Equal(t, "87.5", newa.String(es))
+	stringParams := ActualStringFormArgsFull("InputForm", es)
+	assert.Equal(t, "87.5", newa.StringForm(stringParams))
 
 	// Test basic Symbol functionality
 	var v *atoms.Symbol = atoms.NewSymbol("System`x")

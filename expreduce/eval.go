@@ -98,8 +98,8 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 		currHeadStr := ""
 		started := int64(0)
 		if es.IsProfiling() {
-			currStr = curr.String(es)
-			currHeadStr = curr.GetParts()[0].String(es)
+			currStr = curr.StringForm(es.profilingToStringParams)
+			currHeadStr = curr.GetParts()[0].StringForm(es.profilingToStringParams)
 			started = time.Now().UnixNano()
 		}
 

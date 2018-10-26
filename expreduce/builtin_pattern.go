@@ -17,7 +17,7 @@ func toStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi
 	} else if len(parts) == 2 {
 		var buffer bytes.Buffer
 		buffer.WriteString(repr)
-		buffer.WriteString(parts[1].String(params.Esi))
+		buffer.WriteString(parts[1].StringForm(params))
 		return true, buffer.String()
 	}
 	return false, ""

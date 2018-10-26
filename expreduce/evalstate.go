@@ -21,15 +21,16 @@ type EvalState struct {
 	// Embedded type for logging
 	logging.CASLogger
 
-	defined     expreduceapi.DefinitionMap
-	trace       expreduceapi.ExpressionInterface
-	NoInit      bool
-	timeCounter timecounter.Group
-	freeze      bool
-	thrown      expreduceapi.ExpressionInterface
-	reapSown    expreduceapi.ExpressionInterface
-	interrupted bool
-	toStringFns map[string]expreduceapi.ToStringFnType
+	defined                 expreduceapi.DefinitionMap
+	trace                   expreduceapi.ExpressionInterface
+	NoInit                  bool
+	timeCounter             timecounter.Group
+	freeze                  bool
+	thrown                  expreduceapi.ExpressionInterface
+	reapSown                expreduceapi.ExpressionInterface
+	interrupted             bool
+	toStringFns             map[string]expreduceapi.ToStringFnType
+	profilingToStringParams expreduceapi.ToStringParams
 }
 
 func (es *EvalState) GetDefined(name string) (expreduceapi.Def, bool) {
@@ -254,6 +255,8 @@ func (es *EvalState) Init(loadAllDefs bool) {
 	EvalInterp("$Context = \"Global`\"", es)
 	EvalInterp("$ContextPath = Append[$ContextPath, \"Global`\"]", es)
 	EvalInterp("$ExpreduceContextStack = {\"Global`\"}", es)
+
+	es.profilingToStringParams = ActualStringFormArgsFull("InputForm", es)
 }
 
 func NewEvalState() *EvalState {
@@ -305,8 +308,8 @@ func (es *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, 
 		defStr, lhsDefStr := "", ""
 		started := int64(0)
 		if es.IsProfiling() {
-			defStr = def.String(es)
-			lhsDefStr = lhs.String(es) + defStr
+			defStr = def.StringForm(es.profilingToStringParams)
+			lhsDefStr = lhs.StringForm(es.profilingToStringParams) + defStr
 			started = time.Now().UnixNano()
 		}
 

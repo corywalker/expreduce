@@ -68,7 +68,8 @@ type SameTestEx struct {
 }
 
 func (test *SameTestEx) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
-	succ, s := casTestInner(es, es.Eval(test.In), es.Eval(test.Out), test.In.String(es), true, td.desc)
+	stringParams := ActualStringFormArgsFull("InputForm", es)
+	succ, s := casTestInner(es, es.Eval(test.In), es.Eval(test.Out), test.In.StringForm(stringParams), true, td.desc)
 	assert.True(t, succ, s)
 	return succ
 }

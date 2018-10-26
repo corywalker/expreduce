@@ -19,9 +19,6 @@ type ToStringParams struct {
 
 // Ex is the interface that fundamental types must implement.
 type Ex interface {
-	// TODO(corywalker): Deprecate this function. All stringification should go
-	// through StringForm.
-	String(es EvalStateInterface) string
 	StringForm(params ToStringParams) string
 	IsEqual(b Ex) string
 	DeepCopy() Ex

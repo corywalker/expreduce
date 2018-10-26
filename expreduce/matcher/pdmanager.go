@@ -67,11 +67,16 @@ func (pm *PDManager) string(es expreduceapi.EvalStateInterface) string {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
+	context := atoms.NewString("Global`")
+	contextPath := atoms.NewExpression([]expreduceapi.Ex{
+		atoms.NewSymbol("System`List"),
+		atoms.NewString("System`"),
+	})
 	for _, k := range keys {
 		v := pm.patternDefined[k]
 		buffer.WriteString(k)
 		buffer.WriteString("_: ")
-		buffer.WriteString(v.String(es))
+		buffer.WriteString(v.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: es}))
 		buffer.WriteString(", ")
 	}
 	if strings.HasSuffix(buffer.String(), ", ") {
