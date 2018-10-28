@@ -89,7 +89,7 @@ func (thisExpr *Expression) PropagateConditionals() (*Expression, bool) {
 func (thisExpr *Expression) StringForm(params expreduceapi.ToStringParams) string {
 	headAsSym, isHeadSym := thisExpr.GetParts()[0].(*Symbol)
 	fullForm := false
-	if isHeadSym && !fullForm {
+	if isHeadSym && !fullForm && params.Esi != nil {
 		res, ok := "", false
 		headStr := headAsSym.Name
 		toStringFn, hasToStringFn := params.Esi.GetStringFn(headStr)
@@ -128,6 +128,10 @@ func (thisExpr *Expression) StringForm(params expreduceapi.ToStringParams) strin
 	}
 	buffer.WriteString("]")
 	return buffer.String()
+}
+
+func (thisExpr *Expression) String() string {
+	return thisExpr.StringForm(defaultStringParams())
 }
 
 func (thisExpr *Expression) IsEqual(otherEx expreduceapi.Ex) string {

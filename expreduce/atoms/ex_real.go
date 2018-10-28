@@ -92,7 +92,7 @@ func (flt *Flt) NeedsEval() bool {
 func (flt *Flt) Hash() uint64 {
 	h := fnv.New64a()
 	h.Write([]byte{195, 244, 76, 249, 227, 115, 88, 251})
-	bytes, _ := flt.Val.MarshalText()
+	bytes, _ := flt.Val.GobEncode()
 	h.Write(bytes)
 	return h.Sum64()
 }

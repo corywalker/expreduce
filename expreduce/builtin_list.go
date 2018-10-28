@@ -208,17 +208,11 @@ func getListDefinitions() (defs []Definition) {
 				mis, isOk := iterspec.MultiSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
 					// Simulate evaluation within Block[]
-					mis.TakeVarSnapshot(es)
 					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 					for mis.Cont() {
-						mis.DefineCurrent(es)
-						// TODO: use ReplacePD for this. We're only replacing
-						// symbols. Don't need a full Eval.
-						toReturn.AppendEx(es.Eval(this.GetParts()[1].DeepCopy()))
-						es.Debugf("%v\n", toReturn)
+						toReturn.AppendEx(matcher.ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.CurrentPDManager()))
 						mis.Next()
 					}
-					mis.RestoreVarSnapshot(es)
 					return toReturn
 				}
 			}
@@ -235,7 +229,6 @@ func getListDefinitions() (defs []Definition) {
 					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 					for mis.Cont() {
 						toReturn.AppendEx(matcher.ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.CurrentPDManager()))
-						es.Debugf("%v\n", toReturn)
 						mis.Next()
 					}
 					var wg sync.WaitGroup

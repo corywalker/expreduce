@@ -31,6 +31,10 @@ func (thisInt *Integer) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("%d", thisInt.Val)
 }
 
+func (thisInt *Integer) String() string {
+	return thisInt.StringForm(defaultStringParams())
+}
+
 func (thisInt *Integer) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Integer)
 	if !ok {
@@ -78,7 +82,7 @@ func (thisInt *Integer) Hash() uint64 {
 	}
 	h := fnv.New64a()
 	h.Write([]byte{242, 99, 84, 113, 102, 46, 118, 94})
-	bytes, _ := thisInt.Val.MarshalText()
+	bytes, _ := thisInt.Val.GobEncode()
 	h.Write(bytes)
 	thisInt.cachedHash = h.Sum64()
 	return h.Sum64()

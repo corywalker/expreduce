@@ -20,6 +20,10 @@ func (str *String) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("\"%v\"", str.Val)
 }
 
+func (this *String) String() string {
+	return this.StringForm(defaultStringParams())
+}
+
 func (str *String) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*String)
 	if !ok {

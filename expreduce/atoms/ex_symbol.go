@@ -50,6 +50,10 @@ func (sym *Symbol) StringForm(params expreduceapi.ToStringParams) string {
 	return formatSymName(sym.Name, params)
 }
 
+func (sym *Symbol) String() string {
+	return sym.StringForm(defaultStringParams())
+}
+
 func (sym *Symbol) IsEqual(other expreduceapi.Ex) string {
 	otherConv, ok := other.(*Symbol)
 	if !ok {

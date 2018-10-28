@@ -72,9 +72,9 @@ func NewRational(n *big.Int, d *big.Int) *Rational {
 func (thisRational *Rational) Hash() uint64 {
 	h := fnv.New64a()
 	h.Write([]byte{90, 82, 214, 51, 52, 7, 7, 33})
-	nBytes, _ := thisRational.Num.MarshalText()
+	nBytes, _ := thisRational.Num.GobEncode()
 	h.Write(nBytes)
-	dBytes, _ := thisRational.Den.MarshalText()
+	dBytes, _ := thisRational.Den.GobEncode()
 	h.Write(dBytes)
 	return h.Sum64()
 }
