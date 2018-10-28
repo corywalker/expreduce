@@ -11,6 +11,7 @@ import (
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/logging"
 	"github.com/corywalker/expreduce/expreduce/parser"
+	"github.com/corywalker/expreduce/expreduce/streammanager"
 	"github.com/corywalker/expreduce/expreduce/timecounter"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
@@ -31,6 +32,7 @@ type EvalState struct {
 	interrupted             bool
 	toStringFns             map[string]expreduceapi.ToStringFnType
 	profilingToStringParams expreduceapi.ToStringParams
+	streamManager           expreduceapi.StreamManager
 }
 
 func (es *EvalState) GetDefined(name string) (expreduceapi.Def, bool) {
@@ -85,6 +87,7 @@ func (es *EvalState) load(def Definition) {
 
 func (es *EvalState) Init(loadAllDefs bool) {
 	es.defined = newDefinitionMap()
+	es.streamManager = streammanager.NewStreamManager()
 	es.toStringFns = make(map[string]expreduceapi.ToStringFnType)
 	// These are fundamental symbols that affect even the parsing of
 	// expressions. We must define them before even the bootstrap definitions.
@@ -249,7 +252,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		}
 		// System initialization
 		fn := "resources/init.m"
-		data := mustAsset(fn)
+		data := MustAsset(fn)
 		EvalInterpMany(string(data), fn, es)
 	}
 	EvalInterp("$Context = \"Global`\"", es)
@@ -693,4 +696,8 @@ func maskNonConditional(e expreduceapi.Ex) expreduceapi.Ex {
 		}
 	}
 	return res
+}
+
+func (es *EvalState) GetStreamManager() expreduceapi.StreamManager {
+	return es.streamManager
 }

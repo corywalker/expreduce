@@ -56,7 +56,7 @@ func main() {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(f)
 		scriptText := buf.String()
-		parser.EvalInterpMany(scriptText, *initfile, es)
+		expreduce.EvalInterpMany(scriptText, *initfile, es)
 	}
 
 	if *scriptfile != "" {
@@ -76,7 +76,7 @@ func main() {
 }
 
 func scriptSession(es *expreduce.EvalState, srcText string, srcPath string) {
-	exp := parser.EvalInterpMany(srcText, srcPath, es)
+	exp := expreduce.EvalInterpMany(srcText, srcPath, es)
 	res := es.Eval(exp)
 	res = es.ProcessTopLevelResult(res, res)
 }

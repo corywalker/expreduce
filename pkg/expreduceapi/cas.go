@@ -1,5 +1,3 @@
-//go:generate go-bindata -pkg expreduce -o resources.go resources/...
-
 package expreduceapi
 
 import (
@@ -78,12 +76,14 @@ type EvalStateInterface interface {
 	SetReapSown(ex ExpressionInterface)
 
 	GetTimeCounter() *timecounter.Group
+	GetStreamManager() StreamManager
 }
 
 type ExpressionInterface interface {
 	Ex
 
 	GetParts() []Ex
+	GetPart(i int) Ex
 	SetParts(newParts []Ex)
 	ClearHashes()
 
@@ -108,6 +108,10 @@ type DefinitionMap interface {
 	LockKey(key string)
 	UnlockKey(key string)
 	CopyDefs() DefinitionMap
+}
+
+type StreamManager interface {
+	WriteString(streamName string, streamIndex int64, toWrite string) bool
 }
 
 type DownValue struct {

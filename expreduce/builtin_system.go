@@ -216,6 +216,25 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 	return toReturn, true
 }
 
+func parseOutputStream(outputStreamDef expreduceapi.Ex) (string, int64, bool) {
+	outputStream, isOutputStream := atoms.HeadAssertion(outputStreamDef, "System`OutputStream")
+	if !isOutputStream {
+		return "", -1, false
+	}
+	if outputStream.Len() != 2 {
+		return "", -1, false
+	}
+	streamName, ok := outputStream.GetPart(1).(*atoms.String)
+	if !ok {
+		return "", -1, false
+	}
+	streamIndex, ok := outputStream.GetPart(2).(*atoms.Integer)
+	if !ok {
+		return "", -1, false
+	}
+	return streamName.GetValue(), streamIndex.Val.Int64(), true
+}
+
 func getSystemDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "ExpreduceSetLogging",
@@ -521,27 +540,7 @@ func getSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name:      "Print",
-		Usage:     "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.",
 		Bootstrap: true,
-		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.GetParts()) < 2 {
-				return this
-			}
-
-			context, contextPath := actualStringFormArgs(es)
-			stringParams := expreduceapi.ToStringParams{
-				Form:         "OutputForm",
-				Context:      context,
-				ContextPath:  contextPath,
-				PreviousHead: "<TOPLEVEL>",
-				Esi:          es,
-			}
-			for i := 1; i < len(this.GetParts()); i++ {
-				fmt.Printf("%s", this.GetParts()[i].StringForm(stringParams))
-			}
-			fmt.Printf("\n")
-			return atoms.NewSymbol("System`Null")
-		},
 	})
 	defs = append(defs, Definition{
 		Name: "MessageName",
@@ -804,6 +803,26 @@ func getSystemDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{Name: "Information"})
 	defs = append(defs, Definition{Name: "OutputStream"})
-	defs = append(defs, Definition{Name: "WriteString"})
+	defs = append(defs, Definition{
+		Name: "WriteString",
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if this.Len() != 2 {
+				fmt.Println("Unsupported call to WriteString.")
+				return this
+			}
+			streamName, streamIndex, ok := parseOutputStream(this.GetPart(1))
+			if !ok {
+				fmt.Println("Failed to parse OutputStream.")
+				return this
+			}
+			str, ok := this.GetPart(2).(*atoms.String)
+			if !ok {
+				fmt.Println("Failed to convert the second argument of WriteString to a string.")
+				return this
+			}
+			es.GetStreamManager().WriteString(streamName, streamIndex, str.GetValue())
+			return atoms.NewSymbol("System`Null")
+		},
+	})
 	return
 }

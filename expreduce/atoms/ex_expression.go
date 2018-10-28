@@ -274,6 +274,10 @@ func (thisExpr *Expression) GetParts() []expreduceapi.Ex {
 	return thisExpr.Parts
 }
 
+func (thisExpr *Expression) GetPart(i int) expreduceapi.Ex {
+	return thisExpr.Parts[i]
+}
+
 func (thisExpr *Expression) SetParts(newParts []expreduceapi.Ex) {
 	thisExpr.Parts = newParts
 }

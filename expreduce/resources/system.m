@@ -62,6 +62,12 @@ Tests`Timing = {
     ]
 };
 
+Print::usage = "`Print[expr1, expr2, ...]` prints the string representation of the expressions to the console and returns `Null`.";
+Print[expressions___] :=
+  WriteString[OutputStream["stdout", 1],
+   StringJoin[ToString /@ {expressions}] <> "\n"];
+Attributes[Print] = {Protected};
+
 MessageName::usage = "`sym::msg` references a particular message for `sym`.";
 Attributes[MessageName] = {HoldFirst, ReadProtected, Protected};
 Tests`MessageName = {
@@ -339,4 +345,3 @@ Attributes[Information] = {HoldAll, Protected, ReadProtected};
 
 Attributes[OutputStream] = {Protected, ReadProtected};
 Attributes[WriteString] = {Protected};
-WriteString[OutputStream["stdout", 1], str_String] := Print[str];

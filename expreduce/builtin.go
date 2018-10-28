@@ -1,3 +1,5 @@
+//go:generate go-bindata -pkg expreduce -o resources.go resources/...
+
 package expreduce
 
 import (
