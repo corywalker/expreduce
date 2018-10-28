@@ -4,7 +4,9 @@ package streammanager
 import (
 	"io"
 	"os"
+	"sort"
 
+	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -36,4 +38,26 @@ func (sm streamManagerImpl) WriteString(streamName string, streamIndex int64, to
 	}
 	writer.Write([]byte(toWrite))
 	return true
+}
+
+func (sm streamManagerImpl) AsExpr() expreduceapi.Ex {
+	res := atoms.E(atoms.S("List"))
+
+	keys := make([]streamKey, 0)
+	for k := range sm.openStreams {
+		keys = append(keys, k)
+	}
+	sort.Slice(keys, func(i, j int) bool {
+		return keys[i].id < keys[j].id
+	})
+
+	for _, k := range keys {
+		res.AppendEx(atoms.E(
+			atoms.S("OutputStream"),
+			atoms.NewString(k.name),
+			atoms.NewInt(k.id),
+		))
+	}
+
+	return res
 }

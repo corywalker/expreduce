@@ -824,5 +824,15 @@ func getSystemDefinitions() (defs []Definition) {
 			return atoms.NewSymbol("System`Null")
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Streams",
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if this.Len() != 0 {
+				fmt.Println("Unsupported call to Streams.")
+				return this
+			}
+			return es.GetStreamManager().AsExpr()
+		},
+	})
 	return
 }

@@ -112,6 +112,7 @@ type DefinitionMap interface {
 
 type StreamManager interface {
 	WriteString(streamName string, streamIndex int64, toWrite string) bool
+	AsExpr() Ex
 }
 
 type DownValue struct {

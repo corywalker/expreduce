@@ -345,3 +345,11 @@ Attributes[Information] = {HoldAll, Protected, ReadProtected};
 
 Attributes[OutputStream] = {Protected, ReadProtected};
 Attributes[WriteString] = {Protected};
+
+Streams::usage = "`Streams[]` gets a list of all open streams.";
+Attributes[Streams] = {Protected};
+Tests`Streams = {
+    ESimpleExamples[
+        ESameTest[{OutputStream["stdout", 1], OutputStream["stderr", 2]}, Streams[]]
+    ]
+};
