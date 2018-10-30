@@ -207,10 +207,13 @@ func getListDefinitions() (defs []Definition) {
 			if len(this.GetParts()) >= 3 {
 				mis, isOk := iterspec.MultiSpecFromLists(es, this.GetParts()[2:])
 				if isOk {
-					// Simulate evaluation within Block[]
 					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 					for mis.Cont() {
-						toReturn.AppendEx(matcher.ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.CurrentPDManager()))
+						thisVal := this.GetParts()[1].DeepCopy()
+						thisVal = matcher.ReplacePD(thisVal, es, mis.CurrentPDManager())
+						thisVal = es.Eval(thisVal)
+						thisVal = matcher.ReplacePD(thisVal, es, mis.CurrentPDManager())
+						toReturn.AppendEx(thisVal)
 						mis.Next()
 					}
 					return toReturn

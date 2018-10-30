@@ -61,6 +61,7 @@ Attributes[Cosh] = {Listable, NumericFunction, Protected};
 
 ArcSin[p_Plus] := -ArcSin[-p] /; (MatchQ[p[[1]], -_] || p[[1]] < 0);
 ArcSin[-x_] := -ArcSin[x];
+ArcSin[0] := 0;
 Attributes[ArcSin] = {Listable, NumericFunction, Protected, ReadProtected};
 
 Attributes[ArcCos] = {Listable, NumericFunction, Protected, ReadProtected};

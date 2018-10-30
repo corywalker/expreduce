@@ -218,6 +218,13 @@ func getPowerDefinitions() (defs []Definition) {
 							inner.DeepCopy(),
 						),
 					)).(*atoms.Flt)
+				// If the exponent has no fractional part, i.e. should be an integer, then we can say there will be no imaginary component to the result.
+				// Reduce[Sin[b*Arg[a]] == 0, b, Reals] // FullSimplify
+				// C[1] \[Element] Integers && a < 0 && (b == 2 C[1] || b == 1 + 2 C[1])
+				if powerFlt.Val.IsInt() {
+					// TODO: We may want to decide this earlier. Figure this out.
+					return re
+				}
 				im :=
 
 					es.Eval(atoms.E(
