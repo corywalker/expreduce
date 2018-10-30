@@ -2,9 +2,11 @@ package expreduce
 
 import (
 	"encoding/base64"
+	"fmt"
 	"strings"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/graphics"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -127,11 +129,7 @@ func getStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ExportString",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.GetParts()) != 3 {
-				return this
-			}
-			asStr, isStr := this.GetParts()[1].(*atoms.String)
-			if !isStr {
+			if len(this.GetParts()) != 3 && len(this.GetParts()) != 4 {
 				return this
 			}
 			formatAsStr, formatIsStr := this.GetParts()[2].(*atoms.String)
@@ -139,6 +137,20 @@ func getStringDefinitions() (defs []Definition) {
 				return this
 			}
 			format := strings.ToLower(formatAsStr.Val)
+
+			if format == "png" {
+				chartAsPNG, err := graphics.RenderAsPNG(this.GetPart(1))
+				if err != nil {
+					fmt.Printf("Encountered error during PNG render: %v\n", err)
+					return atoms.NewSymbol("System`$Failed")
+				}
+				return atoms.NewString(chartAsPNG)
+			}
+
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
+			if !isStr {
+				return this
+			}
 			if format == "base64" {
 				encoded := base64.StdEncoding.EncodeToString([]byte(asStr.Val))
 				return atoms.NewString(encoded + "\n")
