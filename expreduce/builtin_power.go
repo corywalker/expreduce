@@ -1,6 +1,7 @@
 package expreduce
 
 import (
+	"math"
 	"math/big"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
@@ -363,5 +364,9 @@ func getPowerDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{Name: "Arg"})
 	defs = append(defs, Definition{Name: "ComplexExpand"})
+	defs = append(defs, Definition{
+		Name:         "Exp",
+		legacyEvalFn: mathFnOneParam(math.Exp),
+	})
 	return
 }
