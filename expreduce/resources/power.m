@@ -274,16 +274,16 @@ Tests`I = {
     ]
 };
 
-possibleExponents[n_Integer, m_Integer] := 
- Flatten[Permutations /@ ((PadRight[#, m]) & /@ 
+possibleExponents[n_Integer, m_Integer] :=
+ Flatten[Permutations /@ ((PadRight[#, m]) & /@
      IntegerPartitions[n, m]), 1];
 genVars[addends_List, exponents_List] := Times@@(addends ^ exponents);
-genExpand[addends_List, exponents_List] := 
+genExpand[addends_List, exponents_List] :=
  Plus@@Table[(Multinomial @@ exponents[[ExpandUnique`i]])*
-   genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1, 
+   genVars[addends, exponents[[ExpandUnique`i]]], {ExpandUnique`i, 1,
    Length[exponents]}];
 expandRules := {
-  s_Plus^n_Integer?Positive :> 
+  s_Plus^n_Integer?Positive :>
     genExpand[List @@ s, possibleExponents[n, Length[s]]],
   c_*s_Plus :> ((c*#) &) /@ s
 };
@@ -443,7 +443,7 @@ ExpreduceNonProp[inP_, inTerm_] :=
     If[MatchQ[toMatch, pat], toMatch, 0]]
    ];
 Coefficient::usage =  "`Coefficient[p, form]` returns the coefficient of form `form` in polynomial `p`.";
-Coefficient[p_, var_, exp_] := 
+Coefficient[p_, var_, exp_] :=
     If[exp === 0,
         ExpreduceNonProp[p, var],
         Coefficient[p, var^exp]
@@ -563,7 +563,7 @@ FactorTermsList[expr_] := Module[{e = expr, toFactor, cTerms, c},
     Return[ExpreduceConstantTerm[toFactor]]
     ];
    (* Parens are necessary due to precedence issue. *)
-   cTerms = ((ExpreduceConstantTerm /@ (List @@ toFactor)) // 
+   cTerms = ((ExpreduceConstantTerm /@ (List @@ toFactor)) //
        Transpose)[[1]];
    c = GCD @@ cTerms;
    If[Last[cTerms] < 0, c = -c];
@@ -629,14 +629,14 @@ Varibles::usage = "`Variables[expr]` returns the variables in `expr`.";
 Variables[s_Symbol] := {s};
 Variables[s_^p_Integer] := Variables[s];
 Variables[s_^p_Rational] := Variables[s];
-Variables[s_^p_Plus] := 
+Variables[s_^p_Plus] :=
   If[NumericQ[s], {}, (((s^#) &) /@ p) // Variables];
 Variables[s_^p_] := If[NumericQ[s], {}, {s^p}];
-Variables[s_^p_Times] := 
+Variables[s_^p_Times] :=
   If[NumericQ[s], {}, {s^DeleteCases[p, _Integer]}];
 Variables[e_] := (
    If[NumericQ[e] || Length[e] === 0, Return[{}]];
-   If[MemberQ[{Plus, Times, List}, Head[e]], 
+   If[MemberQ[{Plus, Times, List}, Head[e]],
     Return[Union @@ Variables /@ (List @@ e)]];
    If[Length[e] > 0, Return[{e}]];
    Unknown
@@ -703,7 +703,7 @@ Tests`Variables = {
 };
 
 PolynomialGCD::usage = "`PolynomialGCD[a, b]` calculates the polynomial GCD of `a` and `b`.";
-PolySubresultantGCD[inA_, inB_, inX_] := 
+PolySubresultantGCD[inA_, inB_, inX_] :=
   Module[{u = inA, v = inB, x = inX, h, delta, beta, newU, newV, i},
    h = 1;
    i = 1;
@@ -723,7 +723,7 @@ PolySubresultantGCD[inA_, inB_, inX_] :=
    ];
 (* doesn't work with rational functions yet. *)
 (* Looks like prefactored inputs remain factored. *)
-PolynomialGCD[inA_, inB_] := 
+PolynomialGCD[inA_, inB_] :=
   FactorTermsList[
     PolySubresultantGCD[inA, inB, Variables[inA][[1]]]][[2]];
 Attributes[PolynomialGCD] = {Listable, Protected};
@@ -755,8 +755,8 @@ Tests`SquareFreeQ = {
 };
 
 PSimplify[expr_] := expr;
-PSimplify[p_?PolynomialQ/q_?PolynomialQ] := 
-  If[Length[Variables[p]] === 1 && Variables[p] === Variables[q], 
+PSimplify[p_?PolynomialQ/q_?PolynomialQ] :=
+  If[Length[Variables[p]] === 1 && Variables[p] === Variables[q],
    PolynomialQuotient[p, q, Variables[p][[1]]], p/q];
 Tests`PSimplify = {
     ESimpleExamples[
@@ -844,12 +844,14 @@ Arg[a_?NumberQ] := ArcTan[Re[a], Im[a]];
 ComplexExpand::usage = "`ComplexExpand[e]` returns a complex expansion of `e`.";
 Attributes[ComplexExpand] = {Protected};
 complexExpandInner[e_] := e;
-complexExpandInner[(a_Integer?Negative)^b_Rational] := 
+complexExpandInner[(a_Integer?Negative)^b_Rational] :=
   Module[{coeff, inner},
    coeff = ((a^2)^(b/2));
    inner = b*Arg[a];
    coeff*Cos[inner] + I*coeff*Sin[inner]];
-ComplexExpand[exp_] := 
+complexExpandInner[E^((a_ + I*b_)*c_)] := E^(a c) Cos[b c]+I E^(a c) Sin[b c];
+complexExpandInner[E^(Complex[a_, b_]*c_)] := E^(a c) Cos[b c]+I E^(a c) Sin[b c];
+ComplexExpand[exp_] :=
   Map[complexExpandInner, exp, {0, Infinity}] // Expand;
 Tests`ComplexExpand = {
     ESimpleExamples[
@@ -860,6 +862,8 @@ Tests`ComplexExpand = {
         ESameTest[-(1/2)-(I Sqrt[3])/2, ComplexExpand[(-1)^(4/3)]],
         ESameTest[2 2^(1/3), ComplexExpand[(2)^(4/3)]],
         ESameTest[-1+I Sqrt[3], ComplexExpand[(-1)^(1/3) (1+I Sqrt[3])]],
+        ESameTest[d E^(a c) Cos[b c]+d I E^(a c) Sin[b c], ComplexExpand[d*E^((a+I*b)*c)]],
+        ESameTest[(1/2 + I/2)/Sqrt[2], ComplexExpand[1/2 E^(\[ImaginaryJ]*\[Pi]/4)]],
     ], EKnownFailures[
         ESameTest[-2^(1/3)-I 2^(1/3) Sqrt[3], ComplexExpand[(-2)^(4/3)]],
     ]

@@ -350,6 +350,7 @@ Streams::usage = "`Streams[]` gets a list of all open streams.";
 Attributes[Streams] = {Protected};
 Tests`Streams = {
     ESimpleExamples[
-        ESameTest[{OutputStream["stdout", 1], OutputStream["stderr", 2]}, Streams[]]
+        ESameTest[{OutputStream["stdout", 1], OutputStream["stderr", 2]}, Streams[]],
+        ESameTest[{}, a=Table[x^2//N,{x,-100,100,.001}];//Timing],
     ]
 };

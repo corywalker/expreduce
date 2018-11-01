@@ -140,6 +140,8 @@ func parsePattern(buf string) expreduceapi.Ex {
 
 var unicodeRedefineMap = map[string]string{
 	"π": "Pi",
+	"ⅈ": "I",
+	"ⅉ": "I",
 }
 
 func parserTokenConv(tk wl.Token) expreduceapi.Ex {
