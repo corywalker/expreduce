@@ -20,7 +20,7 @@ func (str *String) StringForm(params expreduceapi.ToStringParams) string {
 	return fmt.Sprintf("\"%v\"", str.Val)
 }
 
-func (this *String) String() string {
+func (str *String) String() string {
 	return this.StringForm(defaultStringParams())
 }
 

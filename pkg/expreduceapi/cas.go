@@ -130,7 +130,6 @@ type Def struct {
 	LegacyEvalFn EvalFnType
 }
 
-// Functions for working with the attributes of symbols:
 type Attributes struct {
 	Orderless       bool
 	Flat            bool

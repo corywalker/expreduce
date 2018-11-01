@@ -117,7 +117,7 @@ func interactiveSession(es *expreduce.EvalState) {
 		res = es.ProcessTopLevelResult(exp, res)
 
 		printFormattedOutput(es, res, true, promptNum)
-		promptNum += 1
+		promptNum++
 	}
 }
 
