@@ -18,6 +18,15 @@ func (cmplx *Complex) StringForm(p expreduceapi.ToStringParams) string {
 	if p.Form == "FullForm" {
 		return fmt.Sprintf("Complex[%v, %v]", cmplx.Re, cmplx.Im)
 	}
+	reInt, reIsInt := cmplx.Re.(*Integer)
+	imInt, imIsInt := cmplx.Im.(*Integer)
+	if reIsInt && reInt.Val.Sign() == 0 {
+		if imIsInt && imInt.Val.Int64() == 1 {
+			return "I"
+		}
+		p.PreviousHead = "System`Times"
+		return fmt.Sprintf("(%v*I)", cmplx.Im.StringForm(p))
+	}
 	p.PreviousHead = "System`Plus"
 	return fmt.Sprintf("(%v + %v*I)", cmplx.Re.StringForm(p), cmplx.Im.StringForm(p))
 }

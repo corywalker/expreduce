@@ -1,6 +1,7 @@
 package expreduce
 
 import (
+	"fmt"
 	"math"
 	"math/big"
 
@@ -122,6 +123,18 @@ func getPowerDefinitions() (defs []Definition) {
 		Name:    "Power",
 		Default: "1",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+			if this.Len() == 2 {
+				if atoms.IsSameQ(this.GetPart(2), atoms.NewRational(big.NewInt(1), big.NewInt(2))) {
+					nextParams := params
+					nextParams.PreviousHead = "<TOPLEVEL>"
+					if params.Form == "TeXForm" {
+						return true, fmt.Sprintf("\\sqrt{%v}", this.GetPart(1).StringForm(nextParams))
+					}
+					if params.Form == "InputForm" {
+						return true, fmt.Sprintf("Sqrt[%v]", this.GetPart(1).StringForm(nextParams))
+					}
+				}
+			}
 			return toStringInfixAdvanced(this.GetParts()[1:], "^", "System`Power", false, "", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
