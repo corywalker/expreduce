@@ -12,7 +12,10 @@ go:
 
 go_import_path: github.com/corywalker/expreduce
 
+install:
+  - go get -u github.com/golang/lint/golint
 script:
+  - 'golint ./... | grep -v "be unexported" | grep -v "resourcesRubi"'
   - go test -v ./...
   - go test -v -race ./... -run Concurrency
 
