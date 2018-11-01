@@ -1,6 +1,6 @@
 package expreduce
 
-func GetSolveDefinitions() (defs []Definition) {
+func getSolveDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Solve",
 		Details: "!!! warning \"Under development\"\n" +

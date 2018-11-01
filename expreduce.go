@@ -1,17 +1,21 @@
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"flag"
 	"fmt"
-	"github.com/corywalker/expreduce/expreduce"
-	"gopkg.in/readline.v1"
 	"log"
-	"os"
-	"bytes"
-	"bufio"
-	"runtime/pprof"
 	"net/http"
 	_ "net/http/pprof"
+	"os"
+	"runtime/pprof"
+
+	"github.com/corywalker/expreduce/expreduce"
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/parser"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+	"gopkg.in/readline.v1"
 )
 
 var debug = flag.Bool("debug", false, "Debug mode. No initial definitions.")
@@ -21,13 +25,10 @@ var netprofile = flag.Bool("netprofile", false, "Enable live profiling at http:/
 var scriptfile = flag.String("script", "", "script `file` to read from")
 var initfile = flag.String("initfile", "", "A script to run on initialization.")
 
-
-
-
 func main() {
 	flag.Parse()
 
- 	if *cpuprofile != "" {
+	if *cpuprofile != "" {
 		f, err := os.Create(*cpuprofile)
 		if err != nil {
 			log.Fatal(err)
@@ -74,13 +75,11 @@ func main() {
 	}
 }
 
-
 func scriptSession(es *expreduce.EvalState, srcText string, srcPath string) {
 	exp := expreduce.EvalInterpMany(srcText, srcPath, es)
-	res := exp.Eval(es)
+	res := es.Eval(exp)
 	res = es.ProcessTopLevelResult(res, res)
 }
-
 
 func interactiveSession(es *expreduce.EvalState) {
 	rl, err := readline.NewEx(&readline.Config{
@@ -113,8 +112,8 @@ func interactiveSession(es *expreduce.EvalState) {
 		}
 		fmt.Printf("\n")
 
-		exp := expreduce.Interp(line, es)
-		res := exp.Eval(es)
+		exp := parser.Interp(line, es)
+		res := es.Eval(exp)
 		res = es.ProcessTopLevelResult(exp, res)
 
 		printFormattedOutput(es, res, true, promptNum)
@@ -122,10 +121,9 @@ func interactiveSession(es *expreduce.EvalState) {
 	}
 }
 
-
-func printFormattedOutput(es *expreduce.EvalState, res expreduce.Ex, isInteractive bool, promptNum int) {
+func printFormattedOutput(es *expreduce.EvalState, res expreduceapi.Ex, isInteractive bool, promptNum int) {
 	isNull := false
-	asSym, isSym := res.(*expreduce.Symbol)
+	asSym, isSym := res.(*atoms.Symbol)
 	if isSym {
 		if asSym.Name == "System`Null" {
 			isNull = true
@@ -140,7 +138,7 @@ func printFormattedOutput(es *expreduce.EvalState, res expreduce.Ex, isInteracti
 		}
 		wasSpecialForm := false
 		for _, specialForm := range specialForms {
-			asSpecialForm, isSpecialForm := expreduce.HeadAssertion(
+			asSpecialForm, isSpecialForm := atoms.HeadAssertion(
 				res, specialForm)
 			if !isSpecialForm {
 				continue

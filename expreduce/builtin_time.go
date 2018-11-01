@@ -1,27 +1,32 @@
 package expreduce
 
-import "math/big"
-import "time"
+import (
+	"math/big"
+	"time"
 
-func GetTimeDefinitions() (defs []Definition) {
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
+
+func getTimeDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "UnixTime",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 1 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 1 {
 				return this
 			}
 
-			return NewInteger(big.NewInt(time.Now().UTC().Unix()))
+			return atoms.NewInteger(big.NewInt(time.Now().UTC().Unix()))
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Pause",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			nInt, nIsInt := this.Parts[1].(*Integer)
-			nFlt, nIsFlt := this.Parts[1].(*Flt)
+			nInt, nIsInt := this.GetParts()[1].(*atoms.Integer)
+			nFlt, nIsFlt := this.GetParts()[1].(*atoms.Flt)
 			if !nIsInt && !nIsFlt {
 				return this
 			}
@@ -34,7 +39,7 @@ func GetTimeDefinitions() (defs []Definition) {
 				duration = time.Duration(asFlt * 1000000000)
 			}
 			time.Sleep(duration)
-			return NewSymbol("System`Null")
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	return

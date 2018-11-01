@@ -1,4 +1,11 @@
-package expreduce
+package matcher
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
 
 type allocIterState struct {
 	currForm  int
@@ -36,14 +43,14 @@ func (ai *allocIter) next() bool {
 			// TODO: clean up this code and determine if we ever need to handle
 			// an optional form without a startI == 0 and endI == 1.
 			if ai.forms[p.currForm].isOptional {
-				for i := ai.forms[p.currForm].startI; i <= Min(ai.forms[p.currForm].endI, p.remaining); i++ {
+				for i := ai.forms[p.currForm].startI; i <= min(ai.forms[p.currForm].endI, p.remaining); i++ {
 					if p.remaining-i >= 0 {
 						ai.stack = append(ai.stack, allocIterState{
 							p.currForm + 1, p.remaining - i, i})
 					}
 				}
 			} else {
-				for i := Min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
+				for i := min(ai.forms[p.currForm].endI, p.remaining); i >= ai.forms[p.currForm].startI; i-- {
 					if p.remaining-i >= 0 {
 						ai.stack = append(ai.stack, allocIterState{
 							p.currForm + 1, p.remaining - i, i})
@@ -55,7 +62,7 @@ func (ai *allocIter) next() bool {
 	return false
 }
 
-func NewAllocIter(l int, forms []parsedForm) allocIter {
+func newAllocIter(l int, forms []parsedForm) allocIter {
 	ai := allocIter{}
 	ai.forms = forms
 	ai.alloc = make([]int, len(forms))
@@ -172,7 +179,7 @@ func (asi *assnIter) next() bool {
 	return false
 }
 
-func NewAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool) assnIter {
+func newAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool) assnIter {
 	asi := assnIter{}
 	asi.forms = forms
 	asi.assnData = make([]int, l)
@@ -182,7 +189,7 @@ func NewAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool
 	asi.taken = make([]bool, l)
 	asi.formMatches = formMatches
 
-	asi.ai = NewAllocIter(len(asi.assnData), asi.forms)
+	asi.ai = newAllocIter(len(asi.assnData), asi.forms)
 	for i := range asi.assnData {
 		asi.assnData[i] = i
 	}

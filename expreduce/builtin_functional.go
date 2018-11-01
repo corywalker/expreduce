@@ -2,76 +2,61 @@ package expreduce
 
 import (
 	"math/big"
+
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
 //The following functions help to interpret the Ex interface, they could probably be moved
 //to another file since they are useful in many common situations
 
-func parseInteger(part Ex) (value int64, isInteger bool) {
-	integer, isInteger := part.(*Integer)
+func parseInteger(part expreduceapi.Ex) (value int64, isInteger bool) {
+	integer, isInteger := part.(*atoms.Integer)
 	if isInteger {
 		return integer.Val.Int64(), true
-	} else {
-		return 0, false
 	}
+	return 0, false
 }
 
-func parseFloat(part Ex) (value float64, isFloat bool) {
-	float, isFloat := part.(*Flt)
-	if isFloat {
-		value, _ := float.Val.Float64()
-		return value, true
-	} else {
-		return 0, false
-	}
-}
-
-func parseExpression(part Ex) (expression *Expression, isExpression bool) {
-	expression, isExpression = part.(*Expression)
+func parseExpression(part expreduceapi.Ex) (expression expreduceapi.ExpressionInterface, isExpression bool) {
+	expression, isExpression = part.(expreduceapi.ExpressionInterface)
 	return expression, isExpression
 }
 
-func parseSymbol(part Ex) (symbol *Symbol, isSymbol bool) {
-	symbol, isSymbol = part.(*Symbol)
+func parseSymbol(part expreduceapi.Ex) (symbol *atoms.Symbol, isSymbol bool) {
+	symbol, isSymbol = part.(*atoms.Symbol)
 	return symbol, isSymbol
 }
 
-func parseInfinity(part Ex, es *EvalState) bool {
+func parseInfinity(part expreduceapi.Ex, es expreduceapi.EvalStateInterface) bool {
 	symbol, isSymbol := parseSymbol(part)
 	if isSymbol {
-		return symbol.IsEqual(NewSymbol("System`Infinity"), &es.CASLogger) == "EQUAL_TRUE"
+		return symbol.IsEqual(atoms.NewSymbol("System`Infinity")) == "EQUAL_TRUE"
 	}
 	return false
 }
 
-func parseNegativeInfinity(part Ex, es *EvalState) bool {
+func parseNegativeInfinity(part expreduceapi.Ex, es expreduceapi.EvalStateInterface) bool {
 	expr, isExpr := parseExpression(part)
 	if isExpr {
-		template := NewExpression([]Ex{
-			NewSymbol("System`Times"),
-			NewInt(-1),
-			NewSymbol("System`Infinity"),
+		template := atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Times"),
+			atoms.NewInt(-1),
+			atoms.NewSymbol("System`Infinity"),
 		})
-		return expr.IsEqual(template, &es.CASLogger) == "EQUAL_TRUE"
+
+		return expr.IsEqual(template) == "EQUAL_TRUE"
 	}
 	return false
 }
 
 // The levelSpec struct is used to work with level specifications
 type levelSpec struct {
-	isMinDepth	bool	//If the min specification represents a depth (as opposed to level)
-	isMaxDepth	bool	//If the max specification represents a depth (as opposed to level)
-	min			int64
-	max			int64
-	valid		bool
-}
-
-func (spec levelSpec) isLevel() (bool, bool) {
-	return !spec.isMinDepth, !spec.isMaxDepth
-}
-
-func (spec levelSpec) isDepth() (bool, bool) {
-	return spec.isMinDepth, spec.isMaxDepth
+	isMinDepth bool //If the min specification represents a depth (as opposed to level)
+	isMaxDepth bool //If the max specification represents a depth (as opposed to level)
+	min        int64
+	max        int64
+	valid      bool
 }
 
 func (spec levelSpec) isValid() bool {
@@ -106,7 +91,7 @@ func (spec levelSpec) checkDepth(depth int64) bool {
 
 // Levels can be specified in the form n, {n}, {n1, n2}, Infinity, -Infinity
 // n, n1, n2 are integers which can be positive or negative
-func parseLevelSpec(this Ex, es *EvalState) levelSpec{
+func parseLevelSpec(this expreduceapi.Ex, es expreduceapi.EvalStateInterface) levelSpec {
 	integer, isInteger := parseInteger(this)
 	expression, isExpression := parseExpression(this)
 	isInfinity := parseInfinity(this, es)
@@ -123,9 +108,8 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec{
 	case isInteger:
 		if integer < 0 {
 			return levelSpec{false, true, 1, -integer, true}
-		} else {
-			return levelSpec{false, false, 1, integer, true}
 		}
+		return levelSpec{false, false, 1, integer, true}
 	case isInfinity:
 		return levelSpec{false, false, 1, inf, true}
 	case isNegativeInfinity:
@@ -135,24 +119,23 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec{
 	}
 
 	//If the head of the expression is not List, return false
-	expression, isList := headExAssertion(expression, NewSymbol("System`List"), &es.CASLogger)
+	expression, isList := atoms.HeadExAssertion(expression, atoms.NewSymbol("System`List"), es.GetLogger())
 	if !isList {
 		return levelSpec{false, false, 1, 1, false}
 	}
 
 	//Handle case where the list has only one element
-	if len(expression.Parts) == 2 {
-		integer, isInteger = parseInteger(expression.Parts[1])
-		isInfinity := parseInfinity(expression.Parts[1], es)
-		isNegativeInfinity := parseNegativeInfinity(expression.Parts[1], es)
+	if len(expression.GetParts()) == 2 {
+		integer, isInteger = parseInteger(expression.GetParts()[1])
+		isInfinity := parseInfinity(expression.GetParts()[1], es)
+		isNegativeInfinity := parseNegativeInfinity(expression.GetParts()[1], es)
 
 		switch {
 		case isInteger:
 			if integer < 0 {
 				return levelSpec{true, true, -integer, -integer, true}
-			} else {
-				return levelSpec{false, false, integer, integer, true}
 			}
+			return levelSpec{false, false, integer, integer, true}
 		case isInfinity:
 			return levelSpec{false, false, inf, inf, true}
 		case isNegativeInfinity:
@@ -161,29 +144,29 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec{
 	}
 
 	//Handle case where the list has two elements
-	if len(expression.Parts) == 3 {
-		integer1, isInteger1 := parseInteger(expression.Parts[1])
-		integer2, isInteger2 := parseInteger(expression.Parts[2])
+	if len(expression.GetParts()) == 3 {
+		integer1, isInteger1 := parseInteger(expression.GetParts()[1])
+		integer2, isInteger2 := parseInteger(expression.GetParts()[2])
 
-		isInfinity1 := parseInfinity(expression.Parts[1], es)
+		isInfinity1 := parseInfinity(expression.GetParts()[1], es)
 		if isInfinity1 {
 			integer1 = inf
 			isInteger1 = true
 		}
 
-		isInfinity2 := parseInfinity(expression.Parts[2], es)
+		isInfinity2 := parseInfinity(expression.GetParts()[2], es)
 		if isInfinity2 {
 			integer2 = inf
 			isInteger2 = true
 		}
 
-		isNegativeInfinity1 := parseNegativeInfinity(expression.Parts[1], es)
+		isNegativeInfinity1 := parseNegativeInfinity(expression.GetParts()[1], es)
 		if isNegativeInfinity1 {
 			integer1 = ninf
 			isInteger1 = true
 		}
 
-		isNegativeInfinity2 := parseNegativeInfinity(expression.Parts[2], es)
+		isNegativeInfinity2 := parseNegativeInfinity(expression.GetParts()[2], es)
 		if isNegativeInfinity2 {
 			integer2 = ninf
 			isInteger2 = true
@@ -209,10 +192,10 @@ func parseLevelSpec(this Ex, es *EvalState) levelSpec{
 
 //This is an optimization with regards to expressionWalkMapBackwards which only deals with level specification,
 //expressionWalkMapBackwards also deals with depths, but has to visit the entire expression tree.
-func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) *Expression {
-	toReturn := NewExpression([]Ex{this.Parts[0]})
+func expressionWalkMap(f func(expreduceapi.Ex, expreduceapi.Ex, []int64, *int64, expreduceapi.EvalStateInterface) expreduceapi.Ex, head expreduceapi.Ex, partSpec []int64, this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, spec levelSpec, generated *int64) expreduceapi.ExpressionInterface {
+	toReturn := atoms.NewExpression([]expreduceapi.Ex{this.GetParts()[0]})
 
-	for i, expr := range this.Parts[1:] {
+	for i, expr := range this.GetParts()[1:] {
 		newExpression := expr
 
 		//Keep track of which part in the full expression this corresponds to
@@ -221,7 +204,7 @@ func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, 
 
 		//If this part is nonatomic and its level is covered by the level specification,
 		//apply expressionWalkMap recursively
-		expression, isExpression := newExpression.(*Expression)
+		expression, isExpression := newExpression.(expreduceapi.ExpressionInterface)
 		if isExpression && level < spec.max {
 			newExpression = expressionWalkMap(f, head, currentPartSpec, expression, es, spec, generated)
 		}
@@ -230,27 +213,27 @@ func expressionWalkMap(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, 
 		//specified by the first argument of Map
 		if level >= spec.min {
 			newExpression = f(head, newExpression, currentPartSpec, generated, es)
-			toReturn.Parts = append(toReturn.Parts, newExpression)
+			toReturn.AppendEx(newExpression)
 		} else {
-			toReturn.Parts = append(toReturn.Parts, newExpression)
+			toReturn.AppendEx(newExpression)
 		}
 	}
 
 	return toReturn
 }
 
-func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, head Ex, partSpec[]int64, this *Expression, es *EvalState, spec levelSpec, generated *int64) (*Expression, int64) {
-	toReturn := NewExpression([]Ex{this.Parts[0]})
+func expressionWalkMapBackwards(f func(expreduceapi.Ex, expreduceapi.Ex, []int64, *int64, expreduceapi.EvalStateInterface) expreduceapi.Ex, head expreduceapi.Ex, partSpec []int64, this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, spec levelSpec, generated *int64) (expreduceapi.ExpressionInterface, int64) {
+	toReturn := atoms.NewExpression([]expreduceapi.Ex{this.GetParts()[0]})
 	currentMaxDepth := int64(1)
 
-	for i, expr := range this.Parts[1:] {
+	for i, expr := range this.GetParts()[1:] {
 		newExpression := expr
-		depth := int64(0)
+		var depth int64
 
 		currentPartSpec := append(partSpec, int64(i+1))
 		level := int64(len(currentPartSpec))
 
-		expression, isExpression := newExpression.(*Expression)
+		expression, isExpression := newExpression.(expreduceapi.ExpressionInterface)
 		if isExpression {
 			//Determine the depth of this part
 			newExpression, depth = expressionWalkMapBackwards(f, head, currentPartSpec, expression, es, spec, generated)
@@ -260,46 +243,47 @@ func expressionWalkMapBackwards(f func(Ex, Ex, []int64, *int64, *EvalState) Ex, 
 
 			if spec.checkLevel(level) && spec.checkDepth(depth) {
 				newExpression = f(head, newExpression, currentPartSpec, generated, es)
-				toReturn.Parts = append(toReturn.Parts, newExpression)
+				toReturn.AppendEx(newExpression)
 			} else {
-				toReturn.Parts = append(toReturn.Parts, newExpression)
+				toReturn.AppendEx(newExpression)
 			}
 		} else { //If the node is atomic
-			level = level+1
+			level = level + 1
 			depth = int64(1)
 
 			if spec.checkLevel(level) && spec.checkDepth(depth) {
 				newExpression = f(head, expr, currentPartSpec, generated, es)
-				toReturn.Parts = append(toReturn.Parts, newExpression)
+				toReturn.AppendEx(newExpression)
 			} else {
-				toReturn.Parts = append(toReturn.Parts, newExpression)
+				toReturn.AppendEx(newExpression)
 			}
 		}
 	}
 
-	return toReturn, currentMaxDepth+1
+	return toReturn, currentMaxDepth + 1
 }
 
-func wrapWithHead(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
-	return NewExpression([]Ex{head, expr})
+func wrapWithHead(head expreduceapi.Ex, expr expreduceapi.Ex, partList []int64, _ *int64, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+	return atoms.NewExpression([]expreduceapi.Ex{head, expr})
 }
 
-func wrapWithHeadIndexed(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
-	partSpec := []Ex{NewSymbol("System`List")}
+func wrapWithHeadIndexed(head expreduceapi.Ex, expr expreduceapi.Ex, partList []int64, _ *int64, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+	partSpec := []expreduceapi.Ex{atoms.NewSymbol("System`List")}
 	for _, part := range partList {
-		partSpec = append(partSpec, NewInt(part))
+		partSpec = append(partSpec, atoms.NewInt(part))
 	}
-	partSpecExpr :=  NewExpression(partSpec)
-	return NewExpression([]Ex{head, expr, partSpecExpr})
+	partSpecExpr := atoms.NewExpression(partSpec)
+	return atoms.NewExpression([]expreduceapi.Ex{head, expr, partSpecExpr})
 }
 
-func applyHead(head Ex, expr Ex, partList []int64, _ *int64, es *EvalState) Ex {
-	expression, isExpr := expr.(*Expression)
+func applyHead(head expreduceapi.Ex, expr expreduceapi.Ex, partList []int64, _ *int64, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+	expression, isExpr := expr.(expreduceapi.ExpressionInterface)
 	if !isExpr {
 		return expr
 	}
-	toReturn := NewExpression([]Ex{head})
-	toReturn.Parts = append(toReturn.Parts, expression.Parts[1:]...)
+	toReturn := atoms.NewExpression([]expreduceapi.Ex{head})
+	//toReturn.AppendExArray(expression.GetParts()[1:])
+	toReturn.AppendExArray(expression.GetParts()[1:])
 	return toReturn
 }
 
@@ -311,77 +295,76 @@ const (
 	applyOptimizedSimpleLevelSpec
 )
 
-func exOrGenerated(e Ex, generated *int64, returnGenerated bool) Ex {
+func exOrGenerated(e expreduceapi.Ex, generated *int64, returnGenerated bool) expreduceapi.Ex {
 	if returnGenerated {
-		return NewInt(*generated)
+		return atoms.NewInt(*generated)
 	}
 	return e
 }
 
 func levelSpecFunction(
-	f func(Ex, Ex, []int64, *int64, *EvalState) Ex,
+	f func(expreduceapi.Ex, expreduceapi.Ex, []int64, *int64, expreduceapi.EvalStateInterface) expreduceapi.Ex,
 	optStrat levelSpecOptimizationStrategy,
 	returnGenerated bool,
 	leveledExprIsFirst bool,
-) func(*Expression, *EvalState) Ex {
-	return func(this *Expression, es *EvalState) Ex {
+) func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex {
+	return func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 		// Optimization of the very common case where the levelspec-ed
 		// operation has two arguments
-		if len(this.Parts) == 3 {
+		if len(this.GetParts()) == 3 {
 			if optStrat == mapOptimizedSimpleLevelSpec {
-				expr, isExpr := this.Parts[2].(*Expression)
+				expr, isExpr := this.GetParts()[2].(expreduceapi.ExpressionInterface)
 				if isExpr {
-					toReturn := NewExpression([]Ex{expr.Parts[0]})
-					for i := 1; i < len(expr.Parts); i++ {
-						toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
-							this.Parts[1],
-							expr.Parts[i],
+					toReturn := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+					for i := 1; i < len(expr.GetParts()); i++ {
+						toReturn.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
+							this.GetParts()[1],
+							expr.GetParts()[i],
 						}))
 					}
 					return toReturn
 				}
-				return this.Parts[2]
+				return this.GetParts()[2]
 			} else if optStrat == applyOptimizedSimpleLevelSpec {
-				sym, isSym := this.Parts[1].(*Symbol)
-				expr, isExpr := this.Parts[2].(*Expression)
+				sym, isSym := this.GetParts()[1].(*atoms.Symbol)
+				expr, isExpr := this.GetParts()[2].(expreduceapi.ExpressionInterface)
 				if isSym && isExpr {
-					toReturn := NewExpression([]Ex{sym})
-					toReturn.Parts = append(toReturn.Parts, expr.Parts[1:]...)
-					return toReturn.Eval(es)
+					toReturn := atoms.NewExpression([]expreduceapi.Ex{sym})
+					toReturn.AppendExArray(expr.GetParts()[1:])
+					return es.Eval(toReturn)
 				}
-				return this.Parts[2]
+				return this.GetParts()[2]
 			}
 		}
 
-		if len(this.Parts) != 4 {
+		if len(this.GetParts()) != 4 {
 			return this
 		}
 
-		spec := parseLevelSpec(this.Parts[3], es)
+		spec := parseLevelSpec(this.GetParts()[3], es)
 		if !spec.isValid() {
 			return this
 		}
 
 		// For example the function to apply for Map or the pattern to match
 		// for Count.
-		dataExpr := this.Parts[1]
-		leveledExpr := this.Parts[2]
+		dataExpr := this.GetParts()[1]
+		leveledExpr := this.GetParts()[2]
 		if leveledExprIsFirst {
-			dataExpr = this.Parts[2]
-			leveledExpr = this.Parts[1]
+			dataExpr = this.GetParts()[2]
+			leveledExpr = this.GetParts()[1]
 		}
 		generatedData := int64(0)
 		generated := &generatedData
 
 		// If the leveled expression is atomic, it will be ignored except in
 		// one case
-		expression, nonAtomic := leveledExpr.(*Expression)
+		expression, nonAtomic := leveledExpr.(expreduceapi.ExpressionInterface)
 		if !nonAtomic {
 			if spec.checkLevel(0) && spec.checkDepth(0) {
 				return exOrGenerated(f(dataExpr, leveledExpr, []int64{}, generated, es), generated, returnGenerated)
-			} else {
-				return exOrGenerated(leveledExpr, generated, returnGenerated)
 			}
+			return exOrGenerated(leveledExpr, generated, returnGenerated)
 		}
 
 		if spec.min == 0 && spec.max == 0 {
@@ -396,9 +379,8 @@ func levelSpecFunction(
 
 			if spec.checkLevel(0) && spec.checkDepth(0) {
 				return exOrGenerated(f(dataExpr, newExpression, []int64{}, generated, es), generated, returnGenerated)
-			} else {
-				return exOrGenerated(newExpression, generated, returnGenerated)
 			}
+			return exOrGenerated(newExpression, generated, returnGenerated)
 		}
 
 		//We now turn to the most general case, where levels can be specified as either
@@ -408,12 +390,10 @@ func levelSpecFunction(
 		//Whether to wrap the zeroth level with the function.
 		if spec.checkLevel(0) && spec.checkDepth(depth) {
 			return exOrGenerated(f(dataExpr, newExpression, []int64{}, generated, es), generated, returnGenerated)
-		} else {
-			return exOrGenerated(newExpression, generated, returnGenerated)
 		}
+		return exOrGenerated(newExpression, generated, returnGenerated)
 	}
 }
-
 
 func getFunctionalDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
@@ -423,56 +403,56 @@ func getFunctionalDefinitions() (defs []Definition) {
 		Name: "Slot",
 	})
 	defs = append(defs, Definition{
-		Name: "Apply",
+		Name:         "Apply",
 		legacyEvalFn: levelSpecFunction(applyHead, applyOptimizedSimpleLevelSpec, false, false),
 	})
 	defs = append(defs, Definition{
-		Name: "Map",
+		Name:         "Map",
 		legacyEvalFn: levelSpecFunction(wrapWithHead, mapOptimizedSimpleLevelSpec, false, false),
 	})
 
 	defs = append(defs, Definition{
-		Name: "MapIndexed",
+		Name:         "MapIndexed",
 		legacyEvalFn: levelSpecFunction(wrapWithHeadIndexed, mapOptimizedSimpleLevelSpec, false, false),
 	})
 
 	defs = append(defs, Definition{
 		Name: "FoldList",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 4 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 4 {
 				return this
 			}
 
-			f := this.Parts[1]
-			first := this.Parts[2]
-			values, nonAtomic := this.Parts[3].(*Expression)
+			f := this.GetParts()[1]
+			first := this.GetParts()[2]
+			values, nonAtomic := this.GetParts()[3].(expreduceapi.ExpressionInterface)
 
 			if !nonAtomic {
 				return this
 			}
 
-			toReturn := NewExpression([]Ex{values.Parts[0], first})
+			toReturn := atoms.NewExpression([]expreduceapi.Ex{values.GetParts()[0], first})
 
-			if len(values.Parts) < 2 {
+			if len(values.GetParts()) < 2 {
 				return toReturn
 			}
 
-			expr := NewExpression([]Ex{
+			expr := atoms.NewExpression([]expreduceapi.Ex{
 				f,
 				first,
-				values.Parts[1],
+				values.GetParts()[1],
 			})
 
-			toReturn.Parts = append(toReturn.Parts, expr)
+			toReturn.AppendEx(expr)
 
-			for i := 2; i < len(values.Parts); i++ {
-				expr = NewExpression([]Ex{
+			for i := 2; i < len(values.GetParts()); i++ {
+				expr = atoms.NewExpression([]expreduceapi.Ex{
 					f,
 					expr,
-					values.Parts[i],
+					values.GetParts()[i],
 				})
 
-				toReturn.Parts = append(toReturn.Parts, expr)
+				toReturn.AppendEx(expr)
 			}
 
 			return toReturn
@@ -482,14 +462,14 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 	defs = append(defs, Definition{
 		Name: "NestList",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 4 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 4 {
 				return this
 			}
 
-			f := this.Parts[1]
-			expr := this.Parts[2]
-			nInt, isInteger := this.Parts[3].(*Integer)
+			f := this.GetParts()[1]
+			expr := this.GetParts()[2]
+			nInt, isInteger := this.GetParts()[3].(*atoms.Integer)
 			if !isInteger {
 				return this
 			}
@@ -498,15 +478,15 @@ func getFunctionalDefinitions() (defs []Definition) {
 				return this
 			}
 
-			toReturn := NewExpression([]Ex{NewSymbol("System`List"), expr})
+			toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), expr})
 
 			for i := int64(1); i <= n; i++ {
-				expr = NewExpression([]Ex{
+				expr = atoms.NewExpression([]expreduceapi.Ex{
 					f,
 					expr,
 				})
 
-				toReturn.Parts = append(toReturn.Parts, expr)
+				toReturn.AppendEx(expr)
 			}
 
 			return toReturn
@@ -516,26 +496,26 @@ func getFunctionalDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Nest"})
 	defs = append(defs, Definition{
 		Name: "NestWhileList",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) < 4 || len(this.Parts) > 7 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) < 4 || len(this.GetParts()) > 7 {
 				return this
 			}
 
-			f := this.Parts[1]
-			expr := this.Parts[2]
-			test := this.Parts[3]
+			f := this.GetParts()[1]
+			expr := this.GetParts()[2]
+			test := this.GetParts()[3]
 
 			m := int64(1)
-			if len(this.Parts) > 4 {
-				mInt, isInteger := this.Parts[4].(*Integer)
-				mSymbol, isSymbol := this.Parts[4].(*Symbol)
+			if len(this.GetParts()) > 4 {
+				mInt, isInteger := this.GetParts()[4].(*atoms.Integer)
+				mSymbol, isSymbol := this.GetParts()[4].(*atoms.Symbol)
 				if isInteger {
 					m = mInt.Val.Int64()
 					if m < 0 {
 						return this
 					}
 				} else if isSymbol {
-					if mSymbol.IsEqual(NewSymbol("System`All"), &es.CASLogger) == "EQUAL_TRUE" {
+					if mSymbol.IsEqual(atoms.NewSymbol("System`All")) == "EQUAL_TRUE" {
 						m = -1
 					} else {
 						return this
@@ -546,16 +526,16 @@ func getFunctionalDefinitions() (defs []Definition) {
 			}
 
 			max := int64(-1)
-			if len(this.Parts) > 5 {
-				maxInt, isInteger := this.Parts[5].(*Integer)
-				maxSymbol, isSymbol := this.Parts[5].(*Symbol)
+			if len(this.GetParts()) > 5 {
+				maxInt, isInteger := this.GetParts()[5].(*atoms.Integer)
+				maxSymbol, isSymbol := this.GetParts()[5].(*atoms.Symbol)
 				if isInteger {
 					max = maxInt.Val.Int64()
 					if maxInt.Val.Int64() < 0 {
 						return this
 					}
 				} else if isSymbol {
-					if maxSymbol.IsEqual(NewSymbol("System`Infinity"), &es.CASLogger) == "EQUAL_TRUE" {
+					if maxSymbol.IsEqual(atoms.NewSymbol("System`Infinity")) == "EQUAL_TRUE" {
 						max = -1
 					} else {
 						return this
@@ -566,34 +546,35 @@ func getFunctionalDefinitions() (defs []Definition) {
 			}
 
 			n := int64(0)
-			if len(this.Parts) > 6 {
-				bonusIterationsInt, isInteger := this.Parts[6].(*Integer)
+			if len(this.GetParts()) > 6 {
+				bonusIterationsInt, isInteger := this.GetParts()[6].(*atoms.Integer)
 				if isInteger && bonusIterationsInt.Val.Int64() >= int64(0) {
 					n = bonusIterationsInt.Val.Int64()
 				}
 			}
 
-			evaluated := []Ex{expr.DeepCopy().Eval(es)}
-			toReturn := NewExpression([]Ex{NewSymbol("System`List"), expr})
+			evaluated := []expreduceapi.Ex{es.Eval(expr.DeepCopy())}
+			toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), expr})
 
 			isequal := "EQUAL_TRUE"
 			cont := isequal == "EQUAL_TRUE"
 			for i := int64(2); cont; i++ {
-				expr = NewExpression([]Ex{
+				expr = atoms.NewExpression([]expreduceapi.Ex{
 					f,
 					expr,
 				})
-				toReturn.Parts = append(toReturn.Parts, expr)
-				evaluated = append(evaluated, expr.DeepCopy().Eval(es)) // Could use a stack of length m
+
+				toReturn.AppendEx(expr)
+				evaluated = append(evaluated, es.Eval(expr.DeepCopy())) // Could use a stack of length m
 
 				if i >= m {
-					testExpression := NewExpression([]Ex{test})
+					testExpression := atoms.NewExpression([]expreduceapi.Ex{test})
 					if m >= 0 {
-						testExpression.Parts = append(testExpression.Parts, evaluated[int64(len(evaluated))-m:]...)
+						testExpression.AppendExArray(evaluated[int64(len(evaluated))-m:])
 					} else {
-						testExpression.Parts = append(testExpression.Parts, evaluated...)
+						testExpression.AppendExArray(evaluated)
 					}
-					isequal = testExpression.Eval(es).IsEqual(NewSymbol("System`True"), &es.CASLogger)
+					isequal = es.Eval(testExpression).IsEqual(atoms.NewSymbol("System`True"))
 					cont = isequal == "EQUAL_TRUE"
 				}
 
@@ -604,14 +585,15 @@ func getFunctionalDefinitions() (defs []Definition) {
 
 			if n > 0 {
 				for i := int64(0); i < n; i++ {
-					expr = NewExpression([]Ex{
+					expr = atoms.NewExpression([]expreduceapi.Ex{
 						f,
 						expr,
 					})
-					toReturn.Parts = append(toReturn.Parts, expr)
+
+					toReturn.AppendEx(expr)
 				}
 			} else {
-				toReturn.Parts = toReturn.Parts[:int64(len(toReturn.Parts))+n]
+				toReturn.SetParts(toReturn.GetParts()[:int64(len(toReturn.GetParts()))+n])
 			}
 
 			return toReturn
@@ -621,40 +603,40 @@ func getFunctionalDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "FixedPointList"})
 	defs = append(defs, Definition{
 		Name: "FixedPoint",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			currVal := this.Parts[2]
-			nextVal := E(this.Parts[1], currVal).Eval(es)
-			for !IsSameQ(currVal, nextVal, &es.CASLogger) {
+			currVal := this.GetParts()[2]
+			nextVal := es.Eval(atoms.E(this.GetParts()[1], currVal))
+			for !atoms.IsSameQ(currVal, nextVal) {
 				currVal = nextVal
-				nextVal = E(this.Parts[1], currVal).Eval(es)
+				nextVal = es.Eval(atoms.E(this.GetParts()[1], currVal))
 			}
 			return nextVal
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Array",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			nInt, nOk := this.Parts[2].(*Integer)
+			nInt, nOk := this.GetParts()[2].(*atoms.Integer)
 			if nOk {
 				n := nInt.Val.Int64()
-				toReturn := NewExpression([]Ex{NewSymbol("System`List")})
+				toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 				for i := int64(1); i <= n; i++ {
-					toReturn.Parts = append(toReturn.Parts, NewExpression([]Ex{
-						this.Parts[1],
-						NewInteger(big.NewInt(i)),
+					toReturn.AppendEx(atoms.NewExpression([]expreduceapi.Ex{
+						this.GetParts()[1],
+						atoms.NewInteger(big.NewInt(i)),
 					}))
 				}
 				return toReturn
 			}
-			return this.Parts[2]
+			return this.GetParts()[2]
 		},
 	})
 	defs = append(defs, Definition{

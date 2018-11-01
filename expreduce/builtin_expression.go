@@ -1,38 +1,43 @@
 package expreduce
 
-import "math/big"
+import (
+	"math/big"
 
-func CalcDepth(ex Ex) int {
-	expr, isExpr := ex.(*Expression)
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
+
+func calcDepth(ex expreduceapi.Ex) int {
+	expr, isExpr := ex.(expreduceapi.ExpressionInterface)
 	if !isExpr {
 		return 1
 	}
 	theMax := 1
 	// Find max depth of params. Heads are not counted.
-	for i := 1; i < len(expr.Parts); i++ {
-		theMax = Max(theMax, CalcDepth(expr.Parts[i]))
+	for i := 1; i < len(expr.GetParts()); i++ {
+		theMax = max(theMax, calcDepth(expr.GetParts()[i]))
 	}
 	return theMax + 1
 }
 
-func flattenExpr(src *Expression, dst *Expression, level int64, cl *CASLogger) {
+func flattenExpr(src expreduceapi.ExpressionInterface, dst expreduceapi.ExpressionInterface, level int64, cl expreduceapi.LoggingInterface) {
 	continueFlatten := level > 0
-	for i := 1; i < len(src.Parts); i++ {
-		expr, isExpr := src.Parts[i].(*Expression)
+	for i := 1; i < len(src.GetParts()); i++ {
+		expr, isExpr := src.GetParts()[i].(expreduceapi.ExpressionInterface)
 		if continueFlatten && isExpr {
-			if IsSameQ(src.Parts[0], expr.Parts[0], cl) {
+			if atoms.IsSameQ(src.GetParts()[0], expr.GetParts()[0]) {
 				flattenExpr(expr, dst, level-1, cl)
 				continue
 			}
 		}
-		dst.Parts = append(dst.Parts, src.Parts[i])
+		dst.AppendEx(src.GetParts()[i])
 	}
 }
 
-func leafCount(e Ex) int64 {
-	if asExpr, isExpr := e.(*Expression); isExpr {
+func leafCount(e expreduceapi.Ex) int64 {
+	if asExpr, isExpr := e.(expreduceapi.ExpressionInterface); isExpr {
 		res := int64(0)
-		for _, part := range asExpr.Parts {
+		for _, part := range asExpr.GetParts() {
 			res += leafCount(part)
 		}
 		return res
@@ -40,66 +45,66 @@ func leafCount(e Ex) int64 {
 	return 1
 }
 
-func GetExpressionDefinitions() (defs []Definition) {
+func getExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Head",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 
-			_, IsFlt := this.Parts[1].(*Flt)
-			if IsFlt {
-				return NewSymbol("System`Real")
+			_, isFlt := this.GetParts()[1].(*atoms.Flt)
+			if isFlt {
+				return atoms.NewSymbol("System`Real")
 			}
-			_, IsInteger := this.Parts[1].(*Integer)
-			if IsInteger {
-				return NewSymbol("System`Integer")
+			_, isInteger := this.GetParts()[1].(*atoms.Integer)
+			if isInteger {
+				return atoms.NewSymbol("System`Integer")
 			}
-			_, IsString := this.Parts[1].(*String)
-			if IsString {
-				return NewSymbol("System`String")
+			_, isString := this.GetParts()[1].(*atoms.String)
+			if isString {
+				return atoms.NewSymbol("System`String")
 			}
-			_, IsSymbol := this.Parts[1].(*Symbol)
-			if IsSymbol {
-				return NewSymbol("System`Symbol")
+			_, isSymbol := this.GetParts()[1].(*atoms.Symbol)
+			if isSymbol {
+				return atoms.NewSymbol("System`Symbol")
 			}
-			_, IsRational := this.Parts[1].(*Rational)
-			if IsRational {
-				return NewSymbol("System`Rational")
+			_, isRational := this.GetParts()[1].(*atoms.Rational)
+			if isRational {
+				return atoms.NewSymbol("System`Rational")
 			}
-			_, IsComplex := this.Parts[1].(*Complex)
-			if IsComplex {
-				return NewSymbol("System`Complex")
+			_, isComplex := this.GetParts()[1].(*atoms.Complex)
+			if isComplex {
+				return atoms.NewSymbol("System`Complex")
 			}
-			asExpr, IsExpression := this.Parts[1].(*Expression)
-			if IsExpression {
-				return asExpr.Parts[0]
+			asExpr, isExpression := this.GetParts()[1].(expreduceapi.ExpressionInterface)
+			if isExpression {
+				return asExpr.GetParts()[0]
 			}
 			return this
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Depth",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			return NewInteger(big.NewInt(int64(CalcDepth(this.Parts[1]))))
+			return atoms.NewInteger(big.NewInt(int64(calcDepth(this.GetParts()[1]))))
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Length",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
 
-			expr, isExpr := this.Parts[1].(*Expression)
+			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				return NewInteger(big.NewInt(int64(len(expr.Parts) - 1)))
+				return atoms.NewInteger(big.NewInt(int64(len(expr.GetParts()) - 1)))
 			}
-			return NewInteger(big.NewInt(0))
+			return atoms.NewInteger(big.NewInt(0))
 		},
 	})
 	defs = append(defs, Definition{
@@ -113,46 +118,46 @@ func GetExpressionDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "HoldForm",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			if len(this.Parts) != 2 {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+			if len(this.GetParts()) != 2 {
 				return false, ""
 			}
-			if params.form == "FullForm" {
+			if params.Form == "FullForm" {
 				return false, ""
 			}
-			return true, this.Parts[1].StringForm(params)
+			return true, this.GetParts()[1].StringForm(params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Flatten",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) < 2 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) < 2 {
 				return this
 			}
 			level := int64(999999999999)
-			if len(this.Parts) > 2 {
-				asInt, isInt := this.Parts[2].(*Integer)
+			if len(this.GetParts()) > 2 {
+				asInt, isInt := this.GetParts()[2].(*atoms.Integer)
 				if !isInt {
 					return this
 				}
 				level = int64(asInt.Val.Int64())
 			}
-			expr, isExpr := this.Parts[1].(*Expression)
+			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if !isExpr {
 				return this
 			}
-			dst := NewExpression([]Ex{expr.Parts[0]})
-			flattenExpr(expr, dst, level, &es.CASLogger)
+			dst := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+			flattenExpr(expr, dst, level, es.GetLogger())
 			return dst
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "LeafCount",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			return NewInt(leafCount(this.Parts[1]))
+			return atoms.NewInt(leafCount(this.GetParts()[1]))
 		},
 	})
 	defs = append(defs, Definition{

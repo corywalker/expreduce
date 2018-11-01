@@ -1,7 +1,16 @@
-package expreduce
+package atoms
+
+import "github.com/corywalker/expreduce/pkg/expreduceapi"
+
+func min(x, y int) int {
+	if x < y {
+		return x
+	}
+	return y
+}
 
 func compareStrings(a string, b string) int64 {
-	minchars := Min(len(a), len(b))
+	minchars := min(len(a), len(b))
 	for i := 0; i < minchars; i++ {
 		if a[i] > b[i] {
 			return -1
@@ -17,15 +26,15 @@ func compareStrings(a string, b string) int64 {
 	return 0
 }
 
-func ExOrder(a Ex, b Ex) int64 {
+func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 	// Support Flt, Integer, Rational, Expression, Symbol
 
 	aAsSymbol, aIsSymbol := a.(*Symbol)
 	bAsSymbol, bIsSymbol := b.(*Symbol)
 	aAsString, aIsString := a.(*String)
 	bAsString, bIsString := b.(*String)
-	aAsExp, aIsExp := a.(*Expression)
-	bAsExp, bIsExp := b.(*Expression)
+	aAsExp, aIsExp := a.(expreduceapi.ExpressionInterface)
+	bAsExp, bIsExp := b.(expreduceapi.ExpressionInterface)
 
 	aAsFlt, aIsFlt := a.(*Flt)
 	bAsFlt, bIsFlt := b.(*Flt)
@@ -71,28 +80,28 @@ func ExOrder(a Ex, b Ex) int64 {
 		_, aIsTimes := HeadAssertion(aAsExp, "System`Times")
 		_, bIsTimes := HeadAssertion(bAsExp, "System`Times")
 		if !aIsTimes && bIsTimes {
-			return ExOrder(NewExpression([]Ex{
+			return ExOrder(NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Times"),
 				NewInt(1),
 				aAsExp,
 			}), b)
 		}
 		if aIsPow && !bIsPow {
-			return ExOrder(a, NewExpression([]Ex{
+			return ExOrder(a, NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Power"),
 				bAsExp,
 				NewInt(1),
 			}))
 		}
 		if !bIsTimes && aIsTimes {
-			return ExOrder(aAsExp, NewExpression([]Ex{
+			return ExOrder(aAsExp, NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Times"),
 				NewInt(1),
 				bAsExp,
 			}))
 		}
 		if !aIsPow && bIsPow {
-			return ExOrder(NewExpression([]Ex{
+			return ExOrder(NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Power"),
 				aAsExp,
 				NewInt(1),
@@ -100,49 +109,48 @@ func ExOrder(a Ex, b Ex) int64 {
 		}
 		timesMode := aIsTimes && bIsTimes
 		if !timesMode {
-			if len(aAsExp.Parts) < len(bAsExp.Parts) {
+			if len(aAsExp.GetParts()) < len(bAsExp.GetParts()) {
 				return 1
-			} else if len(aAsExp.Parts) > len(bAsExp.Parts) {
+			} else if len(aAsExp.GetParts()) > len(bAsExp.GetParts()) {
 				return -1
 			}
-			for i := 0; i < len(aAsExp.Parts); i++ {
-				aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
+			for i := 0; i < len(aAsExp.GetParts()); i++ {
+				aPart, bPart := aAsExp.GetParts()[i], bAsExp.GetParts()[i]
 				o := ExOrder(aPart, bPart)
 				if o != 0 {
 					return o
 				}
 			}
 			return 0
-		} else {
-			ai := len(aAsExp.Parts) - 1
-			bi := len(bAsExp.Parts) - 1
-			for ai >= 0 && bi >= 0 {
-				aPart, bPart := aAsExp.Parts[ai], bAsExp.Parts[bi]
-				ai, bi = ai-1, bi-1
-				if numberQ(aPart) && numberQ(bPart) {
-					continue
-				}
+		}
+		ai := len(aAsExp.GetParts()) - 1
+		bi := len(bAsExp.GetParts()) - 1
+		for ai >= 0 && bi >= 0 {
+			aPart, bPart := aAsExp.GetParts()[ai], bAsExp.GetParts()[bi]
+			ai, bi = ai-1, bi-1
+			if NumberQ(aPart) && NumberQ(bPart) {
+				continue
+			}
+			o := ExOrder(aPart, bPart)
+			if o != 0 {
+				return o
+			}
+		}
+		for i := 0; i < min(len(aAsExp.GetParts()), len(bAsExp.GetParts())); i++ {
+			aPart, bPart := aAsExp.GetParts()[i], bAsExp.GetParts()[i]
+			if NumberQ(aPart) && NumberQ(bPart) {
 				o := ExOrder(aPart, bPart)
 				if o != 0 {
 					return o
 				}
 			}
-			for i := 0; i < Min(len(aAsExp.Parts), len(bAsExp.Parts)); i++ {
-				aPart, bPart := aAsExp.Parts[i], bAsExp.Parts[i]
-				if numberQ(aPart) && numberQ(bPart) {
-					o := ExOrder(aPart, bPart)
-					if o != 0 {
-						return o
-					}
-				}
-			}
-			if len(aAsExp.Parts) < len(bAsExp.Parts) {
-				return 1
-			} else if len(aAsExp.Parts) > len(bAsExp.Parts) {
-				return -1
-			} else {
-				return 0
-			}
+		}
+		if len(aAsExp.GetParts()) < len(bAsExp.GetParts()) {
+			return 1
+		} else if len(aAsExp.GetParts()) > len(bAsExp.GetParts()) {
+			return -1
+		} else {
+			return 0
 		}
 	}
 
@@ -185,7 +193,7 @@ func ExOrder(a Ex, b Ex) int64 {
 	if aIsSymbol && bIsExp {
 		_, bIsPow := HeadAssertion(bAsExp, "System`Power")
 		if bIsPow {
-			return ExOrder(NewExpression([]Ex{
+			return ExOrder(NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Power"),
 				a,
 				NewInt(1),
@@ -193,7 +201,7 @@ func ExOrder(a Ex, b Ex) int64 {
 		}
 		_, bIsTimes := HeadAssertion(bAsExp, "System`Times")
 		if bIsTimes {
-			return ExOrder(NewExpression([]Ex{
+			return ExOrder(NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Times"),
 				NewInt(1),
 				a,
@@ -211,7 +219,7 @@ func ExOrder(a Ex, b Ex) int64 {
 	if aIsExp && bIsSymbol {
 		_, aIsPow := HeadAssertion(aAsExp, "System`Power")
 		if aIsPow {
-			return ExOrder(a, NewExpression([]Ex{
+			return ExOrder(a, NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Power"),
 				b,
 				NewInt(1),
@@ -219,7 +227,7 @@ func ExOrder(a Ex, b Ex) int64 {
 		}
 		_, aIsTimes := HeadAssertion(aAsExp, "System`Times")
 		if aIsTimes {
-			return ExOrder(a, NewExpression([]Ex{
+			return ExOrder(a, NewExpression([]expreduceapi.Ex{
 				NewSymbol("System`Times"),
 				NewInt(1),
 				b,

@@ -1,54 +1,45 @@
 package expreduce
 
-import "strings"
+import (
+	"strings"
 
-type DownValue struct {
-	rule        *Expression
-	specificity int
-}
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
-type Def struct {
-	downvalues  []DownValue
-	attributes  Attributes
-	defaultExpr Ex
-
-	// A function defined here will override downvalues.
-	legacyEvalFn (func(*Expression, *EvalState) Ex)
-}
-
-func (def *Def) StringForm(defSym *Symbol, params ToStringParams) string {
+func stringForm(def *expreduceapi.Def, defSym *atoms.Symbol, params expreduceapi.ToStringParams) string {
 	var buffer []string
 
-	attrs := def.attributes.toStrings()
+	attrs := atoms.AttrsToStrings(&def.Attributes)
 	if len(attrs) > 0 {
-		e := E(
-			S("Set"),
-			E(
-				S("Attributes"),
+		e := atoms.E(
+			atoms.S("Set"),
+			atoms.E(
+				atoms.S("Attributes"),
 				defSym,
 			),
-			def.attributes.toSymList(),
+			atoms.AttrsToSymList(&def.Attributes),
 		)
 		buffer = append(buffer, e.StringForm(params))
 	}
 
-	for _, dv := range def.downvalues {
-		e := E(
-			S("SetDelayed"),
-			dv.rule.Parts[1].(*Expression).Parts[1],
-			dv.rule.Parts[2],
+	for _, dv := range def.Downvalues {
+		e := atoms.E(
+			atoms.S("SetDelayed"),
+			dv.Rule.GetParts()[1].(expreduceapi.ExpressionInterface).GetParts()[1],
+			dv.Rule.GetParts()[2],
 		)
 		buffer = append(buffer, e.StringForm(params))
 	}
 
-	if def.defaultExpr != nil {
-		e := E(
-			S("Set"),
-			E(
-				S("Default"),
+	if def.DefaultExpr != nil {
+		e := atoms.E(
+			atoms.S("Set"),
+			atoms.E(
+				atoms.S("Default"),
 				defSym,
 			),
-			def.defaultExpr,
+			def.DefaultExpr,
 		)
 		buffer = append(buffer, e.StringForm(params))
 	}

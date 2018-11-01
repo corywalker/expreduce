@@ -118,3 +118,5 @@ Re[x_Integer]  := x;
 Re[x_Real]     := x;
 Re[x_Rational] := x;
 Re[Complex[re_,_]] := re;
+
+ReIm[x_] := {Re[x], Im[x]};

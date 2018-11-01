@@ -1,32 +1,33 @@
 package expreduce
 
 import (
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/orcaman/concurrent-map"
 )
 
-type definitionMap struct {
-	internalMap	cmap.ConcurrentMap
+type threadSafeDefinitionMap struct {
+	internalMap cmap.ConcurrentMap
 }
 
-func newDefinitionMap() definitionMap {
-	var dm definitionMap
+func newDefinitionMap() *threadSafeDefinitionMap {
+	var dm threadSafeDefinitionMap
 	dm.internalMap = cmap.New()
-	return dm
+	return &dm
 }
 
-func (dm definitionMap) Set(key string, value Def) {
+func (dm threadSafeDefinitionMap) Set(key string, value expreduceapi.Def) {
 	dm.internalMap.Set(key, value)
 }
 
-func (dm definitionMap) Get(key string) (Def, bool) {
+func (dm threadSafeDefinitionMap) Get(key string) (expreduceapi.Def, bool) {
 	if !dm.internalMap.Has(key) {
-		return Def{}, false
+		return expreduceapi.Def{}, false
 	}
 	value, ok := dm.internalMap.Get(key)
-	return value.(Def), ok
+	return value.(expreduceapi.Def), ok
 }
 
-func (dm definitionMap) GetDef(key string) Def {
+func (dm threadSafeDefinitionMap) GetDef(key string) expreduceapi.Def {
 	value, ok := dm.Get(key)
 	if !ok {
 		panic("Reading missing value in GetDef()!")
@@ -34,27 +35,27 @@ func (dm definitionMap) GetDef(key string) Def {
 	return value
 }
 
-func (dm definitionMap) LockKey(key string) {
+func (dm threadSafeDefinitionMap) LockKey(key string) {
 	shard := dm.internalMap.GetShard(key)
 	shard.Lock()
 }
 
-func (dm definitionMap) UnlockKey(key string) {
+func (dm threadSafeDefinitionMap) UnlockKey(key string) {
 	shard := dm.internalMap.GetShard(key)
 	shard.Unlock()
 }
 
-func (dm definitionMap) CopyDefs() definitionMap {
+func (dm threadSafeDefinitionMap) CopyDefs() expreduceapi.DefinitionMap {
 	out := newDefinitionMap()
 	for mapTuple := range dm.internalMap.IterBuffered() {
-		k, v := mapTuple.Key, mapTuple.Val.(Def)
-		newDef := Def{}
-		for _, dv := range v.downvalues {
-			newDv := DownValue{
-				rule:        dv.rule.DeepCopy().(*Expression),
-				specificity: dv.specificity,
+		k, v := mapTuple.Key, mapTuple.Val.(expreduceapi.Def)
+		newDef := expreduceapi.Def{}
+		for _, dv := range v.Downvalues {
+			newDv := expreduceapi.DownValue{
+				Rule:        dv.Rule.DeepCopy().(expreduceapi.ExpressionInterface),
+				Specificity: dv.Specificity,
 			}
-			newDef.downvalues = append(newDef.downvalues, newDv)
+			newDef.Downvalues = append(newDef.Downvalues, newDv)
 		}
 		out.Set(k, newDef)
 	}

@@ -1,9 +1,15 @@
 package expreduce
 
-import "bytes"
+import (
+	"bytes"
 
-func ToStringBlankType(repr string, parts []Ex, params ToStringParams) (bool, string) {
-	if params.form == "FullForm" {
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/matcher"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
+
+func toStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi.ToStringParams) (bool, string) {
+	if params.Form == "FullForm" {
 		return false, ""
 	}
 	if len(parts) == 1 {
@@ -11,48 +17,47 @@ func ToStringBlankType(repr string, parts []Ex, params ToStringParams) (bool, st
 	} else if len(parts) == 2 {
 		var buffer bytes.Buffer
 		buffer.WriteString(repr)
-		buffer.WriteString(parts[1].String(params.es))
+		buffer.WriteString(parts[1].StringForm(params))
 		return true, buffer.String()
 	}
 	return false, ""
 }
 
-func GetPatternDefinitions() (defs []Definition) {
+func getPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "MatchQ",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			if res, _ := IsMatchQ(this.Parts[1], this.Parts[2], EmptyPD(), es); res {
-				return NewSymbol("System`True")
-			} else {
-				return NewSymbol("System`False")
+			if res, _ := matcher.IsMatchQ(this.GetParts()[1], this.GetParts()[2], matcher.EmptyPD(), es); res {
+				return atoms.NewSymbol("System`True")
 			}
+			return atoms.NewSymbol("System`False")
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Pattern",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			if len(this.Parts) != 3 {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			if params.form != "InputForm" && params.form != "OutputForm" {
+			if params.Form != "InputForm" && params.Form != "OutputForm" {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			_, blankOk := HeadAssertion(this.Parts[2], "System`Blank")
-			_, bsOk := HeadAssertion(this.Parts[2], "System`BlankSequence")
-			_, bnsOk := HeadAssertion(this.Parts[2], "System`BlankNullSequence")
+			_, blankOk := atoms.HeadAssertion(this.GetParts()[2], "System`Blank")
+			_, bsOk := atoms.HeadAssertion(this.GetParts()[2], "System`BlankSequence")
+			_, bnsOk := atoms.HeadAssertion(this.GetParts()[2], "System`BlankNullSequence")
 			if blankOk || bsOk || bnsOk {
-				buffer.WriteString(this.Parts[1].StringForm(params))
-				buffer.WriteString(this.Parts[2].StringForm(params))
+				buffer.WriteString(this.GetParts()[1].StringForm(params))
+				buffer.WriteString(this.GetParts()[2].StringForm(params))
 			} else {
 				buffer.WriteString("(")
-				buffer.WriteString(this.Parts[1].StringForm(params))
+				buffer.WriteString(this.GetParts()[1].StringForm(params))
 				buffer.WriteString(") : (")
-				buffer.WriteString(this.Parts[2].StringForm(params))
+				buffer.WriteString(this.GetParts()[2].StringForm(params))
 				buffer.WriteString(")")
 			}
 			return true, buffer.String()
@@ -60,20 +65,20 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "Blank",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringBlankType("_", this.Parts, params)
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+			return toStringBlankType("_", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankSequence",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringBlankType("__", this.Parts, params)
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+			return toStringBlankType("__", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "BlankNullSequence",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringBlankType("___", this.Parts, params)
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+			return toStringBlankType("___", this.GetParts(), params)
 		},
 	})
 	defs = append(defs, Definition{
@@ -93,22 +98,22 @@ func GetPatternDefinitions() (defs []Definition) {
 	})
 	defs = append(defs, Definition{
 		Name: "ReplaceList",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			rule, isRule := HeadAssertion(this.Parts[2], "System`Rule")
+			rule, isRule := atoms.HeadAssertion(this.GetParts()[2], "System`Rule")
 			if !isRule {
 				return this
 			}
-			res := NewExpression([]Ex{NewSymbol("System`List")})
-			mi, cont := NewMatchIter(this.Parts[1], rule.Parts[1], EmptyPD(), es)
+			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+			mi, cont := matcher.NewMatchIter(this.GetParts()[1], rule.GetParts()[1], matcher.EmptyPD(), es)
 			for cont {
-				matchq, newPd, done := mi.next()
+				matchq, newPd, done := mi.Next()
 				cont = !done
 				if matchq {
-					res.appendEx(ReplacePD(rule.Parts[2], es, newPd))
+					res.AppendEx(matcher.ReplacePD(rule.GetParts()[2], es, newPd))
 				}
 			}
 			return res
@@ -117,15 +122,15 @@ func GetPatternDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{Name: "Repeated"})
 	defs = append(defs, Definition{
 		Name: "Optional",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			if len(this.Parts) != 2 {
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+			if len(this.GetParts()) != 2 {
 				return false, ""
 			}
-			if params.form != "InputForm" && params.form != "OutputForm" {
+			if params.Form != "InputForm" && params.Form != "OutputForm" {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			buffer.WriteString(this.Parts[1].StringForm(params))
+			buffer.WriteString(this.GetParts()[1].StringForm(params))
 			buffer.WriteString(".")
 			return true, buffer.String()
 		},

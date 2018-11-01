@@ -123,8 +123,8 @@ Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;
 Times[ComplexInfinity, rest___] := ComplexInfinity;
 a_Integer?Negative^b_Rational*c_Integer^d_Rational*rest___ := (-1)^b*rest /; (a == -c && b == -d);
 Verbatim[Times][beg___, a_Integer^m_Rational, a_Integer^n_Rational, end___] := beg*a^(m+n)*end;
-Times[c : (Rational[_Integer, d_Integer] | 
-     Complex[_Integer, Rational[_Integer, d_Integer]]), 
+Times[c : (Rational[_Integer, d_Integer] |
+     Complex[_Integer, Rational[_Integer, d_Integer]]),
   Power[a_Integer, Rational[1, r_Integer]], rest___] :=
  Times[c*a, a^(1/r - 1), rest] /; (Mod[d, a] === 0 && a > 1)
 Sin[x_]*Cos[x_]^(-1)*rest___ := Tan[x]*rest;
@@ -237,13 +237,14 @@ Abs[-a_] := Abs[a];
 Attributes[Abs] = {Listable, NumericFunction, Protected, ReadProtected};
 Tests`Abs = {
     ESimpleExamples[
-        ESameTest[5.2, Abs[-5.2]],
+        ESameTest[5, Abs[-5]],
         ESameTest[5, Abs[5]],
         EComment["Absolute values of unspecified inputs will be left unevaluated:"],
         ESameTest[Abs[a], Abs[a]],
         EComment["But sometimes simplifications can occur:"],
         ESameTest[Abs[Sin[x]], Abs[-Sin[x]]]
     ], ETests[
+        ESameTest[True, Abs[-5.2] > 0],
         ESameTest[0, Abs[0]],
         ESameTest[Abs[x^a], Abs[-x^a]],
         ESameTest[Abs[x^(a + b)], Abs[-x^(a + b)]]

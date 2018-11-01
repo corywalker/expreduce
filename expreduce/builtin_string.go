@@ -1,20 +1,25 @@
 package expreduce
 
 import (
-	"strings"
 	"encoding/base64"
+	"fmt"
+	"strings"
+
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/expreduce/graphics"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func GetStringDefinitions() (defs []Definition) {
+func getStringDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "ToString",
 		// For some reason this is fast for StringJoin[Table["x", {k,2000}]/.List->Sequence]
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			formAsSymbol, formIsSymbol := this.Parts[2].(*Symbol)
+			formAsSymbol, formIsSymbol := this.GetParts()[2].(*atoms.Symbol)
 			if !formIsSymbol {
 				return this
 			}
@@ -24,67 +29,67 @@ func GetStringDefinitions() (defs []Definition) {
 				return this
 			}
 
-			context, contextPath := ActualStringFormArgs(es)
-			stringParams := ToStringParams{
-				form: formAsSymbol.Name[7:],
-				context: context,
-				contextPath: contextPath,
-				previousHead: "<TOPLEVEL>",
-				es: es,
+			context, contextPath := actualStringFormArgs(es)
+			stringParams := expreduceapi.ToStringParams{
+				Form:         formAsSymbol.Name[7:],
+				Context:      context,
+				ContextPath:  contextPath,
+				PreviousHead: "<TOPLEVEL>",
+				Esi:          es,
 			}
-			return NewString(this.Parts[1].StringForm(stringParams))
+			return atoms.NewString(this.GetParts()[1].StringForm(stringParams))
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "StringJoin",
-		toString: func(this *Expression, params ToStringParams) (bool, string) {
-			return ToStringInfix(this.Parts[1:], " <> ", "", params)
+		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+			return toStringInfix(this.GetParts()[1:], " <> ", "", params)
 		},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			toReturn := ""
-			for _, e := range this.Parts[1:] {
-				asStr, isStr := e.(*String)
+			for _, e := range this.GetParts()[1:] {
+				asStr, isStr := e.(*atoms.String)
 				if !isStr {
 					return this
 				}
 				toReturn += asStr.Val
 			}
-			return NewString(toReturn)
+			return atoms.NewString(toReturn)
 		},
 	})
 	defs = append(defs, Definition{
 		Name:     "Infix",
-		toString: (*Expression).ToStringInfix,
+		toString: toStringInfixFn,
 	})
 	defs = append(defs, Definition{
 		Name: "StringLength",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			asStr, isStr := this.Parts[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
 			if !isStr {
 				return this
 			}
-			return NewInt(int64(len(asStr.Val)))
+			return atoms.NewInt(int64(len(asStr.Val)))
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "StringTake",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			asStr, isStr := this.Parts[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
 			if !isStr {
 				return this
 			}
-			asList, isList := HeadAssertion(this.Parts[2], "System`List")
-			if !isList || len(asList.Parts) != 3 {
+			asList, isList := atoms.HeadAssertion(this.GetParts()[2], "System`List")
+			if !isList || len(asList.GetParts()) != 3 {
 				return this
 			}
-			sInt, sIsInt := asList.Parts[1].(*Integer)
-			eInt, eIsInt := asList.Parts[2].(*Integer)
+			sInt, sIsInt := asList.GetParts()[1].(*atoms.Integer)
+			eInt, eIsInt := asList.GetParts()[2].(*atoms.Integer)
 			if !sIsInt || !eIsInt {
 				return this
 			}
@@ -94,53 +99,63 @@ func GetStringDefinitions() (defs []Definition) {
 				return this
 			}
 			if e < s {
-				return NewString("")
+				return atoms.NewString("")
 			}
-			return NewString(asStr.Val[s : e+1])
+			return atoms.NewString(asStr.Val[s : e+1])
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "StringReplace",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			asStr, isStr := this.Parts[1].(*String)
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
 			if !isStr {
 				return this
 			}
-			asRule, isRule := HeadAssertion(this.Parts[2], "System`Rule")
-			if !isRule || len(asRule.Parts) != 3 {
+			asRule, isRule := atoms.HeadAssertion(this.GetParts()[2], "System`Rule")
+			if !isRule || len(asRule.GetParts()) != 3 {
 				return this
 			}
-			bStr, bIsStr := asRule.Parts[1].(*String)
-			aStr, aIsStr := asRule.Parts[2].(*String)
+			bStr, bIsStr := asRule.GetParts()[1].(*atoms.String)
+			aStr, aIsStr := asRule.GetParts()[2].(*atoms.String)
 			if !bIsStr || !aIsStr {
 				return this
 			}
-			return NewString(strings.Replace(asStr.Val, bStr.Val, aStr.Val, -1))
+			return atoms.NewString(strings.Replace(asStr.Val, bStr.Val, aStr.Val, -1))
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "ExportString",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 && len(this.GetParts()) != 4 {
 				return this
 			}
-			asStr, isStr := this.Parts[1].(*String)
-			if !isStr {
-				return this
-			}
-			formatAsStr, formatIsStr := this.Parts[2].(*String)
+			formatAsStr, formatIsStr := this.GetParts()[2].(*atoms.String)
 			if !formatIsStr {
 				return this
 			}
 			format := strings.ToLower(formatAsStr.Val)
+
+			if format == "png" {
+				chartAsPNG, err := graphics.RenderAsPNG(this.GetPart(1))
+				if err != nil {
+					fmt.Printf("Encountered error during PNG render: %v\n", err)
+					return atoms.NewSymbol("System`$Failed")
+				}
+				return atoms.NewString(chartAsPNG)
+			}
+
+			asStr, isStr := this.GetParts()[1].(*atoms.String)
+			if !isStr {
+				return this
+			}
 			if format == "base64" {
 				encoded := base64.StdEncoding.EncodeToString([]byte(asStr.Val))
-				return NewString(encoded + "\n")
+				return atoms.NewString(encoded + "\n")
 			}
-			return NewSymbol("System`$Failed")
+			return atoms.NewSymbol("System`$Failed")
 		},
 	})
 	return

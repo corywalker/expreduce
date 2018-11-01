@@ -1,40 +1,45 @@
 package expreduce
 
+import (
+	"github.com/corywalker/expreduce/expreduce/atoms"
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
+
 func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Rational",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			nAsInt, nIsInt := this.Parts[1].(*Integer)
-			dAsInt, dIsInt := this.Parts[2].(*Integer)
+			nAsInt, nIsInt := this.GetParts()[1].(*atoms.Integer)
+			dAsInt, dIsInt := this.GetParts()[2].(*atoms.Integer)
 			if nIsInt && dIsInt {
-				return NewRational(nAsInt.Val, dAsInt.Val).Eval(es)
+				return es.Eval(atoms.NewRational(nAsInt.Val, dAsInt.Val))
 			}
 			return this
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "Complex",
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 3 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 3 {
 				return this
 			}
-			validComplexType := func(e Ex) bool {
+			validComplexType := func(e expreduceapi.Ex) bool {
 				switch e.(type) {
-				case *Integer:
+				case *atoms.Integer:
 					return true
-				case *Flt:
+				case *atoms.Flt:
 					return true
-				case *Rational:
+				case *atoms.Rational:
 					return true
 				default:
 					return false
 				}
 			}
-			if validComplexType(this.Parts[1]) && validComplexType(this.Parts[2]) {
-				return NewComplex(this.Parts[1], this.Parts[2]).Eval(es)
+			if validComplexType(this.GetParts()[1]) && validComplexType(this.GetParts()[2]) {
+				return es.Eval(atoms.NewComplex(this.GetParts()[1], this.GetParts()[2]))
 			}
 			return this
 		},
@@ -46,12 +51,17 @@ func getAtomsDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:              "Im",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
 	})
 	defs = append(defs, Definition{
 		Name:              "Re",
 		OmitDocumentation: true,
-		ExpreduceSpecific: true,
+		expreduceSpecific: true,
+	})
+	defs = append(defs, Definition{
+		Name:              "ReIm",
+		OmitDocumentation: true,
+		expreduceSpecific: true,
 	})
 	return
 }
