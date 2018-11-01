@@ -58,5 +58,10 @@ func getAtomsDefinitions() (defs []Definition) {
 		OmitDocumentation: true,
 		expreduceSpecific: true,
 	})
+	defs = append(defs, Definition{
+		Name:              "ReIm",
+		OmitDocumentation: true,
+		expreduceSpecific: true,
+	})
 	return
 }

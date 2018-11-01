@@ -70,6 +70,6 @@ func TestInterp(t *testing.T) {
 	stringParams := ActualStringFormArgsFull("InputForm", es)
 	assert.Equal(t, "CompoundExpression[a, b]", parser.Interp("a;b\n", es).StringForm(stringParams))
 	//assert.Equal(t, "Sequence[a, b]", parser.Interp("a\nb\n", es).StringForm(stringParams))
-	assert.Equal(t, "(c = a*b)", parser.Interp("c = (a\nb)\n", es).StringForm(stringParams))
-	assert.Equal(t, "(c = a*b)", parser.Interp("c = (a\n\nb)\n", es).StringForm(stringParams))
+	assert.Equal(t, "c = a*b", parser.Interp("c = (a\nb)\n", es).StringForm(stringParams))
+	assert.Equal(t, "c = a*b", parser.Interp("c = (a\n\nb)\n", es).StringForm(stringParams))
 }
