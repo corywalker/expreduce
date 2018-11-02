@@ -4,7 +4,7 @@ os:
 language: go
 
 env:
-  - GO111MODULE=on
+  - GOLANGCI_RELEASE="v1.4.1"
 
 go:
   - "1.11.x"
@@ -13,7 +13,7 @@ go:
 go_import_path: github.com/corywalker/expreduce
 
 before_script:
-  - go install -mod vendor github.com/golangci/golangci-lint/cmd/golangci-lint
+  - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | bash -s ${GOLANGCI_RELEASE}
   #- go get -u github.com/golang/lint/golint
   #- go get golang.org/x/tools/cmd/goimports
   #- go get honnef.co/go/tools/cmd/staticcheck
