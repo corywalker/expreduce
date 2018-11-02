@@ -3,6 +3,9 @@ os:
 
 language: go
 
+env:
+  - GO111MODULE=on
+
 go:
   - "1.11.x"
   - master
@@ -10,19 +13,21 @@ go:
 go_import_path: github.com/corywalker/expreduce
 
 before_script:
-  - go get -u github.com/golang/lint/golint
-  - go get golang.org/x/tools/cmd/goimports
-  - go get honnef.co/go/tools/cmd/staticcheck
-  - go get honnef.co/go/tools/cmd/unused
-  - go get -u mvdan.cc/unparam
-  - go get github.com/gordonklaus/ineffassign
+  - go install -mod vendor github.com/golangci/golangci-lint/cmd/golangci-lint
+  #- go get -u github.com/golang/lint/golint
+  #- go get golang.org/x/tools/cmd/goimports
+  #- go get honnef.co/go/tools/cmd/staticcheck
+  #- go get honnef.co/go/tools/cmd/unused
+  #- go get -u mvdan.cc/unparam
+  #- go get github.com/gordonklaus/ineffassign
 script:
-  - 'golint ./... | grep -v "be unexported" | grep -v "resourcesRubi"'
-  - goimports -l . | grep -v resources.go
-  - staticcheck
-  - unused
-  - unparam
-  - ineffassign .
+  #- 'golint ./... | grep -v "be unexported" | grep -v "resourcesRubi"'
+  #- goimports -l . | grep -v resources.go
+  #- staticcheck
+  #- unused
+  #- unparam
+  #- ineffassign .
+  - golangci-lint run -e "(is unused|is not checked|Sprintf format )"
   - go test -v ./...
   - go test -v -race ./... -run Concurrency
 
