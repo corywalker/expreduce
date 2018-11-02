@@ -4,15 +4,12 @@ os:
 language: go
 
 go:
-  - "1.8"
-  - "1.9"
-  - "1.10"
-  - "1.11"
+  - "1.11.x"
   - master
 
 go_import_path: github.com/corywalker/expreduce
 
-install:
+before_script:
   - go get -u github.com/golang/lint/golint
   - go get golang.org/x/tools/cmd/goimports
   - go get honnef.co/go/tools/cmd/staticcheck
