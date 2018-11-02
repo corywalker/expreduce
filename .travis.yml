@@ -15,9 +15,17 @@ go_import_path: github.com/corywalker/expreduce
 install:
   - go get -u github.com/golang/lint/golint
   - go get golang.org/x/tools/cmd/goimports
+  - go get honnef.co/go/tools/cmd/staticcheck
+  - go get honnef.co/go/tools/cmd/unused
+  - go get -u mvdan.cc/unparam
+  - go get github.com/gordonklaus/ineffassign
 script:
   - 'golint ./... | grep -v "be unexported" | grep -v "resourcesRubi"'
   - goimports -l . | grep -v resources.go
+  - staticcheck
+  - unused
+  - unparam
+  - ineffassign .
   - go test -v ./...
   - go test -v -race ./... -run Concurrency
 
