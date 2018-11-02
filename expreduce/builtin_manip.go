@@ -28,7 +28,6 @@ func distribute(e expreduceapi.ExpressionInterface, built expreduceapi.Expressio
 	}
 	built.AppendEx(e.GetParts()[i])
 	distribute(e, built, res)
-	return
 }
 
 func getManipDefinitions() (defs []Definition) {

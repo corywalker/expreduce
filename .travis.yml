@@ -4,7 +4,7 @@ os:
 language: go
 
 env:
-  - GOLANGCI_RELEASE="v1.4.1"
+  - GOLANGCI_RELEASE="v1.11.2"
 
 go:
   - "1.11.x"

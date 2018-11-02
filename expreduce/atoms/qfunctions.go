@@ -16,8 +16,5 @@ func NumberQ(e expreduceapi.Ex) bool {
 		return true
 	}
 	_, ok = e.(*Complex)
-	if ok {
-		return true
-	}
-	return false
+	return ok
 }

@@ -89,8 +89,6 @@ func main() {
 					b.WriteString(fmt.Sprintf("%v\n", tests.String()))
 				}
 				b.WriteString(fmt.Sprintf("\n"))
-			} else {
-				//fmt.Printf("<<<%v has no ::usage so skipping!>>>\n", def.Name)
 			}
 		}
 		fmt.Printf("%s\n", strings.TrimSpace(strings.Replace(b.String(), "\t", "    ", -1)))
