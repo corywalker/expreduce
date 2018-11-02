@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/corywalker/expreduce/expreduce"
 	"log"
 	"regexp"
 	"strings"
+
+	"github.com/corywalker/expreduce/expreduce"
 )
 
 var modules = flag.String("modules", "",
