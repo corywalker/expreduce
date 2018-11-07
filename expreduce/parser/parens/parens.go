@@ -1,6 +1,6 @@
 package parens
 
-import "github.com/cznic/wl"
+import "modernc.org/wl"
 
 var headsToTokens = map[string]int{
 	"System`Alternatives":       124,
