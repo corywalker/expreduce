@@ -104,7 +104,7 @@ func radSimp(radicand *big.Int, index *big.Int) (*big.Int, *big.Int) {
 	pow := big.NewInt(0)
 	mod := big.NewInt(0)
 	div := big.NewInt(0)
-	for true {
+	for {
 		pow.Exp(i, index, nil)
 		mod.Mod(radicand, pow)
 		cmpRes := mod.Cmp(big.NewInt(0))

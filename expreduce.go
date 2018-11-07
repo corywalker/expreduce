@@ -78,7 +78,7 @@ func main() {
 func scriptSession(es *expreduce.EvalState, srcText string, srcPath string) {
 	exp := expreduce.EvalInterpMany(srcText, srcPath, es)
 	res := es.Eval(exp)
-	res = es.ProcessTopLevelResult(res, res)
+	es.ProcessTopLevelResult(res, res)
 }
 
 func interactiveSession(es *expreduce.EvalState) {
@@ -116,12 +116,12 @@ func interactiveSession(es *expreduce.EvalState) {
 		res := es.Eval(exp)
 		res = es.ProcessTopLevelResult(exp, res)
 
-		printFormattedOutput(es, res, true, promptNum)
-		promptNum += 1
+		printFormattedOutput(es, res, promptNum)
+		promptNum++
 	}
 }
 
-func printFormattedOutput(es *expreduce.EvalState, res expreduceapi.Ex, isInteractive bool, promptNum int) {
+func printFormattedOutput(es *expreduce.EvalState, res expreduceapi.Ex, promptNum int) {
 	isNull := false
 	asSym, isSym := res.(*atoms.Symbol)
 	if isSym {

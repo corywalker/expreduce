@@ -30,7 +30,7 @@ func (flt *Flt) StringForm(params expreduceapi.ToStringParams) string {
 		}
 	}
 	buffer.WriteString(fmt.Sprintf("%.6g", flt.Val))
-	if bytes.IndexRune(buffer.Bytes(), '.') == -1 {
+	if !bytes.ContainsRune(buffer.Bytes(), '.') {
 		buffer.WriteString(".")
 	}
 	if useParens {

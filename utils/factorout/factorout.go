@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
-	"github.com/corywalker/expreduce/expreduce"
 	"log"
 	"regexp"
 	"strings"
+
+	"github.com/corywalker/expreduce/expreduce"
 )
 
 var modules = flag.String("modules", "",
@@ -88,8 +89,6 @@ func main() {
 					b.WriteString(fmt.Sprintf("%v\n", tests.String()))
 				}
 				b.WriteString(fmt.Sprintf("\n"))
-			} else {
-				//fmt.Printf("<<<%v has no ::usage so skipping!>>>\n", def.Name)
 			}
 		}
 		fmt.Printf("%s\n", strings.TrimSpace(strings.Replace(b.String(), "\t", "    ", -1)))

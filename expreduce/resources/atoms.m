@@ -108,15 +108,53 @@ Tests`IntegerQ = {
     ]
 };
 
-Im[x_Integer]  := 0;
-Im[x_Real]     := 0;
-Im[x_Rational] := 0;
+realNumberQ[x_Integer] := True;
+realNumberQ[x_Real] := True;
+realNumberQ[x_Rational] := True;
+realNumberQ[x_] := Which[
+  x === Pi, True,
+  True, False
+];
+
+Im::usage = "`Im[e]` finds the imaginary part of `e`.";
+Im[x_?realNumberQ] := 0;
 Im[a_Integer * x_Integer?Positive^y_Rational] := 0;
 Im[Complex[_,im_]] := im;
+Im[x_?realNumberQ + rest__] := Im[Plus[rest]];
+Im[x_?realNumberQ * rest__] := x * Im[Times[rest]];
+Im[E^(x_?NumericQ)] := E^Re[x] Sin[Im[x]];
+Attributes[Im] = {Listable, NumericFunction, Protected};
+Tests`Im = {
+    ESimpleExamples[
+        ESameTest[0, Im[1]],
+        ESameTest[0, Im[0.5]],
+        ESameTest[0, Im[2/3]],
+        ESameTest[1, Im[2 + I]],
+        ESameTest[1/(2 Sqrt[2]), Im[1/2 E^(I*\[Pi]/4)]],
+    ]
+};
 
-Re[x_Integer]  := x;
-Re[x_Real]     := x;
-Re[x_Rational] := x;
+Re::usage = "`Re[e]` finds the real part of `e`.";
+Re[x_?realNumberQ] := x;
 Re[Complex[re_,_]] := re;
+Re[Complex[0, 1] + rest__] := Re[Plus[rest]];
+Re[x_?realNumberQ + rest__] := x + Re[Plus[rest]];
+Re[x_?realNumberQ * rest__] := x * Re[Times[rest]];
+Re[E^(x_?NumericQ)] := E^Re[x] Cos[Im[x]];
+Attributes[Re] = {Listable, NumericFunction, Protected};
+Tests`Re = {
+    ESimpleExamples[
+        ESameTest[1, Re[1]],
+        ESameTest[0.5, Re[0.5]],
+        ESameTest[2/3, Re[2/3]],
+        ESameTest[2, Re[2 + I]],
+        ESameTest[1/(2 Sqrt[2]), Re[1/2 E^(I*\[Pi]/4)]],
+        ESameTest[1 + Re[foo], Re[foo+1]],
+        ESameTest[1 + Re[foo+bar], Re[foo+1+bar]],
+        ESameTest[Re[foo], Re[foo+I]],
+        ESameTest[Re[foo+bar], Re[foo+I+bar]],
+        ESameTest[Re[a]/2, Re[a/2]],
+    ]
+};
 
 ReIm[x_] := {Re[x], Im[x]};
