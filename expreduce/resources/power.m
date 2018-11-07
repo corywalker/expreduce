@@ -45,6 +45,7 @@ Power[b_?NumberQ, -Infinity] := Which[
     True,
     UnexpectedInfinitePowerBase
 ];
+(* Example: 3^(4/3) -> 3*3^(1/3) *)
 Power[b_Integer, Rational[n_, d_]] := b^((n-Mod[n,d])/d) * b^(Mod[n,d]/d) /; Or[n > d, -n > d];
 Power[b_, -Infinity] := Indeterminate;
 (*Power definitions*)

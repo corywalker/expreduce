@@ -118,7 +118,9 @@ Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)
 (*Verbatim[Times][a_Integer, mid___, b_Integer^n_, end___] := mid*-(b^(n+1))*end /; (a == -b);*)
 a_Integer^c_Rational*b_Integer^c_Rational*rest___ := (a*b)^c*rest;
 (*Verbatim[Times][beg___, a_^Optional[m_], a_^Optional[n_], end___] := beg*a^(m+n)*end;*)
-Verbatim[Times][Rational[1, a_Integer], inner___, a_Integer^n_, end___] := inner*a^(n-1)*end;
+(* This qualifier is so that the simplification for 3^(4/3) -> 3*3^(1/3) does not produce an infinite evaluation loop *)
+wouldntBeLessThanNegOne[x_] := ((x - 1) < -1) =!= True;
+Verbatim[Times][Rational[1, a_Integer], inner___, a_Integer^n_?wouldntBeLessThanNegOne, end___] := inner*a^(n-1)*end;
 Times[den_Integer^-1, num_Integer, rest___] := Rational[num,den] * rest;
 Times[ComplexInfinity, rest___] := ComplexInfinity;
 a_Integer?Negative^b_Rational*c_Integer^d_Rational*rest___ := (-1)^b*rest /; (a == -c && b == -d);
@@ -208,6 +210,8 @@ Tests`Times = {
         ESameTest[-(I/(2 Sqrt[3])), Times[2/-12 I,Sqrt[3]]],
         ESameTest[(3+(5 I)/4)/Sqrt[3], Times[1+5/12 I,Sqrt[3]]],
         ESameTest[I/(2 Sqrt[3] a^2), (0+1/6*I)*3^(1/2)*a^(-2)],
+        (* Test wouldntBeLessThanNegOne. *)
+        ESameTest[(1/3)*3^(-1/2), (1/3)*3^(-1/2)],
     ], EKnownFailures[
         ESameTest[-2^(1/3), (-2)*2^(-2/3)],
         ESameTest[-2^(1+a), (-2)*2^(a)],
