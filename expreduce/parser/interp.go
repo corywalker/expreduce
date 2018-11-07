@@ -10,7 +10,7 @@ import (
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
-	"github.com/cznic/wl"
+	"modernc.org/wl"
 )
 
 type evalStateForParser interface {
