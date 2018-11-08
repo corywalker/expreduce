@@ -45,7 +45,16 @@ func toTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 				continue
 			}
 			instructions = append(instructions, &SameTestEx{
-				st.GetParts()[1], st.GetParts()[2]})
+				st.GetParts()[1], st.GetParts()[2], 0})
+			continue
+		}
+		if st, isSt := atoms.HeadAssertion(tiEx, "System`ENearlySameTest"); isSt {
+			if len(st.GetParts()) != 3 {
+				log.Fatalf("Invalid test case: %v\n", tiEx)
+				continue
+			}
+			instructions = append(instructions, &SameTestEx{
+				st.GetParts()[1], st.GetParts()[2], .01})
 			continue
 		}
 		if st, isSt := atoms.HeadAssertion(tiEx, "System`EStringTest"); isSt {
@@ -207,6 +216,7 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"stats", getStatsDefinitions()})
 	defs = append(defs, NamedDefSet{"manip", getManipDefinitions()})
 	defs = append(defs, NamedDefSet{"rubi", getRubiDefinitions()})
+	defs = append(defs, NamedDefSet{"tests", getTestsDefinitions()})
 
 	// Check for duplicate definitions
 	definedNames := make(map[string]bool)

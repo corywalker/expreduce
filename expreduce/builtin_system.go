@@ -665,6 +665,13 @@ func getSystemDefinitions() (defs []Definition) {
 		Attributes:        []string{"HoldAll", "SequenceHold"},
 	})
 	defs = append(defs, Definition{
+		Name:              "ENearlySameTest",
+		OmitDocumentation: true,
+		expreduceSpecific: true,
+		Bootstrap:         true,
+		Attributes:        []string{"HoldAll", "SequenceHold"},
+	})
+	defs = append(defs, Definition{
 		Name: "Hash",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 2 {

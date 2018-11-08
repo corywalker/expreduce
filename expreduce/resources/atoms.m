@@ -112,6 +112,7 @@ realNumberQ[x_Integer] := True;
 realNumberQ[x_Real] := True;
 realNumberQ[x_Rational] := True;
 realNumberQ[(b_Integer?Positive)^Rational[-1, n_Integer?Positive]] := True;
+realNumberQ[(b_Integer?Positive)^Rational[1, 2]] := True;
 realNumberQ[x_] := Which[
   x === Pi, True,
   True, False
@@ -149,6 +150,7 @@ Re[Complex[re_,_]] := re;
 Re[Complex[0, 1] + rest__] := Re[Plus[rest]];
 Re[x_?realNumberQ + rest__] := x + Re[Plus[rest]];
 Re[x_?realNumberQ * rest__] := x * Re[Times[rest]];
+Re[Complex[0, 1] * rest__] := -Im[Times[rest]];
 Re[E^(x_?NumericQ)] := E^Re[x] Cos[Im[x]];
 Attributes[Re] = {Listable, NumericFunction, Protected};
 Tests`Re = {
