@@ -55,3 +55,8 @@ Plot[fn_, range_List] :=
      PlotRangePadding -> {{Scaled[0.02], Scaled[0.02]}, {Scaled[0.05],
          Scaled[0.05]}}, Ticks -> {Automatic, Automatic}};
    Graphics[lines, displayOptions]];
+Tests`Plot = {
+    ETests[
+        ESameTest[Graphics, Plot[2*Cos[10 t + 1] - Sin[4 t - 1], {t, 0, 10}] // Head],
+    ]
+};
