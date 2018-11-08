@@ -238,6 +238,7 @@ Abs[a_?NumberQ] := If[a<0,-a,a];
 Abs[Infinity] := Infinity;
 Abs[ComplexInfinity] := Infinity;
 Abs[-a_] := Abs[a];
+Abs[a_?((!FreeQ[#,I|_Complex])&)] := Sqrt[Total[ReIm[a]^2]] ;/ (FreeQ[ReIm[a], Re] && FreeQ[ReIm[a], Im]);
 Attributes[Abs] = {Listable, NumericFunction, Protected, ReadProtected};
 Tests`Abs = {
     ESimpleExamples[
@@ -251,7 +252,8 @@ Tests`Abs = {
         ESameTest[True, Abs[-5.2] > 0],
         ESameTest[0, Abs[0]],
         ESameTest[Abs[x^a], Abs[-x^a]],
-        ESameTest[Abs[x^(a + b)], Abs[-x^(a + b)]]
+        ESameTest[Abs[x^(a + b)], Abs[-x^(a + b)]],
+        ESameTest[1/2, Abs[1/2 E^(\[ImaginaryJ]*\[Pi]/4)]],
     ]
 };
 

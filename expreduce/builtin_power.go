@@ -391,5 +391,6 @@ func getPowerDefinitions() (defs []Definition) {
 		Name:         "Exp",
 		legacyEvalFn: mathFnOneParam(math.Exp),
 	})
+	defs = append(defs, Definition{Name: "Conjugate"})
 	return
 }
