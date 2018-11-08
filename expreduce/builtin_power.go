@@ -134,6 +134,16 @@ func getPowerDefinitions() (defs []Definition) {
 						return true, fmt.Sprintf("Sqrt[%v]", this.GetPart(1).StringForm(nextParams))
 					}
 				}
+				if atoms.IsSameQ(this.GetPart(2), atoms.NewRational(big.NewInt(-1), big.NewInt(2))) {
+					nextParams := params
+					nextParams.PreviousHead = "<TOPLEVEL>"
+					if params.Form == "TeXForm" {
+						return true, fmt.Sprintf("\\frac{1}{\\sqrt{%v}}", this.GetPart(1).StringForm(nextParams))
+					}
+					if params.Form == "InputForm" {
+						return true, fmt.Sprintf("(1/Sqrt[%v])", this.GetPart(1).StringForm(nextParams))
+					}
+				}
 			}
 			return toStringInfixAdvanced(this.GetParts()[1:], "^", "System`Power", false, "", "", params)
 		},
@@ -381,5 +391,6 @@ func getPowerDefinitions() (defs []Definition) {
 		Name:         "Exp",
 		legacyEvalFn: mathFnOneParam(math.Exp),
 	})
+	defs = append(defs, Definition{Name: "Conjugate"})
 	return
 }

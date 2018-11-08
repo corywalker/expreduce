@@ -845,6 +845,23 @@ Tests`PowerExpand = {
 Arg::usage = "`Arg[x]` computes the argument of `x`.";
 Attributes[Arg] = {Listable, NumericFunction, Protected};
 Arg[a_?NumberQ] := ArcTan[Re[a], Im[a]];
+Arg[a_] := ArcTan[Re[a], Im[a]] ;/ (FreeQ[ReIm[a], Re] && FreeQ[ReIm[a], Im]);
+Tests`Arg = {
+    ESimpleExamples[
+        ESameTest[Pi/4, Arg[1/2 E^(I*Pi/4)]],
+    ]
+};
+
+Conjugate::usage = "`Conjugate[x]` computes the complex conjugate of `x`.";
+Conjugate[a_] := a - 2 Im[a] I ;/ (FreeQ[Im[a], Re] && FreeQ[Im[a], Im]);
+Attributes[Conjugate] = {Listable, NumericFunction, Protected, ReadProtected};
+Tests`Conjugate = {
+    ESimpleExamples[
+        ESameTest[4-4I, Conjugate[4+4I]],
+        ESameTest[-4I, Conjugate[4I]],
+        ESameTest[4, Conjugate[4]],
+    ]
+};
 
 ComplexExpand::usage = "`ComplexExpand[e]` returns a complex expansion of `e`.";
 Attributes[ComplexExpand] = {Protected};

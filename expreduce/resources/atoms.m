@@ -111,6 +111,8 @@ Tests`IntegerQ = {
 realNumberQ[x_Integer] := True;
 realNumberQ[x_Real] := True;
 realNumberQ[x_Rational] := True;
+realNumberQ[(b_Integer?Positive)^Rational[-1, n_Integer?Positive]] := True;
+realNumberQ[(b_Integer?Positive)^Rational[1, 2]] := True;
 realNumberQ[x_] := Which[
   x === Pi, True,
   True, False
@@ -122,6 +124,9 @@ Im[a_Integer * x_Integer?Positive^y_Rational] := 0;
 Im[Complex[_,im_]] := im;
 Im[x_?realNumberQ + rest__] := Im[Plus[rest]];
 Im[x_?realNumberQ * rest__] := x * Im[Times[rest]];
+Im[I * rest__] := Re[Times[rest]];
+Im[Complex[a_, b_] * rest__] := Im[a rest] + Re[b rest];
+Im[Complex[a_, b_] * c__ + d__] := Im[a c + d] + Re[b c];
 Im[E^(x_?NumericQ)] := E^Re[x] Sin[Im[x]];
 Attributes[Im] = {Listable, NumericFunction, Protected};
 Tests`Im = {
@@ -131,6 +136,11 @@ Tests`Im = {
         ESameTest[0, Im[2/3]],
         ESameTest[1, Im[2 + I]],
         ESameTest[1/(2 Sqrt[2]), Im[1/2 E^(I*\[Pi]/4)]],
+        ESameTest[-1/Sqrt[2], Im[(-I)/Sqrt[2]]],
+        ESameTest[Re[a*b], Im[a*I*b]],
+        ESameTest[-(1/(2 Sqrt[2])), Im[-(I/Sqrt[2])+1/2 E^((I \[Pi])/4)]],
+    ], EKnownFailures[
+        ESameTest[Im[a c]+Re[b c], Im[a c + I b c]],
     ]
 };
 
@@ -140,6 +150,7 @@ Re[Complex[re_,_]] := re;
 Re[Complex[0, 1] + rest__] := Re[Plus[rest]];
 Re[x_?realNumberQ + rest__] := x + Re[Plus[rest]];
 Re[x_?realNumberQ * rest__] := x * Re[Times[rest]];
+Re[Complex[0, 1] * rest__] := -Im[Times[rest]];
 Re[E^(x_?NumericQ)] := E^Re[x] Cos[Im[x]];
 Attributes[Re] = {Listable, NumericFunction, Protected};
 Tests`Re = {
