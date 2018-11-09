@@ -107,6 +107,7 @@ type DefinitionMap interface {
 	GetDef(key string) Def
 	LockKey(key string)
 	UnlockKey(key string)
+	Keys() []string
 	CopyDefs() DefinitionMap
 }
 

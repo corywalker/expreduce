@@ -353,3 +353,13 @@ Tests`Streams = {
         ESameTest[{OutputStream["stdout", 1], OutputStream["stderr", 2]}, Streams[]],
     ]
 };
+
+Names::usage = "`Names[]` returns a list of all defined symbols.
+
+`Names[\"pattern\"]` returns a list of all defined symbols matching the regex pattern.";
+Attributes[Names] = {Protected};
+Tests`Names = {
+    ETests[
+        ESameTest[True, Length[Names[]] > 1],
+    ]
+};

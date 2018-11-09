@@ -7,7 +7,9 @@ import (
 	"log"
 	"math/big"
 	"os"
+	"regexp"
 	"runtime/pprof"
+	"sort"
 	"strings"
 	"time"
 
@@ -839,6 +841,35 @@ func getSystemDefinitions() (defs []Definition) {
 				return this
 			}
 			return es.GetStreamManager().AsExpr()
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Names",
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			regex := ""
+			if this.Len() == 0 {
+				regex = ".*"
+			}
+			if this.Len() == 1 {
+				filter, filterIsString := this.GetPart(1).(*atoms.String)
+				if filterIsString {
+					replacedVal := strings.Replace(filter.GetValue(), "*", ".*", -1)
+					regex = "^" + replacedVal + "$"
+				}
+			}
+			if regex == "" {
+				fmt.Println("Unsupported call to Names.")
+				return this
+			}
+			var namesRegex = regexp.MustCompile(regex)
+			names := []string{}
+			for _, name := range es.GetDefinedMap().Keys() {
+				if namesRegex.MatchString(name) {
+					names = append(names, name)
+				}
+			}
+			sort.Strings(names)
+			return atoms.NewStringList(names)
 		},
 	})
 	return

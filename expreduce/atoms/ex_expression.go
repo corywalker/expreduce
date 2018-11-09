@@ -274,6 +274,15 @@ func newEmptyExpressionOfLength(n int) *Expression {
 	}
 }
 
+// NewStringList transforms a list of strings in Go format into Expreduce format.
+func NewStringList(items []string) *Expression {
+	list := NewHead("System`List")
+	for _, item := range items {
+		list.AppendEx(NewString(item))
+	}
+	return list
+}
+
 func (thisExpr *Expression) GetParts() []expreduceapi.Ex {
 	return thisExpr.Parts
 }
