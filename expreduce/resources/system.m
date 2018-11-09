@@ -127,6 +127,10 @@ Tests`Listable = {
 Get::usage = "`Get[file]` loads `file` and returns the last expression.";
 Attributes[Get] = {Protected};
 
+Save::usage = "`Save[filename, {sym1, sym2, ...}]` saves a list of symbols into a file."
+Save[fn_String, pattern_String] := Save[fn, syms] /. syms -> Names[pattern];
+Attributes[Save] = {HoldRest, Protected};
+
 Module::usage = "`Module[{locals}, expr]` evaluates `expr` with the local variables `locals`.";
 Attributes[Module] = {HoldAll, Protected};
 Tests`Module = {

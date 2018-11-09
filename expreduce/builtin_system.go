@@ -1,6 +1,7 @@
 package expreduce
 
 import (
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"io/ioutil"
@@ -643,6 +644,54 @@ func getSystemDefinitions() (defs []Definition) {
 				return atoms.NewSymbol("System`$Failed")
 			}
 			return EvalInterpMany(fileData, rawPath, es)
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Save",
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if this.Len() != 2 {
+				return this
+			}
+
+			filenameStr, ok := this.GetPart(1).(*atoms.String)
+			if !ok {
+				return this
+			}
+			filename := filenameStr.GetValue()
+
+			definitions := []expreduceapi.Def{}
+			symList, ok := atoms.HeadAssertion(this.GetPart(2), "System`List")
+			if !ok {
+				return this
+			}
+			for _, symEx := range symList.GetParts()[1:] {
+				symStr, symIsStr := symEx.(*atoms.String)
+				if !symIsStr {
+					return this
+				}
+				def, ok := es.GetDefined(symStr.GetValue())
+				if !ok {
+					return this
+				}
+				definitions = append(definitions, def)
+			}
+			fmt.Println(len(definitions))
+			if len(definitions) == 0 {
+				return this
+			}
+
+			atoms.RegisterGobAtoms()
+
+			file, err := os.Create(filename)
+			if err == nil {
+				encoder := gob.NewEncoder(file)
+				if err := encoder.Encode(definitions); err != nil {
+					panic(err)
+				}
+			}
+			file.Close()
+
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
