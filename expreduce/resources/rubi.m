@@ -20,3 +20,10 @@ Tests`LoadRubi = {
         ESameTest[-(3/8) ArcTanh[Cos[a+x]]-3/8 Cot[a+x] Csc[a+x]-1/4 Cot[a+x] Csc[a+x]^3, Rubi`Int[csc[a+x]^5,x]],
     ]
 };
+
+expreduceRubiSnapshotLoc = "/tmp/rubi.expred";
+LoadRubiSnapshot[] := (
+  Get[expreduceRubiSnapshotLoc];
+  $ContextPath = Prepend[$ContextPath, "Rubi`"];
+);
+SaveRubiSnapshot[] := Save[expreduceRubiSnapshotLoc, "Rubi`*"];

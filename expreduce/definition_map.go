@@ -45,6 +45,10 @@ func (dm threadSafeDefinitionMap) UnlockKey(key string) {
 	shard.Unlock()
 }
 
+func (dm threadSafeDefinitionMap) Keys() []string {
+	return dm.internalMap.Keys()
+}
+
 func (dm threadSafeDefinitionMap) CopyDefs() expreduceapi.DefinitionMap {
 	out := newDefinitionMap()
 	for mapTuple := range dm.internalMap.IterBuffered() {

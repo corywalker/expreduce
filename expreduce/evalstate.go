@@ -39,6 +39,10 @@ func (es *EvalState) GetDefined(name string) (expreduceapi.Def, bool) {
 	return es.GetDefinedMap().Get(name)
 }
 
+func (es *EvalState) SetDefined(name string, def expreduceapi.Def) {
+	es.GetDefinedMap().Set(name, def)
+}
+
 func (es *EvalState) GetStringFn(headStr string) (expreduceapi.ToStringFnType, bool) {
 	fn, ok := es.toStringFns[headStr]
 	return fn, ok

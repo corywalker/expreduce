@@ -48,6 +48,7 @@ type EvalStateInterface interface {
 	Eval(expr Ex) Ex
 
 	GetDefined(name string) (Def, bool)
+	SetDefined(name string, def Def)
 	GetStringFn(headStr string) (ToStringFnType, bool)
 	Init(loadAllDefs bool)
 	IsDef(name string) bool
@@ -107,6 +108,7 @@ type DefinitionMap interface {
 	GetDef(key string) Def
 	LockKey(key string)
 	UnlockKey(key string)
+	Keys() []string
 	CopyDefs() DefinitionMap
 }
 

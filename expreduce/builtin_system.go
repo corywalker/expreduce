@@ -1,13 +1,17 @@
 package expreduce
 
 import (
+	"bytes"
+	"encoding/gob"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"math/big"
 	"os"
+	"regexp"
 	"runtime/pprof"
+	"sort"
 	"strings"
 	"time"
 
@@ -18,6 +22,13 @@ import (
 )
 
 var mymemprofile = flag.String("mymemprofile", "", "write memory profile to this file")
+
+var exprFileHeader = []byte{26, 166, 245, 29, 69, 251, 144, 0}
+
+type encodedDef struct {
+	Name string
+	Def  expreduceapi.Def
+}
 
 func hashEx(e expreduceapi.Ex) uint64 {
 	return e.Hash()
@@ -69,19 +80,19 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 	return e.DeepCopy()
 }
 
-func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string, string, bool) {
+func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) ([]byte, string, bool) {
 	pathSym := atoms.NewSymbol("System`$Path")
 	path, isDef, _ := es.GetDef("System`$Path", pathSym)
 	if !isDef {
-		return "", "", false
+		return []byte{}, "", false
 	}
 	pathL, pathIsList := atoms.HeadAssertion(path, "System`List")
 	if !pathIsList {
-		return "", "", false
+		return []byte{}, "", false
 	}
 	filenameString, fnIsStr := fn.(*atoms.String)
 	if !fnIsStr {
-		return "", "", false
+		return []byte{}, "", false
 	}
 	rawFn := filenameString.Val
 
@@ -90,7 +101,7 @@ func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string
 
 		fileData, err := Asset("resources/" + rawFn[8:])
 		if err == nil {
-			return string(fileData), rawFn, true
+			return fileData, rawFn, true
 		}
 	}
 
@@ -111,10 +122,9 @@ func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) (string
 		if err != nil {
 			continue
 		}
-		fileData := string(dat)
-		return fileData, rawPath, true
+		return dat, rawPath, true
 	}
-	return "", "", false
+	return []byte{}, "", false
 }
 
 func snagUnique(context string, prefix string, es expreduceapi.EvalStateInterface) (string, bool) {
@@ -640,7 +650,77 @@ func getSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return atoms.NewSymbol("System`$Failed")
 			}
-			return EvalInterpMany(fileData, rawPath, es)
+			if len(fileData) >= len(exprFileHeader) && bytes.Equal(fileData[:len(exprFileHeader)], exprFileHeader) {
+
+				// TODO: Read as a stream and not a byte string.
+				r := bytes.NewReader(fileData[len(exprFileHeader):])
+				atoms.RegisterGobAtoms()
+				decoder := gob.NewDecoder(r)
+				definitions := []encodedDef{}
+				if err := decoder.Decode(&definitions); err != nil {
+					panic(err)
+				}
+
+				for _, def := range definitions {
+					es.SetDefined(def.Name, def.Def)
+				}
+
+				return atoms.NewSymbol("System`Null")
+			}
+			return EvalInterpMany(string(fileData), rawPath, es)
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Save",
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if this.Len() != 2 {
+				return this
+			}
+
+			filenameStr, ok := this.GetPart(1).(*atoms.String)
+			if !ok {
+				return this
+			}
+			filename := filenameStr.GetValue()
+
+			definitions := []encodedDef{}
+			symList, ok := atoms.HeadAssertion(this.GetPart(2), "System`List")
+			if !ok {
+				return this
+			}
+			for _, symEx := range symList.GetParts()[1:] {
+				symStr, symIsStr := symEx.(*atoms.String)
+				if !symIsStr {
+					return this
+				}
+				symName := symStr.GetValue()
+				def, ok := es.GetDefined(symName)
+				if !ok {
+					return this
+				}
+				definitions = append(definitions, encodedDef{
+					Name: symName,
+					Def:  def,
+				})
+			}
+			if len(definitions) == 0 {
+				return this
+			}
+
+			atoms.RegisterGobAtoms()
+
+			file, err := os.Create(filename)
+			if err == nil {
+				// Write the header.
+				file.Write(exprFileHeader)
+				encoder := gob.NewEncoder(file)
+				if err := encoder.Encode(definitions); err != nil {
+					panic(err)
+				}
+			}
+			file.Close()
+
+			return atoms.NewSymbol("System`Null")
 		},
 	})
 	defs = append(defs, Definition{
@@ -692,7 +772,7 @@ func getSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return atoms.NewSymbol("System`$Failed")
 			}
-			return ReadList(fileData, rawPath, es)
+			return ReadList(string(fileData), rawPath, es)
 		},
 	})
 	defs = append(defs, Definition{Name: "BeginPackage"})
@@ -839,6 +919,35 @@ func getSystemDefinitions() (defs []Definition) {
 				return this
 			}
 			return es.GetStreamManager().AsExpr()
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "Names",
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			regex := ""
+			if this.Len() == 0 {
+				regex = ".*"
+			}
+			if this.Len() == 1 {
+				filter, filterIsString := this.GetPart(1).(*atoms.String)
+				if filterIsString {
+					replacedVal := strings.Replace(filter.GetValue(), "*", ".*", -1)
+					regex = "^" + replacedVal + "$"
+				}
+			}
+			if regex == "" {
+				fmt.Println("Unsupported call to Names.")
+				return this
+			}
+			var namesRegex = regexp.MustCompile(regex)
+			names := []string{}
+			for _, name := range es.GetDefinedMap().Keys() {
+				if namesRegex.MatchString(name) {
+					names = append(names, name)
+				}
+			}
+			sort.Strings(names)
+			return atoms.NewStringList(names)
 		},
 	})
 	return
