@@ -650,7 +650,7 @@ func getSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return atoms.NewSymbol("System`$Failed")
 			}
-			if len(fileData) >= len(exprFileHeader) && bytes.Compare(fileData[:len(exprFileHeader)], exprFileHeader) == 0 {
+			if len(fileData) >= len(exprFileHeader) && bytes.Equal(fileData[:len(exprFileHeader)], exprFileHeader) {
 
 				// TODO: Read as a stream and not a byte string.
 				r := bytes.NewReader(fileData[len(exprFileHeader):])
