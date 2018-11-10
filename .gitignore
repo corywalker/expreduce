@@ -3,6 +3,7 @@ calc.go
 y.output
 test_rubi
 expreduce/rubi_snapshot.expred
+.DS_Store
 
 .idea/expreduce.iml
 

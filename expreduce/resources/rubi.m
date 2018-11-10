@@ -22,7 +22,7 @@ Tests`LoadRubi = {
 };
 
 LoadRubiSnapshot[snapshotLoc_] := (
-  Get[snapshotLoc_];
+  Get[snapshotLoc];
   $ContextPath = Prepend[$ContextPath, "Rubi`"];
 );
 SaveRubiSnapshot[snapshotLoc_] := Save[snapshotLoc, "Rubi`*"];
