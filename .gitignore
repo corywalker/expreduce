@@ -2,6 +2,7 @@ old
 calc.go
 y.output
 test_rubi
+expreduce/rubi_snapshot.expred
 
 .idea/expreduce.iml
 

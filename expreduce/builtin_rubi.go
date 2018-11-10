@@ -1,4 +1,4 @@
-//go:generate go run ../utils/gensnapshots/gensnapshots.go
+//go:generate go run ../utils/gensnapshots/gensnapshots.go -rubi_snapshot_location=./rubi_snapshot.expred
 
 package expreduce
 
