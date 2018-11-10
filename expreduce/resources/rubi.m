@@ -21,9 +21,8 @@ Tests`LoadRubi = {
     ]
 };
 
-expreduceRubiSnapshotLoc = "/tmp/rubi.expred";
-LoadRubiSnapshot[] := (
-  Get[expreduceRubiSnapshotLoc];
+LoadRubiSnapshot[snapshotLoc_] := (
+  Get[snapshotLoc_];
   $ContextPath = Prepend[$ContextPath, "Rubi`"];
 );
-SaveRubiSnapshot[] := Save[expreduceRubiSnapshotLoc, "Rubi`*"];
+SaveRubiSnapshot[snapshotLoc_] := Save[snapshotLoc, "Rubi`*"];

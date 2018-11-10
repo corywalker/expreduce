@@ -1,3 +1,5 @@
+//go:generate go run ../utils/gensnapshots/gensnapshots.go
+
 package expreduce
 
 func getRubiDefinitions() (defs []Definition) {
