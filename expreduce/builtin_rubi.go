@@ -13,6 +13,10 @@ func getRubiDefinitions() (defs []Definition) {
 		expreduceSpecific: true,
 	})
 	defs = append(defs, Definition{
+		Name:              "LoadRubiBundledSnapshot",
+		expreduceSpecific: true,
+	})
+	defs = append(defs, Definition{
 		Name:              "SaveRubiSnapshot",
 		expreduceSpecific: true,
 	})

@@ -25,4 +25,5 @@ LoadRubiSnapshot[snapshotLoc_] := (
   Get[snapshotLoc];
   $ContextPath = Prepend[$ContextPath, "Rubi`"];
 );
+LoadRubiBundledSnapshot[] := LoadRubiSnapshot["__rubi_snapshot__/rubi_snapshot/rubi_snapshot.expred"];
 SaveRubiSnapshot[snapshotLoc_] := Save[snapshotLoc, "Rubi`*"];
