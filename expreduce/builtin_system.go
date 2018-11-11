@@ -18,6 +18,7 @@ import (
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/matcher"
+	"github.com/corywalker/expreduce/expreduce/rubi_snapshot"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/op/go-logging"
 )
@@ -99,8 +100,13 @@ func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) ([]byte
 
 	// Handle resource file reads
 	if strings.HasPrefix(rawFn, "__res__/") {
-
 		fileData, err := Asset("resources/" + rawFn[8:])
+		if err == nil {
+			return fileData, rawFn, true
+		}
+	}
+	if strings.HasPrefix(rawFn, "__rubi_snapshot__/") {
+		fileData, err := rubi_snapshot.Asset(rawFn[18:])
 		if err == nil {
 			return fileData, rawFn, true
 		}
