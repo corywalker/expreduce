@@ -59,5 +59,9 @@ func getTrigDefinitions() (defs []Definition) {
 		Name:              "TrigReduce",
 		OmitDocumentation: true,
 	})
+	defs = append(defs, Definition{
+		Name:              "TrigToExp",
+		OmitDocumentation: true,
+	})
 	return
 }

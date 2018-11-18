@@ -75,6 +75,7 @@ _^ComplexInfinity := Indeterminate;
 E^pow_Real := N[E]^pow;
 E^(Log[a_]+rest___) := a * E^rest;
 E^Log[a_] := a;
+E^(Complex[0, n_Integer]*Pi) := -(Mod[n, 2]*2 - 1);
 a_Real ^ Complex[b_Real, c_Real] := Module[{inner},
   inner = b Arg[a]+1/2 c Log[a^2];
   (a^2)^(b/2) E^(-c Arg[a]) * Complex[Cos[inner], Sin[inner]]

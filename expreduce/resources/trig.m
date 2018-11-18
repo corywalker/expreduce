@@ -90,3 +90,9 @@ Attributes[TrigExpand] = {Protected};
 
 TrigReduce[a_] := (Print["Unsupported call to TrigReduce", a];a);
 Attributes[TrigReduce] = {Protected};
+
+TrigToExp[n_Integer] := n;
+TrigToExp[Cos[sym_Symbol]] := E^(-I sym)/2 + E^(I sym)/2;
+TrigToExp[Sin[sym_Symbol]] := 1/2 I E^(-I sym) - 1/2 I E^(I sym);
+TrigToExp[a_] := (Print["Unsupported call to TrigToExp", a];a);
+Attributes[TrigToExp] = {Listable, Protected};

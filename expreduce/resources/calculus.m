@@ -47,35 +47,9 @@ Integrate::usage = "`Integrate[f, x]` finds the indefinite integral of `f` with 
 
 !!! warning \"Under development\"
     This function is under development, and as such will be incomplete and inaccurate.";
-Integrate[a_,{x_Symbol,start_,end_}] := 
+Integrate[a_,{x_Symbol,start_,end_}] :=
     ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start];
-Integrate[a_Integer,x_Symbol] := a*x;
-Integrate[a_*b_,x_Symbol] := a*Integrate[b,x] /; FreeQ[a,x];
-Integrate[a_+b_,x_Symbol] := Integrate[a,x]+Integrate[b,x];
-
-(*Basic power integrals*)
-Integrate[a_Symbol,x_Symbol] := If[a===x, x^2/2, a*x];
-Integrate[x_Symbol^e_, x_Symbol] := x^(e+1)/(e+1) /; FreeQ[e, x];
-Integrate[a_^(b_*x_Symbol),x_Symbol] := a^(b x)/(b Log[a]) /; (FreeQ[a, x] && FreeQ[b, x]);
-Integrate[1/x_Symbol,x_Symbol] := Log[Abs[x]];
-Integrate[Log[x_Symbol],x_Symbol] := -x + x Log[x];
-Integrate[x_Symbol*Log[x_Symbol],x_Symbol] := -((x^2)/4) + (1/2)*(x^2)*Log[x];
-
-(*Trig functions*)
-Integrate[Sin[x_Symbol],x_Symbol] := -Cos[x];
-Integrate[Cos[x_Symbol],x_Symbol] := Sin[x];
-Integrate[Tan[x_Symbol],x_Symbol] := -Log[Cos[x]];
-Integrate[Sec[x_Symbol]^2,x_Symbol] := Tan[x];
-Integrate[Csc[x_Symbol]^2,x_Symbol] := -Cot[x];
-Integrate[Sec[x_Symbol]Tan[x_Symbol],x_Symbol] := Sec[x];
-Integrate[Csc[x_Symbol]Cot[x_Symbol],x_Symbol] := -Csc[x];
-(* At this point Sqrt is not defined, so we raise to the (-1/2) explicitly *)
-Integrate[Power[1-x_Symbol^2,Rational[-1,2]],x_Symbol] := ArcSin[x];
-Integrate[(1+x_Symbol^2)^(-1),x_Symbol] := ArcTan[x];
-
-(*This may not always reduce. Look into this*)
-(*Integrate[u_Symbol*v_, u_Symbol] := u*Integrate[v, u] - Integrate[Integrate[v, u], u];*)
-
+Integrate[a_,x_Symbol] := Rubi`Int[a, x];
 Attributes[Integrate] = {ReadProtected, Protected};
 Tests`Integrate = {
     ESimpleExamples[
