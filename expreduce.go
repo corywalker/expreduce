@@ -47,7 +47,8 @@ func main() {
 	if *loadRubi {
 		fmt.Println("Loading Rubi snapshot for integral support. Disable with -loadrubi=false.")
 		es.Eval(atoms.E(atoms.S("LoadRubiBundledSnapshot")))
-		fmt.Println("Done loading Rubi snapshot.\n")
+		fmt.Println("Done loading Rubi snapshot.")
+		fmt.Print("\n")
 	}
 	if *debug {
 		es.NoInit = true
