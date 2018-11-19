@@ -53,6 +53,7 @@ Integrate[a_,x_Symbol] := Rubi`Int[a, x];
 Attributes[Integrate] = {ReadProtected, Protected};
 Tests`Integrate = {
     ESimpleExamples[
+        ESameTest[Null, LoadRubiBundledSnapshot[]],
         ESameTest[2 x + (3 x^(5/3))/5 + (3 x^2)/2, Integrate[x^(2/3) + 3 x + 2, x]],
         ESameTest[-((3 x^2)/4) + (1/2) (x^2) Log[x] - Sin[x], Integrate[Integrate[Sin[x] + Log[x], x], x]],
         ESameTest[1/3, Integrate[x^2, {x, 0, 1}]],

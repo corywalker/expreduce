@@ -5,7 +5,7 @@ Tests`LoadRubi = {
     ESimpleExamples[
         (*Just test a few cases for a sanity check. Full test suite can be run
         outside of test suite.*)
-        ESameTest[Null, LoadRubi[]],
+        ESameTest[Null, LoadRubiBundledSnapshot[]],
         ESameTest[x^3/3 + 2*x, Rubi`Int[x^2+2, x]],
         ESameTest[(-3*ArcTanh[Cosh[a+b*x]])/(8*b)+(3*Coth[a+b*x]*Csch[a+b*x])/(8*b)-(Coth[a+b*x]*Csch[a+b*x]^3)/(4*b), Rubi`Int[Csch[a + b*x]^5,x]],
         ESameTest[Log[x], Rubi`Int[1/x, x]],
