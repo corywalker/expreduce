@@ -97,9 +97,6 @@ func getReplacementDefinitions() (defs []Definition) {
 			}
 
 			rules := getValidRules(this.GetParts()[2])
-			if len(rules) == 0 {
-				return this
-			}
 			return rulesReplaceAll(this.GetParts()[1], rules, es)
 		},
 	})

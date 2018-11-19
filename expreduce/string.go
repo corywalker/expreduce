@@ -134,8 +134,10 @@ func simpleTeXToString(fnName string) func(expreduceapi.ExpressionInterface, exp
 		}
 		var buffer bytes.Buffer
 		buffer.WriteString("\\" + fnName + " \\left(")
+		nextParams := params
+		nextParams.PreviousHead = "<TOPLEVEL>"
 		for i := 1; i < len(this.GetParts()); i++ {
-			buffer.WriteString(this.GetParts()[i].StringForm(params))
+			buffer.WriteString(this.GetParts()[i].StringForm(nextParams))
 			if i != len(this.GetParts())-1 {
 				buffer.WriteString(",")
 			}

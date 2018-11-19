@@ -27,6 +27,12 @@ func formatSymName(name string, params expreduceapi.ToStringParams) string {
 		if name == "Infinity" {
 			return "\\infty"
 		}
+		if name == "ω" {
+			return "\\omega"
+		}
+		if name == "Ω" {
+			return "\\Omega"
+		}
 		if len(name) > 1 {
 			return fmt.Sprintf("\\text{%v}", name)
 		}

@@ -476,6 +476,12 @@ func parserExprConv(expr *wl.Expression) expreduceapi.Ex {
 	return nil
 }
 
+func ReplaceSyms(in string) string {
+	in = strings.Replace(in, "\\[Omega]", "ω", -1)
+	in = strings.Replace(in, "\\[CapitalOmega]", "Ω", -1)
+	return in
+}
+
 func InterpBuf(buf *bytes.Buffer, fn string, esfp evalStateForParser) (expreduceapi.Ex, error) {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
 	in, err := wl.NewInput(buf, true)
@@ -512,6 +518,7 @@ func InterpBuf(buf *bytes.Buffer, fn string, esfp evalStateForParser) (expreduce
 }
 
 func Interp(src string, esfp evalStateForParser) expreduceapi.Ex {
+	src = ReplaceSyms(src)
 	buf := bytes.NewBufferString(src)
 	expr, err := InterpBuf(buf, "nofile", esfp)
 	if err != nil {

@@ -18,17 +18,24 @@ func (cmplx *Complex) StringForm(p expreduceapi.ToStringParams) string {
 	if p.Form == "FullForm" {
 		return fmt.Sprintf("Complex[%v, %v]", cmplx.Re, cmplx.Im)
 	}
+	iString := "I"
+	if p.Form == "TeXForm" {
+		iString = "i"
+	}
 	reInt, reIsInt := cmplx.Re.(*Integer)
 	imInt, imIsInt := cmplx.Im.(*Integer)
 	if reIsInt && reInt.Val.Sign() == 0 {
 		if imIsInt && imInt.Val.Int64() == 1 {
-			return "I"
+			return iString
+		}
+		if imIsInt && imInt.Val.Int64() == -1 {
+			return fmt.Sprintf("(-%v)", iString)
 		}
 		p.PreviousHead = "System`Times"
-		return fmt.Sprintf("(%v*I)", cmplx.Im.StringForm(p))
+		return fmt.Sprintf("(%v*%v)", cmplx.Im.StringForm(p), iString)
 	}
 	p.PreviousHead = "System`Plus"
-	return fmt.Sprintf("(%v + %v*I)", cmplx.Re.StringForm(p), cmplx.Im.StringForm(p))
+	return fmt.Sprintf("(%v + %v*%v)", cmplx.Re.StringForm(p), cmplx.Im.StringForm(p), iString)
 }
 
 func (cmplx *Complex) IsEqual(other expreduceapi.Ex) string {

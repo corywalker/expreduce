@@ -137,6 +137,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`Notice")
 		es.MarkSeen("System`Echo")
 		es.MarkSeen("System`Row")
+		es.MarkSeen("System`Superscript")
 
 		es.MarkSeen("System`Attributes")
 		es.MarkSeen("System`Orderless")

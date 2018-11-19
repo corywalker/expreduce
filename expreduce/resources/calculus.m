@@ -43,13 +43,34 @@ Tests`D = {
     ]
 };
 
+findSubscripts[expr_] := Module[{subscripts = {}},
+   Map[
+    (If[MatchQ[#, Subscript[_, _]],
+       AppendTo[subscripts, #];
+       ]; #) &, expr, {0, Infinity}];
+   subscripts // DeleteDuplicates
+   ];
+genSubscriptReplacements[expr_] :=
+  Module[{subscripts, uniques, n, fwd, bwd, tmpi},
+   subscripts = findSubscripts[expr];
+   n = Length[subscripts];
+   uniques = Table[Unique[], {tmpi, 1, n}];
+   fwd = Table[subscripts[[i]] -> uniques[[i]], {i, n}];
+   bwd = Table[uniques[[i]] -> subscripts[[i]], {i, n}];
+   {fwd, bwd}
+   ];
+
 Integrate::usage = "`Integrate[f, x]` finds the indefinite integral of `f` with respect to `x`.
 
 !!! warning \"Under development\"
     This function is under development, and as such will be incomplete and inaccurate.";
 Integrate[a_,{x_Symbol,start_,end_}] :=
     ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start];
-Integrate[a_,x_Symbol] := Rubi`Int[a, x];
+Integrate[a_,x_Symbol] := Module[{cleanedA, replaceRules},
+  replaceRules = genSubscriptReplacements[a];
+  cleanedA = a /. replaceRules[[1]];
+  Rubi`Int[cleanedA, x] /. replaceRules[[2]]
+];
 Attributes[Integrate] = {ReadProtected, Protected};
 Tests`Integrate = {
     ESimpleExamples[

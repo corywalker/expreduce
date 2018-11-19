@@ -144,6 +144,16 @@ func getPowerDefinitions() (defs []Definition) {
 						return true, fmt.Sprintf("(1/Sqrt[%v])", this.GetPart(1).StringForm(nextParams))
 					}
 				}
+				if atoms.IsSameQ(this.GetPart(2), atoms.NewInt(-1)) {
+					nextParams := params
+					nextParams.PreviousHead = "<TOPLEVEL>"
+					if params.Form == "TeXForm" {
+						return true, fmt.Sprintf("\\frac{1}{%v}", this.GetPart(1).StringForm(nextParams))
+					}
+					if params.Form == "InputForm" {
+						return true, fmt.Sprintf("(1/(%v))", this.GetPart(1).StringForm(nextParams))
+					}
+				}
 			}
 			return toStringInfixAdvanced(this.GetParts()[1:], "^", "System`Power", false, "", "", params)
 		},
