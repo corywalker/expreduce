@@ -134,3 +134,9 @@ func (cmplx *Complex) mulC(c *Complex) {
 func (cmplx *Complex) SetNeedsEval(newVal bool) {
 	cmplx.needsEval = newVal
 }
+
+func (cmplx *Complex) HasReal() bool {
+	_, reIsFlt := cmplx.Re.(*Flt)
+	_, imIsFlt := cmplx.Im.(*Flt)
+	return reIsFlt || imIsFlt
+}
