@@ -55,8 +55,12 @@ Attributes[Tan] = {Listable, NumericFunction, Protected};
 
 Cot::usage = "`Cot[x]` is the cotangent of `x`.";
 Cot[x_]^(-1) := Tan[x];
+Cot[x_ + Pi/2] := -Tan[x];
 Cot[Verbatim[Plus][-1*a_, b___]] := -Cot[a-b];
 Attributes[Cot] = {Listable, NumericFunction, Protected};
+
+Sec[x_ - Pi/2] := Csc[x];
+Attributes[Sec] = {Listable, NumericFunction, Protected};
 
 Csc[inner : Verbatim[Plus][Repeated[_*I]]] := -I*Csch[-I*inner // Distribute]
 Attributes[Csc] = {Listable, NumericFunction, Protected};
@@ -93,6 +97,6 @@ Attributes[TrigReduce] = {Protected};
 
 TrigToExp[n_Integer] := n;
 TrigToExp[Cos[sym_Symbol]] := E^(-I sym)/2 + E^(I sym)/2;
-TrigToExp[Sin[sym_Symbol]] := 1/2 I E^(-I sym) - 1/2 I E^(I sym);
+TrigToExp[Sin[sym_Symbol]] := E^(-I sym)/2 + E^(I sym)/2;
 TrigToExp[a_] := (Print["Unsupported call to TrigToExp", a];a);
 Attributes[TrigToExp] = {Listable, Protected};
