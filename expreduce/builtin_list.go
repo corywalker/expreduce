@@ -394,6 +394,52 @@ func getListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
+		Name: "Intersection",
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) == 1 {
+				return this
+			}
+			var firstHead expreduceapi.Ex
+			intersection := map[uint64]int{}
+			for _, part := range this.GetParts()[1:] {
+				expr, isExpr := part.(expreduceapi.ExpressionInterface)
+				if !isExpr {
+					return this
+				}
+				if firstHead == nil {
+					firstHead = expr.GetParts()[0]
+				} else if !atoms.IsSameQ(firstHead, expr.GetParts()[0]) {
+					return this
+				}
+				theseParts := map[uint64]bool{}
+				for _, innerPart := range expr.GetParts()[1:] {
+					theseParts[hashEx(innerPart)] = true
+				}
+				for hash := range theseParts {
+					currVal, hasVal := intersection[hash]
+					if !hasVal {
+						intersection[hash] = 1
+					} else {
+						intersection[hash] = currVal + 1
+					}
+				}
+			}
+			toReturn := atoms.E(firstHead)
+			added := map[uint64]bool{}
+			for _, part := range this.GetParts()[1].(expreduceapi.ExpressionInterface).GetParts()[1:] {
+				hash := hashEx(part)
+				_, alreadyAdded := added[hash]
+				intersection := intersection[hash] == this.Len()
+				if intersection && !alreadyAdded {
+					added[hash] = true
+					toReturn.AppendEx(part)
+				}
+			}
+			sort.Sort(toReturn)
+			return toReturn
+		},
+	})
+	defs = append(defs, Definition{
 		Name: "PadRight",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			list, n, x, valid := validatePadParams(this)

@@ -162,6 +162,17 @@ Tests`Complement = {
     ]
 };
 
+Intersection::usage = "`Intersection[expr1, expr2, ...]` returns a sorted intersection of the items in the expressions.";
+Attributes[Intersection] = {Flat, OneIdentity, Protected, ReadProtected};
+Tests`Complement = {
+    ESimpleExamples[
+        ESameTest[{a}, Intersection[{a, b}, {a}]],
+        ESameTest[{}, Intersection[{a, b, c}, {a}, {b}]]
+    ], ETests[
+        ESameTest[foo[a], Intersection[foo[a], foo[a]]],
+    ]
+};
+
 Range::usage = "`Range[n]` returns a `List` of integers from 1 to `n`.
 
 `Range[m, n]` returns a `List` of integers from `m` to `n`.";
