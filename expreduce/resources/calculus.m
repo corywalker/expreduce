@@ -65,11 +65,11 @@ Integrate::usage = "`Integrate[f, x]` finds the indefinite integral of `f` with 
 !!! warning \"Under development\"
     This function is under development, and as such will be incomplete and inaccurate.";
 Integrate[a_,{x_Symbol,start_,end_}] :=
-    ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start];
+    (ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start]) // Simplify;
 Integrate[a_,x_Symbol] := Module[{cleanedA, replaceRules},
   replaceRules = genSubscriptReplacements[a];
   cleanedA = a /. replaceRules[[1]];
-  Rubi`Int[cleanedA, x] /. replaceRules[[2]]
+  (Rubi`Int[cleanedA, x] /. replaceRules[[2]]) // Simplify
 ];
 Attributes[Integrate] = {ReadProtected, Protected};
 Tests`Integrate = {
