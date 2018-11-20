@@ -95,8 +95,24 @@ Attributes[TrigExpand] = {Protected};
 TrigReduce[a_] := (Print["Unsupported call to TrigReduce", a];a);
 Attributes[TrigReduce] = {Protected};
 
-TrigToExp[n_Integer] := n;
-TrigToExp[Cos[sym_Symbol]] := E^(-I sym)/2 + E^(I sym)/2;
-TrigToExp[Sin[sym_Symbol]] := E^(-I sym)/2 + E^(I sym)/2;
-TrigToExp[a_] := (Print["Unsupported call to TrigToExp", a];a);
+trigToExpInner[n_Integer] := n;
+trigToExpInner[sym_Symbol] := sym;
+trigToExpInner[Cos[inner_]] := E^(-I inner//Expand)/2+E^(I inner//Expand)/2;
+trigToExpInner[Sin[inner_]] := 1/2 I E^(-I inner//Expand)-1/2 I E^(I inner//Expand);
+trigToExpInner[Tan[inner_]] := (I (E^(-I inner)-E^(I inner)))/(E^(-I inner)+E^(I inner));
+trigToExpInner[a_] := (Print["Unsupported call to TrigToExp", a];a);
+TrigToExp[exp_] := Map[trigToExpInner, exp, {0, Infinity}]//Expand;
 Attributes[TrigToExp] = {Listable, Protected};
+Tests`TrigToExp = {
+    ESimpleExamples[
+        ESameTest[1/2 E^(-I x y)+1/2 E^(I x y), TrigToExp[Cos[x*y]]],
+        ESameTest[b+1/2 E^(-I x-I y)+1/2 E^(I x+I y), TrigToExp[Cos[x+y]+b]],
+        ESameTest[1/2 I E^(-I x-I y)-1/2 I E^(I x+I y), TrigToExp[Sin[x+y]]],
+        ESameTest[x, TrigToExp[x]],
+    ], EKnownFailures[
+        ESameTest[1/2-1/4 E^(-2 I x-2 I y)-1/4 E^(2 I x+2 I y), TrigToExp[Sin[x+y]^2]],
+        ESameTest[1/2+E^(-I x)/2+E^(I x)/2-1/4 E^(-2 I x-2 I y)-1/4 E^(2 I x+2 I y), TrigToExp[Sin[x+y]^2+Cos[x]]],
+        ESameTest[1/2 E^(1/2 (E^(-I x)-E^(I x)))+1/2 E^(1/2 (-E^(-I x)+E^(I x))), TrigToExp[Cos[Sin[x]]]],
+        ESameTest[(I (E^(-I x)-E^(I x)))/(E^(-I x)+E^(I x)), TrigToExp[Tan[x]]],
+    ]
+};

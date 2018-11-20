@@ -3,6 +3,7 @@ Power::usage = "`base^exp` finds `base` raised to the power of `exp`.";
 Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
 Power[Power[a_,b_Real],c_Integer] := a^(b*c);
 Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
+Power[Power[a_,b_Complex*c_Symbol],d_Integer] := a^(b*c*d);
 Power[Power[a_,b_Rational],c_] := a^(b*c);
 Power[Infinity, 0] := Indeterminate;
 Power[-Infinity, 0] := Indeterminate;
@@ -780,11 +781,19 @@ Tests`PSimplify = {
     ],
 };
 
+myFactorCommonTerms[a_] := a;
+allTimes[p_Plus] := AllTrue[p, (Head[#] === Times) &];
+myFactorCommonTerms[a_Plus] := Module[{commonTerms},
+   If[! allTimes[a], Return[a]];
+   commonTerms = Intersection @@ a;
+   commonTerms ((a/commonTerms) // Expand)
+   ];
+
 FactorSquareFree::usage = "`FactorSquareFree[poly]` computes the square free factorization of `poly`.";
 FactorSquareFree[poly_] :=
   Module[{f = poly, a, b, nb, c, d, i, res, fprime, polyvar, vars},
    vars = Variables[f];
-   If[Length[vars] != 1, Return[f]];
+   If[Length[vars] != 1, Return[f//myFactorCommonTerms]];
    polyvar = vars[[1]];
    If[! PolynomialQ[f, polyvar], Return[f]];
    fprime = D[f, polyvar];
@@ -814,6 +823,8 @@ Tests`FactorSquareFree = {
         ESameTest[(-1 + x)^2*(1 + 2*x + 2*x^2 + x^3), FactorSquareFree[1 - x^2 - x^3 + x^5]],
         ESameTest[(-3 + x)^2*(2 - 3*x + x^2), FactorSquareFree[18 - 39*x + 29*x^2 - 9*x^3 + x^4]],
         ESameTest[(3 + x)^3*(-4 + x^2)*(-1 + x^2)^2, FactorSquareFree[-108 - 108*x + 207*x^2 + 239*x^3 - 81*x^4 - 153*x^5 - 27*x^6 + 21*x^7 + 9*x^8 + x^9]]
+    ], ETests[
+        ESameTest[a (b+c), FactorSquareFree[a b+a c]],
     ]
 };
 

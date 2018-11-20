@@ -149,6 +149,7 @@ Tests`Order = {
         ESameTest[-1, Order[a[b,piz,foo[]],a[b,foo[]]]],
     ], EKnownFailures[
         ESameTest[{a,A,b,B}, Sort[{a,A,b,B}]],
+        ESameTest[{-I,1/A,A,1/k,k}, Sort[{A^(-1), k^(-1), (-I), A, k}]],
         ESameTest[1, Order[a + b - c, a + c]]
     ]
 };

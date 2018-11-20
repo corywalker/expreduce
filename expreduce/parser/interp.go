@@ -479,6 +479,7 @@ func parserExprConv(expr *wl.Expression) expreduceapi.Ex {
 func ReplaceSyms(in string) string {
 	in = strings.Replace(in, "\\[Omega]", "ω", -1)
 	in = strings.Replace(in, "\\[CapitalOmega]", "Ω", -1)
+	in = strings.Replace(in, "\\[Alpha]", "α", -1)
 	return in
 }
 
