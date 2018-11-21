@@ -35,25 +35,43 @@ booleanSimplify[exp_] := exp //. {
     And[x1___, a_, x2___, Or[x3___, !a_, x4___], x5___] :> And[a, x1, x2, Or[x3, x4], x5],
     And[x1___, Or[x2___, !a_, x3___], x4___, a_, x5___] :> And[a, x1, Or[x2, x3], x4, x5]
 };
+trigSimplify[exp_] := exp //. {
+    (Rational[1,2]*c_.*(a_ + b_*Cos[inner_]) /; a == -b) :> c*a*Sin[inner/2]^2
+};
+tryFactoringOutTerm[e_] := e;
+tryFactoringOutTerm[p_Plus] := Module[{cterms, simplest, i, tryVal},
+   simplest = p;
+   cterms = ((ExpreduceConstantTerm /@ (List @@ p)) // Transpose)[[1]];
+   For[i = 1, i <= Length[cterms], i++,
+    tryVal = cterms[[i]] (p/cterms[[i]] // Distribute);
+    If[ExpreduceLeafCountSimplify[tryVal] < ExpreduceLeafCountSimplify[simplest],
+     simplest = tryVal];
+    ];
+   simplest
+   ];
 simplifyInner[exp_] := Module[{e = exp, tryVal},
     e = booleanSimplify[e];
+    e = trigSimplify[e];
     inferredPower = 1;
     If[MatchQ[e, s_Plus^n_Integer],
       inferredPower := Replace[e, s_Plus^n_Integer -> n]];
     If[inferredPower < 5,
       (*Similar to Expand, but not using ReplaceAll*)
       tryVal = FixedPoint[Replace[#, expandRules]&, e];
-      If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
+      If[ExpreduceLeafCountSimplify[tryVal] < ExpreduceLeafCountSimplify[e], e = tryVal];
     ];
     (*Avoid expressions containing expensive expressions to expand.*)
     If[FreeQ[e, a_Plus^(b_Integer?((# >= 5) &))],
       tryVal = ComplexExpand[e];
-      If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
+      If[ExpreduceLeafCountSimplify[tryVal] < ExpreduceLeafCountSimplify[e], e = tryVal];
     ];
     tryVal = Together[e];
-    If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
+    If[ExpreduceLeafCountSimplify[tryVal] < ExpreduceLeafCountSimplify[e], e = tryVal];
     tryVal = Private`myFactorCommonTerms[e];
-    If[LeafCount[tryVal] < LeafCount[e], e = tryVal];
+    If[ExpreduceLeafCountSimplify[tryVal] < ExpreduceLeafCountSimplify[e], e = tryVal];
+    tryVal = Private`tryFactoringOutTerm[e];
+    If[ExpreduceLeafCountSimplify[tryVal] < ExpreduceLeafCountSimplify[e], e = tryVal];
+    e = trigSimplify[e];
     (* also need to try complexexpand to simplify cases like (-1)^(1/3) (1 + I Sqrt[3]) *)
     e = Replace[e, Sqrt[inner_] :> Sqrt[FactorTerms[inner]]];
     e

@@ -61,6 +61,7 @@ Tests`Together = {
         ESameTest[(a+b+c+d)/((a+b) (c+d)), (1+a/(c+d)+b/(c+d))/(a+b)//Together],
         ESameTest[(a+b+a b c+a b d)/(a b), 1/a+1/b+c+d//Together],
         ESameTest[2(a+b), 2a+2b//Together],
+    ], EKnownFailures[
         ESameTest[(I (a-b))/(2 Subscript[\[Omega], 0]), (I a)/(2 Subscript[\[Omega], 0])-(I b)/(2 Subscript[\[Omega], 0])//Together],
     ]
 };

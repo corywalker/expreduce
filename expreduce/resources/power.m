@@ -68,7 +68,9 @@ Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   1, I,
   2, -1,
   3, -I];
-Complex[re_,im_]^n_Integer := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
+Complex[re_,im_]^n_Integer := If[n===-1,
+  Complex[re/(re^2+im^2), -(im/(re^2+im^2))],
+  Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]]];
 Complex[re_,im_]^n_Real := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
 Power[ComplexInfinity+_, -1] := 0;
 _^ComplexInfinity := Indeterminate;

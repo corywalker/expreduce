@@ -45,6 +45,35 @@ func leafCount(e expreduceapi.Ex) int64 {
 	return 1
 }
 
+func leafCountSimplify(e expreduceapi.Ex) int64 {
+	if asExpr, isExpr := e.(expreduceapi.ExpressionInterface); isExpr {
+		res := int64(0)
+		for _, part := range asExpr.GetParts() {
+			res += leafCountSimplify(part)
+		}
+		return res
+	}
+	if asInt, isInt := e.(*atoms.Integer); isInt {
+		if asInt.Val.Sign() == -1 {
+			return 2
+		}
+	}
+	if asCmplx, isCmplx := e.(*atoms.Complex); isCmplx {
+		return leafCountSimplify(asCmplx.Im) + leafCountSimplify(asCmplx.Re) + 1
+	}
+	if asRat, isRat := e.(*atoms.Rational); isRat {
+		val := int64(3)
+		if asRat.Num.Sign() == -1 {
+			val++
+		}
+		if asRat.Den.Sign() == -1 {
+			val++
+		}
+		return val
+	}
+	return 1
+}
+
 func getExpressionDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Head",
@@ -158,6 +187,15 @@ func getExpressionDefinitions() (defs []Definition) {
 				return this
 			}
 			return atoms.NewInt(leafCount(this.GetParts()[1]))
+		},
+	})
+	defs = append(defs, Definition{
+		Name: "ExpreduceLeafCountSimplify",
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 2 {
+				return this
+			}
+			return atoms.NewInt(leafCountSimplify(this.GetParts()[1]))
 		},
 	})
 	defs = append(defs, Definition{
