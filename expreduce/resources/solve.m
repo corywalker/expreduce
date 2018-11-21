@@ -1,14 +1,14 @@
 Solve::usage = "`Solve[eqn, var]` solves `eqn` for `var`.";
 
-countVar[expr_, var_Symbol] := 
+countVar[expr_, var_Symbol] :=
   If[expr === var, 1, Count[expr, var, -1]];
 
-containsOneOccurrence[eqn_Equal, var_Symbol] := 
+containsOneOccurrence[eqn_Equal, var_Symbol] :=
   Count[eqn, var, -1] == 1;
-containsZeroOccurrences[eqn_Equal, var_Symbol] := 
+containsZeroOccurrences[eqn_Equal, var_Symbol] :=
   Count[eqn, var, -1] == 0;
 
-checkedConditionalExpression[e_, c_] := 
+checkedConditionalExpression[e_, c_] :=
   Module[{nextC = 1, res, reps, newC = -1},
    While[True, If[Count[e, C[nextC], -1] > 0, nextC++, Break[]]];
    res = ConditionalExpression[e, c];
@@ -58,7 +58,7 @@ applyInverse[base_^pow_ -> rhs_, var_Symbol] := If[countVar[base, var] =!= 0,
         },
       E, If[MatchQ[rhs, _Real],
             {pow -> Log[rhs]},
-            {pow -> ConditionalExpression[2 I Pi C[1] + Log[rhs], 
+            {pow -> ConditionalExpression[2 I Pi C[1] + Log[rhs],
               C[1] \[Element] Integers]},
            ],
       _, Message[Solve::ifun, Solve];{pow -> Log[rhs]/Log[base]}
@@ -76,38 +76,38 @@ applyInverse[Cos[lhs_] -> rhs_, var_Symbol] :=
   {lhs->checkedConditionalExpression[-ArcCos[rhs]+2 Pi C[-1],C[-1]\[Element]Integers],
    lhs->checkedConditionalExpression[ArcCos[rhs]+2 Pi C[-1],C[-1]\[Element]Integers]};
 applyInverse[Tan[lhs_] -> rhs_, var_Symbol] :=
-  {lhs -> ConditionalExpression[ArcTan[rhs] + Pi C[1], 
+  {lhs -> ConditionalExpression[ArcTan[rhs] + Pi C[1],
          C[1] \[Element] Integers]};
 applyInverse[Cot[lhs_] -> rhs_, var_Symbol] :=
-  {lhs -> ConditionalExpression[ArcCot[rhs] + Pi C[1], 
+  {lhs -> ConditionalExpression[ArcCot[rhs] + Pi C[1],
          C[1] \[Element] Integers]};
 applyInverse[Sec[lhs_] -> rhs_, var_Symbol] :=
-  {lhs -> ConditionalExpression[-ArcCos[1/rhs] + 2 Pi C[1], 
-         C[1] \[Element] Integers], lhs -> 
-               ConditionalExpression[ArcCos[1/rhs] + 2 Pi C[1], 
+  {lhs -> ConditionalExpression[-ArcCos[1/rhs] + 2 Pi C[1],
+         C[1] \[Element] Integers], lhs ->
+               ConditionalExpression[ArcCos[1/rhs] + 2 Pi C[1],
                   C[1] \[Element] Integers]};
 applyInverse[Csc[lhs_] -> rhs_, var_Symbol] :=
-  {lhs -> ConditionalExpression[Pi - ArcSin[1/rhs] + 2 Pi C[1], 
-         C[1] \[Element] Integers], lhs -> 
-               ConditionalExpression[ArcSin[1/rhs] + 2 Pi C[1], 
+  {lhs -> ConditionalExpression[Pi - ArcSin[1/rhs] + 2 Pi C[1],
+         C[1] \[Element] Integers], lhs ->
+               ConditionalExpression[ArcSin[1/rhs] + 2 Pi C[1],
                   C[1] \[Element] Integers]};
 (* Inverses for inverse trig functions *)
 applyInverse[ArcSin[lhs_] -> rhs_, var_Symbol] :=
   {lhs -> ConditionalExpression[
-         Sin[rhs], (Re[rhs] == -(Pi/2) && Im[rhs] >= 0) || -(Pi/2) < 
+         Sin[rhs], (Re[rhs] == -(Pi/2) && Im[rhs] >= 0) || -(Pi/2) <
               Re[rhs] < Pi/2 || (Re[rhs] == Pi/2 && Im[rhs] <= 0)]};
 applyInverse[ArcCos[lhs_] -> rhs_, var_Symbol] :=
   {lhs -> ConditionalExpression[
-         Cos[rhs], (Re[rhs] == 0 && Im[rhs] >= 0) || 
+         Cos[rhs], (Re[rhs] == 0 && Im[rhs] >= 0) ||
              0 < Re[rhs] < Pi || (Re[rhs] == Pi && Im[rhs] <= 0)]};
 applyInverse[ArcTan[lhs_] -> rhs_, var_Symbol] :=
   {lhs -> ConditionalExpression[
-         Tan[rhs], (Re[rhs] == -(Pi/2) && Im[rhs] < 0) || -(Pi/2) < 
+         Tan[rhs], (Re[rhs] == -(Pi/2) && Im[rhs] < 0) || -(Pi/2) <
               Re[rhs] < Pi/2 || (Re[rhs] == Pi/2 && Im[rhs] > 0)]};
 applyInverse[Cosh[lhs_] -> rhs_, var_Symbol] :=
-  {lhs -> ConditionalExpression[-ArcCosh[rhs] + 2 I \[Pi] C[1], 
-   C[1] \[Element] Integers], lhs -> 
-  ConditionalExpression[ArcCosh[rhs] + 2 I \[Pi] C[1], 
+  {lhs -> ConditionalExpression[-ArcCosh[rhs] + 2 I \[Pi] C[1],
+   C[1] \[Element] Integers], lhs ->
+  ConditionalExpression[ArcCosh[rhs] + 2 I \[Pi] C[1],
    C[1] \[Element] Integers]}
 
 (* Base case: *)
@@ -116,7 +116,7 @@ isolate[var_Symbol -> rest_, var_Symbol] := {var -> rest};
 isolate[lhs_ -> rhs_, var_Symbol] := Module[{inverseApplied},
    (* Switch sides if needed to get var on LHS: *)
 
-   If[(countVar[rhs, var] === 1) && (countVar[lhs, var] === 0), 
+   If[(countVar[rhs, var] === 1) && (countVar[lhs, var] === 0),
     Return[isolate[rhs -> lhs, var]]];
 
    (* Assert var occurs only once in the LHS: *)
@@ -125,8 +125,8 @@ isolate[lhs_ -> rhs_, var_Symbol] := Module[{inverseApplied},
     Return[$Failed]];
 
    inverseApplied = applyInverse[lhs -> rhs, var];
-   If[Head[inverseApplied] =!= List, 
-    Print["Solve error: Finding inverse failed for ", lhs -> rhs, 
+   If[Head[inverseApplied] =!= List,
+    Print["Solve error: Finding inverse failed for ", lhs -> rhs,
      ", var: ", var]; Return[SolveFailed]];
 
    allIsolated = isolate[#, var]& /@ inverseApplied;
@@ -187,67 +187,67 @@ solveQuartic[e_.*x_^4 + d_.*x_^3                         , x_] :=
   {{x->0},{x->0},{x->0},{x->-(d/e)}}/;FreeQ[{d,e},x];
 
 (* Solve using u-substitution for polynomial-like forms.*)
-uSubstitute::usage = 
+uSubstitute::usage =
   "uSubstitute[eqn, var] takes a non-polynomial `eqn` and attempts a \
 u-substitution such that `eqn` takes a polynomial form. If the \
 substitution succeeds, the function returns `{transformed, uValue}`. \
 The `transformed` equation will include the `uPlaceholder` symbol as \
 the u symbol. The function returns an error symbol if the \
 substitution fails to produce a polynomial form.";
-uSubstitute[theEqn_, theVar_Symbol] := 
-  Module[{eqn = theEqn, var = theVar, expGcd, uValue, transformed, 
+uSubstitute[theEqn_, theVar_Symbol] :=
+  Module[{eqn = theEqn, var = theVar, expGcd, uValue, transformed,
     exponents},
-   (* Attempt to extract exponents of polynomial-like equations. 
+   (* Attempt to extract exponents of polynomial-like equations.
    We wish to ignore any zero-valued exponents. *)
-   
+
    exponents = DeleteCases[Exponent[eqn, var, List], 0];
    If[Length[exponents] === 0, Return[$Failed]];
-   (* Find the signed GCD of the exponents. 
-   This seems to work for many of the problem cases, 
+   (* Find the signed GCD of the exponents.
+   This seems to work for many of the problem cases,
    but may not yield a useful polynomial form for all equations. *)
-  
+
     expGcd = GCD @@ exponents*Sign[exponents[[1]]];
    uValue = var^expGcd;
    (* Rewrite the variable with our u-value. *)
-   
-   transformed = 
+
+   transformed =
     eqn /. var -> uPlaceholder^(1/expGcd) // PowerExpand;
    (* If our transformed equation is polynomial, we have succeeded. *)
 
       If[PolynomialQ[transformed, var], {transformed, uValue}, $Failed]
    ];
 
-uSubstitutionSolve::usage = 
+uSubstitutionSolve::usage =
   "uSubstitutionSolve[eqn, var] takes a non-polynomial `eqn` and \
 attempts a u-substitution such that `eqn` takes a polynomial form in \
 order to solve the equation. The function returns the solve result or \
 `$Failed` in case of an issue.";
-uSubstitutionSolve[theEqn_, theVar_Symbol] := 
+uSubstitutionSolve[theEqn_, theVar_Symbol] :=
   Module[{eqn = theEqn, var = theVar, transformed, uSolved, solved},
    transformed = uSubstitute[eqn, var];
    (* If the u-
    substitution fails to produce a polynomial form and instead \
 returns an error symbol, fail this solution attempt. *)
-   
+
    If[Head[transformed] =!= List, Return[$Failed]];
    (* Find the roots of the equation that was transformed into a \
 polynomial form. *)
-   
+
    uSolved = Solve[transformed[[1]] == 0, uPlaceholder];
    (* For each of the roots, solve for the original variable. *)
    If[Head[uSolved] =!= List, Return[$Failed]];
-   
-   solved = 
+
+   solved =
     Map[Solve[transformed[[2]] == #[[1, 2]], var] &, uSolved];
    (* There may be some roots that have no solution for the original \
 variable. Throw these out. *)
-   
+
    solved = Select[solved, (Length[#] >= 1) &];
    (* No way to handle multiple solutions yet. *)
-   
+
    If[AnyTrue[solved, (Length[#] != 1) &], Return[$Failed]];
    (* Collect the unique solutions of eqn and return. *)
-   
+
    Map[First, solved] // DeleteDuplicates // Sort
    ];
 
@@ -285,7 +285,7 @@ Solve[eqn_Equal, var_Symbol] := Module[{degree, collected, fullSimplified, poly}
    Print["Solve found no solutions for ", eqn, " for ", var];
    SolveFailed
    ];
-solveMultOrdered[eqns_List, vars_List] := 
+solveMultOrdered[eqns_List, vars_List] :=
   Module[{firstSol, secondSol, toSolve},
    If[Length[eqns] =!= 2 || Length[vars] =!= 2, Return[SolveFailed]];
    firstSol = Solve[eqns[[1]], vars[[1]]];
@@ -318,9 +318,9 @@ Solve[{a_.*x_Symbol+b_.*y_Symbol==c_,d_.*x_Symbol+e_.*y_Symbol==f_},{x_Symbol,y_
 Solve[{a_.*x_Symbol+b_.*y_Symbol==c_,d_.*x_Symbol==f_},{x_Symbol,y_Symbol}] := {{x->f/d,y->-((-c d+a f)/(b d))}}/;FreeQ[{a,b,c,d,f},x]&&FreeQ[{a,b,c,d,f},y]
 
 Attributes[Solve] = {Protected};
-normSol[s_List] := 
-  Sort[(# /. 
-             ConditionalExpression[e_, a_And] :> 
+normSol[s_List] :=
+  Sort[(# /.
+             ConditionalExpression[e_, a_And] :>
                      ConditionalExpression[e, a // Sort]) & /@ s];
 Tests`Solve = {
     ESimpleExamples[
@@ -360,8 +360,8 @@ Tests`Solve = {
         ESameTest[{}, Solve[E^x==0,x]],
         ESameTest[{{x->ConditionalExpression[2 I Pi C[1],C[1]\[Element]Integers]}}, Solve[E^x==1,x]],
         (*ESameTest[{{x->2.4663 Log[y]}}, Solve[1.5^x==y,x]],*)
-        ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[3]+Log[y]/Log[3],C[1]\[Element]Integers]}}, Solve[3^x == y, x]],
-        ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[2]+Log[y]/Log[2],C[1]\[Element]Integers]}}, Solve[2^x == y, x]],
+        ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[3]+Log[y]/Log[3],C[1]\[Element]Integers]}}//Simplify, Solve[3^x == y, x]],
+        ESameTest[{{x->ConditionalExpression[(2 I Pi C[1])/Log[2]+Log[y]/Log[2],C[1]\[Element]Integers]}}//Simplify, Solve[2^x == y, x]],
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1]+Log[y])/(I Pi+Log[2]),C[1]\[Element]Integers]}}, Solve[(-2)^x == y, x]],
         ESameTest[{{x->ConditionalExpression[(2 I Pi C[1]+Log[y])/(I Pi+Log[3]),C[1]\[Element]Integers]}}, Solve[(-3)^x == y, x]],
         (* Inverse of log *)
@@ -430,11 +430,11 @@ Tests`Solve = {
         ESameTest[{{x -> 0}, {x -> 1}}, Solve[4*x*(1 + -x^(1/2)) == 0, x]],
         ESameTest[{{x -> (a^(-1)*y)^(b^(-1))}}, Solve[a*x^b + -y == 0, x]],
         ESameTest[{{x -> 0}, {x -> a^(-2)}}, Solve[4*x*(1 + -a*x^(1/2)) == 0, x]],
-        ESameTest[{{x -> ConditionalExpression[(0 + 1*I)*Pi + (0 + 2*I)*Pi*C[1], Element[C[1], Integers]]}}, Solve[1 + E^x == 0, x]],
+        ESameTest[{{x -> ConditionalExpression[(0 + 1*I)*Pi + (0 + 2*I)*Pi*C[1], Element[C[1], Integers]]}}//Simplify, Solve[1 + E^x == 0, x]],
         ESameTest[{{x -> y^3}}, Solve[y^(-2)*(1 + -y^2)^(-1/2)*(x + -y^3) == 0, x]],
         ESameTest[{{x -> y^3}}, Solve[y^(-2)*(1 + -y^2)^(-1/2)*(x + -y^3) == 0, x]],
-        ESameTest[{{x -> ConditionalExpression[(0 + 2*I)*Pi*C[1]*Log[3]^(-1) + Log[3]^(-1)*Log[10], Element[C[1], Integers]]}}, Solve[-10 + 3^x == 0, x]],
-        ESameTest[{{x -> ConditionalExpression[(0 + 2*I)*Pi*C[1]*Log[3]^(-1) + Log[3]^(-1)*Log[10], Element[C[1], Integers]]}}, Solve[10 + -3^x == 0, x]],
+        ESameTest[{{x -> ConditionalExpression[(0 + 2*I)*Pi*C[1]*Log[3]^(-1) + Log[3]^(-1)*Log[10], Element[C[1], Integers]]}}//Simplify, Solve[-10 + 3^x == 0, x]],
+        ESameTest[{{x -> ConditionalExpression[(0 + 2*I)*Pi*C[1]*Log[3]^(-1) + Log[3]^(-1)*Log[10], Element[C[1], Integers]]}}//Simplify, Solve[10 + -3^x == 0, x]],
         ESameTest[{{y -> x^(1/3)}, {y -> -(-1)^(1/3)*x^(1/3)}, {y -> (-1)^(2/3)*x^(1/3)}}, Solve[x + -y^3 == 0, y]],
         ESameTest[{{x -> ConditionalExpression[-ArcCos[(1/2)*y] + 2*Pi*C[1], Element[C[1], Integers]]}, {x -> ConditionalExpression[ArcCos[(1/2)*y] + 2*Pi*C[1], Element[C[1], Integers]]}}, Solve[-y + 2*Cos[x] == 0, x]],
         ESameTest[{{x -> -(1 + -a^(1/2))^(1/2)}, {x -> (1 + -a^(1/2))^(1/2)}, {x -> -(1 + a^(1/2))^(1/2)}, {x -> (1 + a^(1/2))^(1/2)}}, Solve[-a + (-1 + x^2)^2 == 0, x]],

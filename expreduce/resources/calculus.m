@@ -43,42 +43,38 @@ Tests`D = {
     ]
 };
 
+findSubscripts[expr_] := Module[{subscripts = {}},
+   Map[
+    (If[MatchQ[#, Subscript[_, _]],
+       AppendTo[subscripts, #];
+       ]; #) &, expr, {0, Infinity}];
+   subscripts // DeleteDuplicates
+   ];
+genSubscriptReplacements[expr_] :=
+  Module[{subscripts, uniques, n, fwd, bwd, tmpi},
+   subscripts = findSubscripts[expr];
+   n = Length[subscripts];
+   uniques = Table[Unique[], {tmpi, 1, n}];
+   fwd = Table[subscripts[[i]] -> uniques[[i]], {i, n}];
+   bwd = Table[uniques[[i]] -> subscripts[[i]], {i, n}];
+   {fwd, bwd}
+   ];
+
 Integrate::usage = "`Integrate[f, x]` finds the indefinite integral of `f` with respect to `x`.
 
 !!! warning \"Under development\"
     This function is under development, and as such will be incomplete and inaccurate.";
-Integrate[a_,{x_Symbol,start_,end_}] := 
-    ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start];
-Integrate[a_Integer,x_Symbol] := a*x;
-Integrate[a_*b_,x_Symbol] := a*Integrate[b,x] /; FreeQ[a,x];
-Integrate[a_+b_,x_Symbol] := Integrate[a,x]+Integrate[b,x];
-
-(*Basic power integrals*)
-Integrate[a_Symbol,x_Symbol] := If[a===x, x^2/2, a*x];
-Integrate[x_Symbol^e_, x_Symbol] := x^(e+1)/(e+1) /; FreeQ[e, x];
-Integrate[a_^(b_*x_Symbol),x_Symbol] := a^(b x)/(b Log[a]) /; (FreeQ[a, x] && FreeQ[b, x]);
-Integrate[1/x_Symbol,x_Symbol] := Log[Abs[x]];
-Integrate[Log[x_Symbol],x_Symbol] := -x + x Log[x];
-Integrate[x_Symbol*Log[x_Symbol],x_Symbol] := -((x^2)/4) + (1/2)*(x^2)*Log[x];
-
-(*Trig functions*)
-Integrate[Sin[x_Symbol],x_Symbol] := -Cos[x];
-Integrate[Cos[x_Symbol],x_Symbol] := Sin[x];
-Integrate[Tan[x_Symbol],x_Symbol] := -Log[Cos[x]];
-Integrate[Sec[x_Symbol]^2,x_Symbol] := Tan[x];
-Integrate[Csc[x_Symbol]^2,x_Symbol] := -Cot[x];
-Integrate[Sec[x_Symbol]Tan[x_Symbol],x_Symbol] := Sec[x];
-Integrate[Csc[x_Symbol]Cot[x_Symbol],x_Symbol] := -Csc[x];
-(* At this point Sqrt is not defined, so we raise to the (-1/2) explicitly *)
-Integrate[Power[1-x_Symbol^2,Rational[-1,2]],x_Symbol] := ArcSin[x];
-Integrate[(1+x_Symbol^2)^(-1),x_Symbol] := ArcTan[x];
-
-(*This may not always reduce. Look into this*)
-(*Integrate[u_Symbol*v_, u_Symbol] := u*Integrate[v, u] - Integrate[Integrate[v, u], u];*)
-
+Integrate[a_,{x_Symbol,start_,end_}] :=
+    (ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start]) // Simplify;
+Integrate[a_,x_Symbol] := Module[{cleanedA, replaceRules},
+  replaceRules = genSubscriptReplacements[a];
+  cleanedA = a /. replaceRules[[1]];
+  (Rubi`Int[cleanedA, x] /. replaceRules[[2]]) // Simplify
+];
 Attributes[Integrate] = {ReadProtected, Protected};
 Tests`Integrate = {
     ESimpleExamples[
+        ESameTest[Null, LoadRubiBundledSnapshot[]],
         ESameTest[2 x + (3 x^(5/3))/5 + (3 x^2)/2, Integrate[x^(2/3) + 3 x + 2, x]],
         ESameTest[-((3 x^2)/4) + (1/2) (x^2) Log[x] - Sin[x], Integrate[Integrate[Sin[x] + Log[x], x], x]],
         ESameTest[1/3, Integrate[x^2, {x, 0, 1}]],

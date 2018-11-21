@@ -28,6 +28,7 @@ func EasyRun(in string, es expreduceapi.EvalStateInterface) string {
 }
 
 func EvalInterpMany(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+	doc = parser.ReplaceSyms(doc)
 	buf := bytes.NewBufferString(doc)
 	var lastExpr expreduceapi.Ex = atoms.NewSymbol("System`Null")
 	expr, err := parser.InterpBuf(buf, fn, es)

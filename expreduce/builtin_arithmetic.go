@@ -154,6 +154,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 			if _, rIsReal := realPart.(*atoms.Flt); rIsReal {
 				return exprToN(es, res)
 			}
+			if rComplex, rIsComplex := realPart.(*atoms.Complex); rIsComplex && rComplex.HasReal() {
+				return exprToN(es, res)
+			}
 			return res
 		},
 	})
@@ -241,6 +244,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 
 			// Not exactly right because of "1. + foo[1]", but close enough.
 			if _, rIsReal := realPart.(*atoms.Flt); rIsReal {
+				return exprToN(es, res)
+			}
+			if rComplex, rIsComplex := realPart.(*atoms.Complex); rIsComplex && rComplex.HasReal() {
 				return exprToN(es, res)
 			}
 			return res

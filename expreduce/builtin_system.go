@@ -2,6 +2,7 @@ package expreduce
 
 import (
 	"bytes"
+	"compress/zlib"
 	"encoding/gob"
 	"flag"
 	"fmt"
@@ -17,6 +18,7 @@ import (
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/matcher"
+	"github.com/corywalker/expreduce/expreduce/rubi_snapshot"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 	"github.com/op/go-logging"
 )
@@ -98,8 +100,13 @@ func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) ([]byte
 
 	// Handle resource file reads
 	if strings.HasPrefix(rawFn, "__res__/") {
-
 		fileData, err := Asset("resources/" + rawFn[8:])
+		if err == nil {
+			return fileData, rawFn, true
+		}
+	}
+	if strings.HasPrefix(rawFn, "__rubi_snapshot__/") {
+		fileData, err := rubi_snapshot.Asset(rawFn[18:])
 		if err == nil {
 			return fileData, rawFn, true
 		}
@@ -655,11 +662,13 @@ func getSystemDefinitions() (defs []Definition) {
 				// TODO: Read as a stream and not a byte string.
 				r := bytes.NewReader(fileData[len(exprFileHeader):])
 				atoms.RegisterGobAtoms()
-				decoder := gob.NewDecoder(r)
+				compressedReader, _ := zlib.NewReader(r)
+				decoder := gob.NewDecoder(compressedReader)
 				definitions := []encodedDef{}
 				if err := decoder.Decode(&definitions); err != nil {
 					panic(err)
 				}
+				compressedReader.Close()
 
 				for _, def := range definitions {
 					es.SetDefined(def.Name, def.Def)
@@ -713,10 +722,12 @@ func getSystemDefinitions() (defs []Definition) {
 			if err == nil {
 				// Write the header.
 				file.Write(exprFileHeader)
-				encoder := gob.NewEncoder(file)
+				compressedWriter := zlib.NewWriter(file)
+				encoder := gob.NewEncoder(compressedWriter)
 				if err := encoder.Encode(definitions); err != nil {
 					panic(err)
 				}
+				compressedWriter.Close()
 			}
 			file.Close()
 

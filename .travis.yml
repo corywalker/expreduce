@@ -8,7 +8,8 @@ env:
 
 go:
   - "1.11.x"
-  - master
+  # recently this is causing a SIGSEGV in the linter.
+  # - master
 
 go_import_path: github.com/corywalker/expreduce
 

@@ -92,9 +92,9 @@ Sum::usage = "`Sum[expr, n]` returns the sum of `n` copies of `expr`.
 `Sum[expr, {sym, m, n}]` returns the sum of `expr` evaluated with `sym` = `m` to `n`.";
 Sum[i_Symbol, {i_Symbol, 0, n_Integer}] := 1/2*n*(1 + n);
 Sum[i_Symbol, {i_Symbol, 1, n_Integer}] := 1/2*n*(1 + n);
-Sum[i_Symbol, {i_Symbol, n_Integer}] := 1/2*n*(1 + n);
-Sum[i_Symbol, {i_Symbol, 0, n_Symbol}] := 1/2*n*(1 + n);
-Sum[i_Symbol, {i_Symbol, 1, n_Symbol}] := 1/2*n*(1 + n);
+Sum[i_Symbol, {i_Symbol, end_}]         := 1/2*end*(1 + end);
+Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]  := 1/2*n*(1 + n);
+Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]  := 1/2*n*(1 + n);
 Attributes[Sum] = {HoldAll, ReadProtected, Protected};
 Tests`Sum = {
     ESimpleExamples[
@@ -107,7 +107,8 @@ Tests`Sum = {
         ESameTest[1/2*n*(1 + n), Sum[i, {i, 1, n}]],
         ESameTest[30, Sum[a + b, {a, 0, 2}, {b, 0, 3}]],
         ESameTest[b+c+d+e, Sum[a, {a, {b, c, d, e}}]],
-        ESameTest[b g + c g + d g + e g + b h + c h + d h + e h, Sum[a*f, {a, {b, c, d, e}}, {f, {g, h}}]]
+        ESameTest[b g + c g + d g + e g + b h + c h + d h + e h, Sum[a*f, {a, {b, c, d, e}}, {f, {g, h}}]],
+        ESameTest[25 n (1 + 50 n), Sum[i, {i, n*50}]],
     ]
 };
 

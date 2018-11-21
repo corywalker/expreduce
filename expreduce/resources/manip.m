@@ -1,4 +1,4 @@
-ExpreduceDistributeMultiply[e_, multiplicand_] := 
+ExpreduceDistributeMultiply[e_, multiplicand_] :=
   If[Head[e] === Plus, (#*multiplicand) & /@ e, e*multiplicand];
 
 Together::usage = "`Together[e]` attempts to put the terms in `e` under the same denominator.";
@@ -13,6 +13,7 @@ ExpreduceTogether[c_.*1/d_ + rest_] := ExpreduceTogether[(c+Expand[ExpreduceDist
 thus automatically distributed through Plus, so no need for the distribute
 function.*)
 ExpreduceTogether[c_.*Rational[n_,d_] + rest_] := ExpreduceTogether[(c n+Expand[rest d])/d];
+ExpreduceTogether[c_.*Complex[0, Rational[n_,d_]] + rest_] := ExpreduceTogether[(I c n+Expand[rest d])/d];
 
 ExpreduceTogether[e_] := e;
 Together[e_] := ExpreduceFactorConstant[ExpreduceTogether[e]];
@@ -59,7 +60,9 @@ Tests`Together = {
         ESameTest[1/2*(1+2 a), 1/2+a//Together],
         ESameTest[(a+b+c+d)/((a+b) (c+d)), (1+a/(c+d)+b/(c+d))/(a+b)//Together],
         ESameTest[(a+b+a b c+a b d)/(a b), 1/a+1/b+c+d//Together],
-        ESameTest[2(a+b), 2a+2b//Together]
+        ESameTest[2(a+b), 2a+2b//Together],
+    ], EKnownFailures[
+        ESameTest[(I (a-b))/(2 Subscript[\[Omega], 0]), (I a)/(2 Subscript[\[Omega], 0])-(I b)/(2 Subscript[\[Omega], 0])//Together],
     ]
 };
 
@@ -95,30 +98,30 @@ Tests`Denominator = {
 };
 
 Apart::usage = "`Apart[e]` attempts to break apart the terms in `e`. Warning: not fully implemented.";
-termsWithout[dTerms_, i_] := 
-  Product[If[index === i, 1, dTerms[[index]]], {index, 
+termsWithout[dTerms_, i_] :=
+  Product[If[index === i, 1, dTerms[[index]]], {index,
     Length[dTerms]}];
-getPowerApartForm[base_, exp_, denTerms_] := 
-  Module[{b = base, n = exp, holders, form, dTerms = denTerms, 
+getPowerApartForm[base_, exp_, denTerms_] :=
+  Module[{b = base, n = exp, holders, form, dTerms = denTerms,
     unDivForm, finalForm},
    holders = Table[Unique[], n//Evaluate];
    finalForm = Sum[(holders[[i]]/b^i), {i, n}];
    form = Sum[(holders[[i]]/b^i)*Times @@ dTerms, {i, n}];
    {finalForm, form, holders}
    ];
-getApartForm[denTerms_, iVar_] := 
+getApartForm[denTerms_, iVar_] :=
   Module[{dTerms = denTerms, i = iVar, holder, powerPattern},
    powerPattern := b_^n_Integer;
    If[MatchQ[dTerms[[i]], powerPattern],
-    Replace[dTerms[[i]], 
+    Replace[dTerms[[i]],
      powerPattern :> getPowerApartForm[b, n, dTerms]],
     holder = Unique[];
-    {holder/dTerms[[i]], 
-     holder*If[Length[dTerms] === 1, dTerms[[1]], 
+    {holder/dTerms[[i]],
+     holder*If[Length[dTerms] === 1, dTerms[[1]],
        termsWithout[dTerms, i]], {holder}}]
    ];
-myLinearApart[num_, denTerms_, var_] := 
-  Module[{n = num, dTerms = denTerms, v = var, lhs, rhs, coeffs, 
+myLinearApart[num_, denTerms_, var_] :=
+  Module[{n = num, dTerms = denTerms, v = var, lhs, rhs, coeffs,
     apartForm, coeffHolders, tmp, toSolve, finalForm},
    coeffHolders = {};
    apartForm = {};
@@ -130,7 +133,7 @@ myLinearApart[num_, denTerms_, var_] :=
     AppendTo[finalForm, tmp[[1]]];
     , {i, Length[dTerms]}];
    apartForm = Plus @@ apartForm;
-   
+
    lhs = CoefficientList[apartForm, v];
    rhs = PadRight[CoefficientList[n, v], Length[lhs]];
    toSolve = Table[lhs[[i]] == rhs[[i]], {i, Length[lhs]}];
@@ -144,11 +147,11 @@ myLinearApart[num_, denTerms_, var_] :=
 ClearAll[denTerms];
 getDenTerms[den_Times] := List @@ den;
 getDenTerms[den_] := {den};
-validDenTermQ[t_, x_] := 
+validDenTermQ[t_, x_] :=
   MatchQ[t, (Optional[a_?((FreeQ[#, x]) &)]*
-      x^Optional[n_Integer]) | (Optional[a_?((FreeQ[#, x]) &)]*x + 
+      x^Optional[n_Integer]) | (Optional[a_?((FreeQ[#, x]) &)]*x +
        Optional[b_?((FreeQ[#, x]) &)])^Optional[n_?((FreeQ[#, x]) &)]];
-myApartUnexpanded[expr_Times, var_] := 
+myApartUnexpanded[expr_Times, var_] :=
   Module[{e = expr, v = var, denTerms, num, den, divRes},
    num = Numerator[e];
    den = Denominator[e];
@@ -158,7 +161,7 @@ myApartUnexpanded[expr_Times, var_] :=
      ]];
    denTerms = getDenTerms[den];
    (*If[Length[denTerms]<2,Return[e]];*)
-   
+
    If[! AllTrue[denTerms, validDenTermQ[#, v] &], Return[e]];
    myLinearApart[num, denTerms, v]
    ];

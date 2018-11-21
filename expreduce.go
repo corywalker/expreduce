@@ -24,6 +24,7 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var netprofile = flag.Bool("netprofile", false, "Enable live profiling at http://localhost:8080/debug/pprof/")
 var scriptfile = flag.String("script", "", "script `file` to read from")
 var initfile = flag.String("initfile", "", "A script to run on initialization.")
+var loadRubi = flag.Bool("loadrubi", true, "Load the Rubi definitions for integral support on startup.")
 
 func main() {
 	flag.Parse()
@@ -40,7 +41,15 @@ func main() {
 		go http.ListenAndServe(":8080", nil)
 	}
 
+	fmt.Printf("Welcome to Expreduce!\n\n")
+
 	es := expreduce.NewEvalState()
+	if *loadRubi {
+		fmt.Println("Loading Rubi snapshot for integral support. Disable with -loadrubi=false.")
+		es.Eval(atoms.E(atoms.S("LoadRubiBundledSnapshot")))
+		fmt.Println("Done loading Rubi snapshot.")
+		fmt.Print("\n")
+	}
 	if *debug {
 		es.NoInit = true
 		es.ClearAll()
@@ -91,7 +100,6 @@ func interactiveSession(es *expreduce.EvalState) {
 	}
 	defer rl.Close()
 
-	fmt.Printf("Welcome to Expreduce!\n\n")
 	promptNum := 1
 	for {
 		line := ""

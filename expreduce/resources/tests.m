@@ -1,6 +1,8 @@
 
 Tests`ExpreduceMiscTests = {
   ETests[
+    ESameTest[Null, LoadRubiBundledSnapshot[]],
+
     ESameTest[1/2 E^((I Pi)/4), z=1/2 E^(\[ImaginaryJ]*Pi/4)],
     ESameTest[1/(2 Sqrt[2]), Re[z]],
     ESameTest[1/(2 Sqrt[2]), 1/2*Cos[Pi/4]],
@@ -37,5 +39,16 @@ Tests`ExpreduceMiscTests = {
     ENearlySameTest[3.14159, LCM[1/5,1/2]*Pi//N],
 
     ESameTest[Null, ClearAll[z, myf]],
+
+    ESameTest[1/2 E^(-I t Subscript[\[Omega], 0])+1/2 E^(I t Subscript[\[Omega], 0]), TrigToExp[Cos[Subscript[\[Omega], 0]*t]]],
+    ESameTest[1/2 I E^(-I t Subscript[\[Omega], 0])-1/2 I E^(I t Subscript[\[Omega], 0]), TrigToExp[Sin[Subscript[\[Omega], 0]*t]]],
+    ESameTest[1/2 E^(-((I Pi)/4)-2 I t)+1/2 E^((I Pi)/4+2 I t), TrigToExp[Cos[2t+Pi/4]]],
+    ESameTest[1/2 E^(-4 I t)+1/2 E^(4 I t)+1/2 I E^(-6 I t)-1/2 I E^(6 I t), TrigToExp[Cos[4t]+Sin[6t]]],
+    ESameTest[1/2-1/4 E^(-2 I t)-1/4 E^(2 I t), TrigToExp[Sin[t]^2]],
+    ESameTest[-(I/2), 1/(2\[ImaginaryJ])//FullSimplify],
+    ESameTest[I/2, -1/(2\[ImaginaryJ])//FullSimplify],
+    ESameTest[A/2, 1/Subscript[T, 0]*Integrate[A*E^(-I*k*Subscript[\[Omega], 0]t)/.k->0,{t,0,Subscript[T, 0]/2}]],
+    ESameTest[(Sin[k Pi] Subscript[T, 0])/(2 k Pi), Integrate[Cos[(2Pi*k*t)/Subscript[T, 0]],{t,0,Subscript[T, 0]/2}]],
+    ESameTest[(I Sin[(k Pi)/2]^2 Subscript[T, 0])/(k Pi), Integrate[I*Sin[(2Pi*k*t)/Subscript[T, 0]],{t,0,Subscript[T, 0]/2}]],
   ]
 };

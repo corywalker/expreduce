@@ -1,6 +1,8 @@
 package atoms
 
-import "github.com/corywalker/expreduce/pkg/expreduceapi"
+import (
+	"github.com/corywalker/expreduce/pkg/expreduceapi"
+)
 
 func min(x, y int) int {
 	if x < y {
@@ -26,6 +28,20 @@ func compareStrings(a string, b string) int64 {
 	return 0
 }
 
+func exprToN(e expreduceapi.Ex) expreduceapi.Ex {
+	asInt, isInt := e.(*Integer)
+	if isInt {
+		toReturn, _ := IntegerToFlt(asInt)
+		return toReturn
+	}
+	asRat, isRat := e.(*Rational)
+	if isRat {
+		toReturn, _ := RationalToFlt(asRat)
+		return toReturn
+	}
+	return e
+}
+
 func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 	// Support Flt, Integer, Rational, Expression, Symbol
 
@@ -42,6 +58,8 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 	bAsInteger, bIsInteger := b.(*Integer)
 	aAsRational, aIsRational := a.(*Rational)
 	bAsRational, bIsRational := b.(*Rational)
+	aAsComplex, aIsComplex := a.(*Complex)
+	bAsComplex, bIsComplex := b.(*Complex)
 
 	// Handle number comparisons
 	if aIsInteger && bIsInteger {
@@ -60,6 +78,12 @@ func ExOrder(a expreduceapi.Ex, b expreduceapi.Ex) int64 {
 	}
 	if bIsRational {
 		bAsFlt, bIsFlt = RationalToFlt(bAsRational)
+	}
+	if aIsComplex {
+		aAsFlt, aIsFlt = exprToN(aAsComplex.Re).(*Flt)
+	}
+	if bIsComplex {
+		bAsFlt, bIsFlt = exprToN(bAsComplex.Re).(*Flt)
 	}
 
 	if aIsFlt && bIsFlt {

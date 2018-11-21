@@ -3,6 +3,7 @@ Power::usage = "`base^exp` finds `base` raised to the power of `exp`.";
 Power[Power[a_,b_Integer],c_Integer] := a^(b*c);
 Power[Power[a_,b_Real],c_Integer] := a^(b*c);
 Power[Power[a_,b_Symbol],c_Integer] := a^(b*c);
+Power[Power[a_,b_Complex*c_Symbol],d_Integer] := a^(b*c*d);
 Power[Power[a_,b_Rational],c_] := a^(b*c);
 Power[Infinity, 0] := Indeterminate;
 Power[-Infinity, 0] := Indeterminate;
@@ -67,7 +68,9 @@ Complex[0,1]^e_Integer := Switch[Mod[e, 4],
   1, I,
   2, -1,
   3, -I];
-Complex[re_,im_]^n_Integer := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
+Complex[re_,im_]^n_Integer := If[n===-1,
+  Complex[re/(re^2+im^2), -(im/(re^2+im^2))],
+  Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]]];
 Complex[re_,im_]^n_Real := Module[{theta = ArcTan[re,im]}, Sqrt[re^2+im^2]^n*Complex[Cos[n*theta],Sin[n*theta]]];
 Power[ComplexInfinity+_, -1] := 0;
 _^ComplexInfinity := Indeterminate;
@@ -75,6 +78,7 @@ _^ComplexInfinity := Indeterminate;
 E^pow_Real := N[E]^pow;
 E^(Log[a_]+rest___) := a * E^rest;
 E^Log[a_] := a;
+E^(Complex[0, n_Integer]*Pi) := -(Mod[n, 2]*2 - 1);
 a_Real ^ Complex[b_Real, c_Real] := Module[{inner},
   inner = b Arg[a]+1/2 c Log[a^2];
   (a^2)^(b/2) E^(-c Arg[a]) * Complex[Cos[inner], Sin[inner]]
@@ -779,11 +783,19 @@ Tests`PSimplify = {
     ],
 };
 
+myFactorCommonTerms[a_] := a;
+allTimes[p_Plus] := AllTrue[p, (Head[#] === Times) &];
+myFactorCommonTerms[a_Plus] := Module[{commonTerms},
+   If[! allTimes[a], Return[a]];
+   commonTerms = Intersection @@ a;
+   commonTerms ((a/commonTerms) // Expand)
+   ];
+
 FactorSquareFree::usage = "`FactorSquareFree[poly]` computes the square free factorization of `poly`.";
 FactorSquareFree[poly_] :=
   Module[{f = poly, a, b, nb, c, d, i, res, fprime, polyvar, vars},
    vars = Variables[f];
-   If[Length[vars] != 1, Return[f]];
+   If[Length[vars] != 1, Return[f//myFactorCommonTerms]];
    polyvar = vars[[1]];
    If[! PolynomialQ[f, polyvar], Return[f]];
    fprime = D[f, polyvar];
@@ -813,6 +825,8 @@ Tests`FactorSquareFree = {
         ESameTest[(-1 + x)^2*(1 + 2*x + 2*x^2 + x^3), FactorSquareFree[1 - x^2 - x^3 + x^5]],
         ESameTest[(-3 + x)^2*(2 - 3*x + x^2), FactorSquareFree[18 - 39*x + 29*x^2 - 9*x^3 + x^4]],
         ESameTest[(3 + x)^3*(-4 + x^2)*(-1 + x^2)^2, FactorSquareFree[-108 - 108*x + 207*x^2 + 239*x^3 - 81*x^4 - 153*x^5 - 27*x^6 + 21*x^7 + 9*x^8 + x^9]]
+    ], ETests[
+        ESameTest[a (b+c), FactorSquareFree[a b+a c]],
     ]
 };
 
