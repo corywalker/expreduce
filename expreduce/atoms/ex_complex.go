@@ -14,28 +14,24 @@ type Complex struct {
 	needsEval bool
 }
 
-func (cmplx *Complex) StringForm(p expreduceapi.ToStringParams) string {
-	if p.Form == "FullForm" {
-		return fmt.Sprintf("Complex[%v, %v]", cmplx.Re, cmplx.Im)
-	}
-	iString := "I"
-	if p.Form == "TeXForm" {
-		iString = "i"
-	}
+func (cmplx *Complex) AsExpr() expreduceapi.Ex {
+	iSym := S("I")
 	reInt, reIsInt := cmplx.Re.(*Integer)
 	imInt, imIsInt := cmplx.Im.(*Integer)
 	if reIsInt && reInt.Val.Sign() == 0 {
 		if imIsInt && imInt.Val.Int64() == 1 {
-			return iString
+			return iSym
 		}
-		if imIsInt && imInt.Val.Int64() == -1 {
-			return fmt.Sprintf("(-%v)", iString)
-		}
-		p.PreviousHead = "System`Times"
-		return fmt.Sprintf("(%v*%v)", cmplx.Im.StringForm(p), iString)
+		return E(S("Times"), cmplx.Im, iSym)
 	}
-	p.PreviousHead = "System`Plus"
-	return fmt.Sprintf("(%v + %v*%v)", cmplx.Re.StringForm(p), cmplx.Im.StringForm(p), iString)
+	return E(S("Plus"), cmplx.Re, E(S("Times"), cmplx.Im, iSym))
+}
+
+func (cmplx *Complex) StringForm(p expreduceapi.ToStringParams) string {
+	if p.Form == "FullForm" {
+		return fmt.Sprintf("Complex[%v, %v]", cmplx.Re, cmplx.Im)
+	}
+	return cmplx.AsExpr().StringForm(p)
 }
 
 func (cmplx *Complex) IsEqual(other expreduceapi.Ex) string {
