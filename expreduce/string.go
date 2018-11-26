@@ -75,14 +75,26 @@ func toStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead strin
 		buffer.WriteString(start)
 	}
 	nextParams := params
-	nextParams.PreviousHead = thisHead
 	for i := 0; i < len(parts); i++ {
+		useTeXGrouping := false
+		if thisHead == "System`Power" && params.Form == "TeXForm" && i == 1 {
+			nextParams.PreviousHead = "<TOPLEVEL>"
+			useTeXGrouping = true
+		} else {
+			nextParams.PreviousHead = thisHead
+		}
+		if useTeXGrouping {
+			buffer.WriteString("{")
+		}
 		if surroundEachArg {
 			buffer.WriteString("(")
 			buffer.WriteString(parts[i].StringForm(nextParams))
 			buffer.WriteString(")")
 		} else {
 			buffer.WriteString(parts[i].StringForm(nextParams))
+		}
+		if useTeXGrouping {
+			buffer.WriteString("}")
 		}
 		if i != len(parts)-1 {
 			buffer.WriteString(delim)

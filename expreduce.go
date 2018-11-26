@@ -24,7 +24,7 @@ var cpuprofile = flag.String("cpuprofile", "", "write cpu profile to file")
 var netprofile = flag.Bool("netprofile", false, "Enable live profiling at http://localhost:8080/debug/pprof/")
 var scriptfile = flag.String("script", "", "script `file` to read from")
 var initfile = flag.String("initfile", "", "A script to run on initialization.")
-var loadRubi = flag.Bool("loadrubi", true, "Load the Rubi definitions for integral support on startup.")
+var preloadRubi = flag.Bool("preloadrubi", false, "Preload the Rubi definitions for integral support on startup.")
 
 func main() {
 	flag.Parse()
@@ -44,8 +44,8 @@ func main() {
 	fmt.Printf("Welcome to Expreduce!\n\n")
 
 	es := expreduce.NewEvalState()
-	if *loadRubi {
-		fmt.Println("Loading Rubi snapshot for integral support. Disable with -loadrubi=false.")
+	if *preloadRubi {
+		fmt.Println("Pre-loading Rubi snapshot for integral support. Disable with -preloadrubi=false.")
 		es.Eval(atoms.E(atoms.S("LoadRubiBundledSnapshot")))
 		fmt.Println("Done loading Rubi snapshot.")
 		fmt.Print("\n")

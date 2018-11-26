@@ -14,6 +14,7 @@ D[Log[a_], x_] := D[a, x]/a;
 D[Sin[a_], x_] := D[a,x] Cos[a];
 D[Cos[a_], x_] := -D[a,x] Sin[a];
 D[Exp[x_Symbol], x_Symbol] := Exp[x];
+D[l_List, x_] := Table[D[l[[idx]], x], {idx, Length[l]}];
 Attributes[D] = {ReadProtected, Protected};
 Tests`D = {
     ESimpleExamples[
@@ -39,7 +40,17 @@ Tests`D = {
         ESameTest[-Cos[Cos[x]] Sin[x], D[Sin[Cos[x]],x]],
         ESameTest[Cos[Log[x]]/x, D[Sin[Log[x]],x]],
         ESameTest[-(Sin[Log[x]]/x), D[Cos[Log[x]],x]],
-        ESameTest[1-(1+Cot[x]) Sin[x+Log[Sin[x]]], D[Cos[Log[Sin[x]]+x]+x,x]]
+        ESameTest[1-(1+Cot[x]) Sin[x+Log[Sin[x]]], D[Cos[Log[Sin[x]]+x]+x,x]],
+        ESameTest[{a,b}, D[{a*x, b*x}, x]],
+    ]
+};
+
+Grad::usage = "`Grad[e, {var1, var2, ...}]` finds the gradient of `e` with respect to the named variables.";
+Grad[e_,vars_List]:=Table[D[e,vars[[idx]]],{idx,Length[vars]}];
+Attributes[Grad] = {ReadProtected, Protected};
+Tests`Grad = {
+    ESimpleExamples[
+        ESameTest[{-Sin[x+2 y],-2 Sin[x+2 y]}, Grad[Cos[x+2y],{x,y}]],
     ]
 };
 
@@ -67,6 +78,10 @@ Integrate::usage = "`Integrate[f, x]` finds the indefinite integral of `f` with 
 Integrate[a_,{x_Symbol,start_,end_}] :=
     (ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start]) // Simplify;
 Integrate[a_,x_Symbol] := Module[{cleanedA, replaceRules},
+  If[!MemberQ[$ContextPath, "Rubi`"],
+    Print["Loading Rubi rules for integration. This happens once. Preload on startup with -preloadrubi."];
+    LoadRubiBundledSnapshot[]
+  ];
   replaceRules = genSubscriptReplacements[a];
   cleanedA = a /. replaceRules[[1]];
   (Rubi`Int[cleanedA, x] /. replaceRules[[2]]) // Simplify

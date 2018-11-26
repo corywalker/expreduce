@@ -21,6 +21,9 @@ func formatSymName(name string, params expreduceapi.ToStringParams) string {
 		if name == "E" {
 			return "e"
 		}
+		if name == "I" {
+			return "i"
+		}
 		if name == "Pi" {
 			return "\\pi"
 		}

@@ -5,7 +5,6 @@ import (
 	"hash/fnv"
 	"math/big"
 
-	"github.com/corywalker/expreduce/expreduce/parser/parens"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -20,14 +19,6 @@ type Integer struct {
 }*/
 
 func (thisInt *Integer) StringForm(params expreduceapi.ToStringParams) string {
-	if thisInt.Val.Cmp(big.NewInt(0)) < 0 {
-		if parens.NeedsParens("System`Times", params.PreviousHead) {
-			if params.Form == "TeXForm" {
-				return fmt.Sprintf("{(%d)}", thisInt.Val)
-			}
-			return fmt.Sprintf("(%d)", thisInt.Val)
-		}
-	}
 	return fmt.Sprintf("%d", thisInt.Val)
 }
 

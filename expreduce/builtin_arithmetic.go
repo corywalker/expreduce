@@ -1,11 +1,14 @@
 package expreduce
 
 import (
+	"bytes"
+	"fmt"
 	"math/big"
 	"strings"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/iterspec"
+	"github.com/corywalker/expreduce/expreduce/parser/parens"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -113,12 +116,74 @@ func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInt
 	return collected
 }
 
+func splitFrac(ex expreduceapi.Ex) (num expreduceapi.Ex, den expreduceapi.Ex) {
+	asPow, isPow := atoms.HeadAssertion(ex, "System`Power")
+	if isPow {
+		if asPow.Len() != 2 {
+			return ex, nil
+		}
+		powInt, powIsInt := asPow.GetPart(2).(*atoms.Integer)
+		if !powIsInt {
+			return ex, nil
+		}
+		if powInt.Val.Int64() == -1 {
+			return nil, asPow.GetPart(1)
+		}
+	}
+	asRat, isRat := ex.(*atoms.Rational)
+	if isRat {
+		if asRat.Num.Int64() == 1 {
+			return nil, atoms.NewInteger(asRat.Den)
+		}
+		return atoms.NewInteger(asRat.Num), atoms.NewInteger(asRat.Den)
+	}
+	return ex, nil
+}
+
 func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Plus",
 		Default: "0",
-		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfix(this.GetParts()[1:], " + ", "System`Plus", params)
+		toString: func(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
+			thisHead := "System`Plus"
+			parts := this.GetParts()[1:]
+			if p.Form != "InputForm" && p.Form != "OutputForm" && p.Form != "TeXForm" {
+				return false, ""
+			}
+			if len(parts) < 2 {
+				return false, ""
+			}
+			addParens := parens.NeedsParens(thisHead, p.PreviousHead)
+			var buffer bytes.Buffer
+			if addParens {
+				if p.Form == "TeXForm" {
+					buffer.WriteString("{\\left(")
+				} else {
+					buffer.WriteString("(")
+				}
+			}
+			nextParams := p
+			nextParams.PreviousHead = thisHead
+			for i := 0; i < len(parts); i++ {
+				toWrite := parts[i].StringForm(nextParams)
+				if i != 0 {
+					if toWrite[0] == '-' {
+						buffer.WriteString(" - ")
+						toWrite = toWrite[1:]
+					} else {
+						buffer.WriteString(" + ")
+					}
+				}
+				buffer.WriteString(toWrite)
+			}
+			if addParens {
+				if p.Form == "TeXForm" {
+					buffer.WriteString("\\right)}")
+				} else {
+					buffer.WriteString(")")
+				}
+			}
+			return true, buffer.String()
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
@@ -174,11 +239,64 @@ func getArithmeticDefinitions() (defs []Definition) {
 			if params.Form == "TeXForm" {
 				delim = " "
 			}
-			ok, res := toStringInfix(this.GetParts()[1:], delim, "System`Times", params)
-			if ok && strings.HasPrefix(res, "(-1)"+delim) {
-				return ok, "-" + res[5:]
+
+			timesParts := atoms.E(atoms.S("Times"))
+			for _, part := range this.GetParts()[1:] {
+				partAsComplex, partIsComplex := part.(*atoms.Complex)
+				if partIsComplex {
+					asExpr := partAsComplex.AsExpr()
+					cmplxTimes, cmplxIsTimes := atoms.HeadAssertion(asExpr, "System`Times")
+					if cmplxIsTimes {
+						for _, cmplxPart := range cmplxTimes.GetParts()[1:] {
+							timesParts.AppendEx(cmplxPart)
+						}
+						continue
+					}
+				}
+				timesParts.AppendEx(part)
 			}
-			return ok, res
+
+			num := atoms.E(atoms.S("Times"))
+			den := atoms.E(atoms.S("Times"))
+			for _, part := range timesParts.GetParts()[1:] {
+				numPart, denPart := splitFrac(part)
+				if numPart != nil {
+					num.AppendEx(numPart)
+				}
+				if denPart != nil {
+					den.AppendEx(denPart)
+				}
+			}
+			if den.Len() > 0 {
+				numOk, numStr := toStringInfix(num.GetParts()[1:], delim, "System`Times", params)
+				if num.Len() == 1 {
+					numOk, numStr = true, num.GetPart(1).StringForm(params)
+				}
+				denOk, denStr := toStringInfix(den.GetParts()[1:], delim, "System`Times", params)
+				if den.Len() == 1 {
+					denOk, denStr = true, den.GetPart(1).StringForm(params)
+				}
+				if !numOk || !denOk {
+					return false, ""
+				}
+				prefix := ""
+				if strings.HasPrefix(numStr, "-1"+delim) {
+					prefix = "-"
+					numStr = numStr[3:]
+				}
+				if params.Form == "TeXForm" {
+					return true, fmt.Sprintf("%v\\frac{%v}{%v}", prefix, numStr, denStr)
+				}
+				return true, fmt.Sprintf("%v(%v)/(%v)", prefix, numStr, denStr)
+			}
+			ok, res := toStringInfix(num.GetParts()[1:], delim, "System`Times", params)
+			if !ok {
+				return false, ""
+			}
+			if strings.HasPrefix(res, "-1"+delim) {
+				return true, "-" + res[3:]
+			}
+			return true, res
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values

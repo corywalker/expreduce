@@ -63,5 +63,7 @@ func getTrigDefinitions() (defs []Definition) {
 		Name:              "TrigToExp",
 		OmitDocumentation: true,
 	})
+	defs = append(defs, Definition{Name: "Degree"})
+	defs = append(defs, Definition{Name: "RotationMatrix"})
 	return
 }

@@ -74,6 +74,7 @@ Tests`MatrixQ = {
 };
 
 Dot::usage = "`a.b` computes the product of `a` and `b` for vectors and matrices.";
+Dot[m_?MatrixQ,v_?VectorQ]:=Table[m[[idx]].v,{idx,Length[v]}];
 Attributes[Dot] = {Flat, OneIdentity, Protected};
 Tests`Dot = {
     ESimpleExamples[

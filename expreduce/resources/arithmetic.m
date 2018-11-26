@@ -21,10 +21,10 @@ Tests`Plus = {
         EStringTest["(1.*(a + b))", "(a + b)/1."],
         EStringTest["(2*(a + b))", "2*(a + b)"],
         EStringTest["(a*(b + c))", "a*(b + c)"],
-        EStringTest["(-a + -b)", "-1*(a + b)"],
-        EStringTest["(-a + -b)", "-(a + b)"],
+        EStringTest["(-a - b)", "-1*(a + b)"],
+        EStringTest["(-a - b)", "-(a + b)"],
         EStringTest["((-1.)*(a + b))", "-1.*(a + b)"],
-        EStringTest["(-a + -b)", "(a + b)/-1"],
+        EStringTest["(-a - b)", "(a + b)/-1"],
         EStringTest["((-1.)*(a + b))", "(a + b)/-1."],
 
         (*Test that we do not delete all the addends*)
@@ -213,6 +213,9 @@ Tests`Times = {
         ESameTest[I/(2 Sqrt[3] a^2), (0+1/6*I)*3^(1/2)*a^(-2)],
         (* Test wouldntBeLessThanNegOne. *)
         ESameTest[(1/3)*3^(-1/2), (1/3)*3^(-1/2)],
+
+        ESameTest[Sqrt[2/\[Pi]], Sqrt[2]*Sqrt[1/Pi]],
+        ESameTest[Sqrt[3/(2 \[Pi])], Sqrt[3/2]*Sqrt[1/Pi]],
     ], EKnownFailures[
         ESameTest[-2^(1/3), (-2)*2^(-2/3)],
         ESameTest[-2^(1+a), (-2)*2^(a)],
