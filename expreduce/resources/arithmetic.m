@@ -213,6 +213,9 @@ Tests`Times = {
         ESameTest[I/(2 Sqrt[3] a^2), (0+1/6*I)*3^(1/2)*a^(-2)],
         (* Test wouldntBeLessThanNegOne. *)
         ESameTest[(1/3)*3^(-1/2), (1/3)*3^(-1/2)],
+
+        ESameTest[Sqrt[2/\[Pi]], Sqrt[2]*Sqrt[1/Pi]],
+        ESameTest[Sqrt[3/(2 \[Pi])], Sqrt[3/2]*Sqrt[1/Pi]],
     ], EKnownFailures[
         ESameTest[-2^(1/3), (-2)*2^(-2/3)],
         ESameTest[-2^(1+a), (-2)*2^(a)],

@@ -1,12 +1,14 @@
 package expreduce
 
 import (
+	"bytes"
 	"fmt"
 	"math/big"
 	"strings"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/expreduce/iterspec"
+	"github.com/corywalker/expreduce/expreduce/parser/parens"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
@@ -142,8 +144,46 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name:    "Plus",
 		Default: "0",
-		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfix(this.GetParts()[1:], " + ", "System`Plus", params)
+		toString: func(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
+			thisHead := "System`Plus"
+			parts := this.GetParts()[1:]
+			if p.Form != "InputForm" && p.Form != "OutputForm" && p.Form != "TeXForm" {
+				return false, ""
+			}
+			if len(parts) < 2 {
+				return false, ""
+			}
+			addParens := parens.NeedsParens(thisHead, p.PreviousHead)
+			var buffer bytes.Buffer
+			if addParens {
+				if p.Form == "TeXForm" {
+					buffer.WriteString("{\\left(")
+				} else {
+					buffer.WriteString("(")
+				}
+			}
+			nextParams := p
+			nextParams.PreviousHead = thisHead
+			for i := 0; i < len(parts); i++ {
+				toWrite := parts[i].StringForm(nextParams)
+				if i != 0 {
+					if toWrite[0] == '-' {
+						buffer.WriteString(" - ")
+						toWrite = toWrite[1:]
+					} else {
+						buffer.WriteString(" + ")
+					}
+				}
+				buffer.WriteString(toWrite)
+			}
+			if addParens {
+				if p.Form == "TeXForm" {
+					buffer.WriteString("\\right)}")
+				} else {
+					buffer.WriteString(")")
+				}
+			}
+			return true, buffer.String()
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// Calls without argument receive identity values
@@ -239,17 +279,22 @@ func getArithmeticDefinitions() (defs []Definition) {
 				if !numOk || !denOk {
 					return false, ""
 				}
-				if params.Form == "TeXForm" {
-					return true, fmt.Sprintf("\\frac{%v}{%v}", numStr, denStr)
+				prefix := ""
+				if strings.HasPrefix(numStr, "-1"+delim) {
+					prefix = "-"
+					numStr = numStr[3:]
 				}
-				return true, fmt.Sprintf("(%v)/(%v)", numStr, denStr)
+				if params.Form == "TeXForm" {
+					return true, fmt.Sprintf("%v\\frac{%v}{%v}", prefix, numStr, denStr)
+				}
+				return true, fmt.Sprintf("%v(%v)/(%v)", prefix, numStr, denStr)
 			}
 			ok, res := toStringInfix(num.GetParts()[1:], delim, "System`Times", params)
 			if !ok {
 				return false, ""
 			}
-			if strings.HasPrefix(res, "(-1)"+delim) {
-				return true, "-" + res[5:]
+			if strings.HasPrefix(res, "-1"+delim) {
+				return true, "-" + res[3:]
 			}
 			return true, res
 		},
