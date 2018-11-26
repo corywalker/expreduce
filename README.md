@@ -13,6 +13,9 @@ Now that the kernel understands the product rule, when it later encounters a pat
 
 The term rewriting system and pattern matching engine is fairly advanced. The computer algebra system at this stage is extremely limited, but simple calculus and algebraic manipulation is certainly supported (see examples below). If you are looking for a more mature computer algebra system, please consider using Mathematica (proprietary) or Mathics (open source, Sympy-backed).
 
+![Jupyter screenshot](/images/jupyter_screenshot.png)
+This screenshot demonstrates the Jupyter notebook interface for Expreduce. This Jupyter extension can be found [here](https://github.com/mmatera/iwolfram).
+
 # Install and run
 
 [DOWNLOAD HERE](https://github.com/corywalker/expreduce/releases/latest)
