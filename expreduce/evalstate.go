@@ -183,6 +183,7 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`EllipticF")
 		es.MarkSeen("System`ProductLog")
 		es.MarkSeen("System`FresnelS")
+		es.MarkSeen("System`Gamma")
 
 		es.MarkSeen("System`Cosh")
 		es.MarkSeen("System`Sinh")

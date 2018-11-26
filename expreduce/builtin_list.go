@@ -43,6 +43,28 @@ func toStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToS
 	return true, buffer.String()
 }
 
+func toStringPart(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+	if params.Form == "FullForm" {
+		return false, ""
+	}
+	subParams := params
+	subParams.PreviousHead = "<TOPLEVEL>"
+	var buffer bytes.Buffer
+	for i, e := range this.GetParts()[1:] {
+		if i == 0 {
+			buffer.WriteString(e.StringForm(params))
+			buffer.WriteString("[[")
+		} else {
+			buffer.WriteString(e.StringForm(subParams))
+			if i != len(this.GetParts()[1:])-1 {
+				buffer.WriteString(",")
+			}
+		}
+	}
+	buffer.WriteString("]]")
+	return true, buffer.String()
+}
+
 func memberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi.EvalStateInterface) bool {
 	for _, part := range components {
 		if matchq, _ := matcher.IsMatchQ(part, item, matcher.EmptyPD(), es); matchq {
@@ -496,7 +518,8 @@ func getListDefinitions() (defs []Definition) {
 		},
 	})
 	defs = append(defs, Definition{
-		Name: "Part",
+		Name:     "Part",
+		toString: toStringPart,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) == 1 {
 				return this
