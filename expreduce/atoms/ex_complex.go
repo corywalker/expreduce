@@ -24,6 +24,9 @@ func (cmplx *Complex) AsExpr() expreduceapi.Ex {
 		}
 		return E(S("Times"), cmplx.Im, iSym)
 	}
+	if imIsInt && imInt.Val.Int64() == 1 {
+		return E(S("Plus"), cmplx.Re, iSym)
+	}
 	return E(S("Plus"), cmplx.Re, E(S("Times"), cmplx.Im, iSym))
 }
 

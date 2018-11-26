@@ -67,6 +67,10 @@ Integrate::usage = "`Integrate[f, x]` finds the indefinite integral of `f` with 
 Integrate[a_,{x_Symbol,start_,end_}] :=
     (ReplaceAll[Integrate[a, x],x->end] - ReplaceAll[Integrate[a, x],x->start]) // Simplify;
 Integrate[a_,x_Symbol] := Module[{cleanedA, replaceRules},
+  If[!MemberQ[$ContextPath, "Rubi`"],
+    Print["Loading Rubi rules for integration. This happens once. Preload on startup with -preloadrubi."];
+    LoadRubiBundledSnapshot[]
+  ];
   replaceRules = genSubscriptReplacements[a];
   cleanedA = a /. replaceRules[[1]];
   (Rubi`Int[cleanedA, x] /. replaceRules[[2]]) // Simplify
