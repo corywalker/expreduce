@@ -480,6 +480,7 @@ func ReplaceSyms(in string) string {
 	in = strings.Replace(in, "\\[Omega]", "ω", -1)
 	in = strings.Replace(in, "\\[CapitalOmega]", "Ω", -1)
 	in = strings.Replace(in, "\\[Alpha]", "α", -1)
+	in = strings.Replace(in, "\\[Theta]", "θ", -1)
 	return in
 }
 

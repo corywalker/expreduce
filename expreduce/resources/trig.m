@@ -116,3 +116,23 @@ Tests`TrigToExp = {
         ESameTest[(I (E^(-I x)-E^(I x)))/(E^(-I x)+E^(I x)), TrigToExp[Tan[x]]],
     ]
 };
+
+Degree::usage = "`Degree` stands for Pi/180."
+Degree = Pi/180;
+Attributes[Degree] = {Constant,Protected,ReadProtected};
+Tests`Degree = {
+    ESimpleExamples[
+        ESameTest[1, Sin[90 Degree]],
+    ]
+};
+
+RotationMatrix::usage = "`RotationMatrix[θ]` yields a rotation matrix for the angle `θ`.";
+RotationMatrix[θ_] := {{Cos[θ],-Sin[θ]},{Sin[θ],Cos[θ]}};
+RotationMatrix[θ_, {x_, 0, 0}] := {{(x^3 Conjugate[x]^3)/Abs[x]^6,0,0},{0,Cos[\[Theta]],-((x^2 Conjugate[x] Sin[\[Theta]])/Abs[x]^3)},{0,(x Conjugate[x]^2 Sin[\[Theta]])/Abs[x]^3,(x^3 Conjugate[x]^3 Cos[\[Theta]])/Abs[x]^6}};
+RotationMatrix[θ_, {0, y_, 0}] := {{Cos[\[Theta]],0,(y^2 Conjugate[y] Sin[\[Theta]])/Abs[y]^3},{0,(y^3 Conjugate[y]^3)/Abs[y]^6,0},{-((y Conjugate[y]^2 Sin[\[Theta]])/Abs[y]^3),0,(y^3 Conjugate[y]^3 Cos[\[Theta]])/Abs[y]^6}};
+RotationMatrix[θ_, {0, 0, z_}] := {{Cos[\[Theta]],-((z Sin[\[Theta]])/Abs[z]),0},{(Conjugate[z] Sin[\[Theta]])/Abs[z],(z Conjugate[z] Cos[\[Theta]])/Abs[z]^2,0},{0,0,(z Conjugate[z])/Abs[z]^2}};
+Tests`RotationMatrix = {
+    ESimpleExamples[
+        ESameTest[{{0, -1}, {1, 0}}, RotationMatrix[90 Degree]],
+    ]
+};
