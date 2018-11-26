@@ -21,10 +21,10 @@ Tests`Plus = {
         EStringTest["(1.*(a + b))", "(a + b)/1."],
         EStringTest["(2*(a + b))", "2*(a + b)"],
         EStringTest["(a*(b + c))", "a*(b + c)"],
-        EStringTest["(-a + -b)", "-1*(a + b)"],
-        EStringTest["(-a + -b)", "-(a + b)"],
+        EStringTest["(-a - b)", "-1*(a + b)"],
+        EStringTest["(-a - b)", "-(a + b)"],
         EStringTest["((-1.)*(a + b))", "-1.*(a + b)"],
-        EStringTest["(-a + -b)", "(a + b)/-1"],
+        EStringTest["(-a - b)", "(a + b)/-1"],
         EStringTest["((-1.)*(a + b))", "(a + b)/-1."],
 
         (*Test that we do not delete all the addends*)
