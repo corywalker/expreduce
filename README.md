@@ -15,7 +15,7 @@ The term rewriting system and pattern matching engine is fairly advanced. The co
 
 ![Jupyter screenshot](/images/jupyter_screenshot.png)
 
-(This screenshot demonstrates the Jupyter notebook interface for Expreduce. This Jupyter extension can be found [here](https://github.com/mmatera/iwolfram).)
+This screenshot demonstrates the Jupyter notebook interface for Expreduce. This Jupyter extension can be found [here](https://github.com/mmatera/iwolfram).
 
 # Install and run
 
@@ -24,9 +24,12 @@ The term rewriting system and pattern matching engine is fairly advanced. The co
 If you just want to get started, you can download a binary release and run the software without any downloading Go or compiling. Head over to the [latest release](https://github.com/corywalker/expreduce/releases/latest) and download the correct package for your OS.
 
 ## From source
+
+You must have the [Git Large File Storage](https://git-lfs.github.com/)  client (`git-lfs`) installed before cloning the repository.
+
 ```
-go get github.com/corywalker/expreduce
-expreduce
+$ go get github.com/corywalker/expreduce
+$ expreduce
 ```
 
 ## Documentation
@@ -118,6 +121,7 @@ Also of interest is to build up some formal theory on the rule definitions. Ther
 # Development
 
 Pretty standard Go workflow. Just remember to `go generate`.
+
 ```
 # To update any .m changes or changes to the parser:
 go generate ./...
