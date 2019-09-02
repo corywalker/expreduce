@@ -4,6 +4,8 @@ y.output
 test_rubi
 *.expred
 .DS_Store
+__debug_bin
+.vscode
 
 .idea/expreduce.iml
 

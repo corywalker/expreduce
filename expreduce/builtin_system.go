@@ -234,6 +234,13 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 }
 
 func parseOutputStream(outputStreamDef expreduceapi.Ex) (string, int64, bool) {
+	// Handle string-only stream names like "stdout".
+	streamName, ok := outputStreamDef.(*atoms.String)
+	if ok {
+		// Use -1 as a placeholder for a missing index.
+		return streamName.GetValue(), -1, true
+	}
+
 	outputStream, isOutputStream := atoms.HeadAssertion(outputStreamDef, "System`OutputStream")
 	if !isOutputStream {
 		return "", -1, false
@@ -241,7 +248,7 @@ func parseOutputStream(outputStreamDef expreduceapi.Ex) (string, int64, bool) {
 	if outputStream.Len() != 2 {
 		return "", -1, false
 	}
-	streamName, ok := outputStream.GetPart(1).(*atoms.String)
+	streamName, ok = outputStream.GetPart(1).(*atoms.String)
 	if !ok {
 		return "", -1, false
 	}

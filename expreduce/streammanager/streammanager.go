@@ -29,9 +29,20 @@ func NewStreamManager() expreduceapi.StreamManager {
 	return &sm
 }
 
+func (sm streamManagerImpl) fillMissingIndex(key *streamKey) {
+	if key.id == -1 {
+		if key.name == "stdout" {
+			key.id = 1
+		} else if key.name == "stdin" {
+			key.id = 2
+		}
+	}
+}
+
 // WriteString writes the toWrite string into the stream defined by streamName and streamIndex.
 func (sm streamManagerImpl) WriteString(streamName string, streamIndex int64, toWrite string) bool {
 	key := streamKey{id: streamIndex, name: streamName}
+	sm.fillMissingIndex(&key)
 	writer, hasWriter := sm.openStreams[key]
 	if !hasWriter {
 		return false
