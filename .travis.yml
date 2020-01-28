@@ -4,10 +4,10 @@ os:
 language: go
 
 env:
-  - GOLANGCI_RELEASE="v1.11.2"
+  - GOLANGCI_RELEASE="v1.23.1"
 
 go:
-  - "1.11.x"
+  - "1.13.x"
   # recently this is causing a SIGSEGV in the linter.
   # - master
 
