@@ -16,15 +16,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
       with:
-        lfs: true
+        lfs: 'true'
 
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.21'
-
-    - name: Generate
-      run: go generate ./...
 
     - name: Build
       run: go build -v ./...
