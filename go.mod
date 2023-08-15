@@ -1,6 +1,6 @@
 module github.com/corywalker/expreduce
 
-go 1.21.0
+go 1.21
 
 require (
 	github.com/corywalker/mathbigext v0.0.0-20181030033443-6dc8c7f3bee3
