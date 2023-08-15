@@ -57,6 +57,7 @@ func (pm *PDManager) len() int {
 	return len(pm.patternDefined)
 }
 
+//nolint:unused
 func (pm *PDManager) string(es expreduceapi.EvalStateInterface) string {
 	var buffer bytes.Buffer
 	buffer.WriteString("{")

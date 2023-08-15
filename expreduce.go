@@ -34,10 +34,13 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		pprof.StartCPUProfile(f)
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal(err)
+		}
 		defer pprof.StopCPUProfile()
 	}
 	if *netprofile {
+		//nolint:errcheck
 		go http.ListenAndServe(":8080", nil)
 	}
 
@@ -63,7 +66,9 @@ func main() {
 		defer f.Close()
 
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(f)
+		if _, err := buf.ReadFrom(f); err != nil {
+			log.Fatal(err)
+		}
 		scriptText := buf.String()
 		expreduce.EvalInterpMany(scriptText, *initfile, es)
 	}
@@ -76,7 +81,9 @@ func main() {
 		defer f.Close()
 
 		buf := new(bytes.Buffer)
-		buf.ReadFrom(f)
+		if _, err := buf.ReadFrom(f); err != nil {
+			log.Fatal(err)
+		}
 		scriptText := buf.String()
 		scriptSession(es, scriptText, *scriptfile)
 	} else {

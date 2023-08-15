@@ -34,6 +34,7 @@ func getRandomDefinitions() (defs []Definition) {
 
 			asInt, isInt := this.GetParts()[1].(*atoms.Integer)
 			if isInt {
+				//nolint:staticcheck
 				rand.Seed(asInt.Val.Int64())
 				return atoms.NewSymbol("System`Null")
 			}

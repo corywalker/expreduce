@@ -179,7 +179,10 @@ func Render(expr expreduceapi.Ex) (chart.Chart, error) {
 		Show:        true,
 		StrokeColor: drawing.ColorBlack,
 	}
-	renderPrimitive(&graph, graphics.GetPart(1), &style)
+	err := renderPrimitive(&graph, graphics.GetPart(1), &style)
+	if err != nil {
+		return graph, errors.New("failed to render primitive")
+	}
 
 	return graph, nil
 }
