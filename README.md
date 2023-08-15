@@ -127,6 +127,8 @@ Pretty standard Go workflow. Just remember to `go generate`.
 go generate ./...
 # To run the test suite:
 go test ./...
+# Or to test some important parts with helpful information printed:
+go test -v github.com/corywalker/expreduce/expreduce -count=1
 ```
 
-The use of `go generate` might require the download of additional dependencies.
+The use of `go generate` might require the download of additional dependencies, for example `go install github.com/go-bindata/go-bindata/...@latest`.
