@@ -1,5 +1,5 @@
 # Expreduce
-[![Build Status](https://travis-ci.org/corywalker/expreduce.svg?branch=master)](https://travis-ci.org/corywalker/expreduce)
+[![Go](https://github.com/corywalker/expreduce/actions/workflows/go.yml/badge.svg)](https://github.com/corywalker/expreduce/actions/workflows/go.yml)
 
 This software is experimental quality and is not currently intended for serious use. There are plenty of more mature open source computer algebra systems to use instead.
 
