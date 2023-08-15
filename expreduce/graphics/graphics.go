@@ -176,7 +176,7 @@ func Render(expr expreduceapi.Ex) (chart.Chart, error) {
 	}
 
 	style := chart.Style{
-		Show:      true,
+		Show:        true,
 		StrokeColor: drawing.ColorBlack,
 	}
 	renderPrimitive(&graph, graphics.GetPart(1), &style)

@@ -190,8 +190,8 @@ func parseLevelSpec(this expreduceapi.Ex, es expreduceapi.EvalStateInterface) le
 	return levelSpec{false, false, 1, 1, false}
 }
 
-//This is an optimization with regards to expressionWalkMapBackwards which only deals with level specification,
-//expressionWalkMapBackwards also deals with depths, but has to visit the entire expression tree.
+// This is an optimization with regards to expressionWalkMapBackwards which only deals with level specification,
+// expressionWalkMapBackwards also deals with depths, but has to visit the entire expression tree.
 func expressionWalkMap(f func(expreduceapi.Ex, expreduceapi.Ex, []int64, *int64, expreduceapi.EvalStateInterface) expreduceapi.Ex, head expreduceapi.Ex, partSpec []int64, this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, spec levelSpec, generated *int64) expreduceapi.ExpressionInterface {
 	toReturn := atoms.NewExpression([]expreduceapi.Ex{this.GetParts()[0]})
 
