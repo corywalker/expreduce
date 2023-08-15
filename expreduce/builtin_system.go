@@ -6,7 +6,6 @@ import (
 	"encoding/gob"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"math/big"
 	"os"
@@ -125,7 +124,7 @@ func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) ([]byte
 	}
 	pathsToTry = append(pathsToTry, rawFn)
 	for _, rawPath := range pathsToTry {
-		dat, err := ioutil.ReadFile(rawPath)
+		dat, err := os.ReadFile(rawPath)
 		if err != nil {
 			continue
 		}
@@ -305,7 +304,10 @@ func getSystemDefinitions() (defs []Definition) {
 				if err != nil {
 					log.Fatal(err)
 				}
-				pprof.WriteHeapProfile(f)
+				err = pprof.WriteHeapProfile(f)
+				if err != nil {
+					log.Fatal(err)
+				}
 				f.Close()
 			}
 			fmt.Println(es.GetTimeCounter().String())
@@ -728,7 +730,9 @@ func getSystemDefinitions() (defs []Definition) {
 			file, err := os.Create(filename)
 			if err == nil {
 				// Write the header.
-				file.Write(exprFileHeader)
+				if _, err := file.Write(exprFileHeader); err != nil {
+					panic(err)
+				}
 				compressedWriter := zlib.NewWriter(file)
 				encoder := gob.NewEncoder(compressedWriter)
 				if err := encoder.Encode(definitions); err != nil {

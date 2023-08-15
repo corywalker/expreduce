@@ -17,8 +17,6 @@ var freezeStateDuringPreMatch = flag.Bool(
 
 const maxUint = ^uint(0)
 const maxInt = int(maxUint >> 1)
-const maxUint64 = ^uint64(0)
-const maxInt64 = int64(maxUint64 >> 1)
 
 type MatchIter interface {
 	// returns ismatch, pd, isdone
