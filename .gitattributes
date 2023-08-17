@@ -1,3 +1,1 @@
-expreduce/resources.go filter=lfs diff=lfs merge=lfs -text
 *.m linguist-language=Mathematica
-expreduce/rubi_snapshot/rubi_resources.go filter=lfs diff=lfs merge=lfs -text
