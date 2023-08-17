@@ -1,5 +1,5 @@
 //go:generate go run ../utils/gensnapshots/gensnapshots.go -rubi_snapshot_location=./rubi_snapshot/rubi_snapshot.expred
-//go:generate go-bindata -pkg rubi_snapshot -o rubi_snapshot/rubi_resources.go -nocompress rubi_snapshot/rubi_snapshot.expred
+//go:generate go-bindata -pkg rubi_snapshot -o rubi_snapshot/rubi_resources.go -nocompress -nometadata rubi_snapshot/rubi_snapshot.expred
 
 package expreduce
 
