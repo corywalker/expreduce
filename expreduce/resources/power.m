@@ -904,3 +904,12 @@ Tests`ComplexExpand = {
         ESameTest[-2^(1/3)-I 2^(1/3) Sqrt[3], ComplexExpand[(-2)^(4/3)]],
     ]
 };
+
+Exp::usage = "`Exp[x]` returns the exponential of `x`.";
+Attributes[Exp] = {Listable, NumericFunction, Protected, ReadProtected};
+Exp[x_] := E^x;
+Tests`Exp = {
+    ESimpleExamples[
+        ESameTest[Simplify[Exp[x] * Exp[y] == Exp[x + y]], True],
+    ]
+};
