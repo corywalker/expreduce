@@ -44,3 +44,10 @@ jobs:
 
     - name: GoReleaser Action
       uses: goreleaser/goreleaser-action@v4.4.0
+      # Run only on new tag.
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        version: latest
+        args: release --clean
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
