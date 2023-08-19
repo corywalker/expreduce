@@ -31,7 +31,7 @@ jobs:
       uses: golangci/golangci-lint-action@v3.7.0
 
     - name: Check that `go generate ./...` has been run.
-      run: go install github.com/go-bindata/go-bindata/... && go generate ./expreduce/builtin.go && git diff --quiet
+      run: go generate ./expreduce/builtin.go && git diff --quiet
 
     - name: Build
       run: go build -v ./...
