@@ -634,7 +634,7 @@ ExpreduceFactorConstant[p_Plus] := Module[{e = p, cTerms, c},
 ExpreduceFactorConstant[e_] := e;
 Attributes[ExpreduceFactorConstant] = {Protected};
 
-Varibles::usage = "`Variables[expr]` returns the variables in `expr`.";
+Variables::usage = "`Variables[expr]` returns the variables in `expr`.";
 Variables[s_Symbol] := {s};
 Variables[s_^p_Integer] := Variables[s];
 Variables[s_^p_Rational] := Variables[s];
