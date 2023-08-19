@@ -14,3 +14,5 @@ __debug_bin
 .idea/vcs.xml
 
 .idea/workspace.xml
+
+dist/

@@ -41,3 +41,6 @@ jobs:
 
     - name: Test concurrency
       run: go test -v -race ./... -run Concurrency
+
+    - name: GoReleaser Action
+      uses: goreleaser/goreleaser-action@v4.4.0
