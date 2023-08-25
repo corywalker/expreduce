@@ -13,18 +13,25 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [ '1.21.x', '1.20.x' ]
+
     steps:
     - uses: actions/checkout@v3
       with:
         lfs: 'true'
 
-    - name: Set up Go
+    - name: Set up Go ${{ matrix.go-version }}
       uses: actions/setup-go@v4
       with:
-        go-version: '1.21'
+        go-version: ${{ matrix.go-version }}
 
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v3.7.0
+
+    - name: Check that `go generate ./...` has been run.
+      run: go install github.com/go-bindata/go-bindata/... && go generate ./expreduce/builtin.go && git diff --quiet
 
     - name: Build
       run: go build -v ./...
@@ -34,3 +41,13 @@ jobs:
 
     - name: Test concurrency
       run: go test -v -race ./... -run Concurrency
+
+    - name: GoReleaser Action
+      uses: goreleaser/goreleaser-action@v4.4.0
+      # Run only on new tag.
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        version: latest
+        args: release --clean
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

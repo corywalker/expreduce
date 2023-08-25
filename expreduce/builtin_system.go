@@ -491,8 +491,19 @@ func getSystemDefinitions() (defs []Definition) {
 
 			lhs, lhsIsExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if lhsIsExpr {
-				for i := range lhs.GetParts() {
-					lhs.GetParts()[i] = es.Eval(lhs.GetParts()[i])
+				headSym, headIsSym := &atoms.Symbol{}, false
+				if len(lhs.GetParts()) > 0 {
+					headSym, headIsSym = lhs.GetParts()[0].(*atoms.Symbol)
+				}
+				attrs := expreduceapi.Attributes{}
+				if headIsSym {
+					attrs = headSym.Attrs(es.GetDefinedMap())
+				}
+
+				if !(attrs.HoldAll || attrs.HoldAllComplete) {
+					for i := range lhs.GetParts() {
+						lhs.GetParts()[i] = es.Eval(lhs.GetParts()[i])
+					}
 				}
 				es.Define(lhs, this.GetParts()[2])
 			}
@@ -549,6 +560,10 @@ func getSystemDefinitions() (defs []Definition) {
 			&SameTest{"bar[m, 2]", "foo[m, 2]"},
 			&SameTest{"Null", "fizz[m_, k_] := buzz[m, k]"},
 			&SameTest{"buzz[m, 2]", "fizz[m, 2]"},
+
+			// Test with HoldAll. We should not evaluate the arguments even
+			// when setting.
+			&SameTest{"Attributes[holdTest]= {HoldAll};holdTest[1+1]:=\"pass\";holdTest[1+1]", "\"pass\""},
 		},
 	})
 	defs = append(defs, Definition{

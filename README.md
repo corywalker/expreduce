@@ -21,11 +21,9 @@ This screenshot demonstrates the Jupyter notebook interface for Expreduce. This 
 
 [DOWNLOAD HERE](https://github.com/corywalker/expreduce/releases/latest)
 
-If you just want to get started, you can download a binary release and run the software without any downloading Go or compiling. Head over to the [latest release](https://github.com/corywalker/expreduce/releases/latest) and download the correct package for your OS.
+If you just want to get started, you can download a binary release and run the software without any downloading Go or compiling. Head over to the [latest release](https://github.com/corywalker/expreduce/releases/latest) and download the correct package for your OS/architecture.
 
 ## From source
-
-You must have the [Git Large File Storage](https://git-lfs.github.com/)  client (`git-lfs`) installed before cloning the repository.
 
 ```
 $ go get github.com/corywalker/expreduce
@@ -129,6 +127,7 @@ go generate ./...
 go test ./...
 # Or to test some important parts with helpful information printed:
 go test -v github.com/corywalker/expreduce/expreduce -count=1
+# To exit early, press Ctrl-\
 ```
 
 The use of `go generate` might require the download of additional dependencies, for example `go install github.com/go-bindata/go-bindata/...@latest`.

@@ -204,12 +204,15 @@ Sum::usage = "`+"`"+`Sum[expr, n]`+"`"+` returns the sum of `+"`"+`n`+"`"+` copi
 `+"`"+`Sum[expr, {sym, n}]`+"`"+` returns the sum of `+"`"+`expr`+"`"+` evaluated with `+"`"+`sym`+"`"+` = 1 to `+"`"+`n`+"`"+`.
 
 `+"`"+`Sum[expr, {sym, m, n}]`+"`"+` returns the sum of `+"`"+`expr`+"`"+` evaluated with `+"`"+`sym`+"`"+` = `+"`"+`m`+"`"+` to `+"`"+`n`+"`"+`.";
+Attributes[Sum] = {HoldAll, ReadProtected, Protected};
 Sum[i_Symbol, {i_Symbol, 0, n_Integer}] := 1/2*n*(1 + n);
 Sum[i_Symbol, {i_Symbol, 1, n_Integer}] := 1/2*n*(1 + n);
 Sum[i_Symbol, {i_Symbol, end_}]         := 1/2*end*(1 + end);
 Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]  := 1/2*n*(1 + n);
 Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]  := 1/2*n*(1 + n);
-Attributes[Sum] = {HoldAll, ReadProtected, Protected};
+(* Infinite series *)
+Sum[i_Symbol^(-2), {i_Symbol, 1, Infinity}] := Pi^2/6;
+Sum[num_/(i_Symbol^2), {i_Symbol, 1, Infinity}] := num * Pi^2/6;
 Tests`+"`"+`Sum = {
     ESimpleExamples[
         ESameTest[45, Sum[i, {i, 5, 10}]],
@@ -223,6 +226,10 @@ Tests`+"`"+`Sum = {
         ESameTest[b+c+d+e, Sum[a, {a, {b, c, d, e}}]],
         ESameTest[b g + c g + d g + e g + b h + c h + d h + e h, Sum[a*f, {a, {b, c, d, e}}, {f, {g, h}}]],
         ESameTest[25 n (1 + 50 n), Sum[i, {i, n*50}]],
+    ], ETests[
+        ESameTest[Sum[1/(n^2), {n, 1, Infinity}], Pi^2/6],
+        ESameTest[Sum[n^-2, {n, 1, Infinity}], Pi^2/6],
+        ESameTest[Sum[6/(n^2), {n, 1, Infinity}], Pi^2],
     ]
 };
 
@@ -4376,7 +4383,7 @@ ExpreduceFactorConstant[p_Plus] := Module[{e = p, cTerms, c},
 ExpreduceFactorConstant[e_] := e;
 Attributes[ExpreduceFactorConstant] = {Protected};
 
-Varibles::usage = "`+"`"+`Variables[expr]`+"`"+` returns the variables in `+"`"+`expr`+"`"+`.";
+Variables::usage = "`+"`"+`Variables[expr]`+"`"+` returns the variables in `+"`"+`expr`+"`"+`.";
 Variables[s_Symbol] := {s};
 Variables[s_^p_Integer] := Variables[s];
 Variables[s_^p_Rational] := Variables[s];
@@ -4646,7 +4653,15 @@ Tests`+"`"+`ComplexExpand = {
         ESameTest[-2^(1/3)-I 2^(1/3) Sqrt[3], ComplexExpand[(-2)^(4/3)]],
     ]
 };
-`)
+
+Exp::usage = "`+"`"+`Exp[x]`+"`"+` returns the exponential of `+"`"+`x`+"`"+`.";
+Attributes[Exp] = {Listable, NumericFunction, Protected, ReadProtected};
+Exp[x_] := E^x;
+Tests`+"`"+`Exp = {
+    ESimpleExamples[
+        ESameTest[Simplify[Exp[x] * Exp[y] == Exp[x + y]], True],
+    ]
+};`)
 
 func resourcesPowerMBytes() ([]byte, error) {
 	return _resourcesPowerM, nil

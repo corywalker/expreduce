@@ -90,12 +90,15 @@ Sum::usage = "`Sum[expr, n]` returns the sum of `n` copies of `expr`.
 `Sum[expr, {sym, n}]` returns the sum of `expr` evaluated with `sym` = 1 to `n`.
 
 `Sum[expr, {sym, m, n}]` returns the sum of `expr` evaluated with `sym` = `m` to `n`.";
+Attributes[Sum] = {HoldAll, ReadProtected, Protected};
 Sum[i_Symbol, {i_Symbol, 0, n_Integer}] := 1/2*n*(1 + n);
 Sum[i_Symbol, {i_Symbol, 1, n_Integer}] := 1/2*n*(1 + n);
 Sum[i_Symbol, {i_Symbol, end_}]         := 1/2*end*(1 + end);
 Sum[i_Symbol, {i_Symbol, 0, n_Symbol}]  := 1/2*n*(1 + n);
 Sum[i_Symbol, {i_Symbol, 1, n_Symbol}]  := 1/2*n*(1 + n);
-Attributes[Sum] = {HoldAll, ReadProtected, Protected};
+(* Infinite series *)
+Sum[i_Symbol^(-2), {i_Symbol, 1, Infinity}] := Pi^2/6;
+Sum[num_/(i_Symbol^2), {i_Symbol, 1, Infinity}] := num * Pi^2/6;
 Tests`Sum = {
     ESimpleExamples[
         ESameTest[45, Sum[i, {i, 5, 10}]],
@@ -109,6 +112,10 @@ Tests`Sum = {
         ESameTest[b+c+d+e, Sum[a, {a, {b, c, d, e}}]],
         ESameTest[b g + c g + d g + e g + b h + c h + d h + e h, Sum[a*f, {a, {b, c, d, e}}, {f, {g, h}}]],
         ESameTest[25 n (1 + 50 n), Sum[i, {i, n*50}]],
+    ], ETests[
+        ESameTest[Sum[1/(n^2), {n, 1, Infinity}], Pi^2/6],
+        ESameTest[Sum[n^-2, {n, 1, Infinity}], Pi^2/6],
+        ESameTest[Sum[6/(n^2), {n, 1, Infinity}], Pi^2],
     ]
 };
 
