@@ -8,7 +8,11 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func toStringBlankType(repr string, parts []expreduceapi.Ex, params expreduceapi.ToStringParams) (bool, string) {
+func toStringBlankType(
+	repr string,
+	parts []expreduceapi.Ex,
+	params expreduceapi.ToStringParams,
+) (bool, string) {
 	if params.Form == "FullForm" {
 		return false, ""
 	}
@@ -47,9 +51,18 @@ func getPatternDefinitions() (defs []Definition) {
 				return false, ""
 			}
 			var buffer bytes.Buffer
-			_, blankOk := atoms.HeadAssertion(this.GetParts()[2], "System`Blank")
-			_, bsOk := atoms.HeadAssertion(this.GetParts()[2], "System`BlankSequence")
-			_, bnsOk := atoms.HeadAssertion(this.GetParts()[2], "System`BlankNullSequence")
+			_, blankOk := atoms.HeadAssertion(
+				this.GetParts()[2],
+				"System`Blank",
+			)
+			_, bsOk := atoms.HeadAssertion(
+				this.GetParts()[2],
+				"System`BlankSequence",
+			)
+			_, bnsOk := atoms.HeadAssertion(
+				this.GetParts()[2],
+				"System`BlankNullSequence",
+			)
 			if blankOk || bsOk || bnsOk {
 				buffer.WriteString(this.GetParts()[1].StringForm(params))
 				buffer.WriteString(this.GetParts()[2].StringForm(params))
@@ -103,17 +116,29 @@ func getPatternDefinitions() (defs []Definition) {
 				return this
 			}
 
-			rule, isRule := atoms.HeadAssertion(this.GetParts()[2], "System`Rule")
+			rule, isRule := atoms.HeadAssertion(
+				this.GetParts()[2],
+				"System`Rule",
+			)
 			if !isRule {
 				return this
 			}
-			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
-			mi, cont := matcher.NewMatchIter(this.GetParts()[1], rule.GetParts()[1], matcher.EmptyPD(), es)
+			res := atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+			)
+			mi, cont := matcher.NewMatchIter(
+				this.GetParts()[1],
+				rule.GetParts()[1],
+				matcher.EmptyPD(),
+				es,
+			)
 			for cont {
 				matchq, newPd, done := mi.Next()
 				cont = !done
 				if matchq {
-					res.AppendEx(matcher.ReplacePD(rule.GetParts()[2], es, newPd))
+					res.AppendEx(
+						matcher.ReplacePD(rule.GetParts()[2], es, newPd),
+					)
 				}
 			}
 			return res

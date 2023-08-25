@@ -12,7 +12,9 @@ func getBooleanDefinitions() (defs []Definition) {
 			return toStringInfix(this.GetParts()[1:], " && ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`And")})
+			res := atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`And")},
+			)
 			for i := 1; i < len(this.GetParts()); i++ {
 				this.GetParts()[i] = es.Eval(this.GetParts()[i])
 				if booleanQ(this.GetParts()[i], es.GetLogger()) {
@@ -38,7 +40,9 @@ func getBooleanDefinitions() (defs []Definition) {
 			return toStringInfix(this.GetParts()[1:], " || ", "", params)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Or")})
+			res := atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`Or")},
+			)
 			for i := 1; i < len(this.GetParts()); i++ {
 				this.GetParts()[i] = es.Eval(this.GetParts()[i])
 				if booleanQ(this.GetParts()[i], es.GetLogger()) {

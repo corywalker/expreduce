@@ -4,7 +4,9 @@ import "github.com/corywalker/expreduce/pkg/expreduceapi"
 
 type fakeEvalState struct{}
 
-func (fes fakeEvalState) GetStringFn(headStr string) (expreduceapi.ToStringFnType, bool) {
+func (fes fakeEvalState) GetStringFn(
+	headStr string,
+) (expreduceapi.ToStringFnType, bool) {
 	return nil, false
 }
 

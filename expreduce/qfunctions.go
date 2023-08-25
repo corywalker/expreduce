@@ -8,7 +8,9 @@ import (
 )
 
 type singleParamQType (func(expreduceapi.Ex) bool)
+
 type singleParamQLogType (func(expreduceapi.Ex, expreduceapi.LoggingInterface) bool)
+
 type evalFnType (func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex)
 
 func singleParamQEval(fn singleParamQType) evalFnType {
@@ -57,7 +59,11 @@ func matrixQ(e expreduceapi.Ex, cl expreduceapi.LoggingInterface) bool {
 	return false
 }
 
-func symbolNameQ(e expreduceapi.Ex, name string, cl expreduceapi.LoggingInterface) bool {
+func symbolNameQ(
+	e expreduceapi.Ex,
+	name string,
+	cl expreduceapi.LoggingInterface,
+) bool {
 	sym, isSym := e.(*atoms.Symbol)
 	if isSym {
 		return sym.Name == name

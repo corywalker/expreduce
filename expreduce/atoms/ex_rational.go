@@ -15,9 +15,15 @@ type Rational struct {
 	needsEval bool
 }
 
-func (thisRational *Rational) StringForm(params expreduceapi.ToStringParams) string {
+func (thisRational *Rational) StringForm(
+	params expreduceapi.ToStringParams,
+) string {
 	if params.Form == "FullForm" {
-		return fmt.Sprintf("Rational[%d, %d]", thisRational.Num, thisRational.Den)
+		return fmt.Sprintf(
+			"Rational[%d, %d]",
+			thisRational.Num,
+			thisRational.Den,
+		)
 	}
 	if params.Form == "TeXForm" {
 		return fmt.Sprintf("\\frac{%d}{%d}", thisRational.Num, thisRational.Den)
@@ -34,7 +40,8 @@ func (thisRational *Rational) IsEqual(other expreduceapi.Ex) string {
 		return "EQUAL_FALSE"
 	}
 	// Assume rational already simplified
-	if (thisRational.Num.Cmp(otherConv.Num) != 0) || (thisRational.Den.Cmp(otherConv.Den) != 0) {
+	if (thisRational.Num.Cmp(otherConv.Num) != 0) ||
+		(thisRational.Den.Cmp(otherConv.Den) != 0) {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"

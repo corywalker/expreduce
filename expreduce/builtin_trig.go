@@ -8,7 +8,9 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func mathFnOneParam(fn func(float64) float64) func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func mathFnOneParam(
+	fn func(float64) float64,
+) func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 		if len(this.GetParts()) != 2 {
 			return this
@@ -47,9 +49,11 @@ func getTrigDefinitions() (defs []Definition) {
 		toString:     simpleTeXToString("tan^{-1}"),
 	})
 	defs = append(defs, Definition{
-		Name:         "Cot",
-		legacyEvalFn: mathFnOneParam(func(x float64) float64 { return 1 / math.Tan(x) }),
-		toString:     simpleTeXToString("cot"),
+		Name: "Cot",
+		legacyEvalFn: mathFnOneParam(
+			func(x float64) float64 { return 1 / math.Tan(x) },
+		),
+		toString: simpleTeXToString("cot"),
 	})
 	defs = append(defs, Definition{
 		Name:              "TrigExpand",

@@ -29,9 +29,16 @@ func listToPoint(expr expreduceapi.Ex) (float64, float64, error) {
 	return x, y, nil
 }
 
-func renderLine(graph *chart.Chart, line *atoms.Expression, style *chart.Style) error {
+func renderLine(
+	graph *chart.Chart,
+	line *atoms.Expression,
+	style *chart.Style,
+) error {
 	if line.Len() != 1 {
-		return fmt.Errorf("expected Line to have one argument, but it has %v arguments", line.Len())
+		return fmt.Errorf(
+			"expected Line to have one argument, but it has %v arguments",
+			line.Len(),
+		)
 	}
 	points, ok := atoms.HeadAssertion(line.GetPart(1), "System`List")
 	if !ok {
@@ -59,7 +66,9 @@ func setColor(colorExpr *atoms.Expression, color *drawing.Color) error {
 	for i := 0; i < 3; i++ {
 		asFlt, isFlt := colorExpr.GetPart(i + 1).(*atoms.Flt)
 		if !isFlt {
-			return fmt.Errorf("the RGBColor should have floating point arguments")
+			return fmt.Errorf(
+				"the RGBColor should have floating point arguments",
+			)
 		}
 		fltVal, _ := asFlt.Val.Float32()
 		intVal := uint8(fltVal * 255)
@@ -90,13 +99,18 @@ func setOpacity(opacityExpr *atoms.Expression, color *drawing.Color) error {
 	return nil
 }
 
-func setAbsoluteThickness(thicknessExpr *atoms.Expression, thickness *float64) error {
+func setAbsoluteThickness(
+	thicknessExpr *atoms.Expression,
+	thickness *float64,
+) error {
 	if thicknessExpr.Len() != 1 {
 		return fmt.Errorf("expected an AbsoluteThickness with 1 argument")
 	}
 	asFlt, isFlt := thicknessExpr.GetPart(1).(*atoms.Flt)
 	if !isFlt {
-		return fmt.Errorf("the AbsoluteThickness should have a floating point argument")
+		return fmt.Errorf(
+			"the AbsoluteThickness should have a floating point argument",
+		)
 	}
 	fltVal, _ := asFlt.Val.Float64()
 	*thickness = fltVal
@@ -114,7 +128,10 @@ func setDirective(style *chart.Style, dir expreduceapi.Ex) error {
 		err := setOpacity(opacity, &style.StrokeColor)
 		return err
 	}
-	thickness, isThickness := atoms.HeadAssertion(dir, "System`AbsoluteThickness")
+	thickness, isThickness := atoms.HeadAssertion(
+		dir,
+		"System`AbsoluteThickness",
+	)
 	if isThickness {
 		err := setAbsoluteThickness(thickness, &style.StrokeWidth)
 		return err
@@ -123,7 +140,11 @@ func setDirective(style *chart.Style, dir expreduceapi.Ex) error {
 	return nil
 }
 
-func renderPrimitive(graph *chart.Chart, primitive expreduceapi.Ex, style *chart.Style) error {
+func renderPrimitive(
+	graph *chart.Chart,
+	primitive expreduceapi.Ex,
+	style *chart.Style,
+) error {
 	line, isLine := atoms.HeadAssertion(primitive, "System`Line")
 	list, isList := atoms.HeadAssertion(primitive, "System`List")
 	directive, isDirective := atoms.HeadAssertion(primitive, "System`Directive")
@@ -168,11 +189,16 @@ func Render(expr expreduceapi.Ex) (chart.Chart, error) {
 
 	graphics, ok := atoms.HeadAssertion(expr, "System`Graphics")
 	if !ok {
-		return graph, fmt.Errorf("trying to render a non-Graphics[] expression: %v", expr)
+		return graph, fmt.Errorf(
+			"trying to render a non-Graphics[] expression: %v",
+			expr,
+		)
 	}
 
 	if graphics.Len() < 1 {
-		return graph, errors.New("the Graphics[] expression must have at least one argument")
+		return graph, errors.New(
+			"the Graphics[] expression must have at least one argument",
+		)
 	}
 
 	style := chart.Style{

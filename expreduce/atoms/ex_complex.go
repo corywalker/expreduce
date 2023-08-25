@@ -42,7 +42,8 @@ func (cmplx *Complex) IsEqual(other expreduceapi.Ex) string {
 	if !otherIsComplex {
 		return "EQUAL_FALSE"
 	}
-	if (cmplx.Re.IsEqual(otherConv.Re) != "EQUAL_TRUE") || (cmplx.Im.IsEqual(otherConv.Im) != "EQUAL_TRUE") {
+	if (cmplx.Re.IsEqual(otherConv.Re) != "EQUAL_TRUE") ||
+		(cmplx.Im.IsEqual(otherConv.Im) != "EQUAL_TRUE") {
 		return "EQUAL_FALSE"
 	}
 	return "EQUAL_TRUE"
@@ -127,7 +128,10 @@ func (cmplx *Complex) mulC(c *Complex) {
 	// Perhaps create "Calculator" utility??
 	// TODO(corywalker) Remove the definition that cmplx implements in code.
 	a, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), cmplx.Re, c.Re))
-	b, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), NewInt(-1), cmplx.Im, c.Im))
+	b, _ := ComputeNumericPart(
+		FoldFnMul,
+		E(S("Dummy"), NewInt(-1), cmplx.Im, c.Im),
+	)
 	cc, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), cmplx.Re, c.Im))
 	d, _ := ComputeNumericPart(FoldFnMul, E(S("Dummy"), cmplx.Im, c.Re))
 	e, _ := ComputeNumericPart(FoldFnAdd, E(S("Dummy"), a, b))

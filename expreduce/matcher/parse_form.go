@@ -18,7 +18,9 @@ type parsedForm struct {
 	patSym      *atoms.Symbol
 }
 
-func parseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, int, bool) {
+func parseRepeated(
+	e expreduceapi.ExpressionInterface,
+) (expreduceapi.Ex, int, int, bool) {
 	min, max := -1, -1
 	if len(e.GetParts()) < 2 {
 		return nil, min, max, false
@@ -42,7 +44,13 @@ func parseRepeated(e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int, in
 	return e.GetParts()[1], min, max, true
 }
 
-func parseForm(lhsComponent expreduceapi.Ex, isFlat bool, sequenceHead string, headDefault expreduceapi.Ex, cl expreduceapi.LoggingInterface) (res parsedForm) {
+func parseForm(
+	lhsComponent expreduceapi.Ex,
+	isFlat bool,
+	sequenceHead string,
+	headDefault expreduceapi.Ex,
+	cl expreduceapi.LoggingInterface,
+) (res parsedForm) {
 	// Calculate the min and max elements this component can match.
 	toParse := lhsComponent
 	optional, isOptional := atoms.HeadAssertion(toParse, "System`Optional")
@@ -69,7 +77,10 @@ func parseForm(lhsComponent expreduceapi.Ex, isFlat bool, sequenceHead string, h
 	bs, isBs := atoms.HeadAssertion(toParse, "System`BlankSequence")
 	blank, isBlank := atoms.HeadAssertion(toParse, "System`Blank")
 	repeated, isRepeated := atoms.HeadAssertion(toParse, "System`Repeated")
-	repeatedNull, isRepeatedNull := atoms.HeadAssertion(toParse, "System`RepeatedNull")
+	repeatedNull, isRepeatedNull := atoms.HeadAssertion(
+		toParse,
+		"System`RepeatedNull",
+	)
 	isImpliedBs := isBlank && isFlat
 	// Ensure isBlank is exclusive from isImpliedBs
 	isBlank = isBlank && !isImpliedBs
@@ -144,7 +155,13 @@ func parseForm(lhsComponent expreduceapi.Ex, isFlat bool, sequenceHead string, h
 	}
 
 	if isPatTest {
-		form = atoms.NewExpression([]expreduceapi.Ex{patTest.GetParts()[0], form, patTest.GetParts()[2]})
+		form = atoms.NewExpression(
+			[]expreduceapi.Ex{
+				patTest.GetParts()[0],
+				form,
+				patTest.GetParts()[2],
+			},
+		)
 	}
 
 	res.startI = startI

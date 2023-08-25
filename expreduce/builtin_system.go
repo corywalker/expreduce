@@ -22,7 +22,11 @@ import (
 	"github.com/op/go-logging"
 )
 
-var mymemprofile = flag.String("mymemprofile", "", "write memory profile to this file")
+var mymemprofile = flag.String(
+	"mymemprofile",
+	"",
+	"write memory profile to this file",
+)
 
 var exprFileHeader = []byte{26, 166, 245, 29, 69, 251, 144, 0}
 
@@ -35,7 +39,10 @@ func hashEx(e expreduceapi.Ex) uint64 {
 	return e.Hash()
 }
 
-func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi.Ex {
+func exprToN(
+	es expreduceapi.EvalStateInterface,
+	e expreduceapi.Ex,
+) expreduceapi.Ex {
 	asInt, isInt := e.(*atoms.Integer)
 	if isInt {
 		toReturn, _ := atoms.IntegerToFlt(asInt)
@@ -50,7 +57,9 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 	if isSym {
 		toReturn, defined, _ := es.GetDef(
 			"System`N",
-			atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), e}),
+			atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`N"), e},
+			),
 		)
 		if defined {
 			return toReturn
@@ -60,7 +69,9 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 	if isExpr {
 		toReturn, defined, _ := es.GetDef(
 			"System`N",
-			atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), e}),
+			atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`N"), e},
+			),
 		)
 		if defined {
 			return toReturn
@@ -69,7 +80,9 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 		for _, part := range asExpr.GetParts() {
 			toAdd, defined, _ := es.GetDef(
 				"System`N",
-				atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), part}),
+				atoms.NewExpression(
+					[]expreduceapi.Ex{atoms.NewSymbol("System`N"), part},
+				),
 			)
 			if !defined {
 				toAdd = exprToN(es, part)
@@ -81,7 +94,10 @@ func exprToN(es expreduceapi.EvalStateInterface, e expreduceapi.Ex) expreduceapi
 	return e.DeepCopy()
 }
 
-func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) ([]byte, string, bool) {
+func tryReadFile(
+	fn expreduceapi.Ex,
+	es expreduceapi.EvalStateInterface,
+) ([]byte, string, bool) {
 	pathSym := atoms.NewSymbol("System`$Path")
 	path, isDef, _ := es.GetDef("System`$Path", pathSym)
 	if !isDef {
@@ -133,7 +149,11 @@ func tryReadFile(fn expreduceapi.Ex, es expreduceapi.EvalStateInterface) ([]byte
 	return []byte{}, "", false
 }
 
-func snagUnique(context string, prefix string, es expreduceapi.EvalStateInterface) (string, bool) {
+func snagUnique(
+	context string,
+	prefix string,
+	es expreduceapi.EvalStateInterface,
+) (string, bool) {
 	mnExpr, mnIsDef := es.GetSymDef("System`$ModuleNumber")
 	if !mnIsDef {
 		return "", false
@@ -148,19 +168,28 @@ func snagUnique(context string, prefix string, es expreduceapi.EvalStateInterfac
 	for {
 		toTry := fmt.Sprintf("%v%v%v", context, prefix, mn)
 		if !es.IsDef(toTry) {
-			es.Define(atoms.NewSymbol("System`$ModuleNumber"), atoms.NewInteger(big.NewInt(mn+1)))
+			es.Define(
+				atoms.NewSymbol("System`$ModuleNumber"),
+				atoms.NewInteger(big.NewInt(mn+1)),
+			)
 			return toTry, true
 		}
 		mn++
 	}
 }
 
-func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
+func applyModuleFn(
+	this expreduceapi.ExpressionInterface,
+	es expreduceapi.EvalStateInterface,
+) (expreduceapi.Ex, bool) {
 	// Coarse parsing of arguments.
 	if len(this.GetParts()) != 3 {
 		return nil, false
 	}
-	locals, localsIsList := atoms.HeadAssertion(this.GetParts()[1], "System`List")
+	locals, localsIsList := atoms.HeadAssertion(
+		this.GetParts()[1],
+		"System`List",
+	)
 	if !localsIsList {
 		return nil, false
 	}
@@ -179,7 +208,10 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 		symEx := localEx
 		localSet, localIsSet := atoms.HeadAssertion(localEx, "System`Set")
 		pl.isSet = localIsSet
-		localSetDelayed, localIsSetDelayed := atoms.HeadAssertion(localEx, "System`SetDelayed")
+		localSetDelayed, localIsSetDelayed := atoms.HeadAssertion(
+			localEx,
+			"System`SetDelayed",
+		)
 		pl.isSetDelayed = localIsSetDelayed
 		if localIsSet && len(localSet.GetParts()) == 3 {
 			symEx = localSet.GetParts()[1]
@@ -217,7 +249,10 @@ func applyModuleFn(this expreduceapi.ExpressionInterface, es expreduceapi.EvalSt
 					expreduceapi.DownValue{
 						Rule: atoms.NewExpression([]expreduceapi.Ex{
 							atoms.NewSymbol("System`Rule"),
-							atoms.E(atoms.S("HoldPattern"), atoms.NewSymbol(pl.uniqueName)),
+							atoms.E(
+								atoms.S("HoldPattern"),
+								atoms.NewSymbol(pl.uniqueName),
+							),
 							rhs,
 						}),
 					},
@@ -240,7 +275,10 @@ func parseOutputStream(outputStreamDef expreduceapi.Ex) (string, int64, bool) {
 		return streamName.GetValue(), -1, true
 	}
 
-	outputStream, isOutputStream := atoms.HeadAssertion(outputStreamDef, "System`OutputStream")
+	outputStream, isOutputStream := atoms.HeadAssertion(
+		outputStreamDef,
+		"System`OutputStream",
+	)
 	if !isOutputStream {
 		return "", -1, false
 	}
@@ -274,7 +312,12 @@ func getSystemDefinitions() (defs []Definition) {
 					errorStr := "Invalid level. Must be one of {Debug, Info, Notice}."
 					levelSym, lsOk := this.GetParts()[2].(*atoms.Symbol)
 					if !lsOk {
-						return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString(errorStr)})
+						return atoms.NewExpression(
+							[]expreduceapi.Ex{
+								atoms.NewSymbol("System`Error"),
+								atoms.NewString(errorStr),
+							},
+						)
 					}
 					if levelSym.Name == "System`Debug" {
 						es.DebugOn(logging.DEBUG)
@@ -330,7 +373,9 @@ func getSystemDefinitions() (defs []Definition) {
 			if isDef {
 				return atoms.AttrsToSymList(&def.Attributes)
 			}
-			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+			return atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+			)
 		},
 	})
 	defs = append(defs, Definition{
@@ -406,7 +451,9 @@ func getSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return this
 			}
-			res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+			res := atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+			)
 			def, isd := es.GetDefinedMap().Get(sym.Name)
 			if !isd {
 				return res
@@ -433,7 +480,15 @@ func getSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return toStringInfixAdvanced(this.GetParts()[1:], " = ", "System`Set", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" = ",
+				"System`Set",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
@@ -458,10 +513,20 @@ func getSystemDefinitions() (defs []Definition) {
 			&StringTest{"36", "x=x*x"},
 		},
 		FurtherExamples: []TestInstruction{
-			&TestComment{"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:"},
-			&SameTest{"{HoldFirst, Protected, SequenceHold}", "Attributes[Set]"},
-			&TestComment{"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:"},
-			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
+			&TestComment{
+				"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:",
+			},
+			&SameTest{
+				"{HoldFirst, Protected, SequenceHold}",
+				"Attributes[Set]",
+			},
+			&TestComment{
+				"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:",
+			},
+			&SameTest{
+				"{HoldAll, Protected, SequenceHold}",
+				"Attributes[SetDelayed]",
+			},
 		},
 		KnownFailures: []TestInstruction{
 			// Set up for the known failure:
@@ -481,7 +546,15 @@ func getSystemDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return toStringInfixAdvanced(this.GetParts()[1:], " := ", "System`SetDelayed", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" := ",
+				"System`SetDelayed",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 		Bootstrap: true,
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
@@ -518,14 +591,26 @@ func getSystemDefinitions() (defs []Definition) {
 			&TestComment{"The more \"specific\" definitions match first:"},
 			&SameTest{"8.", "testa[2.]"},
 			&SameTest{"6", "testa[2]"},
-			&TestComment{"There is no specific match for `testa[k]`, so the general case matches:"},
+			&TestComment{
+				"There is no specific match for `testa[k]`, so the general case matches:",
+			},
 			&SameTest{"2 * k", "testa[k]"},
 		},
 		FurtherExamples: []TestInstruction{
-			&TestComment{"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:"},
-			&SameTest{"{HoldFirst, Protected, SequenceHold}", "Attributes[Set]"},
-			&TestComment{"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:"},
-			&SameTest{"{HoldAll, Protected, SequenceHold}", "Attributes[SetDelayed]"},
+			&TestComment{
+				"`Set` has the `HoldFirst` attribute, meaning `rhs` is evaluated before assignment:",
+			},
+			&SameTest{
+				"{HoldFirst, Protected, SequenceHold}",
+				"Attributes[Set]",
+			},
+			&TestComment{
+				"`SetDelayed` has the `HoldAll` attribute, meaning `rhs` is not evaluated during assignment:",
+			},
+			&SameTest{
+				"{HoldAll, Protected, SequenceHold}",
+				"Attributes[SetDelayed]",
+			},
 		},
 		Tests: []TestInstruction{
 			// Test function definitions
@@ -563,7 +648,10 @@ func getSystemDefinitions() (defs []Definition) {
 
 			// Test with HoldAll. We should not evaluate the arguments even
 			// when setting.
-			&SameTest{"Attributes[holdTest]= {HoldAll};holdTest[1+1]:=\"pass\";holdTest[1+1]", "\"pass\""},
+			&SameTest{
+				"Attributes[holdTest]= {HoldAll};holdTest[1+1]:=\"pass\";holdTest[1+1]",
+				"\"pass\"",
+			},
 		},
 	})
 	defs = append(defs, Definition{
@@ -576,7 +664,13 @@ func getSystemDefinitions() (defs []Definition) {
 			start := time.Now()
 			res := es.Eval(this.GetParts()[1])
 			elapsed := time.Since(start).Seconds()
-			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), atoms.NewReal(big.NewFloat(elapsed)), res})
+			return atoms.NewExpression(
+				[]expreduceapi.Ex{
+					atoms.NewSymbol("System`List"),
+					atoms.NewReal(big.NewFloat(elapsed)),
+					res,
+				},
+			)
 		},
 	})
 	defs = append(defs, Definition{
@@ -597,7 +691,11 @@ func getSystemDefinitions() (defs []Definition) {
 			// way.
 
 			// Put system in trace mode:
-			es.SetTrace(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")}))
+			es.SetTrace(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+				),
+			)
 			// Evaluate first argument in trace mode:
 			es.Eval(this.GetParts()[1])
 			if es.GetTrace() != nil && len(es.GetTrace().GetParts()) > 2 {
@@ -607,7 +705,9 @@ func getSystemDefinitions() (defs []Definition) {
 				return toReturn
 			}
 			es.SetTrace(nil)
-			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+			return atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+			)
 		},
 	})
 	defs = append(defs, Definition{
@@ -669,7 +769,13 @@ func getSystemDefinitions() (defs []Definition) {
 		Default:           "0",
 		OmitDocumentation: true,
 		expreduceSpecific: true,
-		Attributes:        []string{"Flat", "Listable", "NumericFunction", "OneIdentity", "Orderless"},
+		Attributes: []string{
+			"Flat",
+			"Listable",
+			"NumericFunction",
+			"OneIdentity",
+			"Orderless",
+		},
 	})
 	defs = append(defs, Definition{
 		Name: "Get",
@@ -681,7 +787,8 @@ func getSystemDefinitions() (defs []Definition) {
 			if !ok {
 				return atoms.NewSymbol("System`$Failed")
 			}
-			if len(fileData) >= len(exprFileHeader) && bytes.Equal(fileData[:len(exprFileHeader)], exprFileHeader) {
+			if len(fileData) >= len(exprFileHeader) &&
+				bytes.Equal(fileData[:len(exprFileHeader)], exprFileHeader) {
 
 				// TODO: Read as a stream and not a byte string.
 				r := bytes.NewReader(fileData[len(exprFileHeader):])
@@ -914,7 +1021,11 @@ func getSystemDefinitions() (defs []Definition) {
 			}
 			es.SetReapSown(atoms.E(atoms.S("List")))
 			res := es.Eval(this.GetParts()[1])
-			res = atoms.E(atoms.S("List"), res, atoms.E(atoms.S("List"), es.GetReapSown()))
+			res = atoms.E(
+				atoms.S("List"),
+				res,
+				atoms.E(atoms.S("List"), es.GetReapSown()),
+			)
 			// If I set this to nil, Int[((A + B*Cos[x])*(a + b*Sin[x])^-1), x]
 			// will not work for an unknown reason.
 			es.SetReapSown(atoms.E(atoms.S("List")))
@@ -941,10 +1052,13 @@ func getSystemDefinitions() (defs []Definition) {
 			}
 			str, ok := this.GetPart(2).(*atoms.String)
 			if !ok {
-				fmt.Println("Failed to convert the second argument of WriteString to a string.")
+				fmt.Println(
+					"Failed to convert the second argument of WriteString to a string.",
+				)
 				return this
 			}
-			es.GetStreamManager().WriteString(streamName, streamIndex, str.GetValue())
+			es.GetStreamManager().
+				WriteString(streamName, streamIndex, str.GetValue())
 			return atoms.NewSymbol("System`Null")
 		},
 	})
@@ -968,7 +1082,12 @@ func getSystemDefinitions() (defs []Definition) {
 			if this.Len() == 1 {
 				filter, filterIsString := this.GetPart(1).(*atoms.String)
 				if filterIsString {
-					replacedVal := strings.Replace(filter.GetValue(), "*", ".*", -1)
+					replacedVal := strings.Replace(
+						filter.GetValue(),
+						"*",
+						".*",
+						-1,
+					)
 					regex = "^" + replacedVal + "$"
 				}
 			}

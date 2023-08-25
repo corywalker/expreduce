@@ -29,7 +29,9 @@ var inequalityOps = map[string]bool{
 	"System`GreaterEqual": true,
 }
 
-func convertToInequality(expr expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
+func convertToInequality(
+	expr expreduceapi.ExpressionInterface,
+) expreduceapi.ExpressionInterface {
 	res := atoms.E(atoms.S("Inequality"))
 	for i, e := range expr.GetParts()[1:] {
 		if i != 0 {
@@ -40,7 +42,11 @@ func convertToInequality(expr expreduceapi.ExpressionInterface) expreduceapi.Exp
 	return res
 }
 
-func fullyAssoc(op string, lhs expreduceapi.Ex, rhs expreduceapi.Ex) expreduceapi.Ex {
+func fullyAssoc(
+	op string,
+	lhs expreduceapi.Ex,
+	rhs expreduceapi.Ex,
+) expreduceapi.Ex {
 	_, opIsIneq := inequalityOps[op]
 	if opIsIneq {
 		lhsEx, lhsIsEx := lhs.(expreduceapi.ExpressionInterface)
@@ -74,7 +80,10 @@ func removeParens(ex expreduceapi.Ex) {
 			isParens := true
 			var parens expreduceapi.ExpressionInterface
 			for isParens {
-				parens, isParens = atoms.HeadAssertion(expr.GetParts()[i], "Internal`Parens")
+				parens, isParens = atoms.HeadAssertion(
+					expr.GetParts()[i],
+					"Internal`Parens",
+				)
 				if isParens {
 					expr.GetParts()[i] = parens.GetParts()[1]
 				}
@@ -84,7 +93,12 @@ func removeParens(ex expreduceapi.Ex) {
 	}
 }
 
-func addContextAndDefine(e expreduceapi.Ex, context string, contextPath []string, esfp evalStateForParser) {
+func addContextAndDefine(
+	e expreduceapi.Ex,
+	context string,
+	contextPath []string,
+	esfp evalStateForParser,
+) {
 	if sym, isSym := e.(*atoms.Symbol); isSym {
 		if !strings.Contains(sym.Name, "`") {
 			for _, toTry := range contextPath {
@@ -117,7 +131,13 @@ func parsePattern(buf string) expreduceapi.Ex {
 	}
 	parts := strings.Split(buf, delim)
 	if len(parts) == 1 {
-		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})
+		return atoms.NewExpression(
+			[]expreduceapi.Ex{
+				atoms.NewSymbol("System`Pattern"),
+				atoms.NewSymbol(parts[0]),
+				atoms.NewExpression([]expreduceapi.Ex{blankType}),
+			},
+		)
 	}
 	if len(parts) == 2 {
 		if parts[0] == "" {
@@ -126,16 +146,37 @@ func parsePattern(buf string) expreduceapi.Ex {
 			} else if delim == "_" && parts[1] == "." {
 				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Optional"), atoms.NewExpression([]expreduceapi.Ex{blankType})})
 			}
-			return atoms.NewExpression([]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])})
+			return atoms.NewExpression(
+				[]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])},
+			)
 		}
 		if parts[1] == "" {
-			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})
+			return atoms.NewExpression(
+				[]expreduceapi.Ex{
+					atoms.NewSymbol("System`Pattern"),
+					atoms.NewSymbol(parts[0]),
+					atoms.NewExpression([]expreduceapi.Ex{blankType}),
+				},
+			)
 		} else if delim == "_" && parts[1] == "." {
 			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Optional"), atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType})})})
 		}
-		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Pattern"), atoms.NewSymbol(parts[0]), atoms.NewExpression([]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])})})
+		return atoms.NewExpression(
+			[]expreduceapi.Ex{
+				atoms.NewSymbol("System`Pattern"),
+				atoms.NewSymbol(parts[0]),
+				atoms.NewExpression(
+					[]expreduceapi.Ex{blankType, atoms.NewSymbol(parts[1])},
+				),
+			},
+		)
 	}
-	return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString("Pattern parse error.")})
+	return atoms.NewExpression(
+		[]expreduceapi.Ex{
+			atoms.NewSymbol("System`Error"),
+			atoms.NewString("Pattern parse error."),
+		},
+	)
 }
 
 var unicodeRedefineMap = map[string]string{
@@ -484,7 +525,11 @@ func ReplaceSyms(in string) string {
 	return in
 }
 
-func InterpBuf(buf *bytes.Buffer, fn string, esfp evalStateForParser) (expreduceapi.Ex, error) {
+func InterpBuf(
+	buf *bytes.Buffer,
+	fn string,
+	esfp evalStateForParser,
+) (expreduceapi.Ex, error) {
 	// TODO(corywalker): use the interactive mode for proper newline handling.
 	in, err := wl.NewInput(buf, true)
 	if err != nil {

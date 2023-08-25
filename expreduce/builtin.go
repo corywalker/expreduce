@@ -106,7 +106,9 @@ func toTestInstructions(tc expreduceapi.ExpressionInterface) []TestInstruction {
 	return instructions
 }
 
-func (def *Definition) annotateWithDynamicTests(es expreduceapi.EvalStateInterface) {
+func (def *Definition) annotateWithDynamicTests(
+	es expreduceapi.EvalStateInterface,
+) {
 	tests, testsDef := es.GetSymDef("Tests`" + def.Name)
 	if !testsDef {
 		return
@@ -150,7 +152,9 @@ func (def *Definition) annotateWithDynamicTests(es expreduceapi.EvalStateInterfa
 	}
 }
 
-func (def *Definition) annotateWithDynamicUsage(es expreduceapi.EvalStateInterface) {
+func (def *Definition) annotateWithDynamicUsage(
+	es expreduceapi.EvalStateInterface,
+) {
 	if len(def.Usage) > 0 {
 		return
 	}
@@ -187,13 +191,19 @@ type NamedDefSet struct {
 // GetAllDefinitions returns a list of all builtin functions with metadata. The
 // function returns a list organized by category.
 func GetAllDefinitions() (defs []NamedDefSet) {
-	defs = append(defs, NamedDefSet{"combinatorics", getCombinatoricsDefinitions()})
+	defs = append(
+		defs,
+		NamedDefSet{"combinatorics", getCombinatoricsDefinitions()},
+	)
 	defs = append(defs, NamedDefSet{"calculus", getCalculusDefinitions()})
 	defs = append(defs, NamedDefSet{"comparison", getComparisonDefinitions()})
 	defs = append(defs, NamedDefSet{"atoms", getAtomsDefinitions()})
 	defs = append(defs, NamedDefSet{"functional", getFunctionalDefinitions()})
 	defs = append(defs, NamedDefSet{"expression", getExpressionDefinitions()})
-	defs = append(defs, NamedDefSet{"equationdata", getEquationDataDefinitions()})
+	defs = append(
+		defs,
+		NamedDefSet{"equationdata", getEquationDataDefinitions()},
+	)
 	defs = append(defs, NamedDefSet{"solve", getSolveDefinitions()})
 	defs = append(defs, NamedDefSet{"flowcontrol", getFlowControlDefinitions()})
 	defs = append(defs, NamedDefSet{"list", getListDefinitions()})
@@ -212,7 +222,10 @@ func GetAllDefinitions() (defs []NamedDefSet) {
 	defs = append(defs, NamedDefSet{"pattern", getPatternDefinitions()})
 	defs = append(defs, NamedDefSet{"boolean", getBooleanDefinitions()})
 	defs = append(defs, NamedDefSet{"simplify", getSimplifyDefinitions()})
-	defs = append(defs, NamedDefSet{"numbertheory", getNumberTheoryDefinitions()})
+	defs = append(
+		defs,
+		NamedDefSet{"numbertheory", getNumberTheoryDefinitions()},
+	)
 	defs = append(defs, NamedDefSet{"stats", getStatsDefinitions()})
 	defs = append(defs, NamedDefSet{"manip", getManipDefinitions()})
 	defs = append(defs, NamedDefSet{"rubi", getRubiDefinitions()})

@@ -5,7 +5,10 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func replacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool) {
+func replacePDInternal(
+	e expreduceapi.Ex,
+	pm *PDManager,
+) (expreduceapi.Ex, bool) {
 	asSym, isSym := e.(*atoms.Symbol)
 	if isSym {
 		for k, def := range pm.patternDefined {
@@ -19,7 +22,10 @@ func replacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool)
 	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
 		for i := range asExpr.GetParts() {
-			possiblyNewExpr, dirty := replacePDInternal(asExpr.GetParts()[i], pm)
+			possiblyNewExpr, dirty := replacePDInternal(
+				asExpr.GetParts()[i],
+				pm,
+			)
 			if dirty {
 				thisDirty = true
 				// Mark the expression as dirty and needing eval.
@@ -34,7 +40,11 @@ func replacePDInternal(e expreduceapi.Ex, pm *PDManager) (expreduceapi.Ex, bool)
 // ReplacePD takes an expression and replaces any defined symbols in the
 // PDManager with the defined values. It is a form of subsitution common in
 // function evaluation and replacement.
-func ReplacePD(expr expreduceapi.Ex, es expreduceapi.EvalStateInterface, pm *PDManager) expreduceapi.Ex {
+func ReplacePD(
+	expr expreduceapi.Ex,
+	es expreduceapi.EvalStateInterface,
+	pm *PDManager,
+) expreduceapi.Ex {
 	if pm == nil {
 		return expr
 	}

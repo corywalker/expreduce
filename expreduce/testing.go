@@ -26,7 +26,11 @@ type SameTest struct {
 	In  string
 }
 
-func (test *SameTest) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *SameTest) run(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	td testDesc,
+) bool {
 	return casAssertDescSame(t, es, test.Out, test.In, td.desc)
 }
 
@@ -35,7 +39,11 @@ type StringTest struct {
 	In  string
 }
 
-func (test *StringTest) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *StringTest) run(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	td testDesc,
+) bool {
 	return assert.Equal(t, test.Out, EasyRun(test.In, es), td.desc)
 }
 
@@ -44,13 +52,21 @@ type ExampleOnlyInstruction struct {
 	In  string
 }
 
-func (test *ExampleOnlyInstruction) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *ExampleOnlyInstruction) run(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	td testDesc,
+) bool {
 	return true
 }
 
 type ResetState struct{}
 
-func (test *ResetState) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *ResetState) run(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	td testDesc,
+) bool {
 	es.ClearAll()
 	return true
 }
@@ -59,7 +75,11 @@ type TestComment struct {
 	Comment string
 }
 
-func (test *TestComment) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *TestComment) run(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	td testDesc,
+) bool {
 	return true
 }
 
@@ -70,25 +90,63 @@ type SameTestEx struct {
 	floatTolerance float64
 }
 
-func (test *SameTestEx) run(t *testing.T, es expreduceapi.EvalStateInterface, td testDesc) bool {
+func (test *SameTestEx) run(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	td testDesc,
+) bool {
 	stringParams := ActualStringFormArgsFull("InputForm", es)
-	succ, s := casTestInner(es, es.Eval(test.In), es.Eval(test.Out), test.In.StringForm(stringParams), true, td.desc, test.floatTolerance)
+	succ, s := casTestInner(
+		es,
+		es.Eval(test.In),
+		es.Eval(test.Out),
+		test.In.StringForm(stringParams),
+		true,
+		td.desc,
+		test.floatTolerance,
+	)
 	assert.True(t, succ, s)
 	return succ
 }
 
-func casTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, outTree expreduceapi.Ex, inStr string, test bool, desc string, floatTolerance float64) (succ bool, s string) {
+func casTestInner(
+	es expreduceapi.EvalStateInterface,
+	inTree expreduceapi.Ex,
+	outTree expreduceapi.Ex,
+	inStr string,
+	test bool,
+	desc string,
+	floatTolerance float64,
+) (succ bool, s string) {
 
 	context, contextPath := definitionComplexityStringFormArgs()
 	var buffer bytes.Buffer
 	buffer.WriteString("(")
-	buffer.WriteString(inTree.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: es}))
+	buffer.WriteString(
+		inTree.StringForm(
+			expreduceapi.ToStringParams{
+				Form:        "InputForm",
+				Context:     context,
+				ContextPath: contextPath,
+				Esi:         es,
+			},
+		),
+	)
 	if test {
 		buffer.WriteString(") != (")
 	} else {
 		buffer.WriteString(") == (")
 	}
-	buffer.WriteString(outTree.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: es}))
+	buffer.WriteString(
+		outTree.StringForm(
+			expreduceapi.ToStringParams{
+				Form:        "InputForm",
+				Context:     context,
+				ContextPath: contextPath,
+				Esi:         es,
+			},
+		),
+	)
 	buffer.WriteString(")")
 	buffer.WriteString("\n\tInput was: ")
 	buffer.WriteString(inStr)
@@ -100,7 +158,8 @@ func casTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 	outFloat, outIsFloat := outTree.(*atoms.Flt)
 	inFloat, inIsFloat := inTree.(*atoms.Flt)
 	if floatTolerance > 0 && outIsFloat && inIsFloat {
-		if outFloat.Val.Sign() == inFloat.Val.Sign() && outFloat.Val.Sign() != 0 {
+		if outFloat.Val.Sign() == inFloat.Val.Sign() &&
+			outFloat.Val.Sign() != 0 {
 			inVal, _ := inFloat.Val.Float64()
 			outVal, _ := outFloat.Val.Float64()
 			pctDiff := (inVal - outVal) / ((inVal + outVal) / 2)
@@ -111,8 +170,12 @@ func casTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 
 	theTestTree := atoms.NewExpression([]expreduceapi.Ex{
 		atoms.NewSymbol("System`SameQ"),
-		atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Hold"), inTree}),
-		atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Hold"), outTree}),
+		atoms.NewExpression(
+			[]expreduceapi.Ex{atoms.NewSymbol("System`Hold"), inTree},
+		),
+		atoms.NewExpression(
+			[]expreduceapi.Ex{atoms.NewSymbol("System`Hold"), outTree},
+		),
 	})
 
 	theTest := es.Eval(theTestTree)
@@ -127,20 +190,60 @@ func casTestInner(es expreduceapi.EvalStateInterface, inTree expreduceapi.Ex, ou
 	return resSym.Name == "System`False", buffer.String()
 }
 
-func casAssertSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
-	succ, s := casTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, true, "", 0)
+func casAssertSame(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	out string,
+	in string,
+) bool {
+	succ, s := casTestInner(
+		es,
+		es.Eval(parser.Interp(in, es)),
+		es.Eval(parser.Interp(out, es)),
+		in,
+		true,
+		"",
+		0,
+	)
 	assert.True(t, succ, s)
 	return succ
 }
 
-func casAssertDiff(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string) bool {
-	succ, s := casTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, false, "", 0)
+func casAssertDiff(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	out string,
+	in string,
+) bool {
+	succ, s := casTestInner(
+		es,
+		es.Eval(parser.Interp(in, es)),
+		es.Eval(parser.Interp(out, es)),
+		in,
+		false,
+		"",
+		0,
+	)
 	assert.True(t, succ, s)
 	return succ
 }
 
-func casAssertDescSame(t *testing.T, es expreduceapi.EvalStateInterface, out string, in string, desc string) bool {
-	succ, s := casTestInner(es, es.Eval(parser.Interp(in, es)), es.Eval(parser.Interp(out, es)), in, true, desc, 0)
+func casAssertDescSame(
+	t *testing.T,
+	es expreduceapi.EvalStateInterface,
+	out string,
+	in string,
+	desc string,
+) bool {
+	succ, s := casTestInner(
+		es,
+		es.Eval(parser.Interp(in, es)),
+		es.Eval(parser.Interp(out, es)),
+		in,
+		true,
+		desc,
+		0,
+	)
 	assert.True(t, succ, s)
 	return succ
 }

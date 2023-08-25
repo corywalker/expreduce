@@ -7,7 +7,10 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func applyWithFn(e expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
+func applyWithFn(
+	e expreduceapi.ExpressionInterface,
+	es expreduceapi.EvalStateInterface,
+) (expreduceapi.Ex, bool) {
 	if len(e.GetParts()) != 3 {
 		return nil, false
 	}
@@ -18,7 +21,10 @@ func applyWithFn(e expreduceapi.ExpressionInterface, es expreduceapi.EvalStateIn
 	rules := []expreduceapi.ExpressionInterface{}
 	for _, vDef := range vars.GetParts()[1:] {
 		set, isSet := atoms.HeadAssertion(vDef, "System`Set")
-		setDelayed, isSetDelayed := atoms.HeadAssertion(vDef, "System`SetDelayed")
+		setDelayed, isSetDelayed := atoms.HeadAssertion(
+			vDef,
+			"System`SetDelayed",
+		)
 		if !(isSet || isSetDelayed) {
 			return nil, false
 		}
@@ -71,7 +77,12 @@ func getFlowControlDefinitions() (defs []Definition) {
 				return falseVal
 			}
 
-			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString("Unexpected equality return value.")})
+			return atoms.NewExpression(
+				[]expreduceapi.Ex{
+					atoms.NewSymbol("System`Error"),
+					atoms.NewString("Unexpected equality return value."),
+				},
+			)
 		},
 	})
 	defs = append(defs, Definition{
@@ -80,7 +91,10 @@ func getFlowControlDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			isTrue := atoms.IsSameQ(es.Eval(this.GetParts()[1].DeepCopy()), atoms.NewSymbol("System`True"))
+			isTrue := atoms.IsSameQ(
+				es.Eval(this.GetParts()[1].DeepCopy()),
+				atoms.NewSymbol("System`True"),
+			)
 			for isTrue {
 				tmpRes := es.Eval(this.GetParts()[2].DeepCopy())
 				retVal, isReturn := tryReturnValue(tmpRes, nil, es)
@@ -90,7 +104,10 @@ func getFlowControlDefinitions() (defs []Definition) {
 				if isBreak(tmpRes) {
 					return atoms.S("Null")
 				}
-				isTrue = atoms.IsSameQ(es.Eval(this.GetParts()[1].DeepCopy()), atoms.NewSymbol("System`True"))
+				isTrue = atoms.IsSameQ(
+					es.Eval(this.GetParts()[1].DeepCopy()),
+					atoms.NewSymbol("System`True"),
+				)
 			}
 
 			return atoms.NewSymbol("System`Null")
@@ -161,7 +178,10 @@ func getFlowControlDefinitions() (defs []Definition) {
 		Name: "Do",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := iterspec.MultiSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiSpecFromLists(
+					es,
+					this.GetParts()[2:],
+				)
 				if isOk {
 					// Simulate evaluation within Block[]
 					mis.TakeVarSnapshot(es)

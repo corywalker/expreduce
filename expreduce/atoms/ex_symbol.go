@@ -89,7 +89,9 @@ func (sym *Symbol) Copy() expreduceapi.Ex {
 	return sym
 }
 
-func (sym *Symbol) Attrs(dm expreduceapi.DefinitionMap) expreduceapi.Attributes {
+func (sym *Symbol) Attrs(
+	dm expreduceapi.DefinitionMap,
+) expreduceapi.Attributes {
 	def, isDef := dm.Get(sym.Name)
 	if !isDef {
 		return expreduceapi.Attributes{}
@@ -233,7 +235,9 @@ func AttrsToStrings(sym *expreduceapi.Attributes) []string {
 	return strings
 }
 
-func AttrsToSymList(sym *expreduceapi.Attributes) expreduceapi.ExpressionInterface {
+func AttrsToSymList(
+	sym *expreduceapi.Attributes,
+) expreduceapi.ExpressionInterface {
 	toReturn := E(S("List"))
 	for _, s := range AttrsToStrings(sym) {
 		toReturn.AppendEx(S(s))
