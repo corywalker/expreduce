@@ -287,6 +287,9 @@ func getArithmeticDefinitions() (defs []Definition) {
 				if params.Form == "TeXForm" {
 					return true, fmt.Sprintf("%v\\frac{%v}{%v}", prefix, numStr, denStr)
 				}
+				if params.Form == "FullForm" {
+					return false, ""
+				}
 				return true, fmt.Sprintf("%v(%v)/(%v)", prefix, numStr, denStr)
 			}
 			ok, res := toStringInfix(num.GetParts()[1:], delim, "System`Times", params)
