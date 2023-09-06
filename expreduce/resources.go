@@ -990,7 +990,7 @@ Tuples[list_, n_Integer?Positive] :=
 Attributes[Tuples] = {Protected};
 Tests`+"`"+`Tuples = {
     ESimpleExamples[
-        ESameTest[{{1,1},{1,2},{1,3},{2,1},{2,2},{2,3},{3,1},{3,2},{3,3}} , Tuples[Range[1, 3], 2]]
+        ESameTest[{{1,1},{1,2},{1,3},{2,1},{2,2},{2,3},{3,1},{3,2},{3,3}}, Tuples[Range[1, 3], 2]]
     ]
 };`)
 
@@ -3109,6 +3109,23 @@ Tests`+"`"+`IntegerDigits = {
         ESameTest[{1, 2, 3}, IntegerDigits[123]],
         ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[123, 2]],
         ESameTest[{1, 1, 1, 1, 0, 1, 1}, IntegerDigits[-123, 2]]
+    ]
+};
+
+FromDigits::usage = "`+"`"+`FromDigits[list, base]`+"`"+` returns that number that the `+"`"+`list`+"`"+` of digits represents in base `+"`"+`base`+"`"+`.";
+FromDigits[digits_List, base_Integer:10] := Module[{n = Length[digits], sum = 0},
+  Do[
+    sum += digits[[i]] * base^(n - i),
+    {i, 1, n}
+  ];
+  sum
+];
+FromDigits[digits_String] := FromDigits[ToExpression /@ Characters[digits]];
+Attributes[FromDigits] = {Protected};
+Tests`+"`"+`FromDigits = {
+    ESimpleExamples[
+        ESameTest[321, FromDigits[{3,2,1}]],
+        ESameTest[13, FromDigits[{1,1,0,1}, 2]],
     ]
 };
 

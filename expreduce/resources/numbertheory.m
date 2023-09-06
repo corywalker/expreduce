@@ -284,6 +284,23 @@ Tests`IntegerDigits = {
     ]
 };
 
+FromDigits::usage = "`FromDigits[list, base]` returns that number that the `list` of digits represents in base `base`.";
+FromDigits[digits_List, base_Integer:10] := Module[{n = Length[digits], sum = 0},
+  Do[
+    sum += digits[[i]] * base^(n - i),
+    {i, 1, n}
+  ];
+  sum
+];
+FromDigits[digits_String] := FromDigits[ToExpression /@ Characters[digits]];
+Attributes[FromDigits] = {Protected};
+Tests`FromDigits = {
+    ESimpleExamples[
+        ESameTest[321, FromDigits[{3,2,1}]],
+        ESameTest[13, FromDigits[{1,1,0,1}, 2]],
+    ]
+};
+
 Sign::usage = "`Sign[x]` returns the sign of `x`.";
 Sign[n_Integer] := Which[
   n < 0, -1,

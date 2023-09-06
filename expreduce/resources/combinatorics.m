@@ -83,6 +83,6 @@ Tuples[list_, n_Integer?Positive] :=
 Attributes[Tuples] = {Protected};
 Tests`Tuples = {
     ESimpleExamples[
-        ESameTest[{{1,1},{1,2},{1,3},{2,1},{2,2},{2,3},{3,1},{3,2},{3,3}} , Tuples[Range[1, 3], 2]]
+        ESameTest[{{1,1},{1,2},{1,3},{2,1},{2,2},{2,3},{3,1},{3,2},{3,3}}, Tuples[Range[1, 3], 2]]
     ]
 };
