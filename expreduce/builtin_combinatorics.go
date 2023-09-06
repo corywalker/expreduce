@@ -210,5 +210,8 @@ func getCombinatoricsDefinitions() (defs []Definition) {
 			return this
 		},
 	})
+	defs = append(defs, Definition{
+		Name: "Tuples",
+	})
 	return
 }

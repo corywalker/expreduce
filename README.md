@@ -128,6 +128,8 @@ go test ./...
 # Or to test some important parts with helpful information printed:
 go test -v github.com/corywalker/expreduce/expreduce -count=1
 # To exit early, press Ctrl-\
+# To quickly iterate on one module:
+go generate ./expreduce/builtin.go && go test -v github.com/corywalker/expreduce/expreduce -count=1 -testmodules=combinatorics -run=TestIncludedModules
 ```
 
 The use of `go generate` might require the download of additional dependencies, for example `go install github.com/go-bindata/go-bindata/...@latest`.
