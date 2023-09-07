@@ -7,7 +7,11 @@ import (
 	"github.com/corywalker/expreduce/expreduce/atoms"
 )
 
-var rubiSnapshotLocation = flag.String("rubi_snapshot_location", "/tmp/theRubiSnapshot.expred", "the location to write the Rubi snapshot")
+var rubiSnapshotLocation = flag.String(
+	"rubi_snapshot_location",
+	"/tmp/theRubiSnapshot.expred",
+	"the location to write the Rubi snapshot",
+)
 
 func main() {
 	flag.Parse()

@@ -99,7 +99,9 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 		started := int64(0)
 		if es.IsProfiling() {
 			currStr = curr.StringForm(es.profilingToStringParams)
-			currHeadStr = curr.GetParts()[0].StringForm(es.profilingToStringParams)
+			currHeadStr = curr.GetParts()[0].StringForm(
+				es.profilingToStringParams,
+			)
 			started = time.Now().UnixNano()
 		}
 
@@ -132,7 +134,11 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 			// Handle tracing
 			traceBak := es.GetTrace()
 			if es.GetTrace() != nil && !es.IsFrozen() {
-				es.SetTrace(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")}))
+				es.SetTrace(
+					atoms.NewExpression(
+						[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+					),
+				)
 			}
 			oldHash := curr.GetParts()[i].Hash()
 			//fmt.Println(curr, i)
@@ -161,7 +167,10 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 				currEx.DeepCopy(),
 			})
 
-			if !atoms.IsSameQ(es.GetTrace().GetParts()[len(es.GetTrace().GetParts())-1], toAppend) {
+			if !atoms.IsSameQ(
+				es.GetTrace().GetParts()[len(es.GetTrace().GetParts())-1],
+				toAppend,
+			) {
 				//fmt.Printf("Beginning: appending %v\n", toAppend.StringForm("FullForm"))
 				es.GetTrace().AppendEx(toAppend)
 			}
@@ -182,7 +191,10 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 		// In case curr changed
 		currEx = curr
 
-		pureFunction, isPureFunction := atoms.HeadAssertion(curr.GetParts()[0], "System`Function")
+		pureFunction, isPureFunction := atoms.HeadAssertion(
+			curr.GetParts()[0],
+			"System`Function",
+		)
 		if headIsSym {
 			if attrs.Flat {
 				curr = mergeSequences(curr, es, headSym.Name, false)
@@ -201,11 +213,15 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 			}
 			headStr := headSym.Name
 
-			legacyEvalFn, hasLegacyEvalFn := (expreduceapi.EvalFnType)(nil), false
+			legacyEvalFn, hasLegacyEvalFn := (expreduceapi.EvalFnType)(
+				nil,
+			), false
 			if _, inDefined := es.GetDefinedMap().Get(headStr); inDefined {
 				if es.GetDefinedMap().GetDef(headStr).LegacyEvalFn != nil {
 					hasLegacyEvalFn = true
-					legacyEvalFn = es.GetDefinedMap().GetDef(headStr).LegacyEvalFn
+					legacyEvalFn = es.GetDefinedMap().
+						GetDef(headStr).
+						LegacyEvalFn
 				}
 			}
 			unchanged := true
@@ -218,7 +234,13 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 				theRes, isDefined, def := es.GetDef(headStr, curr)
 				if isDefined {
 					//fmt.Printf("%v, %v, %v\n", headStr, curr, theRes)
-					es.Infof("Def: %v ▶ %v ▶ using %v ▶ from %s head", currEx, theRes, def, headStr)
+					es.Infof(
+						"Def: %v ▶ %v ▶ using %v ▶ from %s head",
+						currEx,
+						theRes,
+						def,
+						headStr,
+					)
 					currEx = theRes
 					insideDefinition = true
 				}
@@ -231,8 +253,10 @@ func (es *EvalState) evalExpression(this *atoms.Expression) expreduceapi.Ex {
 		// Handle end of profiling
 		if es.IsProfiling() {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
-			es.GetTimeCounter().AddTime(timecounter.CounterGroupEvalTime, currStr, elapsed)
-			es.GetTimeCounter().AddTime(timecounter.CounterGroupHeadEvalTime, currHeadStr, elapsed)
+			es.GetTimeCounter().
+				AddTime(timecounter.CounterGroupEvalTime, currStr, elapsed)
+			es.GetTimeCounter().
+				AddTime(timecounter.CounterGroupHeadEvalTime, currHeadStr, elapsed)
 		}
 	}
 	curr, isExpr := currEx.(*atoms.Expression)
@@ -308,7 +332,11 @@ func (es *EvalState) evalSymbol(this *atoms.Symbol) expreduceapi.Ex {
 	return this
 }
 
-func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
+func tryReturnValue(
+	e expreduceapi.Ex,
+	origEx expreduceapi.Ex,
+	es expreduceapi.EvalStateInterface,
+) (expreduceapi.Ex, bool) {
 	if es.IsInterrupted() {
 		if origEx != nil {
 			fmt.Println(origEx)
@@ -327,7 +355,12 @@ func tryReturnValue(e expreduceapi.Ex, origEx expreduceapi.Ex, es expreduceapi.E
 
 // Is this causing issues by not creating a copy as we modify? Actually it is
 // creating copies.
-func mergeSequences(this *atoms.Expression, es expreduceapi.EvalStateInterface, headStr string, shouldEval bool) *atoms.Expression {
+func mergeSequences(
+	this *atoms.Expression,
+	es expreduceapi.EvalStateInterface,
+	headStr string,
+	shouldEval bool,
+) *atoms.Expression {
 	encounteredSeq := false
 	for _, e := range this.GetParts() {
 		if _, isseq := atoms.HeadAssertion(e, headStr); isseq {
@@ -363,7 +396,11 @@ func mergeSequences(this *atoms.Expression, es expreduceapi.EvalStateInterface, 
 	return res
 }
 
-func evalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, args []expreduceapi.Ex) expreduceapi.Ex {
+func evalFunction(
+	this *atoms.Expression,
+	es expreduceapi.EvalStateInterface,
+	args []expreduceapi.Ex,
+) expreduceapi.Ex {
 	if len(this.GetParts()) == 2 {
 		toReturn := this.GetParts()[1].DeepCopy()
 		for i, arg := range args {
@@ -400,11 +437,23 @@ func evalFunction(this *atoms.Expression, es expreduceapi.EvalStateInterface, ar
 	return this
 }
 
-func exprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.ExpressionInterface, stopAtHead string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-	es.Debugf("In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).")
+func exprReplaceAll(
+	this expreduceapi.ExpressionInterface,
+	r expreduceapi.ExpressionInterface,
+	stopAtHead string,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.Ex {
+	es.Debugf(
+		"In Expression.ReplaceAll. First trying IsMatchQ(this, r.Parts[1], es).",
+	)
 	es.Debugf("Rule r is: %s", r)
 
-	matchq, matches := matcher.IsMatchQ(this, r.GetParts()[1], matcher.EmptyPD(), es)
+	matchq, matches := matcher.IsMatchQ(
+		this,
+		r.GetParts()[1],
+		matcher.EmptyPD(),
+		es,
+	)
 	if matchq {
 		es.Debugf("After MatchQ, rule is: %s", r)
 		es.Debugf("MatchQ succeeded. Returning r.Parts[2]: %s", r.GetParts()[2])
@@ -419,7 +468,13 @@ func exprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.Expres
 			if thisSym.Name == otherSym.Name {
 				attrs := thisSym.Attrs(es.GetDefinedMap())
 				if attrs.Flat {
-					return flatReplace(this, lhsExpr, r.GetParts()[2], attrs.Orderless, es)
+					return flatReplace(
+						this,
+						lhsExpr,
+						r.GetParts()[2],
+						attrs.Orderless,
+						es,
+					)
 				}
 			}
 		}
@@ -427,7 +482,15 @@ func exprReplaceAll(this expreduceapi.ExpressionInterface, r expreduceapi.Expres
 
 	maybeChanged := atoms.NewEmptyExpression()
 	for i := range this.GetParts() {
-		maybeChanged.AppendEx(replaceAll(this.GetParts()[i], r, es, matcher.EmptyPD(), stopAtHead))
+		maybeChanged.AppendEx(
+			replaceAll(
+				this.GetParts()[i],
+				r,
+				es,
+				matcher.EmptyPD(),
+				stopAtHead,
+			),
+		)
 	}
 	if hashEx(maybeChanged) != hashEx(this) {
 		return maybeChanged

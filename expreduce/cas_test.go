@@ -50,7 +50,14 @@ func TestIncludedModules(t *testing.T) {
 			if !testSymEx.MatchString(def.Name) {
 				continue
 			}
-			EvalInterp(fmt.Sprintf("$Context = \"%s%sTestState`\"", defSet.Name, def.Name), es)
+			EvalInterp(
+				fmt.Sprintf(
+					"$Context = \"%s%sTestState`\"",
+					defSet.Name,
+					def.Name,
+				),
+				es,
+			)
 			def.AnnotateWithDynamic(es)
 			td := testDesc{
 				module: defSet.Name,
@@ -87,7 +94,10 @@ func TestIncludedModules(t *testing.T) {
 					fmt.Println(test)
 				}
 				if test.run(&mockT, es, td) {
-					fmt.Printf("Previously failing test is now passing: %v\n", test)
+					fmt.Printf(
+						"Previously failing test is now passing: %v\n",
+						test,
+					)
 				}
 				i++
 			}
@@ -166,11 +176,35 @@ func TestLowLevel(t *testing.T) {
 	})
 
 	// Test equality checking
-	assert.Equal(t, "EQUAL_TRUE", (atoms.NewReal(big.NewFloat(99))).IsEqual(atoms.NewReal(big.NewFloat(99))))
-	assert.Equal(t, "EQUAL_FALSE", (atoms.NewReal(big.NewFloat(99))).IsEqual(atoms.NewReal(big.NewFloat(98))))
-	assert.Equal(t, "EQUAL_TRUE", (atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`x")))
-	assert.Equal(t, "EQUAL_UNK", (atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`X")))
-	assert.Equal(t, "EQUAL_UNK", (atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`y")))
+	assert.Equal(
+		t,
+		"EQUAL_TRUE",
+		(atoms.NewReal(big.NewFloat(99))).IsEqual(
+			atoms.NewReal(big.NewFloat(99)),
+		),
+	)
+	assert.Equal(
+		t,
+		"EQUAL_FALSE",
+		(atoms.NewReal(big.NewFloat(99))).IsEqual(
+			atoms.NewReal(big.NewFloat(98)),
+		),
+	)
+	assert.Equal(
+		t,
+		"EQUAL_TRUE",
+		(atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`x")),
+	)
+	assert.Equal(
+		t,
+		"EQUAL_UNK",
+		(atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`X")),
+	)
+	assert.Equal(
+		t,
+		"EQUAL_UNK",
+		(atoms.NewSymbol("System`x")).IsEqual(atoms.NewSymbol("System`y")),
+	)
 
 	// Test evaluation
 	newa := es.Eval(a)
@@ -193,7 +227,10 @@ func TestLowLevel(t *testing.T) {
 	assert.False(t, containsTest)
 
 	// Test raw recursion speed
-	EvalInterp("DownValues[fib]={HoldPattern[fib[0]]->0,HoldPattern[fib[1]]->1,HoldPattern[fib[x_]]:>fib[x-1]+fib[x-2]}", es)
+	EvalInterp(
+		"DownValues[fib]={HoldPattern[fib[0]]->0,HoldPattern[fib[1]]->1,HoldPattern[fib[x_]]:>fib[x-1]+fib[x-2]}",
+		es,
+	)
 	EvalInterp("fib[25]", es)
 }
 
@@ -225,7 +262,11 @@ func TestDeepCopy(t *testing.T) {
 	assert.Equal(t, "2.", t6.StringForm(stringParams))
 	t5.Val.Add(t5.Val, big.NewFloat(2))
 	t6.Val.Add(t6.Val, big.NewFloat(3))
-	assert.Equal(t, "4.", t4.StringForm(stringParams)) // Because we used the wrong copy method
+	assert.Equal(
+		t,
+		"4.",
+		t4.StringForm(stringParams),
+	) // Because we used the wrong copy method
 	assert.Equal(t, "4.", t5.StringForm(stringParams))
 	assert.Equal(t, "5.", t6.StringForm(stringParams))
 }

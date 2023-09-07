@@ -11,7 +11,13 @@ const (
 	FoldFnMul
 )
 
-func typedRealPart(fn foldFn, i *Integer, r *Rational, f *Flt, c *Complex) expreduceapi.Ex {
+func typedRealPart(
+	fn foldFn,
+	i *Integer,
+	r *Rational,
+	f *Flt,
+	c *Complex,
+) expreduceapi.Ex {
 	if c != nil {
 		toReturn := c
 		if f != nil {
@@ -72,7 +78,10 @@ func typedRealPart(fn foldFn, i *Integer, r *Rational, f *Flt, c *Complex) expre
 	return nil
 }
 
-func ComputeNumericPart(fn foldFn, e expreduceapi.ExpressionInterface) (expreduceapi.Ex, int) {
+func ComputeNumericPart(
+	fn foldFn,
+	e expreduceapi.ExpressionInterface,
+) (expreduceapi.Ex, int) {
 	var foldedInt *Integer
 	var foldedRat *Rational
 	var foldedFlt *Flt

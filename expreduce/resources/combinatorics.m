@@ -63,3 +63,26 @@ Tests`Factorial = {
         ESameTest[Indeterminate, 0 * ComplexInfinity]
     ]
 };
+
+Tuples::usage = "`Tuples[list, n]` all possible tuples of `list` of length `n`.";
+(* Base case: n = 0, return an empty list *)
+Tuples[_, 0] := {{}}
+(* Recursive case *)
+Tuples[list_, n_Integer?Positive] :=
+  Module[{prevTuples, newTuples},
+    prevTuples = Tuples[list, n - 1];
+    newTuples = Flatten[
+      Table[
+        Prepend[#, elem] & /@ prevTuples,
+        {elem, list}
+      ],
+      1
+    ];
+    newTuples
+  ]
+Attributes[Tuples] = {Protected};
+Tests`Tuples = {
+    ESimpleExamples[
+        ESameTest[{{1,1},{1,2},{1,3},{2,1},{2,2},{2,3},{3,1},{3,2},{3,3}}, Tuples[Range[1, 3], 2]]
+    ]
+};

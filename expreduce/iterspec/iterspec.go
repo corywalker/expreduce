@@ -51,7 +51,10 @@ func tryIterParam(e expreduceapi.Ex) (expreduceapi.Ex, bool) {
 	return nil, false
 }
 
-func SpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex) (IterSpec, bool) {
+func SpecFromList(
+	es expreduceapi.EvalStateInterface,
+	listEx expreduceapi.Ex,
+) (IterSpec, bool) {
 	isr := &iterSpecRange{}
 	isr.es = es
 	isl := &iterSpecList{}
@@ -98,7 +101,10 @@ func SpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex) (I
 		// Conversion to iterSpecRange failed. Try iterSpecList.
 		iterListOk := false
 		if len(list.GetParts()) == 3 {
-			isl.list, iterListOk = atoms.HeadAssertion(list.GetParts()[2], "System`List")
+			isl.list, iterListOk = atoms.HeadAssertion(
+				list.GetParts()[2],
+				"System`List",
+			)
 		}
 		if iOk && iterListOk {
 			isl.reset()
@@ -110,7 +116,13 @@ func SpecFromList(es expreduceapi.EvalStateInterface, listEx expreduceapi.Ex) (I
 
 func (isr *iterSpecRange) reset() {
 	//isr.curr = isr.iMin
-	isr.curr = isr.es.Eval(atoms.E(atoms.S("Plus"), isr.iMin, atoms.E(atoms.S("Times"), atoms.NewInt(0), isr.step)))
+	isr.curr = isr.es.Eval(
+		atoms.E(
+			atoms.S("Plus"),
+			isr.iMin,
+			atoms.E(atoms.S("Times"), atoms.NewInt(0), isr.step),
+		),
+	)
 }
 
 func (isr *iterSpecRange) Next() {
@@ -164,7 +176,10 @@ type MultiIterSpec struct {
 	shouldCont bool
 }
 
-func MultiSpecFromLists(es expreduceapi.EvalStateInterface, lists []expreduceapi.Ex) (mis MultiIterSpec, isOk bool) {
+func MultiSpecFromLists(
+	es expreduceapi.EvalStateInterface,
+	lists []expreduceapi.Ex,
+) (mis MultiIterSpec, isOk bool) {
 	// Retrieve variables of iteration
 	mis.shouldCont = true
 	for i := range lists {
@@ -197,11 +212,16 @@ func (mis *MultiIterSpec) TakeVarSnapshot(es expreduceapi.EvalStateInterface) {
 	mis.origDefs = make([]expreduceapi.Ex, len(mis.iSpecs))
 	mis.isOrigDefs = make([]bool, len(mis.iSpecs))
 	for i := range mis.iSpecs {
-		mis.origDefs[i], mis.isOrigDefs[i], _ = es.GetDef(mis.iSpecs[i].getIName(), mis.iSpecs[i].getI())
+		mis.origDefs[i], mis.isOrigDefs[i], _ = es.GetDef(
+			mis.iSpecs[i].getIName(),
+			mis.iSpecs[i].getI(),
+		)
 	}
 }
 
-func (mis *MultiIterSpec) RestoreVarSnapshot(es expreduceapi.EvalStateInterface) {
+func (mis *MultiIterSpec) RestoreVarSnapshot(
+	es expreduceapi.EvalStateInterface,
+) {
 	for i := range mis.iSpecs {
 		if mis.isOrigDefs[i] {
 			es.Define(mis.iSpecs[i].getI(), mis.origDefs[i])
@@ -225,7 +245,12 @@ func (mis *MultiIterSpec) CurrentPDManager() *matcher.PDManager {
 	return pm
 }
 
-func EvalIterationFunc(expr expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, init expreduceapi.Ex, op string) expreduceapi.Ex {
+func EvalIterationFunc(
+	expr expreduceapi.ExpressionInterface,
+	es expreduceapi.EvalStateInterface,
+	init expreduceapi.Ex,
+	op string,
+) expreduceapi.Ex {
 	if len(expr.GetParts()) >= 3 {
 		mis, isOk := MultiSpecFromLists(es, expr.GetParts()[2:])
 		if isOk {
@@ -234,7 +259,9 @@ func EvalIterationFunc(expr expreduceapi.ExpressionInterface, es expreduceapi.Ev
 			var toReturn expreduceapi.Ex = init
 			for mis.Cont() {
 				mis.DefineCurrent(es)
-				toReturn = es.Eval((atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol(op), toReturn, es.Eval(expr.GetParts()[1].DeepCopy())})))
+				toReturn = es.Eval(
+					(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol(op), toReturn, es.Eval(expr.GetParts()[1].DeepCopy())})),
+				)
 				mis.Next()
 			}
 			mis.RestoreVarSnapshot(es)
@@ -244,12 +271,17 @@ func EvalIterationFunc(expr expreduceapi.ExpressionInterface, es expreduceapi.Ev
 	return expr
 }
 
-func evalIterSpecCandidate(es expreduceapi.EvalStateInterface, cand expreduceapi.Ex) expreduceapi.Ex {
+func evalIterSpecCandidate(
+	es expreduceapi.EvalStateInterface,
+	cand expreduceapi.Ex,
+) expreduceapi.Ex {
 	// Special handling for Lists, which might have variables of iteration in
 	// them.
 	list, isList := atoms.HeadAssertion(cand, "System`List")
 	if isList {
-		toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+		toReturn := atoms.NewExpression(
+			[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+		)
 		for i := 1; i < len(list.GetParts()); i++ {
 			toAdd := list.GetParts()[i].DeepCopy()
 			// Do not evaluate the variable of iteration. Even if "n" is

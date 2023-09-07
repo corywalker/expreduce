@@ -32,7 +32,11 @@ func HeadAssertion(ex expreduceapi.Ex, head string) (*Expression, bool) {
 	return nil, false
 }
 
-func HeadExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl expreduceapi.LoggingInterface) (*Expression, bool) {
+func HeadExAssertion(
+	ex expreduceapi.Ex,
+	head expreduceapi.Ex,
+	cl expreduceapi.LoggingInterface,
+) (*Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		if IsSameQ(head, expr.GetParts()[0]) {
@@ -42,7 +46,10 @@ func HeadExAssertion(ex expreduceapi.Ex, head expreduceapi.Ex, cl expreduceapi.L
 	return nil, false
 }
 
-func OperatorAssertion(ex expreduceapi.Ex, opHead string) (*Expression, *Expression, bool) {
+func OperatorAssertion(
+	ex expreduceapi.Ex,
+	opHead string,
+) (*Expression, *Expression, bool) {
 	expr, isExpr := ex.(*Expression)
 	if isExpr {
 		headExpr, headIsExpr := expr.GetParts()[0].(*Expression)
@@ -86,7 +93,9 @@ func (thisExpr *Expression) PropagateConditionals() (*Expression, bool) {
 	return thisExpr, false
 }
 
-func (thisExpr *Expression) StringForm(params expreduceapi.ToStringParams) string {
+func (thisExpr *Expression) StringForm(
+	params expreduceapi.ToStringParams,
+) string {
 	headAsSym, isHeadSym := thisExpr.GetParts()[0].(*Symbol)
 	fullForm := false
 	if isHeadSym && !fullForm && params.Esi != nil {
@@ -101,12 +110,13 @@ func (thisExpr *Expression) StringForm(params expreduceapi.ToStringParams) strin
 		}
 	}
 
-	if len(thisExpr.GetParts()) == 2 && isHeadSym && (headAsSym.Name == "System`InputForm" ||
-		headAsSym.Name == "System`FullForm" ||
-		headAsSym.Name == "System`TraditionalForm" ||
-		headAsSym.Name == "System`TeXForm" ||
-		headAsSym.Name == "System`StandardForm" ||
-		headAsSym.Name == "System`OutputForm") {
+	if len(thisExpr.GetParts()) == 2 && isHeadSym &&
+		(headAsSym.Name == "System`InputForm" ||
+			headAsSym.Name == "System`FullForm" ||
+			headAsSym.Name == "System`TraditionalForm" ||
+			headAsSym.Name == "System`TeXForm" ||
+			headAsSym.Name == "System`StandardForm" ||
+			headAsSym.Name == "System`OutputForm") {
 		mutatedParams := params
 		mutatedParams.Form = headAsSym.Name[7:]
 		return thisExpr.GetParts()[1].StringForm(mutatedParams)

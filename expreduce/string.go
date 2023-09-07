@@ -8,7 +8,12 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func toStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p expreduceapi.ToStringParams) (bool, string) {
+func toStringInfix(
+	parts []expreduceapi.Ex,
+	delim string,
+	thisHead string,
+	p expreduceapi.ToStringParams,
+) (bool, string) {
 	if p.Form != "InputForm" && p.Form != "OutputForm" && p.Form != "TeXForm" {
 		return false, ""
 	}
@@ -42,7 +47,10 @@ func toStringInfix(parts []expreduceapi.Ex, delim string, thisHead string, p exp
 	return true, buffer.String()
 }
 
-func toStringInfixFn(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
+func toStringInfixFn(
+	this expreduceapi.ExpressionInterface,
+	p expreduceapi.ToStringParams,
+) (bool, string) {
 	if len(this.GetParts()) != 3 {
 		return false, ""
 	}
@@ -55,8 +63,17 @@ func toStringInfixFn(this expreduceapi.ExpressionInterface, p expreduceapi.ToStr
 }
 
 // TODO(corywalker): Remove start, end. No users of these values.
-func toStringInfixAdvanced(parts []expreduceapi.Ex, delim string, thisHead string, surroundEachArg bool, start string, end string, params expreduceapi.ToStringParams) (bool, string) {
-	if params.Form != "InputForm" && params.Form != "OutputForm" && params.Form != "TeXForm" {
+func toStringInfixAdvanced(
+	parts []expreduceapi.Ex,
+	delim string,
+	thisHead string,
+	surroundEachArg bool,
+	start string,
+	end string,
+	params expreduceapi.ToStringParams,
+) (bool, string) {
+	if params.Form != "InputForm" && params.Form != "OutputForm" &&
+		params.Form != "TeXForm" {
 		return false, ""
 	}
 	if len(parts) < 2 {
@@ -124,14 +141,25 @@ func definitionComplexityStringFormArgs() (*atoms.String, expreduceapi.Expressio
 
 }
 
-func actualStringFormArgs(es expreduceapi.EvalStateInterface) (*atoms.String, expreduceapi.ExpressionInterface) {
-	return atoms.NewString(es.GetStringDef("System`$Context", "Global`")), es.GetListDef("System`$ContextPath")
+func actualStringFormArgs(
+	es expreduceapi.EvalStateInterface,
+) (*atoms.String, expreduceapi.ExpressionInterface) {
+	return atoms.NewString(
+			es.GetStringDef("System`$Context", "Global`"),
+		), es.GetListDef(
+			"System`$ContextPath",
+		)
 }
 
-func ActualStringFormArgsFull(form string, es expreduceapi.EvalStateInterface) expreduceapi.ToStringParams {
+func ActualStringFormArgsFull(
+	form string,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.ToStringParams {
 	return expreduceapi.ToStringParams{
-		Form:         form,
-		Context:      atoms.NewString(es.GetStringDef("System`$Context", "Global`")),
+		Form: form,
+		Context: atoms.NewString(
+			es.GetStringDef("System`$Context", "Global`"),
+		),
 		ContextPath:  es.GetListDef("System`$ContextPath"),
 		PreviousHead: "<TOPLEVEL>",
 		Esi:          es,
@@ -139,7 +167,9 @@ func ActualStringFormArgsFull(form string, es expreduceapi.EvalStateInterface) e
 
 }
 
-func simpleTeXToString(fnName string) func(expreduceapi.ExpressionInterface, expreduceapi.ToStringParams) (bool, string) {
+func simpleTeXToString(
+	fnName string,
+) func(expreduceapi.ExpressionInterface, expreduceapi.ToStringParams) (bool, string) {
 	return (func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 		if params.Form != "TeXForm" {
 			return false, ""

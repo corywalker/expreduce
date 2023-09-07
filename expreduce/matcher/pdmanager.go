@@ -77,7 +77,16 @@ func (pm *PDManager) string(es expreduceapi.EvalStateInterface) string {
 		v := pm.patternDefined[k]
 		buffer.WriteString(k)
 		buffer.WriteString("_: ")
-		buffer.WriteString(v.StringForm(expreduceapi.ToStringParams{Form: "InputForm", Context: context, ContextPath: contextPath, Esi: es}))
+		buffer.WriteString(
+			v.StringForm(
+				expreduceapi.ToStringParams{
+					Form:        "InputForm",
+					Context:     context,
+					ContextPath: contextPath,
+					Esi:         es,
+				},
+			),
+		)
 		buffer.WriteString(", ")
 	}
 	if strings.HasSuffix(buffer.String(), ", ") {
@@ -88,7 +97,9 @@ func (pm *PDManager) string(es expreduceapi.EvalStateInterface) string {
 }
 
 func (pm *PDManager) Expression() expreduceapi.Ex {
-	res := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+	res := atoms.NewExpression(
+		[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+	)
 	// We sort the keys here such that converting identical PDManagers always
 	// produces the same string.
 	keys := []string{}
@@ -107,7 +118,13 @@ func (pm *PDManager) Expression() expreduceapi.Ex {
 	return res
 }
 
-func defineSequence(lhs parsedForm, sequence []expreduceapi.Ex, pm *PDManager, sequenceHead string, es expreduceapi.EvalStateInterface) bool {
+func defineSequence(
+	lhs parsedForm,
+	sequence []expreduceapi.Ex,
+	pm *PDManager,
+	sequenceHead string,
+	es expreduceapi.EvalStateInterface,
+) bool {
 	var attemptDefine expreduceapi.Ex
 	if lhs.hasPat {
 		sequenceHeadSym := atoms.NewSymbol(sequenceHead)

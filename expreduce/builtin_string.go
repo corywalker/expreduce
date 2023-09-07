@@ -25,7 +25,10 @@ func getStringDefinitions() (defs []Definition) {
 			}
 
 			// Do not implement FullForm here. It is not officially supported
-			if formAsSymbol.Name != "System`InputForm" && formAsSymbol.Name != "System`OutputForm" && formAsSymbol.Name != "System`FullForm" && formAsSymbol.Name != "System`TeXForm" {
+			if formAsSymbol.Name != "System`InputForm" &&
+				formAsSymbol.Name != "System`OutputForm" &&
+				formAsSymbol.Name != "System`FullForm" &&
+				formAsSymbol.Name != "System`TeXForm" {
 				return this
 			}
 
@@ -84,7 +87,10 @@ func getStringDefinitions() (defs []Definition) {
 			if !isStr {
 				return this
 			}
-			asList, isList := atoms.HeadAssertion(this.GetParts()[2], "System`List")
+			asList, isList := atoms.HeadAssertion(
+				this.GetParts()[2],
+				"System`List",
+			)
 			if !isList || len(asList.GetParts()) != 3 {
 				return this
 			}
@@ -114,7 +120,10 @@ func getStringDefinitions() (defs []Definition) {
 			if !isStr {
 				return this
 			}
-			asRule, isRule := atoms.HeadAssertion(this.GetParts()[2], "System`Rule")
+			asRule, isRule := atoms.HeadAssertion(
+				this.GetParts()[2],
+				"System`Rule",
+			)
 			if !isRule || len(asRule.GetParts()) != 3 {
 				return this
 			}
@@ -123,7 +132,9 @@ func getStringDefinitions() (defs []Definition) {
 			if !bIsStr || !aIsStr {
 				return this
 			}
-			return atoms.NewString(strings.Replace(asStr.Val, bStr.Val, aStr.Val, -1))
+			return atoms.NewString(
+				strings.Replace(asStr.Val, bStr.Val, aStr.Val, -1),
+			)
 		},
 	})
 	defs = append(defs, Definition{

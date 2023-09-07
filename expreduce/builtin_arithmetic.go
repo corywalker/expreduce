@@ -25,10 +25,14 @@ func numberQForTermCollection(e expreduceapi.Ex) bool {
 func splitTerm(e expreduceapi.Ex) (expreduceapi.Ex, expreduceapi.Ex, bool) {
 	asSym, isSym := e.(*atoms.Symbol)
 	if isSym {
-		return atoms.NewInteger(big.NewInt(1)), atoms.NewExpression([]expreduceapi.Ex{
-				atoms.NewSymbol("System`Times"),
-				asSym,
-			}),
+		return atoms.NewInteger(
+				big.NewInt(1),
+			), atoms.NewExpression(
+				[]expreduceapi.Ex{
+					atoms.NewSymbol("System`Times"),
+					asSym,
+				},
+			),
 
 			true
 	}
@@ -39,7 +43,11 @@ func splitTerm(e expreduceapi.Ex) (expreduceapi.Ex, expreduceapi.Ex, bool) {
 		}
 		if numberQForTermCollection(asTimes.GetParts()[1]) {
 			if len(asTimes.GetParts()) > 2 {
-				return asTimes.GetParts()[1], atoms.NewExpression(append([]expreduceapi.Ex{atoms.NewSymbol("System`Times")}, asTimes.GetParts()[2:]...)), true
+				return asTimes.GetParts()[1], atoms.NewExpression(
+					append(
+						[]expreduceapi.Ex{atoms.NewSymbol("System`Times")},
+						asTimes.GetParts()[2:]...),
+				), true
 			}
 		} else {
 			return atoms.NewInteger(big.NewInt(1)), atoms.NewExpression(append([]expreduceapi.Ex{atoms.NewSymbol("System`Times")}, asTimes.GetParts()[1:]...)), true
@@ -47,27 +55,40 @@ func splitTerm(e expreduceapi.Ex) (expreduceapi.Ex, expreduceapi.Ex, bool) {
 	}
 	asExpr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if isExpr {
-		return atoms.NewInteger(big.NewInt(1)), atoms.NewExpression([]expreduceapi.Ex{
-				atoms.NewSymbol("System`Times"),
-				asExpr,
-			}),
+		return atoms.NewInteger(
+				big.NewInt(1),
+			), atoms.NewExpression(
+				[]expreduceapi.Ex{
+					atoms.NewSymbol("System`Times"),
+					asExpr,
+				},
+			),
 
 			true
 	}
 	return nil, nil, false
 }
 
-func collectedToTerm(coeffs []expreduceapi.Ex, vars expreduceapi.Ex, fullPart expreduceapi.Ex) expreduceapi.Ex {
+func collectedToTerm(
+	coeffs []expreduceapi.Ex,
+	vars expreduceapi.Ex,
+	fullPart expreduceapi.Ex,
+) expreduceapi.Ex {
 	// Preserve the original expression if there is no need to change it.
 	// We can keep all the cached values like the hash.
 	if len(coeffs) == 1 {
 		return fullPart
 	}
 
-	finalC, _ := atoms.ComputeNumericPart(atoms.FoldFnAdd, atoms.NewExpression(append([]expreduceapi.Ex{
-		atoms.NewSymbol("System`Plus")}, coeffs...)))
+	finalC, _ := atoms.ComputeNumericPart(
+		atoms.FoldFnAdd,
+		atoms.NewExpression(append([]expreduceapi.Ex{
+			atoms.NewSymbol("System`Plus")}, coeffs...)),
+	)
 
-	toAdd := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Times")})
+	toAdd := atoms.NewExpression(
+		[]expreduceapi.Ex{atoms.NewSymbol("System`Times")},
+	)
 	cAsInt, cIsInt := finalC.(*atoms.Integer)
 	if !(cIsInt && cAsInt.Val.Cmp(big.NewInt(1)) == 0) {
 		toAdd.AppendEx(finalC)
@@ -83,8 +104,12 @@ func collectedToTerm(coeffs []expreduceapi.Ex, vars expreduceapi.Ex, fullPart ex
 	return toAdd
 }
 
-func collectTerms(e expreduceapi.ExpressionInterface) expreduceapi.ExpressionInterface {
-	collected := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Plus")})
+func collectTerms(
+	e expreduceapi.ExpressionInterface,
+) expreduceapi.ExpressionInterface {
+	collected := atoms.NewExpression(
+		[]expreduceapi.Ex{atoms.NewSymbol("System`Plus")},
+	)
 	var lastVars expreduceapi.Ex
 	var lastFullPart expreduceapi.Ex
 	lastCoeffs := []expreduceapi.Ex{}
@@ -147,7 +172,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 		toString: func(this expreduceapi.ExpressionInterface, p expreduceapi.ToStringParams) (bool, string) {
 			thisHead := "System`Plus"
 			parts := this.GetParts()[1:]
-			if p.Form != "InputForm" && p.Form != "OutputForm" && p.Form != "TeXForm" {
+			if p.Form != "InputForm" && p.Form != "OutputForm" &&
+				p.Form != "TeXForm" {
 				return false, ""
 			}
 			if len(parts) < 2 {
@@ -192,12 +218,17 @@ func getArithmeticDefinitions() (defs []Definition) {
 			}
 
 			res := this
-			realPart, symStart := atoms.ComputeNumericPart(atoms.FoldFnAdd, this)
+			realPart, symStart := atoms.ComputeNumericPart(
+				atoms.FoldFnAdd,
+				this,
+			)
 			if realPart != nil {
 				if symStart == -1 {
 					return realPart
 				}
-				res = atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Plus")})
+				res = atoms.NewExpression(
+					[]expreduceapi.Ex{atoms.NewSymbol("System`Plus")},
+				)
 				rAsInt, rIsInt := realPart.(*atoms.Integer)
 				if !(rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0) {
 					res.AppendEx(realPart)
@@ -219,7 +250,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 			if _, rIsReal := realPart.(*atoms.Flt); rIsReal {
 				return exprToN(es, res)
 			}
-			if rComplex, rIsComplex := realPart.(*atoms.Complex); rIsComplex && rComplex.HasReal() {
+			if rComplex, rIsComplex := realPart.(*atoms.Complex); rIsComplex &&
+				rComplex.HasReal() {
 				return exprToN(es, res)
 			}
 			return res
@@ -228,7 +260,12 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Sum",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			return iterspec.EvalIterationFunc(this, es, atoms.NewInteger(big.NewInt(0)), "System`Plus")
+			return iterspec.EvalIterationFunc(
+				this,
+				es,
+				atoms.NewInteger(big.NewInt(0)),
+				"System`Plus",
+			)
 		},
 	})
 	defs = append(defs, Definition{
@@ -245,7 +282,10 @@ func getArithmeticDefinitions() (defs []Definition) {
 				partAsComplex, partIsComplex := part.(*atoms.Complex)
 				if partIsComplex {
 					asExpr := partAsComplex.AsExpr()
-					cmplxTimes, cmplxIsTimes := atoms.HeadAssertion(asExpr, "System`Times")
+					cmplxTimes, cmplxIsTimes := atoms.HeadAssertion(
+						asExpr,
+						"System`Times",
+					)
 					if cmplxIsTimes {
 						for _, cmplxPart := range cmplxTimes.GetParts()[1:] {
 							timesParts.AppendEx(cmplxPart)
@@ -268,11 +308,21 @@ func getArithmeticDefinitions() (defs []Definition) {
 				}
 			}
 			if den.Len() > 0 {
-				numOk, numStr := toStringInfix(num.GetParts()[1:], delim, "System`Times", params)
+				numOk, numStr := toStringInfix(
+					num.GetParts()[1:],
+					delim,
+					"System`Times",
+					params,
+				)
 				if num.Len() == 1 {
 					numOk, numStr = true, num.GetPart(1).StringForm(params)
 				}
-				denOk, denStr := toStringInfix(den.GetParts()[1:], delim, "System`Times", params)
+				denOk, denStr := toStringInfix(
+					den.GetParts()[1:],
+					delim,
+					"System`Times",
+					params,
+				)
 				if den.Len() == 1 {
 					denOk, denStr = true, den.GetPart(1).StringForm(params)
 				}
@@ -285,14 +335,24 @@ func getArithmeticDefinitions() (defs []Definition) {
 					numStr = numStr[3:]
 				}
 				if params.Form == "TeXForm" {
-					return true, fmt.Sprintf("%v\\frac{%v}{%v}", prefix, numStr, denStr)
+					return true, fmt.Sprintf(
+						"%v\\frac{%v}{%v}",
+						prefix,
+						numStr,
+						denStr,
+					)
 				}
 				if params.Form == "FullForm" {
 					return false, ""
 				}
 				return true, fmt.Sprintf("%v(%v)/(%v)", prefix, numStr, denStr)
 			}
-			ok, res := toStringInfix(num.GetParts()[1:], delim, "System`Times", params)
+			ok, res := toStringInfix(
+				num.GetParts()[1:],
+				delim,
+				"System`Times",
+				params,
+			)
 			if !ok {
 				return false, ""
 			}
@@ -308,22 +368,30 @@ func getArithmeticDefinitions() (defs []Definition) {
 			}
 
 			res := this
-			realPart, symStart := atoms.ComputeNumericPart(atoms.FoldFnMul, this)
+			realPart, symStart := atoms.ComputeNumericPart(
+				atoms.FoldFnMul,
+				this,
+			)
 			if realPart != nil {
 				if symStart == -1 {
 					return realPart
 				}
-				res = atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Times")})
+				res = atoms.NewExpression(
+					[]expreduceapi.Ex{atoms.NewSymbol("System`Times")},
+				)
 				rAsInt, rIsInt := realPart.(*atoms.Integer)
 				if rIsInt && rAsInt.Val.Cmp(big.NewInt(0)) == 0 {
-					containsInfinity := memberQ(this.GetParts()[symStart:], atoms.NewExpression([]expreduceapi.Ex{
-						atoms.NewSymbol("System`Alternatives"),
-						atoms.NewSymbol("System`Infinity"),
-						atoms.NewSymbol("System`ComplexInfinity"),
-						atoms.NewSymbol("System`Indeterminate"),
-					}),
+					containsInfinity := memberQ(
+						this.GetParts()[symStart:],
+						atoms.NewExpression([]expreduceapi.Ex{
+							atoms.NewSymbol("System`Alternatives"),
+							atoms.NewSymbol("System`Infinity"),
+							atoms.NewSymbol("System`ComplexInfinity"),
+							atoms.NewSymbol("System`Indeterminate"),
+						}),
 
-						es)
+						es,
+					)
 					if containsInfinity {
 						return atoms.NewSymbol("System`Indeterminate")
 					}
@@ -344,10 +412,15 @@ func getArithmeticDefinitions() (defs []Definition) {
 			// Perhaps better implemented as a rule.
 			if len(res.GetParts()) == 3 {
 				leftint, leftintok := res.GetParts()[1].(*atoms.Integer)
-				rightplus, rightplusok := atoms.HeadAssertion(res.GetParts()[2], "System`Plus")
+				rightplus, rightplusok := atoms.HeadAssertion(
+					res.GetParts()[2],
+					"System`Plus",
+				)
 				if leftintok && rightplusok {
 					if leftint.Val.Cmp(big.NewInt(-1)) == 0 {
-						toreturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Plus")})
+						toreturn := atoms.NewExpression(
+							[]expreduceapi.Ex{atoms.NewSymbol("System`Plus")},
+						)
 						addends := rightplus.GetParts()[1:len(rightplus.GetParts())]
 						for i := range addends {
 							toAppend := atoms.NewExpression([]expreduceapi.Ex{
@@ -367,7 +440,8 @@ func getArithmeticDefinitions() (defs []Definition) {
 			if _, rIsReal := realPart.(*atoms.Flt); rIsReal {
 				return exprToN(es, res)
 			}
-			if rComplex, rIsComplex := realPart.(*atoms.Complex); rIsComplex && rComplex.HasReal() {
+			if rComplex, rIsComplex := realPart.(*atoms.Complex); rIsComplex &&
+				rComplex.HasReal() {
 				return exprToN(es, res)
 			}
 			return res
@@ -376,7 +450,12 @@ func getArithmeticDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Product",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			return iterspec.EvalIterationFunc(this, es, atoms.NewInteger(big.NewInt(1)), "System`Times")
+			return iterspec.EvalIterationFunc(
+				this,
+				es,
+				atoms.NewInteger(big.NewInt(1)),
+				"System`Times",
+			)
 		},
 	})
 	defs = append(defs, Definition{Name: "Abs"})

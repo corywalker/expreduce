@@ -10,7 +10,10 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func EvalInterp(src string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func EvalInterp(
+	src string,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.Ex {
 	return es.Eval(parser.Interp(src, es))
 }
 
@@ -27,7 +30,11 @@ func EasyRun(in string, es expreduceapi.EvalStateInterface) string {
 	return EvalInterp(in, es).StringForm(stringParams)
 }
 
-func EvalInterpMany(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func EvalInterpMany(
+	doc string,
+	fn string,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.Ex {
 	doc = parser.ReplaceSyms(doc)
 	buf := bytes.NewBufferString(doc)
 	var lastExpr expreduceapi.Ex = atoms.NewSymbol("System`Null")
@@ -37,12 +44,20 @@ func EvalInterpMany(doc string, fn string, es expreduceapi.EvalStateInterface) e
 		expr, err = parser.InterpBuf(buf, fn, es)
 	}
 	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
-		fmt.Printf("Syntax::sntx: %v.\nWhile parsing: %v\n\n\n", err, buf.String()[:100])
+		fmt.Printf(
+			"Syntax::sntx: %v.\nWhile parsing: %v\n\n\n",
+			err,
+			buf.String()[:100],
+		)
 	}
 	return lastExpr
 }
 
-func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func ReadList(
+	doc string,
+	fn string,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.Ex {
 	buf := bytes.NewBufferString(doc)
 	l := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
 	expr, err := parser.InterpBuf(buf, fn, es)
@@ -51,7 +66,11 @@ func ReadList(doc string, fn string, es expreduceapi.EvalStateInterface) expredu
 		expr, err = parser.InterpBuf(buf, fn, es)
 	}
 	if !strings.HasSuffix(err.Error(), "unexpected EOF, invalid empty input") {
-		fmt.Printf("Syntax::sntx: %v.\nWhile parsing: %v\n\n\n", err, buf.String()[:100])
+		fmt.Printf(
+			"Syntax::sntx: %v.\nWhile parsing: %v\n\n\n",
+			err,
+			buf.String()[:100],
+		)
 	}
 	return l
 }

@@ -15,7 +15,10 @@ import (
 const maxUint64 = ^uint64(0)
 const maxInt64 = int64(maxUint64 >> 1)
 
-func toStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+func toStringList(
+	this expreduceapi.ExpressionInterface,
+	params expreduceapi.ToStringParams,
+) (bool, string) {
 	if params.Form == "FullForm" {
 		return false, ""
 	}
@@ -43,7 +46,10 @@ func toStringList(this expreduceapi.ExpressionInterface, params expreduceapi.ToS
 	return true, buffer.String()
 }
 
-func toStringPart(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
+func toStringPart(
+	this expreduceapi.ExpressionInterface,
+	params expreduceapi.ToStringParams,
+) (bool, string) {
 	if params.Form == "FullForm" {
 		return false, ""
 	}
@@ -65,7 +71,11 @@ func toStringPart(this expreduceapi.ExpressionInterface, params expreduceapi.ToS
 	return true, buffer.String()
 }
 
-func memberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi.EvalStateInterface) bool {
+func memberQ(
+	components []expreduceapi.Ex,
+	item expreduceapi.Ex,
+	es expreduceapi.EvalStateInterface,
+) bool {
 	for _, part := range components {
 		if matchq, _ := matcher.IsMatchQ(part, item, matcher.EmptyPD(), es); matchq {
 			return true
@@ -74,7 +84,9 @@ func memberQ(components []expreduceapi.Ex, item expreduceapi.Ex, es expreduceapi
 	return false
 }
 
-func validatePadParams(this expreduceapi.ExpressionInterface) (list expreduceapi.ExpressionInterface, n int64, x expreduceapi.Ex, valid bool) {
+func validatePadParams(
+	this expreduceapi.ExpressionInterface,
+) (list expreduceapi.ExpressionInterface, n int64, x expreduceapi.Ex, valid bool) {
 	valid = false
 	x = atoms.NewInteger(big.NewInt(0))
 	if len(this.GetParts()) == 4 {
@@ -113,7 +125,11 @@ func validateIndex(i expreduceapi.Ex, l int) (int64, bool) {
 	return iInt.Val.Int64(), true
 }
 
-func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (expreduceapi.Ex, bool) {
+func applyIndex(
+	ex expreduceapi.Ex,
+	indices []expreduceapi.Ex,
+	currDim int,
+) (expreduceapi.Ex, bool) {
 	// Base case
 	if currDim >= len(indices) {
 		return ex, true
@@ -125,7 +141,10 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 
 	// Singular selection
 	if _, iIsInt := indices[currDim].(*atoms.Integer); iIsInt {
-		indexVal, indexOk := validateIndex(indices[currDim], len(expr.GetParts()))
+		indexVal, indexOk := validateIndex(
+			indices[currDim],
+			len(expr.GetParts()),
+		)
 		if !indexOk {
 			return nil, false
 		}
@@ -138,7 +157,10 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 		if len(iSpan.GetParts()) != 3 {
 			return nil, false
 		}
-		start, startOk := validateIndex(iSpan.GetParts()[1], len(expr.GetParts())+1)
+		start, startOk := validateIndex(
+			iSpan.GetParts()[1],
+			len(expr.GetParts())+1,
+		)
 		end, endOk := validateIndex(iSpan.GetParts()[2], len(expr.GetParts()))
 		if endSym, endIsSym := iSpan.GetParts()[2].(*atoms.Symbol); endIsSym {
 			if endSym.Name == "System`All" {
@@ -170,7 +192,9 @@ func applyIndex(ex expreduceapi.Ex, indices []expreduceapi.Ex, currDim int) (exp
 	return nil, false
 }
 
-func threadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionInterface, bool) {
+func threadExpr(
+	expr expreduceapi.ExpressionInterface,
+) (expreduceapi.ExpressionInterface, bool) {
 	lengths := []int{}
 	for i := 1; i < len(expr.GetParts()); i++ {
 		list, isList := atoms.HeadAssertion(expr.GetParts()[i], "System`List")
@@ -189,11 +213,18 @@ func threadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionI
 		return expr, false
 	}
 	listLen := lengths[0]
-	toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+	toReturn := atoms.NewExpression(
+		[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+	)
 	for listI := 0; listI < listLen; listI++ {
-		thisExpr := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0].DeepCopy()})
+		thisExpr := atoms.NewExpression(
+			[]expreduceapi.Ex{expr.GetParts()[0].DeepCopy()},
+		)
 		for i := 1; i < len(expr.GetParts()); i++ {
-			list, isList := atoms.HeadAssertion(expr.GetParts()[i], "System`List")
+			list, isList := atoms.HeadAssertion(
+				expr.GetParts()[i],
+				"System`List",
+			)
 			if isList {
 				thisExpr.AppendEx(list.GetParts()[listI+1])
 			} else {
@@ -205,7 +236,13 @@ func threadExpr(expr expreduceapi.ExpressionInterface) (expreduceapi.ExpressionI
 	return toReturn, true
 }
 
-func countFunctionLevelSpec(pattern expreduceapi.Ex, e expreduceapi.Ex, partList []int64, generated *int64, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func countFunctionLevelSpec(
+	pattern expreduceapi.Ex,
+	e expreduceapi.Ex,
+	partList []int64,
+	generated *int64,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.Ex {
 	if isMatch, _ := matcher.IsMatchQ(e, pattern, matcher.EmptyPD(), es); isMatch {
 		*generated++
 	}
@@ -227,11 +264,16 @@ func getListDefinitions() (defs []Definition) {
 		Name: "Table",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := iterspec.MultiSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiSpecFromLists(
+					es,
+					this.GetParts()[2:],
+				)
 				if isOk {
 					// Simulate evaluation within Block[]
 					mis.TakeVarSnapshot(es)
-					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+					toReturn := atoms.NewExpression(
+						[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+					)
 					for mis.Cont() {
 						mis.DefineCurrent(es)
 						toReturn.AppendEx(es.Eval(this.GetPart(1).DeepCopy()))
@@ -248,12 +290,23 @@ func getListDefinitions() (defs []Definition) {
 		Name: "ParallelTable",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) >= 3 {
-				mis, isOk := iterspec.MultiSpecFromLists(es, this.GetParts()[2:])
+				mis, isOk := iterspec.MultiSpecFromLists(
+					es,
+					this.GetParts()[2:],
+				)
 				if isOk {
 					// Simulate evaluation within Block[]
-					toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+					toReturn := atoms.NewExpression(
+						[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+					)
 					for mis.Cont() {
-						toReturn.AppendEx(matcher.ReplacePD(this.GetParts()[1].DeepCopy(), es, mis.CurrentPDManager()))
+						toReturn.AppendEx(
+							matcher.ReplacePD(
+								this.GetParts()[1].DeepCopy(),
+								es,
+								mis.CurrentPDManager(),
+							),
+						)
 						mis.Next()
 					}
 					var wg sync.WaitGroup
@@ -261,7 +314,9 @@ func getListDefinitions() (defs []Definition) {
 						wg.Add(1)
 						go func(idx int) {
 							defer wg.Done()
-							toReturn.GetParts()[idx] = es.Eval(toReturn.GetParts()[idx])
+							toReturn.GetParts()[idx] = es.Eval(
+								toReturn.GetParts()[idx],
+							)
 						}(i)
 					}
 					wg.Wait()
@@ -295,9 +350,14 @@ func getListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+				toReturn := atoms.NewExpression(
+					[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+				)
 				pattern := this.GetParts()[2]
-				rule, isRule := atoms.HeadAssertion(this.GetParts()[2], "System`Rule")
+				rule, isRule := atoms.HeadAssertion(
+					this.GetParts()[2],
+					"System`Rule",
+				)
 				if isRule {
 					if len(rule.GetParts()) != 3 {
 						return toReturn
@@ -309,7 +369,11 @@ func getListDefinitions() (defs []Definition) {
 					if matchq, pd := matcher.IsMatchQ(expr.GetParts()[i], pattern, matcher.EmptyPD(), es); matchq {
 						toAdd := expr.GetParts()[i]
 						if isRule {
-							toAdd = matcher.ReplacePD(rule.GetParts()[2], es, pd)
+							toAdd = matcher.ReplacePD(
+								rule.GetParts()[2],
+								es,
+								pd,
+							)
 						}
 						toReturn.AppendEx(toAdd)
 					}
@@ -329,7 +393,9 @@ func getListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				toReturn := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+				toReturn := atoms.NewExpression(
+					[]expreduceapi.Ex{expr.GetParts()[0]},
+				)
 				pattern := this.GetParts()[2]
 				for i := 1; i < len(expr.GetParts()); i++ {
 					if matchq, _ := matcher.IsMatchQ(expr.GetParts()[i], pattern, matcher.EmptyPD(), es); !matchq {
@@ -347,7 +413,9 @@ func getListDefinitions() (defs []Definition) {
 		Name: "Union",
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) == 1 {
-				return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+				return atoms.NewExpression(
+					[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+				)
 			}
 			var firstHead expreduceapi.Ex
 			var allParts expreduceapi.ExpressionInterface
@@ -468,7 +536,9 @@ func getListDefinitions() (defs []Definition) {
 			if !valid {
 				return this
 			}
-			toReturn := atoms.NewExpression([]expreduceapi.Ex{list.GetParts()[0]})
+			toReturn := atoms.NewExpression(
+				[]expreduceapi.Ex{list.GetParts()[0]},
+			)
 			for i := int64(0); i < n; i++ {
 				if i >= int64(len(list.GetParts())-1) {
 					toReturn.AppendEx(x)
@@ -486,7 +556,9 @@ func getListDefinitions() (defs []Definition) {
 			if !valid {
 				return this
 			}
-			toReturn := atoms.NewExpression([]expreduceapi.Ex{list.GetParts()[0]})
+			toReturn := atoms.NewExpression(
+				[]expreduceapi.Ex{list.GetParts()[0]},
+			)
 			for i := int64(0); i < n; i++ {
 				if i < n-int64(len(list.GetParts()))+1 {
 					toReturn.AppendEx(x)
@@ -503,13 +575,20 @@ func getListDefinitions() (defs []Definition) {
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			// I should probably refactor the IterSpec system so that it does not
 			// require being passed a list and a variable of iteration. TODO
-			iterSpecList := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List"), atoms.NewSymbol("System`$DUMMY")})
+			iterSpecList := atoms.NewExpression(
+				[]expreduceapi.Ex{
+					atoms.NewSymbol("System`List"),
+					atoms.NewSymbol("System`$DUMMY"),
+				},
+			)
 			iterSpecList.AppendExArray(this.GetParts()[1:])
 			is, isOk := iterspec.SpecFromList(es, iterSpecList)
 			if !isOk {
 				return this
 			}
-			toReturn := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+			toReturn := atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+			)
 			for is.Cont() {
 				toReturn.AppendEx(is.GetCurr())
 				is.Next()
@@ -524,7 +603,11 @@ func getListDefinitions() (defs []Definition) {
 			if len(this.GetParts()) == 1 {
 				return this
 			}
-			applied, ok := applyIndex(this.GetParts()[1], this.GetParts()[2:], 0)
+			applied, ok := applyIndex(
+				this.GetParts()[1],
+				this.GetParts()[2:],
+				0,
+			)
 			if !ok {
 				return this
 			}
@@ -557,7 +640,9 @@ func getListDefinitions() (defs []Definition) {
 			if !isExpr {
 				return this
 			}
-			res := atoms.NewExpression(append([]expreduceapi.Ex{}, expr.GetParts()...))
+			res := atoms.NewExpression(
+				append([]expreduceapi.Ex{}, expr.GetParts()...),
+			)
 			res.AppendEx(this.GetParts()[2])
 			return res
 		},
@@ -593,7 +678,9 @@ func getListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				toReturn := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+				toReturn := atoms.NewExpression(
+					[]expreduceapi.Ex{expr.GetParts()[0]},
+				)
 				seen := map[uint64]bool{}
 				for _, orig := range expr.GetParts()[1:] {
 					hash := hashEx(orig)
@@ -627,7 +714,9 @@ func getListDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				res := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+				res := atoms.NewExpression(
+					[]expreduceapi.Ex{expr.GetParts()[0]},
+				)
 				added := int64(0)
 				for _, part := range expr.GetParts()[1:] {
 					if added >= maxN {

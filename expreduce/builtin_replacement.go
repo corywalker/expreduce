@@ -6,7 +6,9 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func getValidRules(ruleArg expreduceapi.Ex) (rules []expreduceapi.ExpressionInterface) {
+func getValidRules(
+	ruleArg expreduceapi.Ex,
+) (rules []expreduceapi.ExpressionInterface) {
 	rulesRule, ok := atoms.HeadAssertion(ruleArg, "System`Rule")
 	if !ok {
 		rulesRule, ok = atoms.HeadAssertion(ruleArg, "System`RuleDelayed")
@@ -19,9 +21,15 @@ func getValidRules(ruleArg expreduceapi.Ex) (rules []expreduceapi.ExpressionInte
 	asList, isList := atoms.HeadAssertion(ruleArg, "System`List")
 	if isList {
 		for i := 1; i < len(asList.GetParts()); i++ {
-			rulesRule, ok := atoms.HeadAssertion(asList.GetParts()[i], "System`Rule")
+			rulesRule, ok := atoms.HeadAssertion(
+				asList.GetParts()[i],
+				"System`Rule",
+			)
 			if !ok {
-				rulesRule, ok = atoms.HeadAssertion(asList.GetParts()[i], "System`RuleDelayed")
+				rulesRule, ok = atoms.HeadAssertion(
+					asList.GetParts()[i],
+					"System`RuleDelayed",
+				)
 			}
 			if ok {
 				rules = append(rules, rulesRule)
@@ -31,7 +39,11 @@ func getValidRules(ruleArg expreduceapi.Ex) (rules []expreduceapi.ExpressionInte
 	return
 }
 
-func rulesReplaceAll(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func rulesReplaceAll(
+	e expreduceapi.Ex,
+	rules []expreduceapi.ExpressionInterface,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.Ex {
 	// TODO: fix the case where ReplaceAll[{x},{x->y,y->z}] returns incorrectly.
 	toReturn := e
 	for _, rule := range rules {
@@ -40,7 +52,11 @@ func rulesReplaceAll(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface
 	return toReturn
 }
 
-func rulesReplace(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) (expreduceapi.Ex, bool) {
+func rulesReplace(
+	e expreduceapi.Ex,
+	rules []expreduceapi.ExpressionInterface,
+	es expreduceapi.EvalStateInterface,
+) (expreduceapi.Ex, bool) {
 	for _, rule := range rules {
 		res, replaced := replace(e, rule, es)
 		if replaced {
@@ -50,7 +66,12 @@ func rulesReplace(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, e
 	return e, false
 }
 
-func replaceParts(e expreduceapi.Ex, rules []expreduceapi.ExpressionInterface, part expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func replaceParts(
+	e expreduceapi.Ex,
+	rules []expreduceapi.ExpressionInterface,
+	part expreduceapi.ExpressionInterface,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.Ex {
 	expr, isExpr := e.(expreduceapi.ExpressionInterface)
 	if !isExpr {
 		return e
@@ -89,7 +110,15 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return toStringInfixAdvanced(this.GetParts()[1:], " /. ", "", true, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" /. ",
+				"",
+				true,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
@@ -126,7 +155,15 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return false, ""
 			}
-			return toStringInfixAdvanced(this.GetParts()[1:], " //. ", "", true, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" //. ",
+				"",
+				true,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
@@ -165,7 +202,15 @@ func getReplacementDefinitions() (defs []Definition) {
 			if params.Form == "TeXForm" {
 				delim = "\\to "
 			}
-			return toStringInfixAdvanced(this.GetParts()[1:], delim, "System`Rule", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				delim,
+				"System`Rule",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 	})
 	defs = append(defs, Definition{
@@ -178,7 +223,15 @@ func getReplacementDefinitions() (defs []Definition) {
 			if params.Form == "TeXForm" {
 				delim = ":\\to "
 			}
-			return toStringInfixAdvanced(this.GetParts()[1:], delim, "System`RuleDelayed", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				delim,
+				"System`RuleDelayed",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 	})
 	defs = append(defs, Definition{
@@ -187,7 +240,10 @@ func getReplacementDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
-			rules, isList := atoms.HeadAssertion(this.GetParts()[2], "System`List")
+			rules, isList := atoms.HeadAssertion(
+				this.GetParts()[2],
+				"System`List",
+			)
 			if !isList {
 				return this
 			}
@@ -199,7 +255,12 @@ func getReplacementDefinitions() (defs []Definition) {
 				}
 				exprRules = append(exprRules, rule)
 			}
-			return replaceParts(this.GetParts()[1], exprRules, atoms.E(atoms.S("List")), es)
+			return replaceParts(
+				this.GetParts()[1],
+				exprRules,
+				atoms.E(atoms.S("List")),
+				es,
+			)
 		},
 	})
 	return

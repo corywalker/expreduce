@@ -10,7 +10,10 @@ import (
 	"github.com/corywalker/mathbigext"
 )
 
-func bigMathFnOneParam(fn func(*big.Float) *big.Float, onlyPos bool) func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func bigMathFnOneParam(
+	fn func(*big.Float) *big.Float,
+	onlyPos bool,
+) func(expreduceapi.ExpressionInterface, expreduceapi.EvalStateInterface) expreduceapi.Ex {
 	return (func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 		if len(this.GetParts()) != 2 {
 			return this
@@ -124,38 +127,70 @@ func getPowerDefinitions() (defs []Definition) {
 		Default: "1",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
 			if this.Len() == 2 {
-				if atoms.IsSameQ(this.GetPart(2), atoms.NewRational(big.NewInt(1), big.NewInt(2))) {
+				if atoms.IsSameQ(
+					this.GetPart(2),
+					atoms.NewRational(big.NewInt(1), big.NewInt(2)),
+				) {
 					nextParams := params
 					nextParams.PreviousHead = "<TOPLEVEL>"
 					if params.Form == "TeXForm" {
-						return true, fmt.Sprintf("\\sqrt{%v}", this.GetPart(1).StringForm(nextParams))
+						return true, fmt.Sprintf(
+							"\\sqrt{%v}",
+							this.GetPart(1).StringForm(nextParams),
+						)
 					}
 					if params.Form == "InputForm" {
-						return true, fmt.Sprintf("Sqrt[%v]", this.GetPart(1).StringForm(nextParams))
+						return true, fmt.Sprintf(
+							"Sqrt[%v]",
+							this.GetPart(1).StringForm(nextParams),
+						)
 					}
 				}
-				if atoms.IsSameQ(this.GetPart(2), atoms.NewRational(big.NewInt(-1), big.NewInt(2))) {
+				if atoms.IsSameQ(
+					this.GetPart(2),
+					atoms.NewRational(big.NewInt(-1), big.NewInt(2)),
+				) {
 					nextParams := params
 					nextParams.PreviousHead = "<TOPLEVEL>"
 					if params.Form == "TeXForm" {
-						return true, fmt.Sprintf("\\frac{1}{\\sqrt{%v}}", this.GetPart(1).StringForm(nextParams))
+						return true, fmt.Sprintf(
+							"\\frac{1}{\\sqrt{%v}}",
+							this.GetPart(1).StringForm(nextParams),
+						)
 					}
 					if params.Form == "InputForm" {
-						return true, fmt.Sprintf("(1/Sqrt[%v])", this.GetPart(1).StringForm(nextParams))
+						return true, fmt.Sprintf(
+							"(1/Sqrt[%v])",
+							this.GetPart(1).StringForm(nextParams),
+						)
 					}
 				}
 				if atoms.IsSameQ(this.GetPart(2), atoms.NewInt(-1)) {
 					nextParams := params
 					nextParams.PreviousHead = "<TOPLEVEL>"
 					if params.Form == "TeXForm" {
-						return true, fmt.Sprintf("\\frac{1}{%v}", this.GetPart(1).StringForm(nextParams))
+						return true, fmt.Sprintf(
+							"\\frac{1}{%v}",
+							this.GetPart(1).StringForm(nextParams),
+						)
 					}
 					if params.Form == "InputForm" {
-						return true, fmt.Sprintf("(1/(%v))", this.GetPart(1).StringForm(nextParams))
+						return true, fmt.Sprintf(
+							"(1/(%v))",
+							this.GetPart(1).StringForm(nextParams),
+						)
 					}
 				}
 			}
-			return toStringInfixAdvanced(this.GetParts()[1:], "^", "System`Power", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				"^",
+				"System`Power",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
@@ -203,10 +238,17 @@ func getPowerDefinitions() (defs []Definition) {
 			if basePositivity == -1 && powerIsFlt {
 				if powerFlt.Val.Cmp(big.NewFloat(-1)) == 0 {
 					if baseIsInt {
-						return atoms.NewReal(mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val))
+						return atoms.NewReal(
+							mathbigext.Pow(
+								big.NewFloat(0).SetInt(baseInt.Val),
+								powerFlt.Val,
+							),
+						)
 					}
 					if baseIsFlt {
-						return atoms.NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
+						return atoms.NewReal(
+							mathbigext.Pow(baseFlt.Val, powerFlt.Val),
+						)
 					}
 				}
 				// TODO(corywalker): Optimize this logic. There should be no
@@ -300,10 +342,20 @@ func getPowerDefinitions() (defs []Definition) {
 			}
 
 			if baseIsFlt && powerIsInt {
-				return atoms.NewReal(mathbigext.Pow(baseFlt.Val, big.NewFloat(0).SetInt(powerInt.Val)))
+				return atoms.NewReal(
+					mathbigext.Pow(
+						baseFlt.Val,
+						big.NewFloat(0).SetInt(powerInt.Val),
+					),
+				)
 			}
 			if baseIsInt && powerIsFlt {
-				return atoms.NewReal(mathbigext.Pow(big.NewFloat(0).SetInt(baseInt.Val), powerFlt.Val))
+				return atoms.NewReal(
+					mathbigext.Pow(
+						big.NewFloat(0).SetInt(baseInt.Val),
+						powerFlt.Val,
+					),
+				)
 			}
 			if baseIsFlt && powerIsFlt {
 				return atoms.NewReal(mathbigext.Pow(baseFlt.Val, powerFlt.Val))
@@ -322,7 +374,11 @@ func getPowerDefinitions() (defs []Definition) {
 						if m.Cmp(big.NewInt(1)) == 0 {
 							return atoms.NewInteger(root)
 						}
-						return atoms.E(atoms.S("Power"), atoms.NewInteger(root), atoms.NewInteger(m))
+						return atoms.E(
+							atoms.S("Power"),
+							atoms.NewInteger(root),
+							atoms.NewInteger(m),
+						)
 					}
 					powerExtracted := extractPower(x, powerRat)
 					if powerExtracted != nil {

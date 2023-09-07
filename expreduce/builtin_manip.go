@@ -5,7 +5,11 @@ import (
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
 )
 
-func distribute(e expreduceapi.ExpressionInterface, built expreduceapi.ExpressionInterface, res expreduceapi.ExpressionInterface) {
+func distribute(
+	e expreduceapi.ExpressionInterface,
+	built expreduceapi.ExpressionInterface,
+	res expreduceapi.ExpressionInterface,
+) {
 	i := len(built.GetParts())
 	if i >= len(e.GetParts()) {
 		res.AppendEx(built)
@@ -51,7 +55,9 @@ func getManipDefinitions() (defs []Definition) {
 				return this.GetParts()[1]
 			}
 			res := atoms.NewExpression([]expreduceapi.Ex{this.GetParts()[2]})
-			firstBuilt := atoms.NewExpression([]expreduceapi.Ex{expr.GetParts()[0]})
+			firstBuilt := atoms.NewExpression(
+				[]expreduceapi.Ex{expr.GetParts()[0]},
+			)
 			distribute(expr, firstBuilt, res)
 			return res
 		},

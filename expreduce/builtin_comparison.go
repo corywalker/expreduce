@@ -14,7 +14,11 @@ const (
 	minFn
 )
 
-func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+func extremaFunction(
+	this expreduceapi.ExpressionInterface,
+	fnType extremaFnType,
+	es expreduceapi.EvalStateInterface,
+) expreduceapi.Ex {
 	// Flatten nested lists into arguments.
 	origHead := this.GetParts()[0]
 	this.GetParts()[0] = atoms.S("List")
@@ -31,7 +35,11 @@ func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType
 
 	if len(this.GetParts()) == 1 {
 		if fnType == maxFn {
-			return atoms.E(atoms.S("Times"), atoms.NewInt(-1), atoms.S("Infinity"))
+			return atoms.E(
+				atoms.S("Times"),
+				atoms.NewInt(-1),
+				atoms.S("Infinity"),
+			)
 		}
 		return atoms.S("Infinity")
 	}
@@ -46,12 +54,18 @@ func extremaFunction(this expreduceapi.ExpressionInterface, fnType extremaFnType
 	}
 	if fnType == maxFn {
 		i--
-		return atoms.NewExpression(append([]expreduceapi.Ex{this.GetParts()[0]}, this.GetParts()[i:]...))
+		return atoms.NewExpression(
+			append(
+				[]expreduceapi.Ex{this.GetParts()[0]},
+				this.GetParts()[i:]...),
+		)
 	}
 	if i == 1 {
 		return this
 	}
-	return atoms.NewExpression(append(this.GetParts()[:2], this.GetParts()[i:]...))
+	return atoms.NewExpression(
+		append(this.GetParts()[:2], this.GetParts()[i:]...),
+	)
 }
 
 func getCompSign(e expreduceapi.Ex) int {
@@ -78,7 +92,15 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Equal",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfixAdvanced(this.GetParts()[1:], " == ", "System`Equal", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" == ",
+				"System`Equal",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) < 1 {
@@ -102,7 +124,15 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Unequal",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfixAdvanced(this.GetParts()[1:], " != ", "System`Unequal", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" != ",
+				"System`Unequal",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
@@ -118,13 +148,26 @@ func getComparisonDefinitions() (defs []Definition) {
 				return atoms.NewSymbol("System`True")
 			}
 
-			return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Error"), atoms.NewString("Unexpected equality return value.")})
+			return atoms.NewExpression(
+				[]expreduceapi.Ex{
+					atoms.NewSymbol("System`Error"),
+					atoms.NewString("Unexpected equality return value."),
+				},
+			)
 		},
 	})
 	defs = append(defs, Definition{
 		Name: "SameQ",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfixAdvanced(this.GetParts()[1:], " === ", "System`SameQ", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" === ",
+				"System`SameQ",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) < 1 {
@@ -133,7 +176,8 @@ func getComparisonDefinitions() (defs []Definition) {
 
 			issame := true
 			for i := 2; i < len(this.GetParts()); i++ {
-				issame = issame && atoms.IsSameQ(this.GetParts()[1], this.GetParts()[i])
+				issame = issame &&
+					atoms.IsSameQ(this.GetParts()[1], this.GetParts()[i])
 			}
 			if issame {
 				return atoms.NewSymbol("System`True")
@@ -144,7 +188,15 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "UnsameQ",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfixAdvanced(this.GetParts()[1:], " =!= ", "System`UnsameQ", false, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" =!= ",
+				"System`UnsameQ",
+				false,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) < 1 {
@@ -185,15 +237,37 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Less",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfixAdvanced(this.GetParts()[1:], " < ", "", true, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" < ",
+				"",
+				true,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			a := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[1]}))
-			b := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[2]}))
+			a := es.Eval(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{
+						atoms.NewSymbol("System`N"),
+						this.GetParts()[1],
+					},
+				),
+			)
+			b := es.Eval(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{
+						atoms.NewSymbol("System`N"),
+						this.GetParts()[2],
+					},
+				),
+			)
 
 			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
 				return this
@@ -209,15 +283,37 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Greater",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfixAdvanced(this.GetParts()[1:], " > ", "", true, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" > ",
+				"",
+				true,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			a := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[1]}))
-			b := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[2]}))
+			a := es.Eval(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{
+						atoms.NewSymbol("System`N"),
+						this.GetParts()[1],
+					},
+				),
+			)
+			b := es.Eval(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{
+						atoms.NewSymbol("System`N"),
+						this.GetParts()[2],
+					},
+				),
+			)
 
 			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
 				return this
@@ -232,15 +328,37 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "LessEqual",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfixAdvanced(this.GetParts()[1:], " <= ", "", true, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" <= ",
+				"",
+				true,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			a := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[1]}))
-			b := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[2]}))
+			a := es.Eval(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{
+						atoms.NewSymbol("System`N"),
+						this.GetParts()[1],
+					},
+				),
+			)
+			b := es.Eval(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{
+						atoms.NewSymbol("System`N"),
+						this.GetParts()[2],
+					},
+				),
+			)
 
 			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
 				return this
@@ -259,15 +377,37 @@ func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "GreaterEqual",
 		toString: func(this expreduceapi.ExpressionInterface, params expreduceapi.ToStringParams) (bool, string) {
-			return toStringInfixAdvanced(this.GetParts()[1:], " >= ", "", true, "", "", params)
+			return toStringInfixAdvanced(
+				this.GetParts()[1:],
+				" >= ",
+				"",
+				true,
+				"",
+				"",
+				params,
+			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
 			if len(this.GetParts()) != 3 {
 				return this
 			}
 
-			a := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[1]}))
-			b := es.Eval(atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`N"), this.GetParts()[2]}))
+			a := es.Eval(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{
+						atoms.NewSymbol("System`N"),
+						this.GetParts()[1],
+					},
+				),
+			)
+			b := es.Eval(
+				atoms.NewExpression(
+					[]expreduceapi.Ex{
+						atoms.NewSymbol("System`N"),
+						this.GetParts()[2],
+					},
+				),
+			)
 
 			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
 				return this
@@ -350,13 +490,19 @@ func getComparisonDefinitions() (defs []Definition) {
 				op := this.GetParts()[2*i+2]
 				rhs := this.GetParts()[2*i+3]
 				for rhsI := 2*i + 3; rhsI < len(this.GetParts()); rhsI += 2 {
-					if falseQ(es.Eval(atoms.E(op, lhs, this.GetParts()[rhsI])), es.GetLogger()) {
+					if falseQ(
+						es.Eval(atoms.E(op, lhs, this.GetParts()[rhsI])),
+						es.GetLogger(),
+					) {
 						return atoms.S("False")
 					}
 				}
 				evalRes := es.Eval(atoms.E(op, lhs, rhs))
 				if !trueQ(evalRes, es.GetLogger()) {
-					if !atoms.IsSameQ(res.GetParts()[len(res.GetParts())-1], lhs) {
+					if !atoms.IsSameQ(
+						res.GetParts()[len(res.GetParts())-1],
+						lhs,
+					) {
 						res.AppendEx(lhs)
 					}
 					res.AppendEx(op)
@@ -367,7 +513,11 @@ func getComparisonDefinitions() (defs []Definition) {
 				return atoms.S("True")
 			}
 			if len(res.GetParts()) == 4 {
-				return atoms.E(res.GetParts()[2], res.GetParts()[1], res.GetParts()[3])
+				return atoms.E(
+					res.GetParts()[2],
+					res.GetParts()[1],
+					res.GetParts()[3],
+				)
 			}
 			return res
 		},

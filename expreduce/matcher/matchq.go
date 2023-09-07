@@ -38,7 +38,12 @@ var symSym = atoms.NewSymbol("System`Symbol")
 var ratSym = atoms.NewSymbol("System`Rational")
 var complexSym = atoms.NewSymbol("System`Complex")
 
-func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expreduceapi.EvalStateInterface) (MatchIter, bool) {
+func NewMatchIter(
+	a expreduceapi.Ex,
+	b expreduceapi.Ex,
+	pm *PDManager,
+	es expreduceapi.EvalStateInterface,
+) (MatchIter, bool) {
 	patternHead := ""
 	patExpr, patIsExpr := b.(expreduceapi.ExpressionInterface)
 	if patIsExpr {
@@ -166,11 +171,18 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 
 	// Special case for the operator form of Verbatim
 	forceOrdered := false
-	verbatimOp, opExpr, isVerbatimOp := atoms.OperatorAssertion(b, "System`Verbatim")
+	verbatimOp, opExpr, isVerbatimOp := atoms.OperatorAssertion(
+		b,
+		"System`Verbatim",
+	)
 	if aIsExpression && isVerbatimOp {
 		if len(opExpr.GetParts()) == 2 {
 			if atoms.IsSameQ(aExpression.GetParts()[0], opExpr.GetParts()[1]) {
-				b = atoms.NewExpression(append([]expreduceapi.Ex{opExpr.GetParts()[1]}, verbatimOp.GetParts()[1:]...))
+				b = atoms.NewExpression(
+					append(
+						[]expreduceapi.Ex{opExpr.GetParts()[1]},
+						verbatimOp.GetParts()[1:]...),
+				)
 				bExpression, bIsExpression = b.(expreduceapi.ExpressionInterface)
 				forceOrdered = true
 			}
@@ -196,7 +208,13 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 	}
 
 	if isBlankTypeOnly(b) {
-		ibtc, ibtcNewPDs := isBlankTypeCapturing(b, a, headEx, pm, es.GetLogger())
+		ibtc, ibtcNewPDs := isBlankTypeCapturing(
+			b,
+			a,
+			headEx,
+			pm,
+			es.GetLogger(),
+		)
 		if ibtc {
 			return &dummyMatchIter{ibtcNewPDs}, true
 		}
@@ -247,7 +265,9 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 			// sequence match.
 			assumingHead = true
 			aIsExpression = true
-			aExpression = atoms.NewExpression([]expreduceapi.Ex{bExpressionSym, a})
+			aExpression = atoms.NewExpression(
+				[]expreduceapi.Ex{bExpressionSym, a},
+			)
 		}
 		if aIsExpression {
 			aExpressionSym, aExpressionSymOk := aExpression.GetParts()[0].(*atoms.Symbol)
@@ -255,14 +275,17 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 				if aExpressionSym.Name != bExpressionSym.Name {
 					assumingHead = true
 					aIsExpression = true
-					aExpression = atoms.NewExpression([]expreduceapi.Ex{bExpressionSym, a})
+					aExpression = atoms.NewExpression(
+						[]expreduceapi.Ex{bExpressionSym, a},
+					)
 				}
 			}
 		}
 	}
 
 	if !assumingHead {
-		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational || aIsComplex {
+		if aIsFlt || aIsInteger || aIsString || aIsSymbol || aIsRational ||
+			aIsComplex {
 			if atoms.IsSameQ(a, b) {
 				return &dummyMatchIter{nil}, true
 			}
@@ -287,14 +310,27 @@ func NewMatchIter(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expred
 
 	isOrderless := attrs.Orderless && !forceOrdered
 	isFlat := attrs.Flat && !forceOrdered
-	nomi, ok := newSequenceMatchIter(aExpression.GetParts()[startI:], bExpression.GetParts()[startI:], isOrderless, isFlat, sequenceHead, pm, es)
+	nomi, ok := newSequenceMatchIter(
+		aExpression.GetParts()[startI:],
+		bExpression.GetParts()[startI:],
+		isOrderless,
+		isFlat,
+		sequenceHead,
+		pm,
+		es,
+	)
 	if !ok {
 		return nil, false
 	}
 	return nomi, true
 }
 
-func isMatchQRational(a *atoms.Rational, b expreduceapi.ExpressionInterface, pm *PDManager, es expreduceapi.EvalStateInterface) (bool, *PDManager) {
+func isMatchQRational(
+	a *atoms.Rational,
+	b expreduceapi.ExpressionInterface,
+	pm *PDManager,
+	es expreduceapi.EvalStateInterface,
+) (bool, *PDManager) {
 	return IsMatchQ(
 		atoms.NewExpression([]expreduceapi.Ex{
 			atoms.NewSymbol("System`Rational"),
@@ -305,7 +341,12 @@ func isMatchQRational(a *atoms.Rational, b expreduceapi.ExpressionInterface, pm 
 		b, pm, es)
 }
 
-func isMatchQComplex(a *atoms.Complex, b expreduceapi.ExpressionInterface, pm *PDManager, es expreduceapi.EvalStateInterface) (bool, *PDManager) {
+func isMatchQComplex(
+	a *atoms.Complex,
+	b expreduceapi.ExpressionInterface,
+	pm *PDManager,
+	es expreduceapi.EvalStateInterface,
+) (bool, *PDManager) {
 	return IsMatchQ(
 		atoms.NewExpression([]expreduceapi.Ex{
 			atoms.NewSymbol("System`Complex"),
@@ -334,7 +375,10 @@ type assignedMatchIter struct {
 	stack         []assignedIterState
 }
 
-func newAssignedMatchIter(assn [][]int, smi *sequenceMatchIter) assignedMatchIter {
+func newAssignedMatchIter(
+	assn [][]int,
+	smi *sequenceMatchIter,
+) assignedMatchIter {
 	ami := assignedMatchIter{}
 	ami.assn = assn
 	ami.components = smi.components
@@ -417,16 +461,44 @@ type sequenceMatchIter struct {
 	ami           assignedMatchIter
 }
 
-func newSequenceMatchIter(components []expreduceapi.Ex, lhsComponents []expreduceapi.Ex, isOrderless bool, isFlat bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (MatchIter, bool) {
+func newSequenceMatchIter(
+	components []expreduceapi.Ex,
+	lhsComponents []expreduceapi.Ex,
+	isOrderless bool,
+	isFlat bool,
+	sequenceHead string,
+	pm *PDManager,
+	es expreduceapi.EvalStateInterface,
+) (MatchIter, bool) {
 	headDefault := (atoms.NewSymbol(sequenceHead)).Default(es.GetDefinedMap())
 	fpComponents := make([]parsedForm, len(lhsComponents))
 	for i, comp := range lhsComponents {
-		fpComponents[i] = parseForm(comp, isFlat, sequenceHead, headDefault, es.GetLogger())
+		fpComponents[i] = parseForm(
+			comp,
+			isFlat,
+			sequenceHead,
+			headDefault,
+			es.GetLogger(),
+		)
 	}
-	return newSequenceMatchIterPreparsed(components, fpComponents, isOrderless, sequenceHead, pm, es)
+	return newSequenceMatchIterPreparsed(
+		components,
+		fpComponents,
+		isOrderless,
+		sequenceHead,
+		pm,
+		es,
+	)
 }
 
-func newSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhsComponents []parsedForm, isOrderless bool, sequenceHead string, pm *PDManager, es expreduceapi.EvalStateInterface) (MatchIter, bool) {
+func newSequenceMatchIterPreparsed(
+	components []expreduceapi.Ex,
+	lhsComponents []parsedForm,
+	isOrderless bool,
+	sequenceHead string,
+	pm *PDManager,
+	es expreduceapi.EvalStateInterface,
+) (MatchIter, bool) {
 	nomi := &sequenceMatchIter{}
 	nomi.components = components
 	nomi.lhsComponents = lhsComponents
@@ -462,7 +534,12 @@ func newSequenceMatchIterPreparsed(components []expreduceapi.Ex, lhsComponents [
 		es.SetFrozen(origFrozen)
 	}
 
-	nomi.ai = newAssnIter(len(components), lhsComponents, formMatches, isOrderless)
+	nomi.ai = newAssnIter(
+		len(components),
+		lhsComponents,
+		formMatches,
+		isOrderless,
+	)
 
 	return nomi, true
 }
@@ -500,7 +577,12 @@ func getMatchQ(mi MatchIter, cont bool, pm *PDManager) (bool, *PDManager) {
 // IsMatchQ returns if an Ex `a` matches a pattern Ex `b`. If the expression
 // matches the pattern and if the pattern has any named patterns, those matching
 // values will be added to `pm`.
-func IsMatchQ(a expreduceapi.Ex, b expreduceapi.Ex, pm *PDManager, es expreduceapi.EvalStateInterface) (bool, *PDManager) {
+func IsMatchQ(
+	a expreduceapi.Ex,
+	b expreduceapi.Ex,
+	pm *PDManager,
+	es expreduceapi.EvalStateInterface,
+) (bool, *PDManager) {
 	mi, cont := NewMatchIter(a, b, pm, es)
 	return getMatchQ(mi, cont, pm)
 }

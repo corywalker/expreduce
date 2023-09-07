@@ -20,7 +20,12 @@ func calcDepth(ex expreduceapi.Ex) int {
 	return theMax + 1
 }
 
-func flattenExpr(src expreduceapi.ExpressionInterface, dst expreduceapi.ExpressionInterface, level int64, cl expreduceapi.LoggingInterface) {
+func flattenExpr(
+	src expreduceapi.ExpressionInterface,
+	dst expreduceapi.ExpressionInterface,
+	level int64,
+	cl expreduceapi.LoggingInterface,
+) {
 	continueFlatten := level > 0
 	for i := 1; i < len(src.GetParts()); i++ {
 		expr, isExpr := src.GetParts()[i].(expreduceapi.ExpressionInterface)
@@ -119,7 +124,9 @@ func getExpressionDefinitions() (defs []Definition) {
 			if len(this.GetParts()) != 2 {
 				return this
 			}
-			return atoms.NewInteger(big.NewInt(int64(calcDepth(this.GetParts()[1]))))
+			return atoms.NewInteger(
+				big.NewInt(int64(calcDepth(this.GetParts()[1]))),
+			)
 		},
 	})
 	defs = append(defs, Definition{
@@ -131,7 +138,9 @@ func getExpressionDefinitions() (defs []Definition) {
 
 			expr, isExpr := this.GetParts()[1].(expreduceapi.ExpressionInterface)
 			if isExpr {
-				return atoms.NewInteger(big.NewInt(int64(len(expr.GetParts()) - 1)))
+				return atoms.NewInteger(
+					big.NewInt(int64(len(expr.GetParts()) - 1)),
+				)
 			}
 			return atoms.NewInteger(big.NewInt(0))
 		},

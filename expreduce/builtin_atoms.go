@@ -38,8 +38,11 @@ func getAtomsDefinitions() (defs []Definition) {
 					return false
 				}
 			}
-			if validComplexType(this.GetParts()[1]) && validComplexType(this.GetParts()[2]) {
-				return es.Eval(atoms.NewComplex(this.GetParts()[1], this.GetParts()[2]))
+			if validComplexType(this.GetParts()[1]) &&
+				validComplexType(this.GetParts()[2]) {
+				return es.Eval(
+					atoms.NewComplex(this.GetParts()[1], this.GetParts()[2]),
+				)
 			}
 			return this
 		},

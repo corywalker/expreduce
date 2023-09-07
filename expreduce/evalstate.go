@@ -43,7 +43,9 @@ func (es *EvalState) SetDefined(name string, def expreduceapi.Def) {
 	es.GetDefinedMap().Set(name, def)
 }
 
-func (es *EvalState) GetStringFn(headStr string) (expreduceapi.ToStringFnType, bool) {
+func (es *EvalState) GetStringFn(
+	headStr string,
+) (expreduceapi.ToStringFnType, bool) {
 	fn, ok := es.toStringFns[headStr]
 	return fn, ok
 }
@@ -96,10 +98,13 @@ func (es *EvalState) Init(loadAllDefs bool) {
 	// These are fundamental symbols that affect even the parsing of
 	// expressions. We must define them before even the bootstrap definitions.
 	es.Define(atoms.NewSymbol("System`$Context"), atoms.NewString("System`"))
-	es.Define(atoms.NewSymbol("System`$ContextPath"), atoms.NewExpression([]expreduceapi.Ex{
-		atoms.NewSymbol("System`List"),
-		atoms.NewString("System`"),
-	}))
+	es.Define(
+		atoms.NewSymbol("System`$ContextPath"),
+		atoms.NewExpression([]expreduceapi.Ex{
+			atoms.NewSymbol("System`List"),
+			atoms.NewString("System`"),
+		}),
+	)
 	es.timeCounter.Init()
 
 	es.NoInit = !loadAllDefs
@@ -293,7 +298,10 @@ func (es *EvalState) IsDef(name string) bool {
 	return isd
 }
 
-func (es *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, bool, expreduceapi.ExpressionInterface) {
+func (es *EvalState) GetDef(
+	name string,
+	lhs expreduceapi.Ex,
+) (expreduceapi.Ex, bool, expreduceapi.ExpressionInterface) {
 	if !es.IsDef(name) {
 		return nil, false, nil
 	}
@@ -328,8 +336,16 @@ func (es *EvalState) GetDef(name string, lhs expreduceapi.Ex) (expreduceapi.Ex, 
 
 		if es.IsProfiling() {
 			elapsed := float64(time.Now().UnixNano()-started) / 1000000000
-			es.timeCounter.AddTime(timecounter.CounterGroupDefTime, defStr, elapsed)
-			es.timeCounter.AddTime(timecounter.CounterGroupLHSDefTime, lhsDefStr, elapsed)
+			es.timeCounter.AddTime(
+				timecounter.CounterGroupDefTime,
+				defStr,
+				elapsed,
+			)
+			es.timeCounter.AddTime(
+				timecounter.CounterGroupLHSDefTime,
+				lhsDefStr,
+				elapsed,
+			)
 		}
 
 		if replaced {
@@ -408,7 +424,12 @@ func (es *EvalState) MarkSeen(name string) {
 
 // Attempts to compute a specificity metric for a rule. Higher specificity rules
 // should be tried first.
-func ruleSpecificity(lhs expreduceapi.Ex, rhs expreduceapi.Ex, name string, es *EvalState) int {
+func ruleSpecificity(
+	lhs expreduceapi.Ex,
+	rhs expreduceapi.Ex,
+	name string,
+	es *EvalState,
+) int {
 	if name == "Rubi`Int" {
 		return 100
 	}
@@ -481,7 +502,10 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 				return
 			}
 		}
-		_, opExpr, isVerbatimOp := atoms.OperatorAssertion(lhs, "System`Verbatim")
+		_, opExpr, isVerbatimOp := atoms.OperatorAssertion(
+			lhs,
+			"System`Verbatim",
+		)
 		if isVerbatimOp {
 			opSym, opIsSym := opExpr.GetParts()[1].(*atoms.Symbol)
 			if opIsSym {
@@ -540,7 +564,9 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 			)
 		}
 		if dv.Specificity < newSpecificity {
-			newRule := atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLHS, rhs})
+			newRule := atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLHS, rhs},
+			)
 			tmp.Downvalues = append(
 				tmp.Downvalues[:i],
 				append(
@@ -555,7 +581,14 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 			return
 		}
 	}
-	tmp.Downvalues = append(tmp.Downvalues, expreduceapi.DownValue{Rule: atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLHS, rhs})})
+	tmp.Downvalues = append(
+		tmp.Downvalues,
+		expreduceapi.DownValue{
+			Rule: atoms.NewExpression(
+				[]expreduceapi.Ex{atoms.NewSymbol("System`Rule"), heldLHS, rhs},
+			),
+		},
+	)
 	es.defined.Set(name, tmp)
 }
 
@@ -612,11 +645,15 @@ func (es *EvalState) GetListDef(name string) expreduceapi.ExpressionInterface {
 	nameSym := atoms.NewSymbol(name)
 	def, isDef, _ := es.GetDef(name, nameSym)
 	if !isDef {
-		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+		return atoms.NewExpression(
+			[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+		)
 	}
 	defList, defIsList := atoms.HeadAssertion(def, "System`List")
 	if !defIsList {
-		return atoms.NewExpression([]expreduceapi.Ex{atoms.NewSymbol("System`List")})
+		return atoms.NewExpression(
+			[]expreduceapi.Ex{atoms.NewSymbol("System`List")},
+		)
 	}
 	return defList
 }
@@ -653,10 +690,16 @@ func (es *EvalState) GetTimeCounter() *timecounter.Group {
 	return &es.timeCounter
 }
 
-func (es *EvalState) ProcessTopLevelResult(in expreduceapi.Ex, out expreduceapi.Ex) expreduceapi.Ex {
+func (es *EvalState) ProcessTopLevelResult(
+	in expreduceapi.Ex,
+	out expreduceapi.Ex,
+) expreduceapi.Ex {
 	theRes := out
 	if es.HasThrown() {
-		fmt.Printf("Throw::nocatch: %v returned to top level but uncaught.\n\n", es.thrown)
+		fmt.Printf(
+			"Throw::nocatch: %v returned to top level but uncaught.\n\n",
+			es.thrown,
+		)
 		theRes = atoms.NewExpression([]expreduceapi.Ex{
 			atoms.NewSymbol("System`Hold"),
 			es.thrown,
@@ -668,7 +711,9 @@ func (es *EvalState) ProcessTopLevelResult(in expreduceapi.Ex, out expreduceapi.
 		es.interrupted = false
 	}
 	thisLine, _ := es.GetSymDef("System`$Line")
-	es.Eval(atoms.E(atoms.S("SetDelayed"), atoms.E(atoms.S("In"), thisLine), in))
+	es.Eval(
+		atoms.E(atoms.S("SetDelayed"), atoms.E(atoms.S("In"), thisLine), in),
+	)
 	es.Eval(atoms.E(atoms.S("Set"), atoms.E(atoms.S("Out"), thisLine), theRes))
 	prePrintFn, hasPrePrint := es.GetSymDef("System`$PrePrint")
 	if hasPrePrint {

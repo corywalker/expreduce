@@ -28,7 +28,9 @@ func main() {
 				continue
 			}
 			if def.Usage != "" {
-				b.WriteString(fmt.Sprintf("%s::usage = \"%v\";\n", def.Name, def.Usage))
+				b.WriteString(
+					fmt.Sprintf("%s::usage = \"%v\";\n", def.Name, def.Usage),
+				)
 				b.WriteString(fmt.Sprintf("Attributes[%v] = {", def.Name))
 				for _, a := range def.Attributes {
 					b.WriteString(fmt.Sprintf("%s, ", a))
@@ -55,14 +57,22 @@ func main() {
 					if len(testCol) > 0 {
 						//fmt.Println(testCol, testColNames[i])
 						if hasTests {
-							tests.WriteString(fmt.Sprintf(", %v[\n", testColNames[i]))
+							tests.WriteString(
+								fmt.Sprintf(", %v[\n", testColNames[i]),
+							)
 						} else {
 							tests.WriteString(fmt.Sprintf("%v[\n", testColNames[i]))
 						}
 						for ti, t := range testCol {
 							tests.WriteString("\t\t")
 							if tSame, tIsSame := t.(*expreduce.SameTest); tIsSame {
-								tests.WriteString(fmt.Sprintf("ESameTest[%v, %v]", tSame.Out, tSame.In))
+								tests.WriteString(
+									fmt.Sprintf(
+										"ESameTest[%v, %v]",
+										tSame.Out,
+										tSame.In,
+									),
+								)
 							} else if tComment, tIsComment := t.(*expreduce.TestComment); tIsComment {
 								tests.WriteString(fmt.Sprintf("EComment[\"%v\"]", tComment.Comment))
 							} else if tString, tIsString := t.(*expreduce.StringTest); tIsString {
@@ -91,6 +101,9 @@ func main() {
 				b.WriteString("\n")
 			}
 		}
-		fmt.Printf("%s\n", strings.TrimSpace(strings.Replace(b.String(), "\t", "    ", -1)))
+		fmt.Printf(
+			"%s\n",
+			strings.TrimSpace(strings.Replace(b.String(), "\t", "    ", -1)),
+		)
 	}
 }

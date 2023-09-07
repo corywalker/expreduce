@@ -34,7 +34,8 @@ func (ai *allocIter) next() bool {
 		// If we are on the last form, we can check directly if the last form
 		// can accomodate the remaining components.
 		if p.currForm+1 >= len(ai.forms) {
-			if (ai.forms[p.currForm].startI <= p.remaining) && (p.remaining <= ai.forms[p.currForm].endI) {
+			if (ai.forms[p.currForm].startI <= p.remaining) &&
+				(p.remaining <= ai.forms[p.currForm].endI) {
 				ai.stack = append(ai.stack, allocIterState{
 					p.currForm + 1, 0, p.remaining})
 			}
@@ -179,7 +180,12 @@ func (asi *assnIter) next() bool {
 	return false
 }
 
-func newAssnIter(l int, forms []parsedForm, formMatches [][]bool, orderless bool) assnIter {
+func newAssnIter(
+	l int,
+	forms []parsedForm,
+	formMatches [][]bool,
+	orderless bool,
+) assnIter {
 	asi := assnIter{}
 	asi.forms = forms
 	asi.assnData = make([]int, l)

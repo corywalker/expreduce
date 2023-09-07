@@ -94,7 +94,11 @@ func (tcg *Group) Init() {
 
 // AddTime adds a floating-point time to a particular timeCounter, selected with
 // a counterGroupType.
-func (tcg *Group) AddTime(counter counterGroupType, key string, elapsed float64) {
+func (tcg *Group) AddTime(
+	counter counterGroupType,
+	key string,
+	elapsed float64,
+) {
 	if counter == CounterGroupDefTime {
 		tcg.defTimeCounter.addTime(key, elapsed)
 	} else if counter == CounterGroupLHSDefTime {
