@@ -1,6 +1,7 @@
 package expreduce
 
 import (
+	"math"
 	"math/big"
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
@@ -164,15 +165,15 @@ func getNumberTheoryDefinitions() (defs []Definition) {
 			&SameTest{"3", "PrimePi[6.9]"},
 		},
 	})
-	/*defs = append(defs, Definition{
-		Name: "Prime",
-		Usage: "`Prime[n]` returns the `n`th prime number.",
+	defs = append(defs, Definition{
+		Name:       "Prime",
+		Usage:      "`Prime[n]` returns the `n`th prime number.",
 		Attributes: []string{"Listable"},
-		legacyEvalFn: func(this *Expression, es *EvalState) Ex {
-			if len(this.Parts) != 2 {
+		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
+			if len(this.GetParts()) != 2 {
 				return this
 			}
-			asInt, isInt := this.Parts[1].(*Integer)
+			asInt, isInt := this.GetParts()[1].(*atoms.Integer)
 			if !isInt {
 				return this
 			}
@@ -180,14 +181,19 @@ func getNumberTheoryDefinitions() (defs []Definition) {
 			if n <= 0 {
 				return this
 			}
-			p := prime.Primes(uint64(n))
-			//return &Integer{big.NewInt(0)}
-			// A hack to get this working would be to find an upper bound on
-			// the PrimePi funciton given an n value, and use that as the input
-			// to the Primes() function. Then I can directly select the nth
-			// value from the slice. See:
-			// https://math.stackexchange.com/questions/479798/estimating-the-upper-bound-of-prime-count-in-the-given-range
-			return &Integer{big.NewInt(int64(p[len(p)-1]))}
+			// (Solve[n*(Log[n]+Log[Log[n]])==2^63,n, Reals][[1,1,2]]//N//Floor)-1000
+			if n > 211642827166041848 {
+				// Large numbers are not supported yet due to lack of big integer support.
+				return this
+			}
+			floatN := float64(n)
+			// https://math.stackexchange.com/questions/1270814/bounds-for-n-th-prime
+			upperBound := floatN * (math.Log(floatN) + math.Log(math.Log(floatN)))
+			if n < 6 {
+				upperBound = 11
+			}
+			p := prime.Primes(uint64(upperBound) + 1)
+			return atoms.NewInteger(big.NewInt(int64(p[n-1])))
 		},
 		SimpleExamples: []TestInstruction{
 			&SameTest{"5", "Prime[3]"},
@@ -197,8 +203,10 @@ func getNumberTheoryDefinitions() (defs []Definition) {
 			&SameTest{"Prime[0]", "Prime[0]"},
 			&SameTest{"Prime[1.]", "Prime[1.]"},
 			&SameTest{"2", "Prime[1]"},
+			// Large numbers should remain unevaluated due to overflow risk.
+			&SameTest{"Prime", "Prime[2^64]//Head"},
 		},
-	})*/
+	})
 	defs = append(defs, Definition{Name: "EvenQ"})
 	defs = append(defs, Definition{Name: "OddQ"})
 	defs = append(defs, Definition{Name: "FactorInteger"})
