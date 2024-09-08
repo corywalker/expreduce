@@ -192,7 +192,15 @@ func getNumberTheoryDefinitions() (defs []Definition) {
 			if n < 6 {
 				upperBound = 11
 			}
-			p := prime.Primes(uint64(upperBound) + 1)
+			// There is a bug in prime.Primes where the csegPool uses a stale segSize when
+			// we call the function for increasing values. For example, prime.Primes(15)
+			// and prime.Primes(19) will trigger the issue. To bypass this issue, use the
+			// slower function that doesn't have the problem, in the future, we could
+			// consider fixing this.
+			// Lines with the bug:
+			// https://github.com/kavehmz/prime/blob/a94ad56341db886ae3346de1e6b341387c3c01d3/prime.go#L110-L112
+			// Reproduced the issue at: https://github.com/corywalker/prime/commit/efd80a4fe9efd7263b329006629855d6f73c1c2e
+			p := prime.SieveOfEratosthenes(uint64(upperBound) + 1)
 			return atoms.NewInteger(big.NewInt(int64(p[n-1])))
 		},
 		SimpleExamples: []TestInstruction{
