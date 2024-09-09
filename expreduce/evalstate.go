@@ -556,12 +556,14 @@ func (es *EvalState) Define(lhs expreduceapi.Ex, rhs expreduceapi.Ex) {
 	newSpecificity := ruleSpecificity(heldLHS, rhs, name, es)
 	for i, dv := range es.defined.GetDef(name).Downvalues {
 		if dv.Specificity == 0 {
+			es.defined.LockKey(name)
 			dv.Specificity = ruleSpecificity(
 				dv.Rule.GetParts()[1],
 				dv.Rule.GetParts()[2],
 				name,
 				es,
 			)
+			es.defined.UnlockKey(name)
 		}
 		if dv.Specificity < newSpecificity {
 			newRule := atoms.NewExpression(

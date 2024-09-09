@@ -614,6 +614,7 @@ func getListDefinitions() (defs []Definition) {
 			return applied
 		},
 	})
+	defs = append(defs, Definition{Name: "Take"})
 	defs = append(defs, Definition{Name: "Span"})
 	defs = append(defs, Definition{Name: "All"})
 	defs = append(defs, Definition{
