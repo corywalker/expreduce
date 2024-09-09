@@ -2239,6 +2239,25 @@ Tests`+"`"+`Part = {
     ]
 };
 
+Take::usage = "`+"`"+`Take[list, m]`+"`"+` returns the first `+"`"+`m`+"`"+` items of `+"`"+`list`+"`"+`.";
+Take[list_, m_] := If[m > 0, list[[1;;m]], list[[m;;-1]]];
+Take[list_, {m_, n_}] := list[[m;;n]];
+Take[list_, {m_, n_, o_}] := list[[m;;n;;o]];
+Attributes[Take] = {NHoldRest, Protected};
+Tests`+"`"+`Take = {
+    ESimpleExamples[
+        EComment["Return the first two items in a list:"],
+        ESameTest[{1, 2}, Take[{1, 2, 3, 4}, 2]],
+        EComment["Return a range from the middle of a list:"],
+        ESameTest[{2, 3, 4}, Take[{1, 2, 3, 4, 5}, {2, 4}]]
+    ], EKnownFailures[
+        (* Return the last 2 items in a list: *)
+        ESameTest[{3, 4}, Take[{1, 2, 3, 4}, -2]],
+        (* Take every other item: *)
+        ESameTest[{1, 3, 5}, Take[{1, 2, 3, 4, 5}, {1, -1, 2}]]
+    ]
+};
+
 Span::usage = "`+"`"+`start ;; end`+"`"+` represents an index span to select using Part.";
 Attributes[Span] = {Protected};
 Tests`+"`"+`Span = {
