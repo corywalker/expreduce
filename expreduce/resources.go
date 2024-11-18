@@ -55813,10 +55813,10 @@ Attributes[ArcTan] = {Listable, NumericFunction, Protected, ReadProtected};
 
 TrigExpand[Cos[2*a_]] := Cos[a]^2-Sin[a]^2;
 TrigExpand[Cos[a_]] := Cos[a];
-TrigExpand[a_] := (Print["Unsupported call to TrigExpand", a];a);
+TrigExpand[a_] := (Print["Unsupported call to TrigExpand[", a, "]"];a);
 Attributes[TrigExpand] = {Protected};
 
-TrigReduce[a_] := (Print["Unsupported call to TrigReduce", a];a);
+TrigReduce[a_] := (Print["Unsupported call to TrigReduce[", a, "]"];a);
 Attributes[TrigReduce] = {Protected};
 
 trigToExpInner[n_Integer] := n;
@@ -55824,7 +55824,7 @@ trigToExpInner[sym_Symbol] := sym;
 trigToExpInner[Cos[inner_]] := E^(-I inner//Expand)/2+E^(I inner//Expand)/2;
 trigToExpInner[Sin[inner_]] := 1/2 I E^(-I inner//Expand)-1/2 I E^(I inner//Expand);
 trigToExpInner[Tan[inner_]] := (I (E^(-I inner)-E^(I inner)))/(E^(-I inner)+E^(I inner));
-trigToExpInner[a_] := (Print["Unsupported call to TrigToExp", a];a);
+trigToExpInner[a_] := (Print["Unsupported call to TrigToExp[", a, "]"];a);
 TrigToExp[exp_] := Map[trigToExpInner, exp, {0, Infinity}]//Expand;
 Attributes[TrigToExp] = {Listable, Protected};
 Tests`+"`"+`TrigToExp = {
