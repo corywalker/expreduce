@@ -1206,8 +1206,14 @@ Tests`+"`"+`Less = {
         ESameTest[True, 1 < 2],
         ESameTest[True, 3 < 5.5],
         ESameTest[False, 5.5 < 3],
-        ESameTest[False, 3 < 3]
-    ]
+        ESameTest[False, 3 < 3],
+        ESameTest[True, 1 < 2 < 3],
+    ], ETests[
+        ESameTest[True, Less[2]],
+        ESameTest[False, 1<-1<a],
+    ], EKnownFailures[
+        ESameTest[False, 1<a<-1],
+    ],
 };
 
 Greater::usage = "`+"`"+`a > b`+"`"+` returns True if `+"`"+`a`+"`"+` is greater than `+"`"+`b`+"`"+`.";
@@ -1218,7 +1224,10 @@ Tests`+"`"+`Greater = {
         ESameTest[False, 1 > 2],
         ESameTest[False, 3 > 5.5],
         ESameTest[True, 5.5 > 3],
-        ESameTest[False, 3 > 3]
+        ESameTest[False, 3 > 3],
+        ESameTest[True, 3 > 2 > 1],
+    ], ETests[
+        ESameTest[True, Greater[2]],
     ]
 };
 
@@ -1234,7 +1243,10 @@ Tests`+"`"+`LessEqual = {
         ESameTest[True, 1 <= 2],
         ESameTest[True, 3 <= 5.5],
         ESameTest[False, 5.5 <= 3],
-        ESameTest[True, 3 <= 3]
+        ESameTest[True, 3 <= 3],
+        ESameTest[True, 1 <= 2 <= 3],
+    ], ETests[
+        ESameTest[True, LessEqual[2]],
     ]
 };
 
@@ -1246,7 +1258,10 @@ Tests`+"`"+`GreaterEqual = {
         ESameTest[False, 1 >= 2],
         ESameTest[False, 3 >= 5.5],
         ESameTest[True, 5.5 >= 3],
-        ESameTest[True, 3 >= 3]
+        ESameTest[True, 3 >= 3],
+        ESameTest[True, 3 >= 2 >= 2 >= 1],
+    ], ETests[
+        ESameTest[True, GreaterEqual[2]],
     ]
 };
 
