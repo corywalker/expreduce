@@ -88,6 +88,38 @@ func getCompSign(e expreduceapi.Ex) int {
 	return -2
 }
 
+func int64InSlice(target int64, list []int64) bool {
+	for _, v := range list {
+		if v == target {
+			return true
+		}
+	}
+	return false
+}
+
+func comparisonFn(expr expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface, expectedOrders []int64) expreduceapi.Ex {
+	var lastN expreduceapi.Ex = nil
+	for i := 1; i < len(expr.GetParts()); i++ {
+		currN := es.Eval(
+			atoms.NewExpression(
+				[]expreduceapi.Ex{
+					atoms.NewSymbol("System`N"),
+					expr.GetParts()[i],
+				},
+			),
+		)
+		if !atoms.NumberQ(currN) {
+			return expr
+		}
+		if lastN != nil && !int64InSlice(atoms.ExOrder(lastN, currN), expectedOrders) {
+			return atoms.NewSymbol("System`False")
+		}
+
+		lastN = currN
+	}
+	return atoms.NewSymbol("System`True")
+}
+
 func getComparisonDefinitions() (defs []Definition) {
 	defs = append(defs, Definition{
 		Name: "Equal",
@@ -248,36 +280,7 @@ func getComparisonDefinitions() (defs []Definition) {
 			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.GetParts()) != 3 {
-				return this
-			}
-
-			a := es.Eval(
-				atoms.NewExpression(
-					[]expreduceapi.Ex{
-						atoms.NewSymbol("System`N"),
-						this.GetParts()[1],
-					},
-				),
-			)
-			b := es.Eval(
-				atoms.NewExpression(
-					[]expreduceapi.Ex{
-						atoms.NewSymbol("System`N"),
-						this.GetParts()[2],
-					},
-				),
-			)
-
-			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
-				return this
-			}
-
-			// Less
-			if atoms.ExOrder(a, b) == 1 {
-				return atoms.NewSymbol("System`True")
-			}
-			return atoms.NewSymbol("System`False")
+			return comparisonFn(this, es, []int64{1})
 		},
 	})
 	defs = append(defs, Definition{
@@ -294,35 +297,7 @@ func getComparisonDefinitions() (defs []Definition) {
 			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.GetParts()) != 3 {
-				return this
-			}
-
-			a := es.Eval(
-				atoms.NewExpression(
-					[]expreduceapi.Ex{
-						atoms.NewSymbol("System`N"),
-						this.GetParts()[1],
-					},
-				),
-			)
-			b := es.Eval(
-				atoms.NewExpression(
-					[]expreduceapi.Ex{
-						atoms.NewSymbol("System`N"),
-						this.GetParts()[2],
-					},
-				),
-			)
-
-			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
-				return this
-			}
-			// Greater
-			if atoms.ExOrder(a, b) == -1 {
-				return atoms.NewSymbol("System`True")
-			}
-			return atoms.NewSymbol("System`False")
+			return comparisonFn(this, es, []int64{-1})
 		},
 	})
 	defs = append(defs, Definition{
@@ -339,39 +314,7 @@ func getComparisonDefinitions() (defs []Definition) {
 			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.GetParts()) != 3 {
-				return this
-			}
-
-			a := es.Eval(
-				atoms.NewExpression(
-					[]expreduceapi.Ex{
-						atoms.NewSymbol("System`N"),
-						this.GetParts()[1],
-					},
-				),
-			)
-			b := es.Eval(
-				atoms.NewExpression(
-					[]expreduceapi.Ex{
-						atoms.NewSymbol("System`N"),
-						this.GetParts()[2],
-					},
-				),
-			)
-
-			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
-				return this
-			}
-			// Less
-			if atoms.ExOrder(a, b) == 1 {
-				return atoms.NewSymbol("System`True")
-			}
-			// Equal
-			if atoms.ExOrder(a, b) == 0 {
-				return atoms.NewSymbol("System`True")
-			}
-			return atoms.NewSymbol("System`False")
+			return comparisonFn(this, es, []int64{1, 0})
 		},
 	})
 	defs = append(defs, Definition{
@@ -388,39 +331,7 @@ func getComparisonDefinitions() (defs []Definition) {
 			)
 		},
 		legacyEvalFn: func(this expreduceapi.ExpressionInterface, es expreduceapi.EvalStateInterface) expreduceapi.Ex {
-			if len(this.GetParts()) != 3 {
-				return this
-			}
-
-			a := es.Eval(
-				atoms.NewExpression(
-					[]expreduceapi.Ex{
-						atoms.NewSymbol("System`N"),
-						this.GetParts()[1],
-					},
-				),
-			)
-			b := es.Eval(
-				atoms.NewExpression(
-					[]expreduceapi.Ex{
-						atoms.NewSymbol("System`N"),
-						this.GetParts()[2],
-					},
-				),
-			)
-
-			if !atoms.NumberQ(a) || !atoms.NumberQ(b) {
-				return this
-			}
-			// Greater
-			if atoms.ExOrder(a, b) == -1 {
-				return atoms.NewSymbol("System`True")
-			}
-			// Equal
-			if atoms.ExOrder(a, b) == 0 {
-				return atoms.NewSymbol("System`True")
-			}
-			return atoms.NewSymbol("System`False")
+			return comparisonFn(this, es, []int64{-1, 0})
 		},
 	})
 	defs = append(defs, Definition{
