@@ -16,3 +16,9 @@ __debug_bin
 .idea/workspace.xml
 
 dist/
+
+venv/
+iwolfram/
+expreduce_for_jupyter
+.ipynb_checkpoints/
+*.ipynb
