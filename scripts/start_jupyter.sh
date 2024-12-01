@@ -21,18 +21,20 @@ source "$VENV_DIR/bin/activate"
 echo "Upgrading pip..."
 pip install --upgrade pip
 
+pip install nbclassic
+
 # Install Jupyter if not already installed
 if ! pip show jupyter > /dev/null 2>&1; then
   echo "Installing Jupyter..."
-  pip install https://github.com/jupyter/notebook/releases/download/v6.5.7/notebook-6.5.7-py3-none-any.whl
+  pip install notebook
 fi
 
 pip install setuptools
 
 pip install metakernel --upgrade
 
-# TODO(corywalker): Switch back to upstream once pull request is merged.
-[ -d "iwolfram" ] || git clone -b patch-1 https://github.com/corywalker/iwolfram.git
+# TODO(corywalker): Switch back to upstream once pull requests are merged.
+[ -d "iwolfram" ] || git clone https://github.com/corywalker/iwolfram.git
 cd iwolfram
 python setup.py install --mma-exec ../expreduce_for_jupyter
 
