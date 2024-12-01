@@ -122,6 +122,10 @@ func (es *EvalState) Init(loadAllDefs bool) {
 		es.MarkSeen("System`TeXForm")
 		es.MarkSeen("System`OutputForm")
 		es.MarkSeen("System`FullForm")
+		// Just a hack so that we can use
+		// https://github.com/mmatera/iwolfram/blob/76fae74c5f1d733f02be7d2cfe2617bc48c7111e/wolfram_kernel/init.m#L220
+		// easily. Not an actual symbol.
+		es.MarkSeen("System`ShowForm")
 		es.MarkSeen("System`TraditionalForm")
 		es.MarkSeen("System`StandardForm")
 

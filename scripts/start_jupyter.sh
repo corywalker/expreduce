@@ -30,9 +30,9 @@ fi
 pip install setuptools
 
 pip install metakernel --upgrade
-#pip install jupyter_contrib_nbextensions
 
-[ -d "iwolfram" ] || git clone https://github.com/mmatera/iwolfram.git
+# TODO(corywalker): Switch back to upstream once pull request is merged.
+[ -d "iwolfram" ] || git clone -b patch-1 https://github.com/corywalker/iwolfram.git
 cd iwolfram
 python setup.py install --mma-exec ../expreduce_for_jupyter
 
