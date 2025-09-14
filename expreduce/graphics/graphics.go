@@ -7,8 +7,8 @@ import (
 
 	"github.com/corywalker/expreduce/expreduce/atoms"
 	"github.com/corywalker/expreduce/pkg/expreduceapi"
-	chart "github.com/wcharczuk/go-chart"
-	"github.com/wcharczuk/go-chart/drawing"
+	chart "github.com/go-analyze/charts/chartdraw"
+	"github.com/go-analyze/charts/chartdraw/drawing"
 )
 
 func listToPoint(expr expreduceapi.Ex) (float64, float64, error) {
@@ -179,12 +179,6 @@ func Render(expr expreduceapi.Ex) (chart.Chart, error) {
 	graph := chart.Chart{
 		Width:  360,
 		Height: 220,
-		XAxis: chart.XAxis{
-			Style: chart.Style{Show: true},
-		},
-		YAxis: chart.YAxis{
-			Style: chart.Style{Show: true},
-		},
 	}
 
 	graphics, ok := atoms.HeadAssertion(expr, "System`Graphics")
@@ -202,7 +196,6 @@ func Render(expr expreduceapi.Ex) (chart.Chart, error) {
 	}
 
 	style := chart.Style{
-		Show:        true,
 		StrokeColor: drawing.ColorBlack,
 	}
 	err := renderPrimitive(&graph, graphics.GetPart(1), &style)
